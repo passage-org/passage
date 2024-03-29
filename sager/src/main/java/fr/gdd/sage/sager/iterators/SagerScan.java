@@ -31,14 +31,14 @@ import java.util.Objects;
 public class SagerScan implements Iterator<BindingId2Value> {
 
     final Long deadline;
-    final BackendIterator<NodeId, ?> wrapped;
+    protected final BackendIterator<NodeId, ?> wrapped;
     boolean first = true;
     final OpTriple op;
     BindingId2Value current;
     final Save2SPARQL saver;
-    JenaBackend backend;
+    final protected JenaBackend backend;
 
-    Tuple3<Var> vars;
+    final protected Tuple3<Var> vars;
 
     public SagerScan(ExecutionContext context, OpTriple op, Tuple<NodeId> spo, BackendIterator<NodeId, ?> wrapped) {
         this.deadline = context.getContext().getLong(SagerConstants.DEADLINE, Long.MAX_VALUE);
@@ -104,8 +104,7 @@ public class SagerScan implements Iterator<BindingId2Value> {
     }
 
     public Long offset() {
-        // TODO remove casts
-        return ((ProgressJenaIterator)((LazyIterator) this.wrapped).iterator).getOffset();
+        return getProgressJenaIterator().getOffset();
     }
 
     public Op asOpTriple() {
@@ -138,6 +137,11 @@ public class SagerScan implements Iterator<BindingId2Value> {
                         op.getTriple().getPredicate().isVariable() ? current.get(op.getTriple().getObject().getName()): // bounded variable
                                 op.getTriple().getObject());
         return new OpTriple(t);
+    }
+
+    protected ProgressJenaIterator getProgressJenaIterator() {
+        // TODO fix it, this is a bit ugly
+        return (ProgressJenaIterator)((LazyIterator) this.wrapped).iterator;
     }
 
 }

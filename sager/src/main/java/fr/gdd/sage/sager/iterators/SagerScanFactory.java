@@ -72,18 +72,52 @@ public class SagerScanFactory implements Iterator<BindingId2Value> {
         return instantiated.next().setParent(binding);
     }
 
-    private Tuple3<NodeId> substitute(Triple triple, BindingId2Value binding) {
+    protected Tuple3<NodeId> substitute(Triple triple, BindingId2Value binding) {
         return TupleFactory.create3(substitute(triple.getSubject(), binding),
                 substitute(triple.getPredicate(),binding),
                 substitute(triple.getObject(), binding));
     }
 
-    private NodeId substitute(Node sOrPOrO, BindingId2Value binding) {
+    protected NodeId substitute(Node sOrPOrO, BindingId2Value binding) {
         if (sOrPOrO.isVariable()) {
             NodeId id = binding.getId(Var.alloc(sOrPOrO), backend.getNodeTripleTable());
             return Objects.isNull(id) ? NodeId.NodeIdAny : id;
         } else {
             return backend.getId(sOrPOrO);
         }
+    }
+
+    /* ************************************************************ */
+
+    protected Iterator<BindingId2Value> getInstantiated() {
+        return instantiated;
+    }
+
+    protected Iterator<BindingId2Value> getInput() {
+        return input;
+    }
+
+    protected void setBinding(BindingId2Value binding) {
+        this.binding = binding;
+    }
+
+    protected BindingId2Value getBinding() {
+        return binding;
+    }
+
+    protected OpTriple getTriple() {
+        return triple;
+    }
+
+    protected void setInstantiated(Iterator<BindingId2Value> instantiated) {
+        this.instantiated = instantiated;
+    }
+
+    protected ExecutionContext getContext() {
+        return context;
+    }
+
+    protected JenaBackend getBackend() {
+        return backend;
     }
 }

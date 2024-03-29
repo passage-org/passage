@@ -3,6 +3,7 @@ package fr.gdd.sage.sager;
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.util.FmtUtils;
 import org.apache.jena.tdb2.store.NodeId;
 import org.apache.jena.tdb2.store.nodetable.NodeTable;
 
@@ -15,8 +16,6 @@ import java.util.function.BiConsumer;
  * parent's one easily.
  */
 public class BindingId2Value implements Iterable<Var>, Binding {
-
-
 
     public static class IdValueTable {
         NodeId id = null;
@@ -43,6 +42,7 @@ public class BindingId2Value implements Iterable<Var>, Binding {
 
         public Node getValue() { return Objects.isNull(value) ? table.getNodeForNodeId(id) : value; }
         public NodeId getId() { return Objects.isNull(id) ? table.getNodeIdForNode(value) : id; }
+        public NodeTable getTable() {return table;}
     }
 
     /* ************************************************************************** */
@@ -179,6 +179,50 @@ public class BindingId2Value implements Iterable<Var>, Binding {
             return parent.isEmpty();
         }
         return false;
+    }
+
+    @Override
+    public String toString() {
+        // comes from BindingBase
+        StringBuffer sbuff = new StringBuffer();
+        format1(sbuff);
+
+        if ( parent != null ) {
+            String tmp = parent.toString();
+            if ( tmp != null && (tmp.length() != 0) ) {
+                sbuff.append(" -> ");
+                sbuff.append(tmp);
+            }
+        }
+        return sbuff.toString();
+    }
+
+
+    protected void fmtVar(StringBuffer sbuff, Var var) {
+        // comes from BindingBase
+        Node node = get(var);
+        String tmp = FmtUtils.stringForObject(node);
+        sbuff.append("( ?" + var.getVarName() + " = " + tmp + " )");
+    }
+
+
+    // Do one level of binding
+    public void format1(StringBuffer sbuff) {
+        // comes from BindingBase
+        if ( isEmpty() ) {
+            sbuff.append("()");
+            return;
+        }
+
+        String sep = "";
+        for ( Iterator<Var> iter = getVars().iterator() ; iter.hasNext() ; ) {
+            Object obj = iter.next();
+            Var var = (Var)obj;
+
+            sbuff.append(sep);
+            sep = " ";
+            fmtVar(sbuff, var);
+        }
     }
 
 }
