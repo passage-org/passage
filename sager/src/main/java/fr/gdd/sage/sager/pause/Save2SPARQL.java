@@ -142,4 +142,7 @@ public class Save2SPARQL extends ReturningOpVisitor<Op> {
         };
     }
 
+    public HashMapWithPtrs<Op, Iterator<BindingId2Value>> getOp2it() {
+        return op2it;
+    }
 }

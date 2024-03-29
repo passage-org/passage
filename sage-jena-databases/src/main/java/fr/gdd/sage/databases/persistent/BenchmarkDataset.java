@@ -240,11 +240,11 @@ public class BenchmarkDataset {
         Dataset dataset = TDB2Factory.connectDataset(dbPath.toString());
 
         for (String whitelisted : whitelist) {
-            Path entryExtractPath = Paths.get(extractedPath.toString(), whitelisted);
+            Path entryExtractPath = extractedPath.resolve(whitelisted);
             // (TODO) model: default or union ?
             DataLoader loader = LoaderFactory.parallelLoader(dataset.asDatasetGraph(), LoaderOps.outputToLog());
             loader.startBulk();
-            loader.load(entryExtractPath.toString());
+            loader.load(entryExtractPath.toAbsolutePath().toString());
             loader.finishBulk();
         }
         log.info("Done ingesting…");

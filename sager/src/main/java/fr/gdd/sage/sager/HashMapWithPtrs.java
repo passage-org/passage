@@ -3,6 +3,7 @@ package fr.gdd.sage.sager;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +27,8 @@ public class HashMapWithPtrs<F, T> {
         if (values.stream().filter(p -> p.getLeft() == key).toList().isEmpty()) {
             values.add(new ImmutablePair<>(key, val));
             ++size;
+        } else {
+            map.put(key, new ArrayList<>(values.stream().map(p -> p.getLeft() == key ? new ImmutablePair<>(key, val) : p).toList()));
         }
 
         return this;
