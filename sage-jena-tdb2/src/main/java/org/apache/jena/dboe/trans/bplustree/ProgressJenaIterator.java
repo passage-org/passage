@@ -52,18 +52,19 @@ public class ProgressJenaIterator {
         this.cardinality = 0.;
     }
 
-    public boolean isNullIterator() {return !Objects.isNull(this.cardinality) && this.cardinality == 0. && Objects.isNull(this.ptir);}
+    public boolean isNullIterator() {return !Objects.isNull(this.cardinality) && this.cardinality == 0.;}
 
     /**
      * Singleton iterator. Cardinality is one. More efficient to handle such a specific case.
      */
-    public ProgressJenaIterator(Record record) {
+    public ProgressJenaIterator(PreemptTupleIndexRecord ptir, Record record) {
         this.cardinality = 1.;
         this.minRecord = record;
         this.maxRecord = record;
+        this.ptir = ptir;
     }
 
-    public boolean isSingletonIterator() {return !Objects.isNull(this.cardinality) && this.cardinality == 1. && Objects.isNull(this.ptir);}
+    public boolean isSingletonIterator() {return !Objects.isNull(this.cardinality) && this.cardinality == 1.;}
 
     public void next() {
         this.offset += 1;
@@ -188,7 +189,8 @@ public class ProgressJenaIterator {
             // ends up in a boundary leaf (either min or max) that do not have any element
             Pair<Record, Double> retry = this.randomWalkWJ(minPath,maxPath); // we try again.
             // retry.setValue(retry.getRight() * proba); // proba is updated (BUT since it's immutable, we create new one)
-            return new ImmutablePair<>(retry.getLeft(), retry.getRight()*proba);
+            // return new ImmutablePair<>(retry.getLeft(), retry.getRight()*proba);
+            return retry;
         }
         // otherwise, the page has element(s), randomize in it.
 
@@ -250,7 +252,9 @@ public class ProgressJenaIterator {
      * @return An estimated cardinality.
      */
     public double cardinality(Integer... sample) {
-        if (isNullIterator() || isSingletonIterator()) return this.cardinality;
+        if (Objects.nonNull(this.cardinality)) {
+            return cardinality; // already processed, lazy return. Or singleton or null.
+        }
 
         // number of random walks to estimate cardinalities in between boundaries.
         int nbWalks = Objects.isNull(sample) || sample.length == 0 ? NB_WALKS : sample[0];
@@ -259,10 +263,6 @@ public class ProgressJenaIterator {
             // MAX_VALUE goes for counting since it's the most costly, at least we want exact cardinality
             // return count();
             return getTreeOfCardinality().sum; // slightly more efficient
-        }
-
-        if (Objects.nonNull(this.cardinality)) {
-            return cardinality; // already processed, lazy return.
         }
 
         AccessPath minPath = new AccessPath(null);

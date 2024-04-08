@@ -72,7 +72,7 @@ public class PreemptJenaIterator extends ProgressJenaIterator implements Backend
      * needed for `previous()`/`current()` and `skip(to)` as well.
      */
     public PreemptJenaIterator(PreemptTupleIndexRecord ptir, Tuple<NodeId> pattern, Record record) {
-        super(record);
+        super(ptir, record);
         this.tree = ptir.bpt;
         this.mapper = ptir.getRecordMapper();
         this.recordFactory = ptir.recordFactory;
