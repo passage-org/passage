@@ -1,18 +1,20 @@
 package org.apache.jena.dboe.trans.bplustree;
 
+import fr.gdd.sage.interfaces.SPOC;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.atlas.lib.tuple.Tuple;
+import org.apache.jena.atlas.lib.tuple.TupleFactory;
 import org.apache.jena.dboe.base.buffer.RecordBuffer;
 import org.apache.jena.dboe.base.record.Record;
 import org.apache.jena.dboe.trans.bplustree.AccessPath.AccessStep;
 import org.apache.jena.tdb2.lib.TupleLib;
 import org.apache.jena.tdb2.store.NodeId;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
+import java.util.Random;
 
 /**
  * An iterator that allows measuring the estimated progress of execution, i.e.,
@@ -21,7 +23,7 @@ import java.util.*;
 public class ProgressJenaIterator {
 
     public static Random rng = new Random(12); // random seed is accessible
-    private static Pair<Record, Double> NOTFOUND = new ImmutablePair<>(null, 0.);
+    private final static Pair<Record, Double> NOTFOUND = new ImmutablePair<>(null, 0.);
 
     /**
      * Number of walks to approximate how filled bptree's records are.
@@ -187,10 +189,9 @@ public class ProgressJenaIterator {
             return NOTFOUND;
         } else if (idxMin == idxMax) {
             // ends up in a boundary leaf (either min or max) that do not have any element
-            Pair<Record, Double> retry = this.randomWalkWJ(minPath,maxPath); // we try again.
+            return this.randomWalkWJ(minPath,maxPath); // we try again.
             // retry.setValue(retry.getRight() * proba); // proba is updated (BUT since it's immutable, we create new one)
             // return new ImmutablePair<>(retry.getLeft(), retry.getRight()*proba);
-            return retry;
         }
         // otherwise, the page has element(s), randomize in it.
 
@@ -212,7 +213,7 @@ public class ProgressJenaIterator {
      */
     public Tuple<NodeId> getRandomSPO() {
         Record randomRecord = this.getRandom();
-        return Objects.isNull(randomRecord) ? null : TupleLib.tuple(this.getRandom(), this.ptir.tupleMap);
+        return Objects.isNull(randomRecord) ? null : getSPO(randomRecord);
     }
 
     /**
@@ -224,7 +225,7 @@ public class ProgressJenaIterator {
         if (rWp.equals(NOTFOUND)) {
             return new ImmutablePair<>(null, 0.);
         }
-        return new ImmutablePair<>(TupleLib.tuple(rWp.getLeft(), this.ptir.tupleMap), rWp.getRight());
+        return new ImmutablePair<>(getSPO(rWp.getLeft()), rWp.getRight());
     }
 
     /**
@@ -450,7 +451,7 @@ public class ProgressJenaIterator {
      */
     public Tuple<NodeId> getUniformRandomSPO() {
         Record randomRecord = this.getUniformRandom();
-        return Objects.isNull(randomRecord) ? null : TupleLib.tuple(this.getUniformRandom(), this.ptir.tupleMap);
+        return Objects.isNull(randomRecord) ? null : getSPO(randomRecord);
     }
 
     /**
@@ -460,9 +461,21 @@ public class ProgressJenaIterator {
     public Pair<Tuple<NodeId>, Double> getUniformRandomSPOWithProbability() {
         Pair<Record, Double> rWp = getUniformRandomWithProbability();
         if (rWp.equals(NOTFOUND)) {
-            return new ImmutablePair<>(null, rWp.getRight());
+            return new ImmutablePair<>(null, rWp.getRight()); // always proba = 0 ?
         }
-        return new ImmutablePair<>(TupleLib.tuple(rWp.getLeft(), this.ptir.tupleMap), rWp.getRight());
+        return new ImmutablePair<>(getSPO(rWp.getLeft()), rWp.getRight());
+    }
+
+    /**
+     * @param record The record to transform and reorder into SPO.
+     * @return A SPO pattern only, removing the graph part. Since the graph is put in first
+     * position, it forces us to create a new one, skipping the graph slot.
+     */
+    private Tuple<NodeId> getSPO(Record record) {
+        Tuple<NodeId> tuple = TupleLib.tuple(record, this.ptir.tupleMap);
+        return tuple.len() > 3 ?
+                TupleFactory.create3(tuple.get(SPOC.SUBJECT + 1), tuple.get(SPOC.PREDICATE + 1), tuple.get(SPOC.OBJECT + 1)) :
+                tuple;
     }
 
 }
