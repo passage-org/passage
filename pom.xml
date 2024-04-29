@@ -28,6 +28,7 @@
     <module>sage-commons</module>
     <module>sage-jena-databases</module>
     <module>sage-jena-tdb2</module>
+    <module>sage-blazegraph</module>
     <module>sage-jena-volcano</module>
     <module>sage-jena-module</module>
     <module>sager</module>

@@ -61,6 +61,7 @@ public class LazyIterator<ID, SKIP> implements BackendIterator<ID, SKIP>, Random
     public void next() {
         iterator.next();
 
+        // TODO only getId on call of getId, therefore getValue call getId in this.
         if (iterator.getId(SPOC.SUBJECT) != this.subject_id) {
             this.subject_has_changed = true;
             this.subject_id = iterator.getId(SPOC.SUBJECT);
