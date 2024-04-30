@@ -6,24 +6,31 @@ import com.bigdata.rdf.spo.ISPO;
 import com.bigdata.rdf.store.AbstractTripleStore;
 import com.bigdata.relation.accesspath.AccessPath;
 import com.bigdata.relation.accesspath.IAccessPath;
+import com.github.jsonldjava.utils.Obj;
 import fr.gdd.sage.interfaces.BackendIterator;
 import fr.gdd.sage.interfaces.SPOC;
 
-public class BlazegraphIterator implements BackendIterator<IV, byte[]>{
+import java.util.Objects;
+import java.util.Random;
+import java.util.random.RandomGenerator;
+
+public class BlazegraphIterator implements BackendIterator<IV, byte[]> {
+    public static RandomGenerator RNG = new Random(12);
+
     private ITupleIterator<?> tupleIterator;
     private byte[] currentKey = null;
     private byte[] previousKey = null;
-    private byte[] min;
-    private byte[] max;
+    private final byte[] min;
+    private final byte[] max;
     private ITuple<?> currentValue;
-    BlazegraphBackend blazegraphBackend;
     AbstractTripleStore store;
+    IAccessPath<ISPO> accessPath;
     IIndex iindex;
+    ISPO currentISPO = null;
 
-    public BlazegraphIterator(AbstractTripleStore store, BlazegraphBackend blazegraphBackend, IV s,IV p, IV o) {
+    public BlazegraphIterator(AbstractTripleStore store, IV s, IV p, IV o, IV c) {
         this.store = store;
-        this.blazegraphBackend = blazegraphBackend;
-        IAccessPath<ISPO> accessPath =  store.getAccessPath(s,p,o);
+        this.accessPath =  store.getAccessPath(s, p, o, c);
         this.iindex = accessPath.getIndex();
         IRangeQuery rangeQuery = iindex;
         AccessPath<ISPO> access = (AccessPath<ISPO>) accessPath;
@@ -37,43 +44,26 @@ public class BlazegraphIterator implements BackendIterator<IV, byte[]>{
     }
 
     public IV getId(int type) {
-        ISPO ispo = (ISPO) this.currentValue.getTupleSerializer().deserialize(this.currentValue);
-        //TermId<?> p = (TermId<?>) ispo.p();
-        switch (type) {
-            case SPOC.SUBJECT:
-                //return new TermId(VTE.URI,0);
-                // return blazegraphBackend.getId(store.asStatement(ispo).getSubject().toString(), 1);
-                return ispo.s();
-            case SPOC.PREDICATE:
-                //return new TermId(VTE.URI,0);
-                //return blazegraphBackend.getId(store.asStatement(ispo).getPredicate().toString(), 2);
-                return ispo.p();
-
-            case SPOC.OBJECT:
-                //return new TermId(VTE.LITERAL,0);
-                //return blazegraphBackend.getId(store.asStatement(ispo).getObject().toString(), 3);
-                return ispo.o();
-            case SPOC.CONTEXT:
-                //return new TermId(VTE.URI,0);
-                //return blazegraphBackend.getId(store.asStatement(ispo).getContext().toString(), 0);
-                return ispo.c();
+        if (Objects.isNull(currentISPO)) {
+            this.currentISPO = (ISPO) this.currentValue.getTupleSerializer().deserialize(this.currentValue);
         }
-        return null;
+        return switch (type) {
+            case SPOC.SUBJECT -> currentISPO.s();
+            case SPOC.PREDICATE -> currentISPO.p();
+            case SPOC.OBJECT -> currentISPO.o();
+            case SPOC.CONTEXT -> currentISPO.c();
+            default -> throw new UnsupportedOperationException("Unexpected type in getId.");
+        };
     }
+
     public boolean hasNext() {
-		/*if(this.tupleIterator.hasNext()) {
-			return true;
-		}*/
-        //à tester
-		/*if(currentValue == null) {
-			return false;
-		}*/
         return this.tupleIterator.hasNext();
     }
 
     public void next(){
         this.previousKey = this.currentKey;
         this.currentValue = tupleIterator.next();
+        this.currentISPO = null; // lazily processed
         this.currentKey = currentValue.getKey();
     }
 
@@ -81,13 +71,11 @@ public class BlazegraphIterator implements BackendIterator<IV, byte[]>{
         return this.previousKey;
     }
 
-    //il faudra sauvegarder la première clé pour y retourner en cas de besoin
     public void reset() {
         previousKey = null;
         currentKey = null;
-        tupleIterator = iindex.rangeIterator(min, null);
-        currentValue = tupleIterator.next();
-
+        tupleIterator = iindex.rangeIterator(min, max);
+        currentValue = null;
     }
 
     public void skip(byte[] to) {
@@ -98,37 +86,27 @@ public class BlazegraphIterator implements BackendIterator<IV, byte[]>{
         currentValue = this.tupleIterator.next();
     }
 
-    public void skip(Integer to) { // TODO TEST IT
-        this.tupleIterator = iindex.rangeIterator(min, max);
+    public void skip(long to) { // TODO TEST IT
+        long startFrom = Objects.isNull(min) ? 0L: iindex.rangeCount(null, min);
         if (to > 0) {
-            byte[] keyAt = ((AbstractBTree) this.tupleIterator).keyAt(to-1);
+            byte[] keyAt = ((AbstractBTree) iindex).keyAt(startFrom + to - 1);
             this.tupleIterator = iindex.rangeIterator(keyAt, max);
         }
         currentValue = this.tupleIterator.next();
     }
 
-    public byte[] getCurrentKey() {
-        return currentKey;
+    public long cardinality() {
+        return accessPath.rangeCount(false);
     }
 
-    public ITuple<?> getCurrentValue() {
-        return currentValue;
-    }
+    public ISPO random() {
+        long rn = RNG.nextLong(cardinality());
+        long startFrom = Objects.isNull(min) ? 0L: iindex.rangeCount(null, min);
+        byte[] keyAt = ((AbstractBTree) iindex).keyAt(startFrom + rn ); // TODO double check boundaries
+        ITupleIterator<?> iterator = iindex.rangeIterator(keyAt, max);
 
-    public ITupleIterator<?> getTupleIterator() {
-        return tupleIterator;
-    }
-
-    public byte[] getMin() {
-        return min;
-    }
-
-    public byte[] getMax() {
-        return max;
-    }
-
-    public void setPreviousKey(byte[] previousKey) {
-        this.previousKey = previousKey;
+        ITuple<?> val = iterator.next();
+        return (ISPO) val.getTupleSerializer().deserialize(val);
     }
 
 }

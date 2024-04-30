@@ -1,11 +1,9 @@
 package fr.gdd.sage.generics;
 
+import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.interfaces.BackendIterator;
 import fr.gdd.sage.interfaces.RandomIterator;
-import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.interfaces.SPOC;
-
-
 
 /**
  * An iterator that enable retrieving values from the dictionary. Once
@@ -15,7 +13,7 @@ import fr.gdd.sage.interfaces.SPOC;
 public class LazyIterator<ID, SKIP> implements BackendIterator<ID, SKIP>, RandomIterator {
 
     public BackendIterator<ID, SKIP> iterator;
-    private Backend<ID, SKIP> backend;
+    private final Backend<ID, SKIP> backend;
 
     private ID subject_id = null;
     private ID predicate_id = null;
@@ -39,17 +37,13 @@ public class LazyIterator<ID, SKIP> implements BackendIterator<ID, SKIP>, Random
 
     @Override
     public ID getId(final int code) {
-        switch (code) {
-        case SPOC.SUBJECT:
-            return this.subject_id;
-        case SPOC.PREDICATE:
-            return this.predicate_id;
-        case SPOC.OBJECT:
-            return this.object_id;
-        case SPOC.CONTEXT:
-            return this.context_id;
-        }
-        return null;
+        return switch (code) {
+            case SPOC.SUBJECT -> this.subject_id;
+            case SPOC.PREDICATE -> this.predicate_id;
+            case SPOC.OBJECT -> this.object_id;
+            case SPOC.CONTEXT -> this.context_id;
+            default -> null;
+        };
     }
 
     @Override
@@ -61,7 +55,6 @@ public class LazyIterator<ID, SKIP> implements BackendIterator<ID, SKIP>, Random
     public void next() {
         iterator.next();
 
-        // TODO only getId on call of getId, therefore getValue call getId in this.
         if (iterator.getId(SPOC.SUBJECT) != this.subject_id) {
             this.subject_has_changed = true;
             this.subject_id = iterator.getId(SPOC.SUBJECT);

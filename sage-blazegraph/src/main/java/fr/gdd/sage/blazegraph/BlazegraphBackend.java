@@ -20,6 +20,7 @@ import org.openrdf.query.*;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.sail.SailException;
 
+import java.util.Objects;
 import java.util.Properties;
 
 public class BlazegraphBackend implements Backend<IV, byte[]> {
@@ -56,7 +57,8 @@ public class BlazegraphBackend implements Backend<IV, byte[]> {
     @Override
     public BackendIterator<IV, byte[]> search(IV s, IV p, IV o, IV... c) {
         // TODO handle c
-        return new LazyIterator<>(this,new BlazegraphIterator(store,this, s, p, o));
+        return new LazyIterator<>(this,new BlazegraphIterator(store, s, p, o,
+                Objects.isNull(c) || c.length == 0 ? null : c[0]));
 
     }
 

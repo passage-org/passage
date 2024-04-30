@@ -1,7 +1,8 @@
 package fr.gdd.sage.blazegraph;
 
 import com.bigdata.rdf.internal.IV;
-import com.bigdata.rdf.spo.SPO;
+import com.bigdata.rdf.spo.ISPO;
+import fr.gdd.sage.generics.LazyIterator;
 import fr.gdd.sage.interfaces.BackendIterator;
 import fr.gdd.sage.interfaces.SPOC;
 import org.junit.jupiter.api.Disabled;
@@ -9,6 +10,10 @@ import org.junit.jupiter.api.Test;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.repository.RepositoryException;
+
+import java.util.HashSet;
+import java.util.Random;
+import java.util.Set;
 
 @Disabled
 class BlazegraphBackendTest {
@@ -38,6 +43,7 @@ class BlazegraphBackendTest {
     public void opening_watdiv2 () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
         BlazegraphBackend bb = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
 
+        long start = System.currentTimeMillis();
         final var any = bb.any();
         final var p_1 = bb.getId("http://xmlns.com/foaf/age", SPOC.PREDICATE);
         final var o_1 = bb.getId("http://db.uwaterloo.ca/~galuc/wsdbm/AgeGroup2", SPOC.OBJECT);
@@ -45,9 +51,8 @@ class BlazegraphBackendTest {
         final var p_3 = bb.getId("http://schema.org/eligibleRegion", SPOC.PREDICATE);
         final var p_4 = bb.getId("http://purl.org/goodrelations/includes", SPOC.PREDICATE);
 
-        BackendIterator<IV, ?> i_1 = bb.search(bb.any(), p_1, o_1);
+        BackendIterator<IV, ?> i_1 = bb.search(any, p_1, o_1);
 
-        long start = System.currentTimeMillis();
         long nbElements = 0;
 
         while (i_1.hasNext()) {
@@ -71,4 +76,27 @@ class BlazegraphBackendTest {
         System.out.println("Nb elements = " + nbElements);
         System.out.println("Duration = " + elapsed + " ms");
     }
+
+    @Test
+    public void test_skip() {
+        BlazegraphBackend bb = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
+
+        final var any = bb.any();
+        final var p_1 = bb.getId("http://xmlns.com/foaf/age", SPOC.PREDICATE);
+        BackendIterator<IV, ?> i_1 = bb.search(any, p_1, any);
+
+        BlazegraphIterator.RNG = new Random(1);
+
+        BlazegraphIterator bi = (BlazegraphIterator) ((LazyIterator) i_1).getWrapped();
+
+        System.out.println(bi.cardinality());
+
+        Set<String> results = new HashSet<>();
+
+        for (int i = 0; i < 1_000_000; ++i) {
+            ISPO r = bi.random();
+            results.add(r.toString(bb.store));
+        }
+    }
+
 }
