@@ -15,9 +15,9 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
-@Disabled
 class BlazegraphBackendTest {
 
+    @Disabled
     @Test
     public void creating_a_simple_dataset () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
         BlazegraphBackend bb = new BlazegraphBackend("./temp/dataset.jnl");
@@ -25,6 +25,7 @@ class BlazegraphBackendTest {
         bb.executeQuery("SELECT * WHERE {?s ?p ?o}");
     }
 
+    @Disabled
     @Test
     public void opening_watdiv10m () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
         BlazegraphBackend bb = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
@@ -38,7 +39,7 @@ class BlazegraphBackendTest {
                     }""");
     }
 
-
+    @Disabled
     @Test
     public void opening_watdiv2 () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
         BlazegraphBackend bb = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
@@ -77,6 +78,7 @@ class BlazegraphBackendTest {
         System.out.println("Duration = " + elapsed + " ms");
     }
 
+    @Disabled
     @Test
     public void test_skip() {
         BlazegraphBackend bb = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");

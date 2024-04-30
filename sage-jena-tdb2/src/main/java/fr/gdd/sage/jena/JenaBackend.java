@@ -1,18 +1,16 @@
 package fr.gdd.sage.jena;
 
+import fr.gdd.sage.exceptions.NotFoundException;
 import fr.gdd.sage.generics.LazyIterator;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.interfaces.BackendIterator;
 import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.atlas.lib.tuple.TupleFactory;
-import org.apache.jena.dboe.base.record.Record;
 import org.apache.jena.graph.Node;
 import org.apache.jena.query.Dataset;
-import org.apache.jena.shared.NotFoundException;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.util.NodeFactoryExtra;
 import org.apache.jena.tdb2.TDB2Factory;
-import org.apache.jena.tdb2.lib.TupleLib;
 import org.apache.jena.tdb2.store.DatasetGraphTDB;
 import org.apache.jena.tdb2.store.NodeId;
 import org.apache.jena.tdb2.store.nodetable.NodeTable;
@@ -101,7 +99,7 @@ public class JenaBackend implements Backend<NodeId, Serializable> {
         if (NodeId.isDoesNotExist(id)) {
             id = nodeQuadTable.getNodeIdForNode(node);
             if (NodeId.isDoesNotExist(id)) {
-                throw new NotFoundException(String.format("Id of %s does not exist.", value));
+                throw new NotFoundException(value);
             }
         }
         return id;
@@ -124,7 +122,7 @@ public class JenaBackend implements Backend<NodeId, Serializable> {
         if (Objects.isNull(node)) {
             node = nodeQuadTable.getNodeForNodeId(id);
             if (Objects.isNull(node)) {
-                throw new NotFoundException(String.format("Id of %s does not exist.", id.toString()));
+                throw new NotFoundException(id.toString());
             }
         }
         return node;
@@ -145,19 +143,10 @@ public class JenaBackend implements Backend<NodeId, Serializable> {
         if (NodeId.isDoesNotExist(id)) {
             id = nodeQuadTable.getNodeIdForNode(node);
             if (NodeId.isDoesNotExist(id)) {
-                throw new NotFoundException(String.format("Id of %s does not exist.", node.toString()));
+                throw new NotFoundException(node.toString());
             }
         }
         return id;
-    }
-
-    public Tuple<NodeId> getId(Record record) throws NotFoundException {
-        // TODO assumed that record is built using SPO but it may not be the case
-        Tuple<NodeId> ids = TupleLib.tuple(record, preemptableTripleTupleTable.getIndex(0).getMapping());
-        // TODO reorder tuple depending on used index
-        // TODO QuadTupleTable ?
-        // TODO Not found etc.
-        return ids;
     }
 
     public NodeTable getNodeTripleTable() {

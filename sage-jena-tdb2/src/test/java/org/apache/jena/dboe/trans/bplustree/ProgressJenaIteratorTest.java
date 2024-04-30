@@ -219,17 +219,17 @@ class ProgressJenaIteratorTest {
         ProgressJenaIterator.NB_WALKS = 1000;
         JenaBackend backend = new JenaBackend("../target/watdiv10M");
         ProgressJenaIterator it = (ProgressJenaIterator) ((LazyIterator<?,?>)backend.search(backend.any(), backend.any(), backend.any())).iterator;
-        HashMap<Record, ImmutableTriple<Double, Double, Double>> recordToProba = new HashMap<>();
+        HashMap<Tuple<NodeId>, ImmutableTriple<Double, Double, Double>> recordToProba = new HashMap<>();
 
         log.debug("Start random sampling…");
         for (int i = 0; i < 100_000; ++i) {
-            var rWp = it.getRandomWithProbability();
-            Tuple<NodeId> ids = backend.getId(rWp.getLeft());
+            var rWp = it.getRandomSPOWithProbability();
+            Tuple<NodeId> ids = rWp.getLeft();
             LazyIterator<?,?> s = (LazyIterator<?,?>)backend.search(ids.get(0), backend.any(), backend.any());
             ProgressJenaIterator sR = (ProgressJenaIterator) s.iterator;
             LazyIterator<?,?> o = (LazyIterator<?,?>)backend.search(backend.any(), backend.any(), ids.get(2));
             ProgressJenaIterator oR = (ProgressJenaIterator) o.iterator;
-            recordToProba.put(rWp.getLeft(), new ImmutableTriple<>(rWp.getRight(), oR.cardinality(), sR.cardinality()));
+            recordToProba.put(ids, new ImmutableTriple<>(rWp.getRight(), oR.cardinality(), sR.cardinality()));
         }
 
         var sortedProbas = recordToProba.values().stream().sorted(Comparator.comparing(a -> a.left)).toList();
@@ -269,8 +269,8 @@ class ProgressJenaIteratorTest {
         for (int j = 0; j < 10; ++j) {
             double sum = 0.;
             for (int i = 0; i < sampleSize; ++i) {
-                var rWp = spoR.getUniformRandom();
-                Tuple<NodeId> ids = backend.getId(rWp);
+                var rWp = spoR.getUniformRandomSPO();
+                Tuple<NodeId> ids = rWp;
                 // LazyIterator o = (LazyIterator) backend.search(backend.any(), backend.any(), ids.get(2));
                 LazyIterator<?,?> o = (LazyIterator<?,?>) backend.search(ids.get(0), backend.any(), backend.any());
                 ProgressJenaIterator oR = (ProgressJenaIterator) o.iterator;
@@ -302,8 +302,8 @@ class ProgressJenaIteratorTest {
         log.debug("Start sampling at random…");
         final double SAMPLE_SIZE = 100_000.;
         for (int i = 0; i < SAMPLE_SIZE; ++i) {
-            var rWp = it.getRandomWithProbability();
-            Tuple<NodeId> ids = backend.getId(rWp.getLeft());
+            var rWp = it.getRandomSPOWithProbability();
+            Tuple<NodeId> ids = rWp.getLeft();
             LazyIterator<?,?> s = (LazyIterator<?,?>) backend.search(ids.get(0), backend.any(), backend.any());
             ProgressJenaIterator sR = (ProgressJenaIterator) s.iterator; // to get Fi
             sampleWithProbaAndCard.add(new ImmutablePair<>(rWp.getRight(), sR.count()));
@@ -410,7 +410,7 @@ class ProgressJenaIteratorTest {
             }
         }
 
-        log.info("Sampling the query…");
+        /*log.info("Sampling the query…");
         int SAMPLE_SIZE = 1_000_000;
         List<ImmutablePair<Double, Double>> resultsProbaAndCard = new ArrayList<>();
         // ?teacher <http://is_a> <http://Prof>
@@ -458,7 +458,7 @@ class ProgressJenaIteratorTest {
         double estimate = total / sumOfProbas * sumOfCards;
         double relativeError = Math.abs(DISTINCT - estimate)/DISTINCT;
         log.info("Estimate = {}", estimate);
-        log.info("Relative error = {}%", relativeError*100);
+        log.info("Relative error = {}%", relativeError*100);*/
     }
 
 

@@ -5,19 +5,6 @@ import com.bigdata.rdf.spo.ISPO;
 import fr.gdd.sage.generics.LazyIterator;
 import fr.gdd.sage.interfaces.BackendIterator;
 import fr.gdd.sage.interfaces.SPOC;
-import it.unimi.dsi.fastutil.Hash;
-import org.apache.jena.query.Dataset;
-import org.apache.jena.query.ReadWrite;
-import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.engine.Plan;
-import org.apache.jena.sparql.engine.QueryEngineFactory;
-import org.apache.jena.sparql.engine.QueryEngineRegistry;
-import org.apache.jena.sparql.engine.QueryIterator;
-import org.apache.jena.sparql.engine.binding.Binding;
-import org.apache.jena.sparql.engine.binding.BindingRoot;
-import org.apache.jena.sparql.sse.SSE;
-import org.apache.jena.sparql.util.Context;
-import org.apache.jena.tdb2.TDB2Factory;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -28,12 +15,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-/**
- * To help profiling a basic execution and evaluate the efficiency
- * of scans under concurrent calls. They are expected to be highly efficient since they
- * are read-only. However, as of 2023-05-06, they were not… A lock exists upon creation
- * which preclude the massive creation of scan iterators.
- */
+@Disabled
 public class ProfilingScanSpeedTest {
 
     private static Logger log = LoggerFactory.getLogger(ProfilingScanSpeedTest.class);

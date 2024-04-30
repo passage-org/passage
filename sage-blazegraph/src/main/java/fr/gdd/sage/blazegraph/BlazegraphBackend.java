@@ -2,7 +2,6 @@ package fr.gdd.sage.blazegraph;
 
 import com.bigdata.journal.Options;
 import com.bigdata.rdf.internal.IV;
-import com.bigdata.rdf.internal.VTE;
 import com.bigdata.rdf.internal.impl.TermId;
 import com.bigdata.rdf.sail.BigdataSail;
 import com.bigdata.rdf.sail.BigdataSailRepository;
@@ -10,11 +9,11 @@ import com.bigdata.rdf.spo.ISPO;
 import com.bigdata.rdf.store.AbstractTripleStore;
 import com.bigdata.relation.accesspath.IAccessPath;
 import com.bigdata.striterator.IChunkedOrderedIterator;
+import fr.gdd.sage.exceptions.NotFoundException;
 import fr.gdd.sage.generics.LazyIterator;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.interfaces.BackendIterator;
 import fr.gdd.sage.interfaces.SPOC;
-import org.openrdf.model.Resource;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.query.*;
 import org.openrdf.repository.RepositoryException;
@@ -23,6 +22,10 @@ import org.openrdf.sail.SailException;
 import java.util.Objects;
 import java.util.Properties;
 
+/**
+ * Backend for Blazegraph providing easy access to the most important
+ * feature: the scan iterator.
+ */
 public class BlazegraphBackend implements Backend<IV, byte[]> {
 
     AbstractTripleStore store;
@@ -56,40 +59,25 @@ public class BlazegraphBackend implements Backend<IV, byte[]> {
 
     @Override
     public BackendIterator<IV, byte[]> search(IV s, IV p, IV o, IV... c) {
-        // TODO handle c
         return new LazyIterator<>(this,new BlazegraphIterator(store, s, p, o,
                 Objects.isNull(c) || c.length == 0 ? null : c[0]));
-
     }
 
     @Override
     public IV getId(String value, int... type) {
-        TermId termId;
-        IAccessPath<ISPO> accessPath = null;
-
-        switch(type[0]) {
-            case SPOC.SUBJECT -> {
-                termId = new TermId(VTE.URI,0);
-                final Resource resource = new URIImpl(value);
-                accessPath =  store.getAccessPath(resource,null, null);
-            }
-            case SPOC.PREDICATE -> {
-                termId = new TermId(VTE.URI,0);
-                URIImpl predicate = new URIImpl(value);
-                accessPath = store.getAccessPath(null, predicate, null);
-            }
-            case SPOC.OBJECT -> {
-                termId = new TermId(VTE.LITERAL,0);
-                final Resource object = new URIImpl(value);
-                accessPath =  store.getAccessPath(null,null,object);
-            }
-            case SPOC.CONTEXT -> {
-                throw new UnsupportedOperationException("Graph not handled yet.");
-            }
+        // TODO not only URIs
+        // TODO could use `Node node = NodeFactoryExtra.parseNode(value);`
+        IAccessPath<ISPO> accessPath = switch(type[0]) {
+            case SPOC.SUBJECT -> store.getAccessPath(new URIImpl(value),null, null);
+            case SPOC.PREDICATE -> store.getAccessPath(null, new URIImpl(value), null);
+            case SPOC.OBJECT -> store.getAccessPath(null,null, new URIImpl(value));
+            case SPOC.CONTEXT -> store.getAccessPath(null,null, null, new URIImpl(value));
             default -> throw new UnsupportedOperationException("Unknown SPOC…");
-        }
-        IChunkedOrderedIterator<ISPO> iter1 = accessPath.iterator();
-        ISPO spo = iter1.next();
+        };
+        IChunkedOrderedIterator<ISPO> it = accessPath.iterator();
+        if (!it.hasNext()) throw new NotFoundException("The value "); // not found
+        ISPO spo = it.next();
+        // Get the Value from the index
         String str = switch(type[0]){
             case SPOC.SUBJECT -> spo.getSubject().toString();
             case SPOC.PREDICATE -> spo.getPredicate().toString();
@@ -97,7 +85,7 @@ public class BlazegraphBackend implements Backend<IV, byte[]> {
             case SPOC.CONTEXT-> spo.getContext().toString();
             default -> throw new IllegalStateException("Unexpected value: " + type[0]);
         };
-        return termId.fromString(str);
+        return TermId.fromString(str);
     }
 
     @Override

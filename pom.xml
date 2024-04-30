@@ -41,11 +41,12 @@
      look for sage-jena:pom:${revision} instead of sage-jena:pom:0.0.1 Thus
      fails. Hardcoded version of parent works… -->
     <!-- <revision>0.0.1</revision> -->
-    <junit.version>5.9.2</junit.version>
+    <junit.version>5.10.2</junit.version>
     <jena.version>4.7.0</jena.version>
     <slf4j.version>2.0.6</slf4j.version>
     <args4j.version>2.33</args4j.version>
     <common.compress.version>1.23.0</common.compress.version>
+    <blazegraph.version>2.1.4</blazegraph.version>
 
     <maven.surefire.version>3.0.0</maven.surefire.version>
     <maven.compiler.version>3.10.1</maven.compiler.version>
@@ -101,6 +102,12 @@
         <version>${junit.version}</version>
         <scope>test</scope>
       </dependency>
+      <dependency> <!-- because blazegraph uses junit4 while we use junit5… -->
+        <groupId>org.junit.vintage</groupId>
+        <artifactId>junit-vintage-engine</artifactId>
+        <scope>test</scope>
+        <version>${junit.version}</version>
+      </dependency>
 
       <dependency>
         <groupId>org.apache.jena</groupId>
@@ -138,6 +145,12 @@
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-simple</artifactId>
         <version>${slf4j.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.blazegraph</groupId>
+        <artifactId>bigdata-core</artifactId>
+        <version>${blazegraph.version}</version>
       </dependency>
 
     </dependencies>

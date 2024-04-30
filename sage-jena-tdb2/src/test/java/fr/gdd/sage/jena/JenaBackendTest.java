@@ -1,8 +1,8 @@
 package fr.gdd.sage.jena;
 
 import fr.gdd.sage.databases.inmemory.InMemoryInstanceOfTDB2;
+import fr.gdd.sage.exceptions.NotFoundException;
 import org.apache.jena.query.Dataset;
-import org.apache.jena.shared.NotFoundException;
 import org.apache.jena.tdb2.store.NodeId;
 import org.apache.jena.tdb2.sys.TDBInternal;
 import org.junit.jupiter.api.AfterAll;
