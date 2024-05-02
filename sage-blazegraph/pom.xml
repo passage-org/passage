@@ -26,6 +26,11 @@
       <artifactId>bigdata-core</artifactId>
     </dependency>
 
+    <dependency> <!-- to get multisets -->
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+    </dependency>
+
     <dependency> <!-- logger of jena -->
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>

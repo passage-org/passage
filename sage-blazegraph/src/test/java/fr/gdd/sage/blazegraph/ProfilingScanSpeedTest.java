@@ -43,7 +43,7 @@ public class ProfilingScanSpeedTest {
                 BlazegraphIterator bi = (BlazegraphIterator) ((LazyIterator) i_1).getWrapped();
                 long sum = 0;
                 while (System.currentTimeMillis() < start+TIMEOUT) {
-                    ISPO r = bi.random();
+                    ISPO r = bi.getUniformRandomSPO();
                     String materialized = r.toString(bi.store);
                     sum += 1;
                 }

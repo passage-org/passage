@@ -47,6 +47,7 @@
     <args4j.version>2.33</args4j.version>
     <common.compress.version>1.23.0</common.compress.version>
     <blazegraph.version>2.1.4</blazegraph.version>
+    <guava.version>33.1.0-jre</guava.version>
 
     <maven.surefire.version>3.0.0</maven.surefire.version>
     <maven.compiler.version>3.10.1</maven.compiler.version>
@@ -151,6 +152,12 @@
         <groupId>com.blazegraph</groupId>
         <artifactId>bigdata-core</artifactId>
         <version>${blazegraph.version}</version>
+      </dependency>
+
+      <dependency> <!-- to get multisets -->
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>${guava.version}</version>
       </dependency>
 
     </dependencies>

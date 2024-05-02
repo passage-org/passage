@@ -2,27 +2,104 @@ package fr.gdd.sage.blazegraph;
 
 import com.bigdata.rdf.internal.IV;
 import com.bigdata.rdf.spo.ISPO;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
 import fr.gdd.sage.generics.LazyIterator;
 import fr.gdd.sage.interfaces.BackendIterator;
 import fr.gdd.sage.interfaces.SPOC;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.openrdf.query.BindingSet;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.impl.MapBindingSet;
 import org.openrdf.repository.RepositoryException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+@Disabled
 class BlazegraphBackendTest {
 
-    @Disabled
-    @Test
-    public void creating_a_simple_dataset () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
-        BlazegraphBackend bb = new BlazegraphBackend("./temp/dataset.jnl");
+    private final static Logger log = LoggerFactory.getLogger(BlazegraphBackendTest.class);
 
-        bb.executeQuery("SELECT * WHERE {?s ?p ?o}");
+    @Test
+    public void create_a_simple_pet_dataset () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
+        BlazegraphBackend bb = new BlazegraphBackend(SmallDatasetsForTests.getPetsDataset());
+
+        // There is nothing but the default ~30ish triples inside.
+        Multiset<BindingSet> results = bb.executeQuery("SELECT * WHERE {?s <http://address> ?o}");
+        assertEquals(3, results.size());
+
+        results = bb.executeQuery("SELECT * WHERE {?s <http://own> ?o}");
+        assertEquals(3, results.size());
+
+        results = bb.executeQuery("SELECT * WHERE {?s <http://species> ?o}");
+        assertEquals(3, results.size());
+
+        results = bb.executeQuery("SELECT * WHERE {?s ?p <http://nantes>}");
+        assertEquals(2, results.size());
+
+        bb.close();
+    }
+
+    @Test
+    public void creating_simple_iterators () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
+        BlazegraphBackend bb = new BlazegraphBackend(SmallDatasetsForTests.getPetsDataset());
+
+        IV address = bb.getId("http://address", SPOC.PREDICATE);
+        IV own = bb.getId("http://own", SPOC.PREDICATE);
+        IV species = bb.getId("http://species", SPOC.PREDICATE);
+        IV nantes = bb.getId("http://nantes", SPOC.OBJECT);
+
+        Multiset<BindingSet> results = executeSimpleTP(bb, bb.any(), address, bb.any(), 3);
+        results = executeSimpleTP(bb, bb.any(), own, bb.any(), 3);
+        results = executeSimpleTP(bb, bb.any(), species, bb.any(), 3);
+        results = executeSimpleTP(bb, bb.any(), bb.any(), nantes, 2);
+
+        bb.close();
+    }
+
+    @Test
+    public void creating_simple_random () {
+        BlazegraphBackend bb = new BlazegraphBackend(SmallDatasetsForTests.getPetsDataset());
+        IV address = bb.getId("http://address", SPOC.PREDICATE);
+        LazyIterator<IV, ?> li = (LazyIterator<IV, ?>) bb.search(bb.any(), address, bb.any());
+
+        Multiset<BindingSet> results = HashMultiset.create();
+        for (int i = 0; i < 10000; ++i) {
+            ISPO spo = ((BlazegraphIterator) li.getWrapped()).getUniformRandomSPO();
+            MapBindingSet bs = new MapBindingSet();
+            bs.addBinding("s", spo.s());
+            bs.addBinding("p", spo.p());
+            bs.addBinding("o", spo.o());
+            results.add(bs);
+        }
+
+        Set<Multiset.Entry<BindingSet>> uniques = results.entrySet();
+
+        assertEquals(10_000, results.size());
+        assertEquals(3, uniques.size());
+        for (var entry : uniques) {
+            assertEquals(address, entry.getElement().getValue("p"));
+        }
+    }
+
+    @Test
+    public void testing_some_skipperino () {
+        BlazegraphBackend bb = new BlazegraphBackend(SmallDatasetsForTests.getPetsDataset());
+        IV address = bb.getId("http://address", SPOC.PREDICATE);
+
+        executeSimpleTPWithSkip(bb, bb.any(), address, bb.any(), 0, 3);
+        executeSimpleTPWithSkip(bb, bb.any(), address, bb.any(), 1, 2);
+        executeSimpleTPWithSkip(bb, bb.any(), address, bb.any(), 2, 1);
+        executeSimpleTPWithSkip(bb, bb.any(), address, bb.any(), 3, 0);
+        executeSimpleTPWithSkip(bb, bb.any(), address, bb.any(), 18, 0);
     }
 
     @Disabled
@@ -36,7 +113,7 @@ class BlazegraphBackendTest {
                     ?v0 <http://schema.org/nationality> ?v8 .
                     ?v2 <http://schema.org/eligibleRegion> ?v8 .
                     ?v2 <http://purl.org/goodrelations/includes> ?v3 .
-                    }""");
+                }""");
     }
 
     @Disabled
@@ -96,9 +173,54 @@ class BlazegraphBackendTest {
         Set<String> results = new HashSet<>();
 
         for (int i = 0; i < 1_000_000; ++i) {
-            ISPO r = bi.random();
+            ISPO r = bi.getUniformRandomSPO();
             results.add(r.toString(bb.store));
         }
+    }
+
+    /* ***************************************************************** */
+
+    /**
+     * Tests both the number of elements returned by the iterator, and the cardinality
+     * estimate provided. The latter should be exact as no deletion has been performed
+     * in the augmented btree.
+     */
+    public Multiset<BindingSet> executeSimpleTP(BlazegraphBackend bb, IV s, IV p, IV o, long expectedNb) {
+        BackendIterator<IV, ?> it = bb.search(s, p, o);
+        Multiset<BindingSet> results = HashMultiset.create();
+        while (it.hasNext()) {
+            it.next();
+            log.info("{} {} {}", it.getValue(SPOC.SUBJECT), it.getValue(SPOC.PREDICATE), it.getValue(SPOC.OBJECT));
+            MapBindingSet bs = new MapBindingSet();
+            bs.addBinding("s", it.getId(SPOC.SUBJECT));
+            bs.addBinding("p", it.getId(SPOC.PREDICATE));
+            bs.addBinding("o", it.getId(SPOC.OBJECT));
+            results.add(bs);
+        }
+        assertEquals(expectedNb, results.size());
+        // cardinality should be exact without deletions in btree
+        assertEquals(expectedNb, ((LazyIterator<?, ?>) it).cardinality());
+        return results;
+    }
+
+    public Multiset<BindingSet> executeSimpleTPWithSkip(BlazegraphBackend bb, IV s, IV p, IV o, long skip, long expectedNb) {
+        BackendIterator<IV, ?> it = bb.search(s, p, o);
+        BlazegraphIterator bit = (BlazegraphIterator) ((LazyIterator)it).getWrapped();
+        bit.skip(skip);
+        Multiset<BindingSet> results = HashMultiset.create();
+        while (it.hasNext()) {
+            it.next();
+            log.info("skipped {}: {} {} {}", skip,
+                    it.getValue(SPOC.SUBJECT), it.getValue(SPOC.PREDICATE), it.getValue(SPOC.OBJECT));
+            MapBindingSet bs = new MapBindingSet();
+            bs.addBinding("s", it.getId(SPOC.SUBJECT));
+            bs.addBinding("p", it.getId(SPOC.PREDICATE));
+            bs.addBinding("o", it.getId(SPOC.OBJECT));
+            results.add(bs);
+        }
+        assertEquals(expectedNb, results.size());
+        assertEquals(expectedNb, Math.max(0, ((LazyIterator<?, ?>) it).cardinality() - skip));
+        return results;
     }
 
 }

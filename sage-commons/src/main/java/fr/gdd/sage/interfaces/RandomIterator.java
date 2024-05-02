@@ -1,7 +1,5 @@
 package fr.gdd.sage.interfaces;
 
-
-
 /**
  * An iterator that enables performing random walks in the query.
  */

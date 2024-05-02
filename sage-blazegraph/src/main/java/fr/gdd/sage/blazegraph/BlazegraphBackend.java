@@ -5,10 +5,13 @@ import com.bigdata.rdf.internal.IV;
 import com.bigdata.rdf.internal.impl.TermId;
 import com.bigdata.rdf.sail.BigdataSail;
 import com.bigdata.rdf.sail.BigdataSailRepository;
+import com.bigdata.rdf.sail.BigdataSailRepositoryConnection;
 import com.bigdata.rdf.spo.ISPO;
 import com.bigdata.rdf.store.AbstractTripleStore;
 import com.bigdata.relation.accesspath.IAccessPath;
 import com.bigdata.striterator.IChunkedOrderedIterator;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
 import fr.gdd.sage.exceptions.NotFoundException;
 import fr.gdd.sage.generics.LazyIterator;
 import fr.gdd.sage.interfaces.Backend;
@@ -30,11 +33,10 @@ public class BlazegraphBackend implements Backend<IV, byte[]> {
 
     AbstractTripleStore store;
     BigdataSailRepository repository;
-    BigdataSail.BigdataSailConnection connection;
+    BigdataSailRepositoryConnection connection;
 
     public BlazegraphBackend(String path) {
         final Properties props = new Properties();
-        props.put(BigdataSail.Options.READ_ONLY, true); // TODO not read only
         props.put(Options.FILE, path);
 
         final BigdataSail sail = new BigdataSail(props);
@@ -44,7 +46,24 @@ public class BlazegraphBackend implements Backend<IV, byte[]> {
         } catch (SailException e) {
             e.printStackTrace();
         }
-        this.connection = sail.getReadOnlyConnection();
+        try {
+            this.connection = repository.getReadOnlyConnection();
+        } catch (RepositoryException e) {
+            throw new RuntimeException(e);
+        }
+        store = connection.getTripleStore();
+    }
+
+    /**
+     * @param sail An already initialized sail (blazegraph) repository.
+     */
+    public BlazegraphBackend(BigdataSail sail) {
+        this.repository = new BigdataSailRepository(sail);
+        try {
+            this.connection = repository.getReadOnlyConnection();
+        } catch (RepositoryException e) {
+            throw new RuntimeException(e);
+        }
         store = connection.getTripleStore();
     }
 
@@ -52,8 +71,8 @@ public class BlazegraphBackend implements Backend<IV, byte[]> {
         try {
             connection.close();
             store = null;
-        } catch (SailException e) {
-            e.printStackTrace();
+        } catch (RepositoryException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -90,7 +109,7 @@ public class BlazegraphBackend implements Backend<IV, byte[]> {
 
     @Override
     public String getValue(IV value, int... type) {
-        return value.getValue().toString();
+        return store.getLexiconRelation().getTerm(value).toString();
     }
 
     @Override
@@ -105,22 +124,14 @@ public class BlazegraphBackend implements Backend<IV, byte[]> {
      * @throws MalformedQueryException
      * @throws QueryEvaluationException
      */
-    public void executeQuery(String queryString) throws RepositoryException, MalformedQueryException, QueryEvaluationException {
-        TupleQuery tupleQuery = this.repository.getConnection().prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+    public Multiset<BindingSet> executeQuery(String queryString) throws RepositoryException, MalformedQueryException, QueryEvaluationException {
+        TupleQuery tupleQuery = connection.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         TupleQueryResult result = tupleQuery.evaluate();
-        long start =  System.currentTimeMillis();
-        long nbElements = 0;
+        Multiset<BindingSet> results = HashMultiset.create();
         while (result.hasNext()) {
-            BindingSet bindingSet = result.next();
-			/* Value subject = bindingSet.getValue("s");
-			/*Value predicate = bindingSet.getValue("p");
-			Value object = bindingSet.getValue("o");*/
-            // System.out.println(bindingSet);
-            ++nbElements;
+            results.add(result.next());
         }
-        long duration = System.currentTimeMillis() - start;
-        System.out.println("NbElements = " + nbElements);
-        System.out.println("Duration = " + duration + " ms");
+        return results;
     }
 
 }
