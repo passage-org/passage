@@ -1,7 +1,5 @@
 package fr.gdd.sage.interfaces;
 
-
-
 /**
  * Code used by iterators for basic term types.
  */

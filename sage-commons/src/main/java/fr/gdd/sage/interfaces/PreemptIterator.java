@@ -2,13 +2,12 @@ package fr.gdd.sage.interfaces;
 
 import java.io.Serializable;
 
+/**
+ * Interface that states a scan iterator can pause/resume its
+ * execution.
+ * @param <SKIP> The serializable type that is provided and used pause/resume.
+ */
 public interface PreemptIterator<SKIP extends Serializable> {
-
-    /**
-     * @return The unique identifier of the iterator.
-     */
-    Integer getId();
-
 
     /**
      * Goes to the targeted element directly.
