@@ -1,13 +1,14 @@
 package fr.gdd.sage.interfaces;
 
-
+
+import java.io.Serializable;
 
 /**
  * An iterator over a backend that enables pausing/resuming query
  * execution. Its internal identifiers are of type `ID`, and it can
  * resume its execution using type `SKIP`.
  */
-public interface BackendIterator<ID, SKIP> {
+public interface BackendIterator<ID, SKIP extends Serializable> {
 
     /**
      * @param code Typically, for basic scan operator, the code would
