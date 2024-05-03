@@ -1,10 +1,7 @@
 package org.apache.jena.sparql.engine.iterator;
 
 import fr.gdd.sage.arq.SageConstants;
-import fr.gdd.sage.generics.Pair;
 import fr.gdd.sage.interfaces.PreemptIterator;
-import fr.gdd.sage.io.SageInput;
-import fr.gdd.sage.io.SageOutput;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.engine.binding.Binding;
 

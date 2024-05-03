@@ -1,6 +1,7 @@
 package fr.gdd.sage.io;
 
-import fr.gdd.sage.generics.Pair;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -60,14 +61,14 @@ public class SageOutput<SKIP extends Serializable> implements Serializable {
         if (this.state == null) {
             this.state = new TreeMap<>();
         }
-        this.state.put(state.left, state.right);
+        this.state.put(state.getLeft(), state.getRight());
     }
 
     @SafeVarargs
     public final void save(Pair<Integer, SKIP>... states) {
         this.state = new TreeMap<>();
         for (Pair<Integer, SKIP> s : states) {
-            this.state.put(s.left, s.right);
+            this.state.put(s.getLeft(), s.getRight());
         }
     }
 
@@ -100,7 +101,7 @@ public class SageOutput<SKIP extends Serializable> implements Serializable {
      * @param cardinality The number of elements to iterate over.
      */
     public void addProgress(int id, long offset, long cardinality) {
-        this.progress.put(id, new Pair<>(offset, cardinality));
+        this.progress.put(id, new ImmutablePair<>(offset, cardinality));
         // (TODO)
     }
 

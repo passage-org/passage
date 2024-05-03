@@ -1,13 +1,13 @@
 package org.apache.jena.dboe.trans.bplustree;
 
 import fr.gdd.sage.databases.inmemory.InMemoryInstanceOfTDB2;
-import fr.gdd.sage.generics.Pair;
 import fr.gdd.sage.interfaces.BackendIterator;
 import fr.gdd.sage.interfaces.SPOC;
 import fr.gdd.sage.io.SageInput;
 import fr.gdd.sage.io.SageOutput;
 import fr.gdd.sage.jena.JenaBackend;
 import fr.gdd.sage.jena.SerializableRecord;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.tdb2.store.NodeId;
 import org.apache.jena.tdb2.sys.TDBInternal;
@@ -172,7 +172,7 @@ public class PreemptJenaIteratorTest {
                 nb_results += 1;
                 if (nb_results >= 1) { // limit 1
                     assertNull(it.previous());
-                    output.save(new Pair<>(0, it.previous()), new Pair<>(1, it_2.current()));
+                    output.save(new ImmutablePair<>(0, it.previous()), new ImmutablePair<>(1, it_2.current()));
 
                     // Both are null since they both stop at their first iteration
                     SerializableRecord sr = (SerializableRecord) it.previous();
@@ -238,7 +238,7 @@ public class PreemptJenaIteratorTest {
                 sum += 1;
             }
             // save after loop because we emulate an exceeded timeout
-            output.save(new Pair<>(0, itSingleton.current()));
+            output.save(new ImmutablePair<>(0, itSingleton.current()));
             break;
         }
         // we stopped yet every result were produced, since we don't know, we must execute till the end.
@@ -320,12 +320,12 @@ public class PreemptJenaIteratorTest {
                 }
 
                 if (System.currentTimeMillis() > input.getDeadline()) {
-                    output.save(new Pair(0, itWithPredicate.previous()), new Pair(1, itSingleton.current()));
+                    output.save(new ImmutablePair<>(0, itWithPredicate.previous()), new ImmutablePair<>(1, itSingleton.current()));
                     return output;
                 }
             }
             if (System.currentTimeMillis() > input.getDeadline()) {
-                output.save(new Pair(0, itWithPredicate.current()));
+                output.save(new ImmutablePair<>(0, itWithPredicate.current()));
                 return output;
             }
         }

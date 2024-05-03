@@ -17,8 +17,6 @@ import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.Random;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -104,7 +102,7 @@ class BlazegraphBackendTest {
 
     @Disabled
     @Test
-    public void opening_watdiv10m () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
+    public void on_watdiv_conjunctive_with_blazegraph_engine () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
         BlazegraphBackend bb = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
         bb.executeQuery("""
                 SELECT * WHERE {
@@ -118,7 +116,7 @@ class BlazegraphBackendTest {
 
     @Disabled
     @Test
-    public void opening_watdiv2 () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
+    public void on_watdiv_conjunctive_query_with_compiled_query () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
         BlazegraphBackend bb = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
 
         long start = System.currentTimeMillis();
@@ -151,31 +149,37 @@ class BlazegraphBackendTest {
         }
 
         long elapsed = System.currentTimeMillis() - start;
-        System.out.println("Nb elements = " + nbElements);
-        System.out.println("Duration = " + elapsed + " ms");
+        log.debug("Nb elements = {}", nbElements);
+        log.debug("Duration = {} ms", elapsed);
     }
 
     @Disabled
     @Test
-    public void test_skip() {
+    public void on_watdiv_test_some_cardinalities () {
         BlazegraphBackend bb = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
 
-        final var any = bb.any();
-        final var p_1 = bb.getId("http://xmlns.com/foaf/age", SPOC.PREDICATE);
-        BackendIterator<IV, ?> i_1 = bb.search(any, p_1, any);
+        IV eligibleRegion = bb.getId("http://schema.org/eligibleRegion", SPOC.PREDICATE);
+        IV country21 = bb.getId("http://db.uwaterloo.ca/~galuc/wsdbm/Country21", SPOC.OBJECT);
+        IV validThrough = bb.getId("http://purl.org/goodrelations/validThrough", SPOC.PREDICATE);
+        IV includes = bb.getId("http://purl.org/goodrelations/includes", SPOC.PREDICATE);
+        IV text = bb.getId("http://schema.org/text", SPOC.PREDICATE);
+        IV eligibleQuantity = bb.getId("http://schema.org/eligibleQuantity", SPOC.PREDICATE);
+        IV price = bb.getId("http://purl.org/goodrelations/price", SPOC.PREDICATE);
 
-        BlazegraphIterator.RNG = new Random(1);
+        LazyIterator lit = (LazyIterator) bb.search(bb.any(), eligibleRegion, country21);
+        assertEquals(2613L, lit.cardinality());
+        lit = (LazyIterator) bb.search(bb.any(), validThrough, bb.any());
+        assertEquals(36346L, lit.cardinality());
+        lit = (LazyIterator) bb.search(bb.any(), includes, bb.any());
+        assertEquals(90000L, lit.cardinality());
+        lit = (LazyIterator) bb.search(bb.any(), text, bb.any());
+        assertEquals(7476L, lit.cardinality());
+        lit = (LazyIterator) bb.search(bb.any(), eligibleQuantity, bb.any());
+        assertEquals(90000L, lit.cardinality());
+        lit = (LazyIterator) bb.search(bb.any(), price, bb.any());
+        assertEquals(240000L, lit.cardinality());
 
-        BlazegraphIterator bi = (BlazegraphIterator) ((LazyIterator) i_1).getWrapped();
-
-        System.out.println(bi.cardinality());
-
-        Set<String> results = new HashSet<>();
-
-        for (int i = 0; i < 1_000_000; ++i) {
-            ISPO r = bi.getUniformRandomSPO();
-            results.add(r.toString(bb.store));
-        }
+        bb.close();
     }
 
     /* ***************************************************************** */

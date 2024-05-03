@@ -1,12 +1,10 @@
 package fr.gdd.sage.io;
 
+import fr.gdd.sage.interfaces.Backend;
+
 import java.io.Serializable;
 import java.util.Map;
 import java.util.TreeMap;
-
-import fr.gdd.sage.interfaces.Backend;
-
-
 
 /**
  * Input given to a Sage query execution for it to execute
@@ -39,8 +37,8 @@ public class SageInput<SKIP extends Serializable> implements Serializable {
      **/
     transient Backend<?, SKIP> backend;
 
-
-    
+    /* ********************************************************************* */
+
     public SageInput() { }
 
     public SageInput<SKIP> setLimit(long limit) {
@@ -84,7 +82,7 @@ public class SageInput<SKIP extends Serializable> implements Serializable {
         return this;
     }
 
-
+    /* ******************************************************************* */
     
     public Backend<?, SKIP> getBackend() {
         return backend;

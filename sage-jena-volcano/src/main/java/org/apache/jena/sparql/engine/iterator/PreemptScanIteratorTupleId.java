@@ -2,12 +2,13 @@ package org.apache.jena.sparql.engine.iterator;
 
 import fr.gdd.sage.arq.IdentifierLinker;
 import fr.gdd.sage.arq.SageConstants;
-import fr.gdd.sage.generics.Pair;
 import fr.gdd.sage.interfaces.BackendIterator;
 import fr.gdd.sage.interfaces.PreemptIterator;
 import fr.gdd.sage.io.SageInput;
 import fr.gdd.sage.io.SageOutput;
 import fr.gdd.sage.jena.SerializableRecord;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.dboe.trans.bplustree.PreemptJenaIterator;
 import org.apache.jena.sparql.engine.ExecutionContext;
@@ -90,15 +91,15 @@ public class PreemptScanIteratorTupleId implements Iterator<Tuple<NodeId>>, Pree
                     }
                     if (identifiers.inRightSideOf(parent, id)) {
                         log.debug("SAVE CURRENT {}", parent);
-                        Pair toSave = new Pair(parent, iterators.get(parent).current());
+                        Pair toSave = new ImmutablePair<>(parent, iterators.get(parent).current());
                         this.output.addState(toSave);
                     } else {
                         log.debug("SAVE PREVIOUS {}", parent);
-                        Pair toSave = new Pair(parent, iterators.get(parent).previous());
+                        Pair toSave = new ImmutablePair<>(parent, iterators.get(parent).previous());
                         this.output.addState(toSave);
                     }
                 }
-                this.output.addState(new Pair(getId(), current()));
+                this.output.addState((Pair) new ImmutablePair<>(getId(), current()));
                 // execution stops immediately, caught by {@link PreemptRootIter}
                 throw new PauseException();
             }

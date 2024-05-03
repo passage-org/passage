@@ -1,9 +1,10 @@
 package fr.gdd.sage.optimizer;
 
 import fr.gdd.sage.generics.LazyIterator;
-import fr.gdd.sage.generics.Pair;
 import fr.gdd.sage.interfaces.BackendIterator;
 import fr.gdd.sage.jena.JenaBackend;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.dboe.trans.bplustree.ProgressJenaIterator;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.Dataset;
@@ -32,7 +33,7 @@ import java.util.stream.Collectors;
  * The topest the smallest; candidates patterns are chosen amongst set variables, all if none.
  */
 public class SageOptimizer extends TransformCopy {
-    private static Logger log = LoggerFactory.getLogger(SageOptimizer.class);
+    private static final Logger log = LoggerFactory.getLogger(SageOptimizer.class);
 
     JenaBackend backend;
     Dataset dataset;
@@ -71,20 +72,20 @@ public class SageOptimizer extends TransformCopy {
                 BackendIterator<?, ?> it = backend.search(s, p, o);
                 ProgressJenaIterator casted = (ProgressJenaIterator) ((LazyIterator<?, ?>) it).iterator;
                 log.debug("triple {} => {} elements", triple, casted.cardinality());
-                return new Pair<>(triple, casted.cardinality());
+                return new ImmutablePair<Triple, Double>(triple, casted.cardinality());
             } catch (NotFoundException e) {
                 log.debug("triple {} does not exist -> 0 element", triple);
-                return new Pair<>(triple, 0.);
+                return new ImmutablePair<Triple, Double>(triple, 0.);
             }
         }).sorted((p1, p2) -> { // sort ASC by cardinality
-            double c1 = p1.right;
-            double c2 = p2.right;
+            double c1 = p1.getRight();
+            double c2 = p2.getRight();
             return Double.compare(c1, c2);
         }).collect(Collectors.toList());
 
         List<Triple> triples = new ArrayList<>();
         Set<Var> patternVarsScope = new HashSet<>();
-        while (tripleToIt.size() > 0) {
+        while (!tripleToIt.isEmpty()) {
             // #A contains at least one variable
             var filtered = tripleToIt.stream().filter(p -> patternVarsScope.stream()
                     .anyMatch(v -> VarUtils.getVars(p.getLeft()).contains(v)) ||
@@ -118,19 +119,19 @@ public class SageOptimizer extends TransformCopy {
                     BackendIterator<?, ?> it = backend.search(s, p, o, g);
                     ProgressJenaIterator casted = (ProgressJenaIterator) ((LazyIterator<?, ?>) it).iterator;
                     log.debug("quad {} => {} elements", quad, casted.cardinality());
-                    return new Pair<>(quad, casted.cardinality());
+                    return new ImmutablePair<OpQuad, Double>(quad, casted.cardinality());
                 } catch (NotFoundException e) {
-                    return new Pair<>(quad, 0.);
+                    return new ImmutablePair<OpQuad, Double>(quad, 0.);
                 }
             }).sorted((p1, p2) -> { // sort ASC by cardinality
-                double c1 = p1.right;
-                double c2 = p2.right;
+                double c1 = p1.getRight();
+                double c2 = p2.getRight();
                 return Double.compare(c1, c2);
             }).collect(Collectors.toList());
 
             List<OpQuad> optimizedQuads = new ArrayList<>();
             Set<Var> patternVarsScope = new HashSet<>();
-            while (quadsToIt.size() > 0) {
+            while (!quadsToIt.isEmpty()) {
                 // #A contains at least one variable
                 var filtered = quadsToIt.stream().filter(p -> patternVarsScope.stream()
                                 .anyMatch(v -> VarUtils.getVars(p.getLeft().getQuad().asTriple()).contains(v)) ||

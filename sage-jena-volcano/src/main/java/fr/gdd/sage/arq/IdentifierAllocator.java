@@ -1,6 +1,7 @@
 package fr.gdd.sage.arq;
 
-import fr.gdd.sage.generics.Pair;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpVisitorBase;
 import org.apache.jena.sparql.algebra.op.*;
@@ -51,7 +52,7 @@ public class IdentifierAllocator extends OpVisitorBase {
         if (!op2Id.containsKey(op)) {
             op2Id.put(op, new ArrayList<>());
         }
-        op2Id.get(op).add(new Pair<>(op, ids));
+        op2Id.get(op).add(new ImmutablePair<>(op, ids));
     }
 
     /* ******************************************************************** */

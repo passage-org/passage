@@ -1,6 +1,7 @@
 package fr.gdd.sage.databases.persistent;
 
-import fr.gdd.sage.generics.Pair;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,10 +72,10 @@ public class Watdiv10M extends BenchmarkDataset {
         longQueries = new ArrayList<>();
         mediumQueries = new ArrayList<>();
         shortQueries = new ArrayList<>();
-        for (String queryName : queries.stream().map((p) -> p.left).toList()) {
-            if (!longQueryNames.stream().filter(e -> queryName.contains(e)).toList().isEmpty()) {
+        for (String queryName : queries.stream().map(Pair::getLeft).toList()) {
+            if (!longQueryNames.stream().filter(queryName::contains).toList().isEmpty()) {
                 longQueries.add(queryName);
-            } else if (!mediumQueryNames.stream().filter(e -> queryName.contains(e)).toList().isEmpty()) {
+            } else if (!mediumQueryNames.stream().filter(queryName::contains).toList().isEmpty()) {
                 mediumQueries.add(queryName);
             } else {
                 shortQueries.add(queryName);
@@ -102,7 +103,7 @@ public class Watdiv10M extends BenchmarkDataset {
                 query = query.replace('\n', ' '); // to get a clearer one line rendering
                 query = query.replace('\t', ' ');
                 // query = String.format("# %s\n%s", queryFile.getName(), query);
-                queries.add(new Pair<>(queryFile.getPath(), query));
+                queries.add(new ImmutablePair<>(queryFile.getPath(), query));
             } catch (Exception e) {
                 e.printStackTrace();
             }

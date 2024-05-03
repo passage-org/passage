@@ -4,7 +4,6 @@ import fr.gdd.sage.ArtificallySkewedGraph;
 import fr.gdd.sage.databases.inmemory.InMemoryInstanceOfTDB2;
 import fr.gdd.sage.databases.persistent.Watdiv10M;
 import fr.gdd.sage.generics.LazyIterator;
-import fr.gdd.sage.generics.Pair;
 import fr.gdd.sage.interfaces.BackendIterator;
 import fr.gdd.sage.interfaces.SPOC;
 import fr.gdd.sage.io.SageOutput;
@@ -20,6 +19,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,13 +77,13 @@ class ProgressJenaIteratorTest {
 
                 shouldStop += 1;
                 if (shouldStop >= stopAt) {
-                    output.save(new Pair<>(0, it.previous()), new Pair<>(1, it_2.current()));
+                    output.save(new ImmutablePair<>(0, it.previous()), new ImmutablePair<>(1, it_2.current()));
                     break;
                 }
             }
             shouldStop += 1;
             if (shouldStop >= stopAt) {
-                output.save(new Pair<>(0, it.current()));
+                output.save(new ImmutablePair<>(0, it.current()));
                 break;
             }
         }
@@ -171,7 +171,7 @@ class ProgressJenaIteratorTest {
     }
 
     @Disabled
-    @Test
+    @EnabledIfEnvironmentVariable(named = "WATDIV", matches = "true")
     public void count_as_well_but_building_a_tree_in_a_bplustree_way() {
         JenaBackend backend = new JenaBackend("../target/watdiv10M");
 

@@ -1,6 +1,5 @@
 package fr.gdd.sage.arq;
 
-import fr.gdd.sage.generics.Pair;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.algebra.Algebra;
@@ -8,9 +7,6 @@ import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.sse.SSE;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;

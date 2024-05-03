@@ -1,22 +1,12 @@
 package org.apache.jena.sparql.engine.iterator;
 
 import fr.gdd.sage.arq.SageConstants;
-import fr.gdd.sage.generics.Pair;
 import fr.gdd.sage.interfaces.PreemptIterator;
-import fr.gdd.sage.io.SageInput;
-import fr.gdd.sage.io.SageOutput;
-import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.engine.QueryIterator;
 import org.apache.jena.sparql.engine.binding.Binding;
-import org.apache.jena.sparql.serializer.SerializationContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
 import java.util.HashMap;
-import java.util.Objects;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Such an iterator can represent optionals in SPARQL queries. When the optional statement does not find

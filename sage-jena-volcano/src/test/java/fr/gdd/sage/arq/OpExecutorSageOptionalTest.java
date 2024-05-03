@@ -2,10 +2,11 @@ package fr.gdd.sage.arq;
 
 import fr.gdd.sage.databases.inmemory.InMemoryInstanceOfTDB2;
 import fr.gdd.sage.databases.inmemory.InMemoryInstanceOfTDB2ForOptional;
-import fr.gdd.sage.generics.Pair;
 import fr.gdd.sage.io.SageInput;
 import fr.gdd.sage.io.SageOutput;
 import fr.gdd.sage.jena.SerializableRecord;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.query.*;
 import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
@@ -196,7 +197,7 @@ public class OpExecutorSageOptionalTest {
             assertEquals(input.getLimit(), nb_results);
             assertEquals(input.getLimit(), output.size());
         }
-        return new Pair<>(output, solutions);
+        return new ImmutablePair<>(output, solutions);
     }
 
 }

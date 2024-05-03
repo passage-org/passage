@@ -4,6 +4,7 @@ import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.tdb2.TDB2Factory;
 import org.apache.jena.tdb2.loader.DataLoader;
@@ -71,7 +72,7 @@ public class BenchmarkDataset {
     }
 
     public void setQueries(String pathToQueries) throws IOException {
-        this.queries = Watdiv10M.getQueries(pathToQueries, this.blacklist).stream().map(e -> e.left).collect(Collectors.toList());
+        this.queries = Watdiv10M.getQueries(pathToQueries, this.blacklist).stream().map(Pair::getLeft).collect(Collectors.toList());
     }
 
     public List<String> getQueries() {
@@ -209,7 +210,7 @@ public class BenchmarkDataset {
                 log.info("Extracting file {}…", entryExtractPath);
                 entryExtractPath.toFile().createNewFile();
                 try (FileOutputStream writer = new FileOutputStream(entryExtractPath.toFile())) {
-                    byte dataBuffer[] = new byte[1024];
+                    byte[] dataBuffer = new byte[1024];
                     int bytesRead;
                     while ((bytesRead = tarIn.read(dataBuffer, 0, 1024)) != -1) {
                         writer.write(dataBuffer, 0, bytesRead);
