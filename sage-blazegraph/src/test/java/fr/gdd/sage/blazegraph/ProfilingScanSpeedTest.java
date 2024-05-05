@@ -39,7 +39,7 @@ public class ProfilingScanSpeedTest {
 
                 final var any = bb.any();
                 final var p_1 = bb.getId("http://xmlns.com/foaf/age", SPOC.PREDICATE);
-                BackendIterator<IV, ?> i_1 = bb.search(any, p_1, any);
+                BackendIterator<IV, ?, ?> i_1 = bb.search(any, p_1, any);
                 BlazegraphIterator bi = (BlazegraphIterator) ((LazyIterator) i_1).getWrapped();
                 long sum = 0;
                 while (System.currentTimeMillis() < start+TIMEOUT) {

@@ -33,7 +33,7 @@ public class LazyIterator<ID, VALUE, SKIP extends Serializable> extends BackendI
     private VALUE object_value = null;
     private VALUE context_value = null;
 
-    private String subject = null;
+    private String subject = null; // TODO TODO TODO
     private String predicate = null;
     private String object = null;
     private String context = null;
@@ -133,7 +133,8 @@ public class LazyIterator<ID, VALUE, SKIP extends Serializable> extends BackendI
 
     @Override
     public String getString(int code) {
-        throw new UnsupportedOperationException("TODO"); // TODO
+        ID id = getId(code); // TODO lazy
+        return backend.getString(id, code);
     }
 
     @Override
@@ -157,12 +158,19 @@ public class LazyIterator<ID, VALUE, SKIP extends Serializable> extends BackendI
     }
 
     @Override
-    public long cardinality() {
+    public double cardinality() {
         return iterator.cardinality();
     }
 
     @Override
-    public long cardinality(long strength) {
+    public double cardinality(long strength) {
         return iterator.cardinality(strength);
+    }
+
+    /**
+     * @return The wrapped iterator.
+     */
+    public BackendIterator<ID, VALUE, SKIP> getWrapped() {
+        return this.iterator;
     }
 }

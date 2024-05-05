@@ -3,6 +3,7 @@ package fr.gdd.sage.blazegraph;
 import com.bigdata.journal.Options;
 import com.bigdata.rdf.internal.IV;
 import com.bigdata.rdf.internal.impl.TermId;
+import com.bigdata.rdf.model.BigdataValue;
 import com.bigdata.rdf.sail.BigdataSail;
 import com.bigdata.rdf.sail.BigdataSailRepository;
 import com.bigdata.rdf.sail.BigdataSailRepositoryConnection;
@@ -29,7 +30,7 @@ import java.util.Properties;
  * Backend for Blazegraph providing easy access to the most important
  * feature: the scan iterator.
  */
-public class BlazegraphBackend implements Backend<IV, byte[]> {
+public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
 
     AbstractTripleStore store;
     BigdataSailRepository repository;
@@ -77,9 +78,13 @@ public class BlazegraphBackend implements Backend<IV, byte[]> {
     }
 
     @Override
-    public BackendIterator<IV, byte[]> search(IV s, IV p, IV o, IV... c) {
-        return new LazyIterator<>(this,new BlazegraphIterator(store, s, p, o,
-                Objects.isNull(c) || c.length == 0 ? null : c[0]));
+    public BackendIterator<IV, BigdataValue, Long> search(IV s, IV p, IV o) {
+        return new LazyIterator<>(this,new BlazegraphIterator(store, s, p, o, null));
+    }
+
+    @Override
+    public BackendIterator<IV, BigdataValue, Long> search(IV s, IV p, IV o, IV c) {
+        return new LazyIterator<>(this,new BlazegraphIterator(store, s, p, o, c));
     }
 
     @Override
@@ -108,8 +113,18 @@ public class BlazegraphBackend implements Backend<IV, byte[]> {
     }
 
     @Override
-    public String getValue(IV value, int... type) {
+    public IV getId(BigdataValue bigdataValue, int... type) {
+        throw new UnsupportedOperationException("TODO"); // TODO
+    }
+
+    @Override
+    public String getString(IV value, int... type) {
         return store.getLexiconRelation().getTerm(value).toString();
+    }
+
+    @Override
+    public BigdataValue getValue(IV iv, int... type) {
+        throw new UnsupportedOperationException("TODO"); // TODO
     }
 
     @Override

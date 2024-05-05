@@ -55,7 +55,7 @@ public interface Backend<ID, VALUE, SKIP extends Serializable> {
      * @param id The identifier of the value to retrieve in the dictionary.
      * @return The value as a string corresponding to the identifier.
      */
-    VALUE getString(final ID id, final int... type);
+    String getString(final ID id, final int... type);
 
     /**
      * @return The identifier of the wildcard `any` or `*` for the

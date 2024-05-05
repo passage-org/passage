@@ -31,7 +31,7 @@ import java.util.Objects;
 public class SagerScan implements Iterator<BindingId2Value> {
 
     final Long deadline;
-    protected final BackendIterator<NodeId, ?> wrapped;
+    protected final BackendIterator<NodeId, Node, ?> wrapped;
     boolean first = true;
     final OpTriple op;
     BindingId2Value current;
@@ -40,7 +40,7 @@ public class SagerScan implements Iterator<BindingId2Value> {
 
     final protected Tuple3<Var> vars;
 
-    public SagerScan(ExecutionContext context, OpTriple op, Tuple<NodeId> spo, BackendIterator<NodeId, ?> wrapped) {
+    public SagerScan(ExecutionContext context, OpTriple op, Tuple<NodeId> spo, BackendIterator<NodeId, Node, ?> wrapped) {
         this.deadline = context.getContext().getLong(SagerConstants.DEADLINE, Long.MAX_VALUE);
         this.backend = context.getContext().get(SagerConstants.BACKEND);
         this.wrapped = wrapped;

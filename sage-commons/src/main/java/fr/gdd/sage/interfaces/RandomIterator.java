@@ -21,7 +21,7 @@ public interface RandomIterator {
      * @throws UnsupportedOperationException The scan iterator does not know
      * how to process the cardinality.
      */
-    default long cardinality() throws UnsupportedOperationException { throw new UnsupportedOperationException(); }
+    default double cardinality() throws UnsupportedOperationException { throw new UnsupportedOperationException(); }
 
     /**
      * @param strength How hard the estimate should be, e.g. when the estimate
@@ -31,6 +31,6 @@ public interface RandomIterator {
      * @throws UnsupportedOperationException The scan iterator does not know
      * how to process the cardinality.
      */
-    default long cardinality(long strength) throws UnsupportedOperationException { throw new UnsupportedOperationException(); }
+    default double cardinality(long strength) throws UnsupportedOperationException { throw new UnsupportedOperationException(); }
 
 }

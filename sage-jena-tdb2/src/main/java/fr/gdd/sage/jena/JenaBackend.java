@@ -17,7 +17,6 @@ import org.apache.jena.tdb2.store.nodetable.NodeTable;
 import org.apache.jena.tdb2.store.nodetupletable.NodeTupleTable;
 import org.apache.jena.tdb2.sys.TDBInternal;
 
-import java.io.Serializable;
 import java.util.Objects;
 
 
@@ -79,17 +78,17 @@ public class JenaBackend implements Backend<NodeId, Node, SerializableRecord> {
 
 
     /* ****************************************************************************************** */
-    // Backend interface
-    
+
     @Override
-    public BackendIterator<NodeId, Serializable> search(final NodeId s, final NodeId p, final NodeId o, final NodeId... c) {
-        if (c.length == 0) {
-            Tuple<NodeId> pattern = TupleFactory.tuple(s, p, o);
-            return new LazyIterator<>(this, preemptableTripleTupleTable.preemptFind(pattern));
-        } else {
-            Tuple<NodeId> pattern = TupleFactory.tuple(c[0], s, p, o);
-            return new LazyIterator<>(this, preemptableQuadTupleTable.preemptFind(pattern));
-        }
+    public BackendIterator<NodeId, Node, SerializableRecord> search(final NodeId s, final NodeId p, final NodeId o) {
+        Tuple<NodeId> pattern = TupleFactory.tuple(s, p, o);
+        return new LazyIterator<>(this, preemptableTripleTupleTable.preemptFind(pattern));
+    }
+
+    @Override
+    public BackendIterator<NodeId, Node, SerializableRecord> search(final NodeId s, final NodeId p, final NodeId o, final NodeId c) {
+        Tuple<NodeId> pattern = TupleFactory.tuple(c, s, p, o);
+        return new LazyIterator<>(this, preemptableQuadTupleTable.preemptFind(pattern));
     }
 
     @Override
@@ -106,7 +105,7 @@ public class JenaBackend implements Backend<NodeId, Node, SerializableRecord> {
     }
 
     @Override
-    public String getValue(final NodeId id, final int... code) throws NotFoundException {
+    public String getString(final NodeId id, final int... code) throws NotFoundException {
         Node node = nodeTripleTable.getNodeForNodeId(id);
         if (Objects.isNull(node)) {
             node = nodeQuadTable.getNodeForNodeId(id);
@@ -117,7 +116,7 @@ public class JenaBackend implements Backend<NodeId, Node, SerializableRecord> {
         return node.toString();
     }
 
-    public Node getNode(final NodeId id, final int... code) throws NotFoundException {
+    public Node getValue(final NodeId id, final int... code) throws NotFoundException {
         Node node = nodeTripleTable.getNodeForNodeId(id);
         if (Objects.isNull(node)) {
             node = nodeQuadTable.getNodeForNodeId(id);
@@ -138,7 +137,8 @@ public class JenaBackend implements Backend<NodeId, Node, SerializableRecord> {
     /**
      * Convenience function that gets the id from the node, looking in both tables.
      */
-    public NodeId getId(final Node node) throws NotFoundException {
+    @Override
+    public NodeId getId(final Node node, int... code) throws NotFoundException {
         NodeId id = nodeTripleTable.getNodeIdForNode(node);
         if (NodeId.isDoesNotExist(id)) {
             id = nodeQuadTable.getNodeIdForNode(node);
