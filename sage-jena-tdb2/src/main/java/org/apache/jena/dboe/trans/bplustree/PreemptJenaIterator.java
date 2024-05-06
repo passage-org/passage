@@ -1,6 +1,5 @@
 package org.apache.jena.dboe.trans.bplustree;
 
-import fr.gdd.sage.interfaces.BackendIterator;
 import fr.gdd.sage.interfaces.SPOC;
 import fr.gdd.sage.jena.SerializableRecord;
 import org.apache.jena.atlas.lib.tuple.Tuple;
@@ -8,6 +7,7 @@ import org.apache.jena.atlas.lib.tuple.TupleMap;
 import org.apache.jena.dboe.base.record.Record;
 import org.apache.jena.dboe.base.record.RecordFactory;
 import org.apache.jena.dboe.base.record.RecordMapper;
+import org.apache.jena.graph.Node;
 import org.apache.jena.tdb2.lib.TupleLib;
 import org.apache.jena.tdb2.store.NodeId;
 import org.apache.jena.util.iterator.NullIterator;
@@ -25,7 +25,7 @@ import java.util.Objects;
  * find out the boundary of the scan and draw a random element from
  * it.
  **/
-public class PreemptJenaIterator extends ProgressJenaIterator implements BackendIterator<NodeId, Serializable> {
+public class PreemptJenaIterator extends ProgressJenaIterator {
     BPlusTree tree = null;
     Record min = null;
     Record max = null;
@@ -125,8 +125,17 @@ public class PreemptJenaIterator extends ProgressJenaIterator implements Backend
     }
 
     @Override
-    public void skip(Serializable toNotCast) {
-        SerializableRecord to = (SerializableRecord) toNotCast;
+    public Node getValue(int code) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getString(int code) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void skip(SerializableRecord to) {
         if (Objects.isNull(to) || Objects.isNull(to.getRecord())) {
             // Corner case where an iterator indeed saved
             // its `previous()` but since this is the first
@@ -155,15 +164,15 @@ public class PreemptJenaIterator extends ProgressJenaIterator implements Backend
     }
 
     @Override
-    public Serializable current() {
+    public SerializableRecord current() {
         return Objects.isNull(current) ? null :
-                new SerializableRecord(TupleLib.record(recordFactory, current, tupleMap), (Long) super.current());
+                new SerializableRecord(TupleLib.record(recordFactory, current, tupleMap), (Long) super.getOffset());
     }
 
     @Override
-    public Serializable previous() {
+    public SerializableRecord previous() {
         return Objects.isNull(previous) ? null :
-                new SerializableRecord(TupleLib.record(recordFactory, previous, tupleMap), (Long) super.previous());
+                new SerializableRecord(TupleLib.record(recordFactory, previous, tupleMap), (Long) super.previousOffset());
     }
     
     @Override
@@ -178,4 +187,8 @@ public class PreemptJenaIterator extends ProgressJenaIterator implements Backend
         current = wrapped.next();
     }
 
+    @Override
+    public boolean random() {
+        throw new UnsupportedOperationException();
+    }
 }

@@ -28,7 +28,7 @@ public class AbstractBindings<ID, VALUE> {
     public static class IdValueBackend<ID, VALUE> {
         ID id = null;
         VALUE value = null;
-        Backend<ID, ?> backend = null;
+        Backend<ID, VALUE, ?> backend = null;
 
         public VALUE getValue() {
             throw new UnsupportedOperationException("TODO");

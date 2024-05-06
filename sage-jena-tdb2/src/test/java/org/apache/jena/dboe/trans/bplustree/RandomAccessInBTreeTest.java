@@ -46,7 +46,7 @@ public class RandomAccessInBTreeTest {
         // with (very) high probability, this works
         assertEquals(DISTINCT, randomValues.size());
         assertEquals(DISTINCT, randomUniformValues.size());
-        assertEquals(DISTINCT, (int) iterator.cardinality(Integer.MAX_VALUE));
+        assertEquals(DISTINCT, (int) iterator.cardinality(Long.MAX_VALUE));
     }
 
     @Test
@@ -76,7 +76,7 @@ public class RandomAccessInBTreeTest {
         assertNotNull(random);
         assertEquals(random, randomUniform);
         assertEquals(1, iterator.count());
-        assertEquals(1, iterator.cardinality(Integer.MAX_VALUE));
+        assertEquals(1, iterator.cardinality(Long.MAX_VALUE));
     }
 
     @Test
@@ -121,10 +121,10 @@ public class RandomAccessInBTreeTest {
         // since we look for ?prof <http://is_a> <http://Prof>, the index used is POS.
         // Using Record, the subject identifier would be last, but using the iterator
         // itself allows reordering so the subject comes first, as expected.
-        assertEquals("http://prof_0", backend.getValue(spo.get(0)));
+        assertEquals("http://prof_0", backend.getString(spo.get(0)));
 
         Tuple<NodeId> spoUniform = iterator.getUniformRandomSPO();
-        assertEquals("http://prof_0", backend.getValue(spoUniform.get(0)));
+        assertEquals("http://prof_0", backend.getString(spoUniform.get(0)));
     }
 
     @Disabled

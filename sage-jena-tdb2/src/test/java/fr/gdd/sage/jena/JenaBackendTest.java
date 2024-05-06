@@ -34,7 +34,7 @@ public class JenaBackendTest {
         JenaBackend backend = new JenaBackend(dataset);
 
         NodeId city0Id = backend.getId("<http://db.uwaterloo.ca/~galuc/wsdbm/City0>");
-        String city0 = backend.getValue(city0Id);
+        String city0 = backend.getString(city0Id);
         assertEquals("http://db.uwaterloo.ca/~galuc/wsdbm/City0", city0);
     }
 
@@ -52,7 +52,7 @@ public class JenaBackendTest {
         JenaBackend backend = new JenaBackend(dataset);
 
         NodeId graphAId = backend.getId("<https://graphA.org>");
-        String graphA = backend.getValue(graphAId);
+        String graphA = backend.getString(graphAId);
         assertEquals("https://graphA.org", graphA);
     }
 }

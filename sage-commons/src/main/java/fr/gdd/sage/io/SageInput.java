@@ -35,7 +35,7 @@ public class SageInput<SKIP extends Serializable> implements Serializable {
     /**
      * Compiled execution may require a shared backend to work.
      **/
-    transient Backend<?, SKIP> backend;
+    transient Backend<?, ?, SKIP> backend;
 
     /* ********************************************************************* */
 
@@ -46,7 +46,7 @@ public class SageInput<SKIP extends Serializable> implements Serializable {
         return this;
     }
 
-    public SageInput<SKIP> setBackend(Backend<?, SKIP> backend) {
+    public SageInput<SKIP> setBackend(Backend<?, ?, SKIP> backend) {
         this.backend = backend;
         return this;
     }
@@ -84,7 +84,7 @@ public class SageInput<SKIP extends Serializable> implements Serializable {
 
     /* ******************************************************************* */
     
-    public Backend<?, SKIP> getBackend() {
+    public Backend<?, ?, SKIP> getBackend() {
         return backend;
     }
 

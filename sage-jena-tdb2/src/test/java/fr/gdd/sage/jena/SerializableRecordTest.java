@@ -5,6 +5,7 @@ import fr.gdd.sage.interfaces.BackendIterator;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.jena.atlas.lib.Bytes;
 import org.apache.jena.ext.xerces.impl.dv.util.Base64;
+import org.apache.jena.graph.Node;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.tdb2.store.NodeId;
 import org.apache.jena.tdb2.sys.TDBInternal;
@@ -27,7 +28,7 @@ class SerializableRecordTest {
         NodeId predicate = backend.getId("<http://www.geonames.org/ontology#parentCountry>");
         NodeId any = backend.any();
 
-        BackendIterator<?, Serializable> it = backend.search(any, predicate, any);
+        BackendIterator<NodeId, Node, SerializableRecord> it = backend.search(any, predicate, any);
         it.next();
         it.next();
         SerializableRecord sr = (SerializableRecord) it.current();

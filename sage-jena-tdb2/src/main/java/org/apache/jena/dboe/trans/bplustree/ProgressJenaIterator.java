@@ -1,6 +1,8 @@
 package org.apache.jena.dboe.trans.bplustree;
 
+import fr.gdd.sage.interfaces.BackendIterator;
 import fr.gdd.sage.interfaces.SPOC;
+import fr.gdd.sage.jena.SerializableRecord;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.atlas.lib.tuple.Tuple;
@@ -8,6 +10,7 @@ import org.apache.jena.atlas.lib.tuple.TupleFactory;
 import org.apache.jena.dboe.base.buffer.RecordBuffer;
 import org.apache.jena.dboe.base.record.Record;
 import org.apache.jena.dboe.trans.bplustree.AccessPath.AccessStep;
+import org.apache.jena.graph.Node;
 import org.apache.jena.tdb2.lib.TupleLib;
 import org.apache.jena.tdb2.store.NodeId;
 
@@ -20,7 +23,7 @@ import java.util.Random;
  * An iterator that allows measuring the estimated progress of execution, i.e.,
  * the number of explored elements over the estimated number to explore.
  */
-public class ProgressJenaIterator {
+public abstract class ProgressJenaIterator extends BackendIterator<NodeId, Node, SerializableRecord> {
 
     public static Random rng = new Random(12); // random seed is accessible
     private final static Pair<Record, Double> NOTFOUND = new ImmutablePair<>(null, 0.);
@@ -68,24 +71,34 @@ public class ProgressJenaIterator {
 
     public boolean isSingletonIterator() {return !Objects.isNull(this.cardinality) && this.cardinality == 1.;}
 
+    @Override
+    public boolean hasNext() {
+        return false;
+    }
+
     public void next() {
         this.offset += 1;
+    }
+
+    @Override
+    public void reset() {
+        this.offset = 0;
     }
 
     public long getOffset() {
         return offset;
     }
 
-    public Serializable current() {
+    public long currentOffset() {
         return offset;
     }
 
-    public Serializable previous() {
+    public long previousOffset() {
         return offset - 1;
     }
 
-    public void skip(Serializable to) {
-        this.offset = (Long) to;
+    public void skip(long to) {
+        this.offset = to;
     }
 
     public double getProgress() {
@@ -243,6 +256,12 @@ public class ProgressJenaIterator {
         return randomWalkWJ(minPath, maxPath);
     }
 
+
+    @Override
+    public double cardinality() throws UnsupportedOperationException {
+        return cardinality(NB_WALKS);
+    }
+
     /**
      * Estimates the cardinality of a triple/quad pattern knowing that
      * the underlying data structure is a balanced tree.
@@ -252,15 +271,13 @@ public class ProgressJenaIterator {
      *
      * @return An estimated cardinality.
      */
-    public double cardinality(Integer... sample) {
+    @Override
+    public double cardinality(long nbWalks) {
         if (Objects.nonNull(this.cardinality)) {
             return cardinality; // already processed, lazy return. Or singleton or null.
         }
 
-        // number of random walks to estimate cardinalities in between boundaries.
-        int nbWalks = Objects.isNull(sample) || sample.length == 0 ? NB_WALKS : sample[0];
-
-        if (nbWalks == Integer.MAX_VALUE) {
+        if (nbWalks == Long.MAX_VALUE) {
             // MAX_VALUE goes for counting since it's the most costly, at least we want exact cardinality
             // return count();
             return getTreeOfCardinality().sum; // slightly more efficient
@@ -478,4 +495,6 @@ public class ProgressJenaIterator {
                 tuple;
     }
 
+    @Override
+    public abstract boolean random();
 }

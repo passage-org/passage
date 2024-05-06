@@ -29,7 +29,7 @@
     <module>sage-jena-databases</module>
     <module>sage-jena-tdb2</module>
     <module>sage-blazegraph</module>
-    <module>sage-jena-volcano</module>
+    <!--<module>sage-jena-volcano</module>--> <!-- deprecated in favor of sage-volcano -->
     <module>sage-jena-module</module>
     <module>sager</module>
   </modules>

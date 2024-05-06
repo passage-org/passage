@@ -7,6 +7,7 @@ import fr.gdd.sage.interfaces.SPOC;
 import fr.gdd.sage.jena.JenaBackend;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.atlas.lib.tuple.Tuple;
+import org.apache.jena.graph.Node;
 import org.apache.jena.tdb2.store.NodeId;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -23,7 +24,7 @@ public class CountDistinctTest {
         JenaBackend backend = new JenaBackend(watdiv10M.dbPath_asStr);
 
         NodeId is_a = backend.getId("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>", SPOC.PREDICATE);
-        LazyIterator<NodeId, ?> sac = (LazyIterator) backend.search(backend.any(), is_a, backend.any());
+        LazyIterator<NodeId, Node, ?> sac = (LazyIterator) backend.search(backend.any(), is_a, backend.any());
         ProgressJenaIterator progress_sac = (ProgressJenaIterator) sac.iterator;
         double t1 = progress_sac.count();
 
@@ -51,7 +52,7 @@ public class CountDistinctTest {
         JenaBackend backend = new JenaBackend(watdiv10M.dbPath_asStr);
 
         NodeId is_a = backend.getId("<http://schema.org/printPage>", SPOC.PREDICATE);
-        LazyIterator<NodeId, ?> sac = (LazyIterator) backend.search(backend.any(), is_a, backend.any());
+        LazyIterator<NodeId, Node, ?> sac = (LazyIterator) backend.search(backend.any(), is_a, backend.any());
         ProgressJenaIterator progress_sac = (ProgressJenaIterator) sac.iterator;
         double N = progress_sac.count();
 
@@ -116,7 +117,7 @@ public class CountDistinctTest {
         double sumOfNj = 0.;
         double crwdProbaSum = 0.;
         double crwdRightSum = 0.;
-        LazyIterator<NodeId, ?> spo = (LazyIterator) backend.search(backend.any(), backend.any(), backend.any());
+        LazyIterator<NodeId, Node, ?> spo = (LazyIterator) backend.search(backend.any(), backend.any(), backend.any());
         ProgressJenaIterator progress_spo = (ProgressJenaIterator) spo.iterator;
         double N = progress_spo.count();
         Integer nbDuplicate = 0;
@@ -124,8 +125,8 @@ public class CountDistinctTest {
             Pair<Tuple<NodeId>, Double> tupleAndProba = progress_spo.getUniformRandomSPOWithProbability();
             NodeId elementId = tupleAndProba.getLeft().get(SPOC.OBJECT);
 
-            String value = backend.getValue(elementId);
-            LazyIterator<NodeId, ?> e = (LazyIterator) backend.search(backend.any(), backend.any(), elementId);
+            String value = backend.getString(elementId);
+            LazyIterator<NodeId, Node, ?> e = (LazyIterator) backend.search(backend.any(), backend.any(), elementId);
             ProgressJenaIterator progress_e = (ProgressJenaIterator) e.iterator;
             double Fi = progress_e.count();
 

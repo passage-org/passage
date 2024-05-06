@@ -12,13 +12,25 @@ public interface RandomIterator {
      * `it.getId(SPOC.OBJECT)` to which we add `it.getId(SPOC.GRAPH)`
      * for quads.
      *
-     * @return
+     * @return True if it has a next, false otherwise.
      */
     boolean random();
 
     /**
      * @return A -- possibly estimated -- cardinality of the pattern.
+     * @throws UnsupportedOperationException The scan iterator does not know
+     * how to process the cardinality.
      */
-    long cardinality();
+    default double cardinality() throws UnsupportedOperationException { throw new UnsupportedOperationException(); }
+
+    /**
+     * @param strength How hard the estimate should be, e.g. when the estimate
+     *                 is based on random walks, this could force the number of
+     *                 random walks to perform.
+     * @return A -- possibly estimated -- cardinality of the pattern.
+     * @throws UnsupportedOperationException The scan iterator does not know
+     * how to process the cardinality.
+     */
+    default double cardinality(long strength) throws UnsupportedOperationException { throw new UnsupportedOperationException(); }
 
 }
