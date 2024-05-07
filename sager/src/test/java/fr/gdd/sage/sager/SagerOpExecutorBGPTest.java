@@ -1,6 +1,7 @@
 package fr.gdd.sage.sager;
 
-import fr.gdd.sage.databases.inmemory.InMemoryInstanceOfTDB2ForRandom;
+import fr.gdd.sage.databases.inmemory.IM4Jena;
+import org.apache.jena.query.Dataset;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -13,11 +14,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class SagerOpExecutorBGPTest {
 
     private static final Logger log = LoggerFactory.getLogger(SagerOpExecutorBGPTest.class);
-    private static final InMemoryInstanceOfTDB2ForRandom dataset = new InMemoryInstanceOfTDB2ForRandom();
+    private static final Dataset dataset = IM4Jena.triple9();
 
     @Test
     public void bgp_of_1_tp () {
-        ExecutionContext ec = new ExecutionContext(dataset.getDataset().asDatasetGraph());
+        ExecutionContext ec = new ExecutionContext(dataset.asDatasetGraph());
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c}";
         int nbResults = SagerOpExecutorTest.executeWithSager(queryAsString, ec);
         assertEquals(3, nbResults); // Bob, Alice, and Carol.
@@ -25,7 +26,7 @@ public class SagerOpExecutorBGPTest {
 
     @Test
     public void bgp_of_2_tp () {
-        ExecutionContext ec = new ExecutionContext(dataset.getDataset().asDatasetGraph());
+        ExecutionContext ec = new ExecutionContext(dataset.asDatasetGraph());
         String queryAsString = """
                SELECT * WHERE {
                 ?p <http://address> <http://nantes> .
@@ -37,7 +38,7 @@ public class SagerOpExecutorBGPTest {
 
     @Test
     public void bgp_of_3_tps () {
-        ExecutionContext ec = new ExecutionContext(dataset.getDataset().asDatasetGraph());
+        ExecutionContext ec = new ExecutionContext(dataset.asDatasetGraph());
         String queryAsString = """
                SELECT * WHERE {
                 ?p <http://address> <http://nantes> .

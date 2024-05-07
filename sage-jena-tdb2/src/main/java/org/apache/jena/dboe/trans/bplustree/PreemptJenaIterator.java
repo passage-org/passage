@@ -13,7 +13,6 @@ import org.apache.jena.tdb2.store.NodeId;
 import org.apache.jena.util.iterator.NullIterator;
 import org.apache.jena.util.iterator.SingletonIterator;
 
-import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Objects;
 
@@ -188,7 +187,7 @@ public class PreemptJenaIterator extends ProgressJenaIterator {
     }
 
     @Override
-    public boolean random() {
+    public Double random() {
         throw new UnsupportedOperationException();
     }
 }

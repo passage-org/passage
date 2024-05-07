@@ -1,6 +1,7 @@
 package fr.gdd.sage.sager;
 
-import fr.gdd.sage.databases.inmemory.InMemoryInstanceOfTDB2ForRandom;
+import fr.gdd.sage.databases.inmemory.IM4Jena;
+import org.apache.jena.query.Dataset;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -14,12 +15,12 @@ public class SagerOpExecutorUnionTest {
 
 
     private static final Logger log = LoggerFactory.getLogger(SagerOpExecutorUnionTest.class);
-    private static final InMemoryInstanceOfTDB2ForRandom dataset = new InMemoryInstanceOfTDB2ForRandom();
+    private static final Dataset dataset = IM4Jena.triple9();
 
 
     @Test
     public void execute_a_simple_union () {
-        ExecutionContext ec = new ExecutionContext(dataset.getDataset().asDatasetGraph());
+        ExecutionContext ec = new ExecutionContext(dataset.asDatasetGraph());
         String queryAsString = """
                SELECT * WHERE {
                 {?p  <http://own>  ?a}
@@ -32,7 +33,7 @@ public class SagerOpExecutorUnionTest {
 
     @Test
     public void execute_a_union_inside_a_triple_pattern () {
-        ExecutionContext ec = new ExecutionContext(dataset.getDataset().asDatasetGraph());
+        ExecutionContext ec = new ExecutionContext(dataset.asDatasetGraph());
         String queryAsString = """
                SELECT * WHERE {
                 ?p  <http://own>  ?a .

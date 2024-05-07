@@ -14,7 +14,6 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.tdb2.lib.TupleLib;
 import org.apache.jena.tdb2.store.NodeId;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
@@ -496,5 +495,7 @@ public abstract class ProgressJenaIterator extends BackendIterator<NodeId, Node,
     }
 
     @Override
-    public abstract boolean random();
+    public Double random() {
+        throw new UnsupportedOperationException("TODO");
+    }
 }

@@ -12,9 +12,9 @@ public interface RandomIterator {
      * `it.getId(SPOC.OBJECT)` to which we add `it.getId(SPOC.GRAPH)`
      * for quads.
      *
-     * @return True if it has a next, false otherwise.
+     * @return The probability to get placed at this position.
      */
-    boolean random();
+    Double random();
 
     /**
      * @return A -- possibly estimated -- cardinality of the pattern.

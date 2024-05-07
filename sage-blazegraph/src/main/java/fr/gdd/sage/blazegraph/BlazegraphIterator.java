@@ -117,8 +117,14 @@ public class BlazegraphIterator extends BackendIterator<IV, BigdataValue, Long> 
     }
 
     @Override
-    public boolean random() {
-        throw new UnsupportedOperationException("TODO");
+    public Double random() {
+        this.offset = 0L;
+        currentValue = null;
+        long rn = RNG.nextLong((long) cardinality());
+        long startFrom = Objects.isNull(min) ? 0L: iindex.rangeCount(null, min);
+        byte[] keyAt = ((AbstractBTree) iindex).keyAt(startFrom + rn ); // TODO double check boundaries
+        tupleIterator = iindex.rangeIterator(keyAt, max);
+        return 1./cardinality();
     }
 
 }

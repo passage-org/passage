@@ -153,7 +153,7 @@ public class LazyIterator<ID, VALUE, SKIP extends Serializable> extends BackendI
     }
 
     @Override
-    public boolean random() {
+    public Double random() {
         return iterator.random();
     }
 

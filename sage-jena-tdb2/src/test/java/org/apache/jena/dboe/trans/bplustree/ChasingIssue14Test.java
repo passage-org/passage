@@ -1,6 +1,6 @@
 package org.apache.jena.dboe.trans.bplustree;
 
-import fr.gdd.sage.databases.inmemory.InMemoryInstanceOfTDB2WithSimpleData;
+import fr.gdd.sage.databases.inmemory.IM4Jena;
 import fr.gdd.sage.interfaces.BackendIterator;
 import fr.gdd.sage.interfaces.SPOC;
 import fr.gdd.sage.jena.JenaBackend;
@@ -13,8 +13,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.io.Serializable;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -22,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
  * The issue 14 is quite difficult to reproduce. It happens rarely, and only
  * with timeout. To help reproduce, increasing the number of pause/resume by
  * setting it low, i.e. 1 millisecond helps.
- *
+ * <br />
  * This test set aims to create all combinations on a simple hand-made dataset
  * in order to reproduce the issue, then fix it…
  * Most importantly, it tests with combination that are not on `limit` threshold.
@@ -39,10 +37,9 @@ public class ChasingIssue14Test {
     static NodeId alice = null;
     static NodeId cat = null;
 
-
     @BeforeAll
     public static void initializeDB() {
-        dataset = new InMemoryInstanceOfTDB2WithSimpleData().getDataset();
+        dataset = IM4Jena.triple3();
         backend = new JenaBackend(dataset);
 
         any = backend.any();

@@ -1,7 +1,8 @@
 package fr.gdd.sage.sager;
 
-import fr.gdd.sage.databases.inmemory.InMemoryInstanceOfTDB2ForRandom;
+import fr.gdd.sage.databases.inmemory.IM4Jena;
 import org.apache.jena.query.ARQ;
+import org.apache.jena.query.Dataset;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
@@ -19,11 +20,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class SagerOpExecutorTest {
 
     private static final Logger log = LoggerFactory.getLogger(SagerOpExecutorTest.class);
-    private static final InMemoryInstanceOfTDB2ForRandom dataset = new InMemoryInstanceOfTDB2ForRandom();
+    private static final Dataset dataset = IM4Jena.triple9();
 
     @Test
     public void create_a_bind_and_execute () {
-        ExecutionContext ec = new ExecutionContext(dataset.getDataset().asDatasetGraph());
+        ExecutionContext ec = new ExecutionContext(dataset.asDatasetGraph());
         String queryAsString = """
                SELECT * WHERE {
                 BIND (<http://Alice> AS ?p)

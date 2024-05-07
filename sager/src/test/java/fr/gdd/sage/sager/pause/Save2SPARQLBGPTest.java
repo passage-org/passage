@@ -1,6 +1,7 @@
 package fr.gdd.sage.sager.pause;
 
-import fr.gdd.sage.databases.inmemory.InMemoryInstanceOfTDB2ForRandom;
+import fr.gdd.sage.databases.inmemory.IM4Jena;
+import org.apache.jena.query.Dataset;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -14,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class Save2SPARQLBGPTest {
 
     private static final Logger log = LoggerFactory.getLogger(Save2SPARQLBGPTest.class);
-    private static final InMemoryInstanceOfTDB2ForRandom dataset = new InMemoryInstanceOfTDB2ForRandom();
+    private static final Dataset dataset = IM4Jena.triple9();
 
     @Test
     public void create_a_simple_query_and_pause_at_each_result () {
@@ -22,7 +23,7 @@ public class Save2SPARQLBGPTest {
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
-            queryAsString = Save2SPARQLTest.executeQuery(queryAsString, dataset.getDataset());
+            queryAsString = Save2SPARQLTest.executeQuery(queryAsString, dataset);
             sum += 1;
         }
         sum -= 1; // last call does not retrieve results
@@ -40,7 +41,7 @@ public class Save2SPARQLBGPTest {
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
-            queryAsString = Save2SPARQLTest.executeQuery(queryAsString, dataset.getDataset());
+            queryAsString = Save2SPARQLTest.executeQuery(queryAsString, dataset);
             sum += 1;
         }
         sum -= 1; // last call does not retrieve results
@@ -59,7 +60,7 @@ public class Save2SPARQLBGPTest {
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
-            queryAsString = Save2SPARQLTest.executeQuery(queryAsString, dataset.getDataset());
+            queryAsString = Save2SPARQLTest.executeQuery(queryAsString, dataset);
             sum += 1;
         }
         sum -= 1; // last call does not retrieve results
@@ -79,7 +80,7 @@ public class Save2SPARQLBGPTest {
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
-            queryAsString = Save2SPARQLTest.executeQuery(queryAsString, dataset.getDataset());
+            queryAsString = Save2SPARQLTest.executeQuery(queryAsString, dataset);
             sum += 1;
         }
         sum -= 1; // last call does not retrieve results

@@ -96,6 +96,11 @@ public class BackendBindings<ID, VALUE> {
         return this;
     }
 
+    public BackendBindings<ID, VALUE> put(Var var, ID id, Backend<ID, VALUE, ?> backend) {
+        var2binding.put(var, new IdValueBackend<ID, VALUE>().setBackend(backend).setId(id));
+        return this;
+    }
+
     public IdValueBackend<ID, VALUE> get(Var var) {
         if (var2binding.containsKey(var)) {
             return var2binding.get(var);
