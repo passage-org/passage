@@ -12,6 +12,7 @@ import org.apache.jena.fuseki.servlets.SPARQL_QueryDataset;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.Optional;
@@ -38,6 +39,8 @@ public class Sage_QueryDataset extends SPARQL_QueryDataset {
                 sageInput = mapper.readValue(inputRetrievedFromRequest, SageInput.class);
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
         }
 

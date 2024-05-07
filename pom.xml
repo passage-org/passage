@@ -26,7 +26,7 @@
   <modules>
     <module>jena-utils</module>
     <module>sage-commons</module>
-    <module>sage-jena-databases</module>
+    <module>sage-databases</module>
     <module>sage-jena-tdb2</module>
     <module>sage-blazegraph</module>
     <!--<module>sage-jena-volcano</module>--> <!-- deprecated in favor of sage-volcano -->
@@ -73,7 +73,7 @@
       </dependency>
       <dependency>
         <groupId>fr.gdd.sage</groupId>
-        <artifactId>sage-jena-databases</artifactId>
+        <artifactId>sage-databases</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

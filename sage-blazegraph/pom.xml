@@ -20,6 +20,10 @@
       <groupId>fr.gdd.sage</groupId>
       <artifactId>sage-commons</artifactId>
     </dependency>
+    <dependency>
+      <groupId>fr.gdd.sage</groupId>
+      <artifactId>sage-databases</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>com.blazegraph</groupId>

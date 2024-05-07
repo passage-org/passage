@@ -29,7 +29,12 @@
         </dependency>
         <dependency>
             <groupId>fr.gdd.sage</groupId>
-            <artifactId>sage-jena-databases</artifactId>
+            <artifactId>sage-databases</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency> <!-- because blazegraph uses junit4 while we use junit5… -->
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

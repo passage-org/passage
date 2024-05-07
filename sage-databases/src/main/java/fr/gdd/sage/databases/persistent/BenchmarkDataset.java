@@ -87,7 +87,7 @@ public class BenchmarkDataset {
             log.info("Database does not exist, creating it at {}…", dbPath.toAbsolutePath().toString());
             download(pathToArchive, downloadURL);
             extract(pathToArchive, fullExtractPath, whitelist);
-            FileUtils.delete(pathToArchive.toFile());
+            FileUtils.deleteQuietly(pathToArchive.toFile());
             ingest(dbPath, fullExtractPath, whitelist);
             FileUtils.deleteDirectory(fullExtractPath.toFile());
             log.info("Done with the database {}.", dbPath);

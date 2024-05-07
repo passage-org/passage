@@ -1,4 +1,4 @@
-package fr.gdd.sage.blazegraph;
+package fr.gdd.sage.databases.inmemory;
 
 import com.bigdata.rdf.sail.BigdataSail;
 import com.bigdata.rdf.sail.BigdataSailRepository;
@@ -11,14 +11,17 @@ import org.openrdf.sail.SailException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
 /**
- * Creates small dataset to run tests on it.
+ * Provides the same datasets for blazegraph.
  */
-public class SmallDatasetsForTests {
+public class IM4Blazegraph {
+
+    public static BigdataSail triples3 () { return getDataset(InMemoryStatements.triples3); } // simple
+    public static BigdataSail triples6 () { return getDataset(InMemoryStatements.triples6); } // for optional
+    public static BigdataSail triples9 () { return getDataset(InMemoryStatements.triples9); } // for random
 
     /**
      * @return Properties that makes sure the dataset is deleted at the end of each test.
@@ -31,10 +34,7 @@ public class SmallDatasetsForTests {
         return props;
     }
 
-    /**
-     * @return A dataset populated with some info about pets.
-     */
-    public static BigdataSail getPetsDataset() {
+    public static BigdataSail getDataset(List<String> statements) {
         final BigdataSail sail = new BigdataSail(getDefaultProps());
         try {
             sail.initialize();
@@ -44,20 +44,6 @@ public class SmallDatasetsForTests {
         BigdataSailRepository repository = new BigdataSailRepository(sail);
         try {
             BigdataSailRepositoryConnection connection = repository.getConnection();
-
-            List<String> statements = Arrays.asList(
-                    "<http://Alice> <http://address> <http://nantes> .",
-                    "<http://Bob>   <http://address> <http://paris>  .",
-                    "<http://Carol> <http://address> <http://nantes> .",
-
-                    "<http://Alice> <http://own>     <http://cat> .",
-                    "<http://Alice> <http://own>     <http://dog> .",
-                    "<http://Alice> <http://own>     <http://snake> .",
-
-                    "<http://cat>   <http://species> <http://feline> .",
-                    "<http://dog>   <http://species> <http://canine> .",
-                    "<http://snake> <http://species> <http://reptile> ."
-            );
 
             InputStream statementsStream = new ByteArrayInputStream(String.join("\n", statements).getBytes());
 

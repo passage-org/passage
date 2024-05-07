@@ -5,6 +5,7 @@ import com.bigdata.rdf.model.BigdataValue;
 import com.bigdata.rdf.spo.ISPO;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
+import fr.gdd.sage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.sage.generics.LazyIterator;
 import fr.gdd.sage.interfaces.BackendIterator;
 import fr.gdd.sage.interfaces.SPOC;
@@ -29,7 +30,7 @@ class BlazegraphBackendTest {
 
     @Test
     public void create_a_simple_pet_dataset () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
-        BlazegraphBackend bb = new BlazegraphBackend(SmallDatasetsForTests.getPetsDataset());
+        BlazegraphBackend bb = new BlazegraphBackend(IM4Blazegraph.triples9());
 
         // There is nothing but the default ~30ish triples inside.
         Multiset<BindingSet> results = bb.executeQuery("SELECT * WHERE {?s <http://address> ?o}");
@@ -49,7 +50,7 @@ class BlazegraphBackendTest {
 
     @Test
     public void creating_simple_iterators () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
-        BlazegraphBackend bb = new BlazegraphBackend(SmallDatasetsForTests.getPetsDataset());
+        BlazegraphBackend bb = new BlazegraphBackend(IM4Blazegraph.triples9());
 
         IV address = bb.getId("http://address", SPOC.PREDICATE);
         IV own = bb.getId("http://own", SPOC.PREDICATE);
@@ -66,7 +67,7 @@ class BlazegraphBackendTest {
 
     @Test
     public void creating_simple_random () {
-        BlazegraphBackend bb = new BlazegraphBackend(SmallDatasetsForTests.getPetsDataset());
+        BlazegraphBackend bb = new BlazegraphBackend(IM4Blazegraph.triples9());
         IV address = bb.getId("http://address", SPOC.PREDICATE);
         LazyIterator<IV, BigdataValue, Long> li = (LazyIterator<IV, BigdataValue, Long>) bb.search(bb.any(), address, bb.any());
 
@@ -91,7 +92,7 @@ class BlazegraphBackendTest {
 
     @Test
     public void testing_some_skipperino () {
-        BlazegraphBackend bb = new BlazegraphBackend(SmallDatasetsForTests.getPetsDataset());
+        BlazegraphBackend bb = new BlazegraphBackend(IM4Blazegraph.triples9());
         IV address = bb.getId("http://address", SPOC.PREDICATE);
 
         executeSimpleTPWithSkip(bb, bb.any(), address, bb.any(), 0, 3);
@@ -195,7 +196,7 @@ class BlazegraphBackendTest {
         Multiset<BindingSet> results = HashMultiset.create();
         while (it.hasNext()) {
             it.next();
-            log.info("{} {} {}", it.getValue(SPOC.SUBJECT), it.getValue(SPOC.PREDICATE), it.getValue(SPOC.OBJECT));
+            log.info("{} {} {}", it.getString(SPOC.SUBJECT), it.getString(SPOC.PREDICATE), it.getString(SPOC.OBJECT));
             MapBindingSet bs = new MapBindingSet();
             bs.addBinding("s", it.getId(SPOC.SUBJECT));
             bs.addBinding("p", it.getId(SPOC.PREDICATE));
@@ -216,7 +217,7 @@ class BlazegraphBackendTest {
         while (it.hasNext()) {
             it.next();
             log.info("skipped {}: {} {} {}", skip,
-                    it.getValue(SPOC.SUBJECT), it.getValue(SPOC.PREDICATE), it.getValue(SPOC.OBJECT));
+                    it.getString(SPOC.SUBJECT), it.getString(SPOC.PREDICATE), it.getString(SPOC.OBJECT));
             MapBindingSet bs = new MapBindingSet();
             bs.addBinding("s", it.getId(SPOC.SUBJECT));
             bs.addBinding("p", it.getId(SPOC.PREDICATE));

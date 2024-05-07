@@ -4,8 +4,8 @@
                              http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>fr.gdd.sage</groupId> <!-- redundant with parent but preferred this way -->
-  <artifactId>sage-jena-databases</artifactId>
-  <name>sage-jena-databases</name>
+  <artifactId>sage-databases</artifactId>
+  <name>sage-databases</name>
   <packaging>jar</packaging>
 
   <parent>
@@ -19,6 +19,11 @@
     <dependency>
       <groupId>fr.gdd.sage</groupId>
       <artifactId>sage-commons</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.blazegraph</groupId>
+      <artifactId>bigdata-core</artifactId>
     </dependency>
 
     <dependency>
@@ -39,6 +44,11 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency> <!-- because blazegraph uses junit4 while we use junit5… -->
+      <groupId>org.junit.vintage</groupId>
+      <artifactId>junit-vintage-engine</artifactId>
       <scope>test</scope>
     </dependency>
     
