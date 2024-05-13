@@ -5,6 +5,7 @@ import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.interfaces.Backend;
+import fr.gdd.sage.rawer.accumulators.ApproximateAggCount;
 import fr.gdd.sage.rawer.iterators.ProjectIterator;
 import fr.gdd.sage.rawer.iterators.RandomRoot;
 import fr.gdd.sage.rawer.iterators.RandomScanFactory;
@@ -12,9 +13,15 @@ import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.pause.Save2SPARQL;
 import fr.gdd.sage.sager.resume.BGP2Triples;
 import org.apache.jena.sparql.algebra.Op;
+import org.apache.jena.sparql.algebra.op.OpGroup;
+import org.apache.jena.sparql.algebra.op.OpJoin;
 import org.apache.jena.sparql.algebra.op.OpProject;
 import org.apache.jena.sparql.algebra.op.OpTriple;
 import org.apache.jena.sparql.engine.ExecutionContext;
+import org.apache.jena.sparql.engine.iterator.QueryIterGroup;
+import org.apache.jena.sparql.expr.ExprAggregator;
+import org.apache.jena.sparql.expr.aggregate.AggCount;
+import org.apache.jena.sparql.expr.aggregate.AggCountDistinct;
 
 import java.util.Iterator;
 
@@ -78,12 +85,13 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
 //        return qi2biv(qi, backend);
 //    }
 //
-//    @Override
-//    public Iterator<BackendBindings<ID, VALUE>> visit(OpJoin join, Iterator<BackendBindings<ID, VALUE>> input) {
-//        input = ReturningArgsOpVisitorRouter.visit(this, join.getLeft(), input);
-//        return ReturningArgsOpVisitorRouter.visit(this, join.getRight(), input);
-//    }
-//
+
+    @Override
+    public Iterator<BackendBindings<ID, VALUE>> visit(OpJoin join, Iterator<BackendBindings<ID, VALUE>> input) {
+        input = ReturningArgsOpVisitorRouter.visit(this, join.getLeft(), input);
+        return ReturningArgsOpVisitorRouter.visit(this, join.getRight(), input);
+    }
+
 //    @Override
 //    public Iterator<BackendBindings<ID, VALUE>> visit(OpTable table, Iterator<BackendBindings<ID, VALUE>> input) {
 //        if (table.isJoinIdentity())
@@ -104,16 +112,16 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
 //                case AggCount ac -> groupBy.getAggregators().set(i,
 //                        new ExprAggregator(groupBy.getAggregators().get(i).getVar(),
 //                            new ApproximateAggCount(execCxt, groupBy.getSubOp())));
-//                case AggCountDistinct acd -> groupBy.getAggregators().set(i,
-//                        new ExprAggregator(groupBy.getAggregators().get(i).getVar(),
-//                            new ApproximateAggCountDistinct(execCxt, groupBy.getSubOp())));
+////                case AggCountDistinct acd -> groupBy.getAggregators().set(i,
+////                        new ExprAggregator(groupBy.getAggregators().get(i).getVar(),
+////                            new ApproximateAggCountDistinct(execCxt, groupBy.getSubOp())));
 //                default -> throw new UnsupportedOperationException("The aggregation function is not implemented: " +
 //                        groupBy.getAggregators().get(i).toString());
 //            }
 //        }
 //
 //        //vv wrapped = ReturningArgsOpVisitorRouter.visit(this, groupBy.getSubOp(), input);
-//        Iterator<BindingId2Value> wrapped = new RandomRoot(this, execCxt, groupBy.getSubOp());
+//        Iterator<BackendBindings<ID, VALUE>> wrapped = new RandomRoot<>(this, execCxt, groupBy.getSubOp());
 //        return  qi2biv(new QueryIterGroup(biv2qi(wrapped, execCxt),
 //                groupBy.getGroupVars(), groupBy.getAggregators(), execCxt), backend);
 //    }

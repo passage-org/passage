@@ -84,6 +84,11 @@
       </dependency>
       <dependency>
         <groupId>fr.gdd.sage</groupId>
+        <artifactId>sage-blazegraph</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>fr.gdd.sage</groupId>
         <artifactId>sage-jena-module</artifactId>
         <version>${project.version}</version>
       </dependency>

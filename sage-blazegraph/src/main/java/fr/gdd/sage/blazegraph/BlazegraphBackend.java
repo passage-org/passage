@@ -18,6 +18,8 @@ import fr.gdd.sage.generics.LazyIterator;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.interfaces.BackendIterator;
 import fr.gdd.sage.interfaces.SPOC;
+import org.apache.jena.rdf.model.ResourceFactory;
+import org.openrdf.model.Resource;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.query.*;
 import org.openrdf.repository.RepositoryException;
@@ -89,13 +91,19 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
 
     @Override
     public IV getId(String value, int... type) {
+        Resource res = null;
+        if (value.startsWith("<") && value.endsWith(">")) {
+            res = new URIImpl(value.substring(1, value.length()-1));
+        } else {
+            throw new UnsupportedOperationException("parse value to resource");
+        }
         // TODO not only URIs
         // TODO could use `Node node = NodeFactoryExtra.parseNode(value);`
         IAccessPath<ISPO> accessPath = switch(type[0]) {
-            case SPOC.SUBJECT -> store.getAccessPath(new URIImpl(value),null, null);
-            case SPOC.PREDICATE -> store.getAccessPath(null, new URIImpl(value), null);
-            case SPOC.OBJECT -> store.getAccessPath(null,null, new URIImpl(value));
-            case SPOC.CONTEXT -> store.getAccessPath(null,null, null, new URIImpl(value));
+            case SPOC.SUBJECT -> store.getAccessPath(res,null, null);
+            case SPOC.PREDICATE -> store.getAccessPath(null, (URIImpl) res, null);
+            case SPOC.OBJECT -> store.getAccessPath(null,null, res);
+            case SPOC.CONTEXT -> store.getAccessPath(null,null, null, res);
             default -> throw new UnsupportedOperationException("Unknown SPOC…");
         };
         IChunkedOrderedIterator<ISPO> it = accessPath.iterator();

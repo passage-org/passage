@@ -135,7 +135,7 @@ public class BackendBindings<ID, VALUE> {
         Set<Var> vars = vars();
         StringBuilder builder = new StringBuilder("{");
         for (Var v : vars) {
-            builder.append(v.toString()).append("-> ").append(var2binding.get(v).getString()).append(" ; ");
+            builder.append(v.toString()).append("-> ").append(this.get(v).getString()).append(" ; ");
         }
         builder.append("}");
         return builder.toString();
