@@ -1,13 +1,16 @@
 package org.apache.jena.dboe.trans.bplustree;
 
 import fr.gdd.sage.ArtificallySkewedGraph;
+import fr.gdd.sage.databases.inmemory.IM4Jena;
 import fr.gdd.sage.generics.LazyIterator;
 import fr.gdd.sage.interfaces.BackendIterator;
 import fr.gdd.sage.interfaces.SPOC;
 import fr.gdd.sage.jena.JenaBackend;
 import org.apache.jena.atlas.lib.tuple.Tuple;
-import org.apache.jena.base.Sys;
 import org.apache.jena.dboe.base.record.Record;
+import org.apache.jena.ext.com.google.common.collect.HashMultiset;
+import org.apache.jena.ext.com.google.common.collect.Multiset;
+import org.apache.jena.graph.Node;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.tdb2.store.NodeId;
 import org.junit.jupiter.api.Disabled;
@@ -15,9 +18,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -28,6 +28,46 @@ public class RandomAccessInBTreeTest {
 
     static Integer DISTINCT = 100;
     Dataset dataset = new ArtificallySkewedGraph(DISTINCT, 10).getDataset();
+
+    @Test
+    public void spo_in_small_dataset() {
+        JenaBackend backend = new JenaBackend(IM4Jena.triple9());
+        BackendIterator<NodeId, Node, ?> it = backend.search(backend.any(), backend.any(), backend.any());
+
+        Multiset<String> expected = HashMultiset.create();
+        while (it.hasNext()) {
+            it.next();
+            expected.add(it.getString(SPOC.SUBJECT) + " " + it.getString(SPOC.PREDICATE) + " " + it.getString(SPOC.OBJECT));
+        }
+
+        Multiset<String> results = HashMultiset.create();
+        for (int i = 0; i < 1000; ++i) {
+            it.random();
+            it.next();
+            results.add(it.getString(SPOC.SUBJECT) + " " + it.getString(SPOC.PREDICATE) + " " + it.getString(SPOC.OBJECT));
+        }
+        assertEquals(1000, results.size());
+        assertEquals(expected.elementSet().size(), results.elementSet().size());
+        expected.elementSet().forEach(e -> assertTrue(results.contains(e)));
+        results.elementSet().forEach(e -> assertTrue(expected.contains(e)));
+    }
+
+    @Test
+    public void predicate_bounded_in_small_dataset() {
+        JenaBackend backend = new JenaBackend(IM4Jena.triple9());
+        NodeId address = backend.getId("<http://address>");
+        BackendIterator<NodeId, Node, ?> it = backend.search(backend.any(), address, backend.any());
+
+        Multiset<String> results = HashMultiset.create();
+        for (int i = 0; i < 1000; ++i) {
+            it.random();
+            it.next();
+            results.add(it.getString(SPOC.SUBJECT) + " " + it.getString(SPOC.PREDICATE) + " " + it.getString(SPOC.OBJECT));
+        }
+        assertEquals(1000, results.size());
+        assertEquals(3, results.elementSet().size());
+    }
+
 
     @Test
     public void range_iterator_with_known_number_of_distinct_values() {

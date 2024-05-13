@@ -1,0 +1,90 @@
+package fr.gdd.sage.rawer;
+
+import fr.gdd.sage.databases.inmemory.IM4Jena;
+import fr.gdd.sage.generics.BackendBindings;
+import fr.gdd.sage.jena.JenaBackend;
+import org.apache.jena.ext.com.google.common.collect.Multiset;
+import org.apache.jena.ext.com.google.common.collect.HashMultiset;
+import org.apache.jena.graph.Node;
+import org.apache.jena.query.ARQ;
+import org.apache.jena.query.Dataset;
+import org.apache.jena.query.QueryFactory;
+import org.apache.jena.sparql.algebra.Algebra;
+import org.apache.jena.sparql.algebra.Op;
+import org.apache.jena.sparql.engine.ExecutionContext;
+import org.apache.jena.tdb2.store.NodeId;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Iterator;
+import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+@Disabled
+public class RawerOpExecutorTest {
+
+    private static final Logger log = LoggerFactory.getLogger(RawerOpExecutorTest.class);
+    private static final Dataset dataset = IM4Jena.triple9();
+
+    @Test
+    public void simple_triple_pattern () { // as per usual
+        String queryAsString = "SELECT * WHERE {?s ?p ?o}";
+        execute(queryAsString, dataset, 1000L);
+    }
+
+    @Test
+    public void simple_project_on_a_triple_pattern () { // as per usual
+        String queryAsString = "SELECT ?s WHERE {?s ?p ?o}";
+        execute(queryAsString, dataset, 10L);
+    }
+
+    @Test
+    public void simple_bind_on_a_triple_pattern () {
+        String queryAsString = "SELECT * WHERE {BIND (<http://Alice> AS ?s) ?s ?p ?o}";
+        execute(queryAsString, dataset, 10L);
+    }
+
+    @Test
+    public void count_of_simple_triple_pattern () {
+        String queryAsString = "SELECT (COUNT(*) AS ?c) WHERE {?s ?p ?o}";
+        execute(queryAsString, dataset, 10L);
+    }
+
+    @Test
+    public void count_with_group_on_simple_tp () {
+        String queryAsString = "SELECT (COUNT(*) AS ?c) ?p WHERE {?s ?p ?o} GROUP BY ?p";
+        execute(queryAsString, dataset, 10L);
+    }
+
+    @Test
+    public void count_distinct_of_simple_triple_pattern () {
+        String queryAsString = "SELECT (COUNT(DISTINCT *) AS ?c) WHERE {?s ?p ?o}";
+        execute(queryAsString, dataset, 10L);
+    }
+
+    /* ************************************************************* */
+
+    public static void execute(String queryAsString, Dataset dataset, Long limit) {
+        Op query = Algebra.compile(QueryFactory.create(queryAsString));
+
+        ExecutionContext ec = new ExecutionContext(dataset.asDatasetGraph());
+        ec.getContext().set(RawerConstants.BACKEND, new JenaBackend(dataset));
+        ARQ.enableOptimizer(false);
+        RawerOpExecutor<NodeId, Node> executor = new RawerOpExecutor<NodeId, Node>(ec).setLimit(limit);
+
+        // QueryIterator iterator = executor.execute(query);
+        Iterator<BackendBindings<NodeId, Node>> iterator = executor.execute(query);
+
+        Multiset<String> results = HashMultiset.create();
+        while (iterator.hasNext()) {
+            String binding = iterator.next().toString();
+            results.add(binding);
+            log.debug("{}", binding);
+        }
+        assertEquals(limit, results.size());
+    }
+
+}

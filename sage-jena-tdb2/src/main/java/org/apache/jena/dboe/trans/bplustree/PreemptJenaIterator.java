@@ -2,6 +2,8 @@ package org.apache.jena.dboe.trans.bplustree;
 
 import fr.gdd.sage.interfaces.SPOC;
 import fr.gdd.sage.jena.SerializableRecord;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.atlas.lib.tuple.TupleMap;
 import org.apache.jena.dboe.base.record.Record;
@@ -188,6 +190,8 @@ public class PreemptJenaIterator extends ProgressJenaIterator {
 
     @Override
     public Double random() {
-        throw new UnsupportedOperationException();
+        Pair<Tuple<NodeId>, Double> recordWithProba = super.getRandomSPOWithProbability();
+        wrapped = Iter.of(recordWithProba.getLeft()); // not SingletonIterator on purpose, so it does not trigger cached results
+        return recordWithProba.getRight();
     }
 }

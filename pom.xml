@@ -30,8 +30,9 @@
     <module>sage-jena-tdb2</module>
     <module>sage-blazegraph</module>
     <!--<module>sage-jena-volcano</module>--> <!-- deprecated in favor of sage-volcano -->
-    <module>sage-jena-module</module>
+    <!--<module>sage-jena-module</module> -->
     <module>sager</module>
+    <module>rawer</module>
   </modules>
 
   <properties>
@@ -83,17 +84,17 @@
       </dependency>
       <dependency>
         <groupId>fr.gdd.sage</groupId>
-        <artifactId>sage-jena-volcano</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>fr.gdd.sage</groupId>
-        <artifactId>sage-jena-benchmarks</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>fr.gdd.sage</groupId>
         <artifactId>sage-jena-module</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>fr.gdd.sage</groupId>
+        <artifactId>sager</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>fr.gdd.sage</groupId>
+        <artifactId>rawer</artifactId>
         <version>${project.version}</version>
       </dependency>
 

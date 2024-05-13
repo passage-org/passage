@@ -20,10 +20,6 @@
       <version>2.12.0</version>
     </dependency>
 
-    <dependency> <!-- makes use of already implem'd for compilation targeting jena -->
-      <groupId>fr.gdd.sage</groupId>
-      <artifactId>sage-jena-volcano</artifactId>
-    </dependency>
     <dependency>
       <groupId>fr.gdd.sage</groupId>
       <artifactId>sage-databases</artifactId>

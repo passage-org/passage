@@ -3,9 +3,7 @@ package fr.gdd.sage.generics;
 import fr.gdd.sage.interfaces.Backend;
 import org.apache.jena.sparql.core.Var;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Closely related to Jena's `Binding` implementations, or `BindingSet`, etc.
@@ -96,6 +94,11 @@ public class BackendBindings<ID, VALUE> {
         return this;
     }
 
+    public BackendBindings<ID, VALUE> setCode(Var var, Integer code) {
+        var2binding.get(var).setCode(code);
+        return this;
+    }
+
     public BackendBindings<ID, VALUE> put(Var var, ID id, Backend<ID, VALUE, ?> backend) {
         var2binding.put(var, new IdValueBackend<ID, VALUE>().setBackend(backend).setId(id));
         return this;
@@ -115,4 +118,26 @@ public class BackendBindings<ID, VALUE> {
         return Objects.nonNull(this.get(var));
     }
 
+    /**
+     * @return All variables.
+     */
+    public Set<Var> vars() {
+        if (Objects.isNull(parent)) {
+            return this.var2binding.keySet();
+        }
+        Set<Var> result = new HashSet<>(this.var2binding.keySet());
+        result.addAll(parent.vars());
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        Set<Var> vars = vars();
+        StringBuilder builder = new StringBuilder("{");
+        for (Var v : vars) {
+            builder.append(v.toString()).append("-> ").append(var2binding.get(v).getString()).append(" ; ");
+        }
+        builder.append("}");
+        return builder.toString();
+    }
 }

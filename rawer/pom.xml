@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>fr.gdd.sage</groupId>
+        <artifactId>sage-jena</artifactId>
+        <version>0.0.4</version>
+    </parent>
+
+    <artifactId>rawer</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>fr.gdd.sage</groupId>
+            <artifactId>jena-utils</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.gdd.sage</groupId>
+            <artifactId>sage-jena-tdb2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.gdd.sage</groupId>
+            <artifactId>sager</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.gdd.sage</groupId>
+            <artifactId>sage-databases</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.jena</groupId>
+            <artifactId>jena-arq</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency> <!-- because blazegraph uses junit4 while we use junit5… -->
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+</project>

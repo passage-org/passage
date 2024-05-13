@@ -41,11 +41,13 @@ public abstract class ProgressJenaIterator extends BackendIterator<NodeId, Node,
     private BPTreeNode root = null;
     private PreemptTupleIndexRecord ptir = null;
     private CardinalityNode cardinalityNode = null; // lazy
+    private boolean includeHigherBound = false;
 
     public ProgressJenaIterator(PreemptTupleIndexRecord ptir, Record minRec, Record maxRec) {
         this.root = ptir.bpt.getNodeManager().getRead(ptir.bpt.getRootId());
         this.minRecord = Objects.isNull(minRec) ? root.minRecord() : minRec;
         this.maxRecord = Objects.isNull(maxRec) ? root.maxRecord() : maxRec;
+        this.includeHigherBound = Objects.isNull(maxRec);
         this.ptir = ptir;
     }
 
@@ -207,8 +209,16 @@ public abstract class ProgressJenaIterator extends BackendIterator<NodeId, Node,
         }
         // otherwise, the page has element(s), randomize in it.
 
-        idxRnd = idxMin + rng.nextInt(idxMax - idxMin); // no need for -1 in a `RecordBuffer`
-        proba *= 1. / (idxMax - idxMin);
+        if (!includeHigherBound) {
+            // Highest bound excluded
+            idxRnd = idxMin + rng.nextInt(idxMax - idxMin); // no need for -1 in a `RecordBuffer`
+            proba *= 1. / (idxMax - idxMin);
+        } else {
+            // corner case where the higher bound is null meaning that we want the complete
+            // pattern, including the last element.
+            idxRnd = idxMin + rng.nextInt(idxMax - idxMin + 1); // no need for -1 in a `RecordBuffer`
+            proba *= 1. / (idxMax - idxMin + 1);
+        }
 
         return new ImmutablePair<>(recordBuffer.get(idxRnd), proba);
     }
@@ -248,6 +258,7 @@ public abstract class ProgressJenaIterator extends BackendIterator<NodeId, Node,
         if (isNullIterator()) return NOTFOUND;
         if (isSingletonIterator()) return new ImmutablePair<>(minRecord, 1.);
 
+        // TODO lazy load paths
         AccessPath minPath = new AccessPath(null);
         AccessPath maxPath = new AccessPath(null);
         root.internalSearch(minPath, minRecord);
