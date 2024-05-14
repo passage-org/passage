@@ -51,21 +51,17 @@ public class RandomScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE
         consumed = true;
         this.currentProbability = iterator.random(); // position at random index
         iterator.next(); // read the value
-        this.currentIDs = TupleFactory.create3(
-                iterator.getId(SPOC.SUBJECT),
-                iterator.getId(SPOC.PREDICATE),
-                iterator.getId(SPOC.OBJECT));
 
         BackendBindings<ID, VALUE> newBinding = new BackendBindings<>();
 
         if (Objects.nonNull(vars.get(0))) { // ugly x3
-            newBinding.put(vars.get(0), currentIDs.get(SPOC.SUBJECT), backend).setCode(vars.get(0), SPOC.SUBJECT);
+            newBinding.put(vars.get(0), iterator.getId(SPOC.SUBJECT), backend).setCode(vars.get(0), SPOC.SUBJECT);
         }
         if (Objects.nonNull(vars.get(1))) {
-            newBinding.put(vars.get(1), currentIDs.get(SPOC.PREDICATE), backend).setCode(vars.get(1), SPOC.PREDICATE);
+            newBinding.put(vars.get(1), iterator.getId(SPOC.PREDICATE), backend).setCode(vars.get(1), SPOC.PREDICATE);
         }
         if (Objects.nonNull(vars.get(2))) {
-            newBinding.put(vars.get(2), currentIDs.get(SPOC.OBJECT), backend).setCode(vars.get(2), SPOC.OBJECT);
+            newBinding.put(vars.get(2), iterator.getId(SPOC.OBJECT), backend).setCode(vars.get(2), SPOC.OBJECT);
         }
 
         return newBinding;

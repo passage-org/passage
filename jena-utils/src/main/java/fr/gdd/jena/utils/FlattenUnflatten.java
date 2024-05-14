@@ -9,6 +9,11 @@ import org.apache.jena.sparql.algebra.op.OpUnion;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Multijoins and multiunions do not exist in SPARQL algebra, but they are
+ * nice to manipulate, so we have a from/to conversion in case they are
+ * needed.
+ */
 public class FlattenUnflatten {
 
     /**
@@ -27,6 +32,27 @@ public class FlattenUnflatten {
             default -> List.of(op);
         };
     }
+
+    /**
+     * @param ops The list of operators to unionize.
+     * @return A tree of operators linked by cascading unions.
+     */
+    public static Op unflattenUnion(List<Op> ops) {
+        return switch (ops.size()) {
+            case 0 -> null;
+            case 1 -> ops.get(0);
+            default -> {
+                Op left = ops.get(0);
+                for (int i = 1; i < ops.size(); ++i) {
+                    Op right = ops.get(i);
+                    left = OpUnion.create(left, right);
+                }
+                yield left;
+            }
+        };
+    }
+
+    /* ************************************************************************ */
 
     /**
      * @param op The operator to visit.
@@ -50,5 +76,7 @@ public class FlattenUnflatten {
             default -> List.of(op);
         };
     }
+
+
 
 }
