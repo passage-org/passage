@@ -7,11 +7,13 @@ public class RawerConstants {
     public static final String systemVarNS = "https://sage.gdd.fr/Rawer#";
     public static final String sageSymbolPrefix = "rawer";
 
-    static public final Symbol BACKEND = allocVariableSymbol("Backend");
+    static public final Symbol BACKEND = allocConstantSymbol("Backend");
     static public final Symbol TIMEOUT = allocConstantSymbol("Timeout");
     static public final Symbol DEADLINE = allocConstantSymbol("Deadline");
     static public final Symbol LIMIT = allocConstantSymbol("Limit");
     static public final Symbol SCANS = allocConstantSymbol("Scans");
+
+    static public final Symbol BUDGETING = allocVariableSymbol("Budgeting");
 
     /**
      * Symbol in use in the global context.

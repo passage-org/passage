@@ -3,9 +3,9 @@ package fr.gdd.sage.rawer;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
+import fr.gdd.sage.budgeting.NaiveBudgeting;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.interfaces.Backend;
-import fr.gdd.sage.rawer.accumulators.ApproximateAggCount;
 import fr.gdd.sage.rawer.iterators.ProjectIterator;
 import fr.gdd.sage.rawer.iterators.RandomRoot;
 import fr.gdd.sage.rawer.iterators.RandomScanFactory;
@@ -13,15 +13,10 @@ import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.pause.Save2SPARQL;
 import fr.gdd.sage.sager.resume.BGP2Triples;
 import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.algebra.op.OpGroup;
 import org.apache.jena.sparql.algebra.op.OpJoin;
 import org.apache.jena.sparql.algebra.op.OpProject;
 import org.apache.jena.sparql.algebra.op.OpTriple;
 import org.apache.jena.sparql.engine.ExecutionContext;
-import org.apache.jena.sparql.engine.iterator.QueryIterGroup;
-import org.apache.jena.sparql.expr.ExprAggregator;
-import org.apache.jena.sparql.expr.aggregate.AggCount;
-import org.apache.jena.sparql.expr.aggregate.AggCountDistinct;
 
 import java.util.Iterator;
 
@@ -58,6 +53,9 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
     /* ************************************************************************ */
 
     public Iterator<BackendBindings<ID, VALUE>> execute(Op root) {
+        execCxt.getContext().setIfUndef(RawerConstants.BUDGETING, new NaiveBudgeting(
+                        execCxt.getContext().get(RawerConstants.TIMEOUT),
+                        execCxt.getContext().get(RawerConstants.LIMIT)));
         root = ReturningOpVisitorRouter.visit(new BGP2Triples(), root); // TODO fix
         execCxt.getContext().set(SagerConstants.SAVER, new Save2SPARQL(root, execCxt));
         Iterator<BackendBindings<ID, VALUE>> wrapped = new RandomRoot<>(this, execCxt, root);
