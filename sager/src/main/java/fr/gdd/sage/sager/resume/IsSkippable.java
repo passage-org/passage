@@ -1,4 +1,4 @@
-package fr.gdd.sage.sager;
+package fr.gdd.sage.sager.resume;
 
 import fr.gdd.jena.visitors.ReturningOpVisitor;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;

@@ -15,6 +15,7 @@ import java.util.function.BiConsumer;
  * the `TupleTable` that needs to be the same everywhere… without possibility to duplicate
  * parent's one easily.
  */
+@Deprecated(forRemoval = true) // TODO, BackendBinding should provide a better abstraction.
 public class BindingId2Value implements Iterable<Var>, Binding {
 
     public static class IdValueTable {

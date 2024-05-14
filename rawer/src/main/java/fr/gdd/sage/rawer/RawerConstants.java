@@ -8,12 +8,12 @@ public class RawerConstants {
     public static final String sageSymbolPrefix = "rawer";
 
     static public final Symbol BACKEND = allocConstantSymbol("Backend");
-    static public final Symbol TIMEOUT = allocConstantSymbol("Timeout");
-    static public final Symbol DEADLINE = allocConstantSymbol("Deadline");
-    static public final Symbol LIMIT = allocConstantSymbol("Limit");
-    static public final Symbol SCANS = allocConstantSymbol("Scans");
+    static public final Symbol TIMEOUT = allocConstantSymbol("Timeout"); // max duration of execution
+    static public final Symbol DEADLINE = allocConstantSymbol("Deadline"); // when to stop execution
+    static public final Symbol LIMIT = allocConstantSymbol("Limit"); // max nb scans to perform
+    static public final Symbol SCANS = allocVariableSymbol("Scans"); // nb of scan performed during execution
 
-    static public final Symbol BUDGETING = allocVariableSymbol("Budgeting");
+    static public final Symbol BUDGETING = allocVariableSymbol("Budgeting"); // distribute thresholds
 
     /**
      * Symbol in use in the global context.

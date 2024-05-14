@@ -5,13 +5,12 @@ import fr.gdd.jena.visitors.ReturningOpVisitor;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.sage.jena.JenaBackend;
 import fr.gdd.sage.sager.BindingId2Value;
-import fr.gdd.sage.sager.HashMapWithPtrs;
+import fr.gdd.sage.generics.PtrMap;
 import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.SagerOpExecutor;
 import fr.gdd.sage.sager.iterators.SagerScan;
 import fr.gdd.sage.sager.iterators.SagerUnion;
 import fr.gdd.sage.sager.resume.Subqueries2LeftOfJoins;
-import org.apache.http.client.utils.CloneUtils;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.engine.ExecutionContext;
@@ -29,7 +28,7 @@ public class Save2SPARQL extends ReturningOpVisitor<Op> {
     final Op root; // origin
     Op saved; // preempted
     Op caller;
-    final HashMapWithPtrs<Op, Iterator<BindingId2Value>> op2it = new HashMapWithPtrs<>();
+    final PtrMap<Op, Iterator<BindingId2Value>> op2it = new PtrMap<>();
 
     public Save2SPARQL(Op root, ExecutionContext context) {
         this.root = root;
@@ -142,7 +141,7 @@ public class Save2SPARQL extends ReturningOpVisitor<Op> {
         };
     }
 
-    public HashMapWithPtrs<Op, Iterator<BindingId2Value>> getOp2it() {
+    public PtrMap<Op, Iterator<BindingId2Value>> getOp2it() {
         return op2it;
     }
 }

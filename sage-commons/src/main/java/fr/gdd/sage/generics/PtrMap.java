@@ -1,24 +1,24 @@
-package fr.gdd.sage.sager;
+package fr.gdd.sage.generics;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 /**
- * Hash on keys then compare pointers of keys.
+ * Hash on keys then compare pointers of keys. It's meant to increase search
+ * speed using hash, then retrieve the exact value using pointers.
  *  * @param <F> Key type.
  *  * @param <T> Value type.
  */
-public class HashMapWithPtrs<F, T> {
+public class PtrMap<F, T> {
 
     HashMap<F, ArrayList<Pair<F, T>>> map = new HashMap<>();
     int size = 0;
 
-    public HashMapWithPtrs<F, T> put (F key, T val) {
+    public PtrMap<F, T> put (F key, T val) {
         if (!map.containsKey(key)) {
             map.put(key, new ArrayList<>());
         }
@@ -34,7 +34,7 @@ public class HashMapWithPtrs<F, T> {
         return this;
     }
 
-    public HashMapWithPtrs<F, T> remove (F key) {
+    public PtrMap<F, T> remove (F key) {
         if (map.containsKey(key)) {
             ArrayList<Pair<F, T>> values = map.get(key);
             values.removeIf(p -> p.getLeft() == key);

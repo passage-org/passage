@@ -1,5 +1,6 @@
 package fr.gdd.sage.sager.iterators;
 
+import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.jena.JenaBackend;
 import fr.gdd.sage.sager.BindingId2Value;
 import fr.gdd.sage.sager.SagerConstants;
@@ -17,7 +18,7 @@ import org.apache.jena.tdb2.store.NodeId;
 import java.util.Iterator;
 import java.util.Objects;
 
-public class SagerScanFactory implements Iterator<BindingId2Value> {
+public class SagerScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE>> {
 
     JenaBackend backend;
     ExecutionContext context;
@@ -25,12 +26,12 @@ public class SagerScanFactory implements Iterator<BindingId2Value> {
 
     OpTriple triple;
     final Long skip; // offset
-    Iterator<BindingId2Value> input;
-    BindingId2Value binding;
+    Iterator<BackendBindings<ID, VALUE>> input;
+    BackendBindings<ID, VALUE> binding;
 
-    Iterator<BindingId2Value> instantiated;
+    Iterator<BackendBindings<ID, VALUE>> instantiated;
 
-    public SagerScanFactory(Iterator<BindingId2Value> input, ExecutionContext context, OpTriple triple) {
+    public SagerScanFactory(Iterator<BackendBindings<ID, VALUE>> input, ExecutionContext context, OpTriple triple) {
         this.input = input;
         this.triple = triple;
         instantiated = Iter.empty();
@@ -40,7 +41,7 @@ public class SagerScanFactory implements Iterator<BindingId2Value> {
         this.skip = 0L;
     }
 
-    public SagerScanFactory(Iterator<BindingId2Value> input, ExecutionContext context, OpTriple triple, Long skip) {
+    public SagerScanFactory(Iterator<BackendBindings<ID, VALUE>> input, ExecutionContext context, OpTriple triple, Long skip) {
         this.input = input;
         this.triple = triple;
         instantiated = Iter.empty();

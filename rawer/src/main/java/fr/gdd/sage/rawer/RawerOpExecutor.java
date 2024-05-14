@@ -34,13 +34,14 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
 
     public RawerOpExecutor(ExecutionContext execCxt) {
         this.execCxt = execCxt;
-        backend = execCxt.getContext().get(RawerConstants.BACKEND);
+        this.backend = execCxt.getContext().get(RawerConstants.BACKEND);
         execCxt.getContext().setIfUndef(RawerConstants.SCANS, 0L);
         execCxt.getContext().setIfUndef(RawerConstants.LIMIT, Long.MAX_VALUE);
         execCxt.getContext().setIfUndef(RawerConstants.TIMEOUT, Long.MAX_VALUE);
     }
 
     public RawerOpExecutor<ID, VALUE> setTimeout(Long timeout) {
+        execCxt.getContext().set(RawerConstants.TIMEOUT, timeout);
         execCxt.getContext().set(RawerConstants.DEADLINE, System.currentTimeMillis()+timeout);
         return this;
     }
