@@ -11,6 +11,7 @@ import fr.gdd.sage.sager.iterators.SagerScan;
 import fr.gdd.sage.sager.resume.Subqueries2LeftOfJoins;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpJoin;
+import org.apache.jena.sparql.algebra.op.OpSlice;
 import org.apache.jena.sparql.algebra.op.OpTriple;
 import org.apache.jena.sparql.algebra.op.OpUnion;
 import org.apache.jena.sparql.engine.ExecutionContext;
@@ -28,7 +29,7 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
     final Op root; // origin
 
     Op caller;
-    final PtrMap<Op, Iterator<BackendBindings<ID, VALUE>>> op2it = new PtrMap<>();
+    public final PtrMap<Op, Iterator<BackendBindings<ID, VALUE>>> op2it = new PtrMap<>();
 
     public Save2SPARQL(Op root, ExecutionContext context) {
         this.root = root;
@@ -57,28 +58,27 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
         // OpTriple must remain the same, we cannot transform it by setting
         // the variables that are bound since the join variable would not match
         // after...
-        // return new OpSlice(it.asOpTriple(), it.current(), Long.MIN_VALUE);
-        throw new UnsupportedOperationException("TODO");
+        return new OpSlice(triple, it.current(), Long.MIN_VALUE);
     }
 
-//    @Override
-//    public Op visit(OpJoin join) {
-//        FullyPreempted fp = new FullyPreempted(this);
-//        Op leftFullyPreempt = ReturningOpVisitorRouter.visit(fp, join.getLeft());
-//        Op right = ReturningOpVisitorRouter.visit(this, join.getRight());
-//
-//        // TODO left + right only if left is preemptable
-//        boolean shouldI = ReturningOpVisitorRouter.visit(new ShouldPreempt(this), join.getLeft());
-//        if (shouldI) {
-//            Op left = ReturningOpVisitorRouter.visit(this, join.getLeft());
-//            return OpUnion.create(
-//                    distributeJoin(leftFullyPreempt, right), // preempted
-//                    OpJoin.create(left, join.getRight()) // rest
-//            );
-//        } else {
-//            return distributeJoin(leftFullyPreempt, right);
-//        }
-//    }
+    @Override
+    public Op visit(OpJoin join) {
+        FullyPreempted<ID,VALUE> fp = new FullyPreempted<>(this);
+        Op leftFullyPreempt = ReturningOpVisitorRouter.visit(fp, join.getLeft());
+        Op right = ReturningOpVisitorRouter.visit(this, join.getRight());
+
+        // TODO left + right only if left is preemptable
+        boolean shouldI = ReturningOpVisitorRouter.visit(new ShouldPreempt(this), join.getLeft());
+        if (shouldI) {
+            Op left = ReturningOpVisitorRouter.visit(this, join.getLeft());
+            return OpUnion.create(
+                    distributeJoin(leftFullyPreempt, right), // preempted
+                    OpJoin.create(left, join.getRight()) // rest
+            );
+        } else {
+            return distributeJoin(leftFullyPreempt, right);
+        }
+    }
 //
 //    @Override
 //    public Op visit(OpUnion union) {
@@ -94,16 +94,18 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
 //            return  ReturningOpVisitorRouter.visit(this, union.getRight());
 //        }
 //    }
-//
-//    @Override
-//    public Op visit(OpSlice slice) {
-//        if (slice.getSubOp() instanceof OpTriple triple) {
-//            return ReturningOpVisitorRouter.visit(this, triple);
-//        }
-//        throw new UnsupportedOperationException("TODO OpSlice cannot be saved right now."); // TODO
-//    }
-//
-//
+
+    @Override
+    public Op visit(OpSlice slice) {
+        if (slice.getSubOp() instanceof OpTriple triple) {
+            // behaves as if it does not exist since the tp is interpreted as tp with skip.
+            // If need be, the tp will add the slice OFFSET itself.
+            return ReturningOpVisitorRouter.visit(this, triple);
+        }
+        throw new UnsupportedOperationException("TODO OpSlice cannot be saved right now."); // TODO
+    }
+
+
 //    @Override
 //    public Op visit(OpExtend extend) {
 //        return OpCloningUtil.clone(extend, ReturningOpVisitorRouter.visit(this, extend.getSubOp()));

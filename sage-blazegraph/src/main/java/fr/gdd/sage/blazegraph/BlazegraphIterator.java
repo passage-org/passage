@@ -71,7 +71,8 @@ public class BlazegraphIterator extends BackendIterator<IV, BigdataValue, Long> 
         return this.tupleIterator.hasNext();
     }
 
-    public void next(){
+    public void next() {
+        this.offset += 1;
         this.currentValue = tupleIterator.next();
         this.currentISPO = null; // lazily processed
     }
@@ -109,7 +110,7 @@ public class BlazegraphIterator extends BackendIterator<IV, BigdataValue, Long> 
     public ISPO getUniformRandomSPO() {
         long rn = RNG.nextLong((long) cardinality());
         long startFrom = Objects.isNull(min) ? 0L: iindex.rangeCount(null, min);
-        byte[] keyAt = ((AbstractBTree) iindex).keyAt(startFrom + rn ); // TODO double check boundaries
+        byte[] keyAt = ((AbstractBTree) iindex).keyAt(startFrom + rn );
         ITupleIterator<?> iterator = iindex.rangeIterator(keyAt, max);
 
         ITuple<?> val = iterator.next();
@@ -122,7 +123,7 @@ public class BlazegraphIterator extends BackendIterator<IV, BigdataValue, Long> 
         currentValue = null;
         long rn = RNG.nextLong((long) cardinality());
         long startFrom = Objects.isNull(min) ? 0L: iindex.rangeCount(null, min);
-        byte[] keyAt = ((AbstractBTree) iindex).keyAt(startFrom + rn ); // TODO double check boundaries
+        byte[] keyAt = ((AbstractBTree) iindex).keyAt(startFrom + rn );
         tupleIterator = iindex.rangeIterator(keyAt, max);
         return 1./cardinality();
     }

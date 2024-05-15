@@ -1,6 +1,8 @@
 package fr.gdd.sage.sager.pause;
 
 import fr.gdd.sage.databases.inmemory.IM4Jena;
+import fr.gdd.sage.interfaces.Backend;
+import fr.gdd.sage.jena.JenaBackend;
 import org.apache.jena.query.Dataset;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -16,6 +18,7 @@ public class Save2SPARQLUnionTest {
 
     private static final Logger log = LoggerFactory.getLogger(Save2SPARQLUnionTest.class);
     private static final Dataset dataset = IM4Jena.triple9();
+    private static final JenaBackend backend = new JenaBackend(dataset);
 
     @Test
     public void create_an_simple_union_that_does_not_come_from_preemption() {
@@ -28,7 +31,7 @@ public class Save2SPARQLUnionTest {
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
-            queryAsString = Save2SPARQLTest.executeQuery(queryAsString, dataset);
+            queryAsString = Save2SPARQLTest.executeQuery(queryAsString, backend);
             sum += 1;
         }
         sum -= 1; // last call does not retrieve results
@@ -46,7 +49,7 @@ public class Save2SPARQLUnionTest {
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
-            queryAsString = Save2SPARQLTest.executeQuery(queryAsString, dataset);
+            queryAsString = Save2SPARQLTest.executeQuery(queryAsString, backend);
             sum += 1;
         }
         sum -= 1; // last call does not retrieve results

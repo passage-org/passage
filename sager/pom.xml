@@ -37,6 +37,11 @@
             <artifactId>junit-vintage-engine</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>fr.gdd.sage</groupId>
+            <artifactId>sage-blazegraph</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>

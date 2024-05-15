@@ -1,5 +1,6 @@
 package fr.gdd.sage.sager.pause;
 
+import fr.gdd.jena.utils.FlattenUnflatten;
 import fr.gdd.jena.visitors.ReturningOpBaseVisitor;
 import fr.gdd.sage.sager.SagerOpExecutor;
 import fr.gdd.sage.sager.resume.BGP2Triples;
@@ -20,7 +21,7 @@ public class Triples2BGP extends ReturningOpBaseVisitor {
 
     @Override
     public Op visit(OpJoin join) {
-        List<Op> ops = SagerOpExecutor.flattenJoin(join);
+        List<Op> ops = FlattenUnflatten.flattenJoin(join);
         List<Triple> triples = ops.stream().filter(o -> o instanceof OpTriple)
                 .map(o -> ((OpTriple) o).getTriple()).toList();
         List<Op> rest = ops.stream().filter(o -> ! (o instanceof OpTriple)).toList();

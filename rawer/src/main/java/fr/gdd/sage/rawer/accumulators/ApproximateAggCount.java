@@ -46,7 +46,7 @@ public class ApproximateAggCount extends AggCount {
             this.context = context;
             this.op = subOp;
             Save2SPARQL saver = context.getContext().get(SagerConstants.SAVER);
-            this.wj = new WanderJoinVisitor(saver.getOp2it());
+            this.wj = new WanderJoinVisitor(saver.op2it);
         }
 
         @Override

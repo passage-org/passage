@@ -1,6 +1,7 @@
 package fr.gdd.sage.sager;
 
 import fr.gdd.sage.databases.inmemory.IM4Jena;
+import fr.gdd.sage.generics.BackendBindings;
 import org.apache.jena.query.ARQ;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.QueryFactory;
@@ -13,6 +14,8 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Iterator;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -41,11 +44,11 @@ class SagerOpExecutorTest {
         SagerOpExecutor executor = new SagerOpExecutor(ec);
 
         Op query = Algebra.compile(QueryFactory.create(queryAsString));
-        QueryIterator iterator = executor.optimizeThenExecute(query);
+        Iterator<BackendBindings> iterator = executor.optimizeThenExecute(query);
 
         int sum = 0;
         while (iterator.hasNext()) {
-            Binding binding = iterator.next();
+            BackendBindings<?,?> binding = iterator.next();
             log.debug("{}", binding.toString());
             sum += 1;
         }

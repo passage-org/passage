@@ -1,6 +1,7 @@
 package fr.gdd.sage.sager.iterators;
 
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
+import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.sager.BindingId2Value;
 import fr.gdd.sage.sager.SagerOpExecutor;
 import org.apache.jena.atlas.iterator.Iter;
@@ -9,18 +10,18 @@ import org.apache.jena.sparql.algebra.Op;
 import java.util.Iterator;
 import java.util.Objects;
 
-public class SagerUnion implements Iterator<BindingId2Value> {
+public class SagerUnion<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE>> {
 
-    final Iterator<BindingId2Value> input;
+    final Iterator<BackendBindings<ID, VALUE>> input;
     final Op left;
     final Op right;
-    final SagerOpExecutor executor;
+    final SagerOpExecutor<ID, VALUE> executor;
 
-    BindingId2Value current = null;
+    BackendBindings<ID, VALUE> current = null;
     Integer currentOp = -1; // -1 not init, 0 left, 1 right
-    Iterator<BindingId2Value> currentIt;
+    Iterator<BackendBindings<ID, VALUE>> currentIt;
 
-    public SagerUnion(SagerOpExecutor executor, Iterator<BindingId2Value> input, Op left, Op right) {
+    public SagerUnion(SagerOpExecutor<ID, VALUE> executor, Iterator<BackendBindings<ID, VALUE>> input, Op left, Op right) {
         this.left = left;
         this.right = right;
         this.input = input;
@@ -59,7 +60,7 @@ public class SagerUnion implements Iterator<BindingId2Value> {
     }
 
     @Override
-    public BindingId2Value next() {
+    public BackendBindings<ID, VALUE> next() {
         return currentIt.next();
     }
 

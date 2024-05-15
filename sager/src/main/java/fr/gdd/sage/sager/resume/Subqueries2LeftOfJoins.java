@@ -1,5 +1,6 @@
 package fr.gdd.sage.sager.resume;
 
+import fr.gdd.jena.utils.FlattenUnflatten;
 import fr.gdd.jena.visitors.ReturningOpBaseVisitor;
 import fr.gdd.sage.sager.SagerOpExecutor;
 import fr.gdd.sage.sager.pause.Triples2BGP;
@@ -22,7 +23,7 @@ public class Subqueries2LeftOfJoins extends ReturningOpBaseVisitor {
 
     @Override
     public Op visit(OpJoin join) {
-        List<Op> ops = SagerOpExecutor.flattenJoin(join);
+        List<Op> ops = FlattenUnflatten.flattenJoin(join);
         List<Op> subqueries = ops.stream().filter(o -> o instanceof OpSlice).toList();
         List<Op> rest = ops.stream().filter(o -> ! (o instanceof OpSlice)).toList();
         List<Op> ordered = new ArrayList<>(subqueries);

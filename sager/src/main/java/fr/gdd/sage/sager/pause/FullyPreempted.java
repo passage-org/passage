@@ -1,41 +1,32 @@
 package fr.gdd.sage.sager.pause;
 
 import fr.gdd.jena.visitors.ReturningOpBaseVisitor;
-import fr.gdd.sage.sager.BindingId2Value;
 import fr.gdd.sage.sager.iterators.SagerScan;
-import org.apache.jena.graph.Node;
-import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.algebra.op.*;
-import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.util.ExprUtils;
+import org.apache.jena.sparql.algebra.op.OpExtend;
+import org.apache.jena.sparql.algebra.op.OpSlice;
+import org.apache.jena.sparql.algebra.op.OpTriple;
 
 import java.util.Objects;
 
 /**
  * Fully preempted operators. If it cannot be preempted, then it returns null.
  */
-public class FullyPreempted extends ReturningOpBaseVisitor {
+public class FullyPreempted<ID, VALUE> extends ReturningOpBaseVisitor {
 
-    final Save2SPARQL saver;
+    final Save2SPARQL<ID,VALUE> saver;
 
-    public FullyPreempted(Save2SPARQL saver) {
+    public FullyPreempted(Save2SPARQL<ID,VALUE> saver) {
         this.saver = saver;
     }
 
     @Override
     public Op visit(OpTriple triple) {
-        SagerScan it = (SagerScan) saver.op2it.get(triple);
+        SagerScan<ID, VALUE> it = (SagerScan<ID, VALUE>) saver.op2it.get(triple);
 
         if (Objects.isNull(it)) return null;
 
-        BindingId2Value lastBinding = it.current();
-        OpSequence sequence = OpSequence.create();
-        for (Var v : lastBinding) {
-            Node node = lastBinding.getValue(v);
-            sequence.add(toBind(node, v));
-        }
-        return sequence;
+        return it.asBindAs();
     }
 
     @Override
@@ -51,9 +42,4 @@ public class FullyPreempted extends ReturningOpBaseVisitor {
         throw new UnsupportedOperationException("TODO normal slice fully preempted."); // TODO
     }
 
-    /* ************************************************************************** */
-
-    public static Op toBind(Node value, Var variable) {
-        return OpExtend.extend(OpTable.unit(), variable, ExprUtils.parse(NodeFmtLib.displayStr(value)));
-    }
 }

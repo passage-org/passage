@@ -1,6 +1,9 @@
 package fr.gdd.sage.sager.pause;
 
+import fr.gdd.sage.blazegraph.BlazegraphBackend;
+import fr.gdd.sage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.sage.databases.inmemory.IM4Jena;
+import fr.gdd.sage.jena.JenaBackend;
 import org.apache.jena.query.Dataset;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -15,19 +18,24 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class Save2SPARQLBGPTest {
 
     private static final Logger log = LoggerFactory.getLogger(Save2SPARQLBGPTest.class);
-    private static final Dataset dataset = IM4Jena.triple9();
+    private static final JenaBackend jena = new JenaBackend(IM4Jena.triple9()); // TODO
+    final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
 
     @Test
     public void create_a_simple_query_and_pause_at_each_result () {
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c}";
 
+
+
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
-            queryAsString = Save2SPARQLTest.executeQuery(queryAsString, dataset);
+            queryAsString = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
             sum += 1;
         }
         sum -= 1; // last call does not retrieve results
         assertEquals(3, sum);
+
+
     }
 
     @Test
@@ -41,7 +49,7 @@ public class Save2SPARQLBGPTest {
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
-            queryAsString = Save2SPARQLTest.executeQuery(queryAsString, dataset);
+            queryAsString = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
             sum += 1;
         }
         sum -= 1; // last call does not retrieve results
@@ -60,7 +68,7 @@ public class Save2SPARQLBGPTest {
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
-            queryAsString = Save2SPARQLTest.executeQuery(queryAsString, dataset);
+            queryAsString = Save2SPARQLTest.executeQuery(queryAsString, jena);
             sum += 1;
         }
         sum -= 1; // last call does not retrieve results
@@ -80,7 +88,7 @@ public class Save2SPARQLBGPTest {
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
-            queryAsString = Save2SPARQLTest.executeQuery(queryAsString, dataset);
+            queryAsString = Save2SPARQLTest.executeQuery(queryAsString, jena);
             sum += 1;
         }
         sum -= 1; // last call does not retrieve results

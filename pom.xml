@@ -31,8 +31,8 @@
     <module>sage-blazegraph</module>
     <!--<module>sage-jena-volcano</module>--> <!-- deprecated in favor of sage-volcano -->
     <!--<module>sage-jena-module</module> -->
-    <module>sager</module>
     <module>rawer</module>
+    <module>sager</module>
   </modules>
 
   <properties>
