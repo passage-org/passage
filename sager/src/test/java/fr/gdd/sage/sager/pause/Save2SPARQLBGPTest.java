@@ -4,7 +4,6 @@ import fr.gdd.sage.blazegraph.BlazegraphBackend;
 import fr.gdd.sage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.sage.databases.inmemory.IM4Jena;
 import fr.gdd.sage.jena.JenaBackend;
-import org.apache.jena.query.Dataset;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -25,8 +24,6 @@ public class Save2SPARQLBGPTest {
     public void create_a_simple_query_and_pause_at_each_result () {
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c}";
 
-
-
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
             queryAsString = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
@@ -34,12 +31,14 @@ public class Save2SPARQLBGPTest {
         }
         sum -= 1; // last call does not retrieve results
         assertEquals(3, sum);
-
-
     }
 
     @Test
     public void create_a_bgp_query_and_pause_at_each_result () {
+//        Op bind = OpExtend.extend(new OpTriple(new Triple(Var.alloc("s"), Var.alloc("p"), Var.alloc("o"))),
+//                Var.alloc("s"), ExprUtils.parse("<http://meow>"));
+//        String savedAsString = OpAsQuery.asQuery(bind).toString();
+//        System.out.println(savedAsString);
         String queryAsString = """
                SELECT * WHERE {
                 ?p <http://address> <http://nantes> .
@@ -88,7 +87,7 @@ public class Save2SPARQLBGPTest {
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
-            queryAsString = Save2SPARQLTest.executeQuery(queryAsString, jena);
+            queryAsString = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
             sum += 1;
         }
         sum -= 1; // last call does not retrieve results

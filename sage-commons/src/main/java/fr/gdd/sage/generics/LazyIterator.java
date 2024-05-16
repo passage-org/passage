@@ -5,6 +5,7 @@ import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.interfaces.BackendIterator;
 import fr.gdd.sage.interfaces.RandomIterator;
 import fr.gdd.sage.interfaces.SPOC;
+import org.apache.jena.graph.Node;
 
 import java.io.Serializable;
 
@@ -133,8 +134,7 @@ public class LazyIterator<ID, VALUE, SKIP extends Serializable> extends BackendI
 
     @Override
     public String getString(int code) {
-        ID id = getId(code); // TODO lazy
-        return backend.getString(id, code);
+        return getWrapped().getString(code); // TODO lazy
     }
 
     @Override

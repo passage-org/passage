@@ -66,12 +66,12 @@ public class FlattenUnflatten {
                 ops.addAll(flattenJoin(j.getRight()));
                 yield ops;
             }
-            case OpExtend e -> {
-                List<Op> ops = new ArrayList<>();
-                ops.add(OpCloningUtil.clone(e, OpTable.unit()));
-                ops.addAll(flattenJoin(e.getSubOp()));
-                yield ops;
-            }
+    //            case OpExtend e -> {
+    //                List<Op> ops = new ArrayList<>();
+    //                ops.add(OpCloningUtil.clone(e, OpTable.unit()));
+    //                ops.addAll(flattenJoin(e.getSubOp()));
+    //                yield ops;
+    //            }
             case null -> List.of();
             default -> List.of(op);
         };

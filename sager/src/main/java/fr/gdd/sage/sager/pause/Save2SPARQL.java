@@ -8,6 +8,7 @@ import fr.gdd.sage.generics.PtrMap;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.iterators.SagerScan;
+import fr.gdd.sage.sager.iterators.SagerScanFactory;
 import fr.gdd.sage.sager.resume.Subqueries2LeftOfJoins;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpJoin;
@@ -51,33 +52,40 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
 
     @Override
     public Op visit(OpTriple triple) {
-        SagerScan<ID, VALUE> it = (SagerScan<ID, VALUE>) op2it.get(triple);
+        SagerScanFactory<ID, VALUE> it = (SagerScanFactory<ID, VALUE>) op2it.get(triple);
 
         if (Objects.isNull(it)) {return null;}
 
         // OpTriple must remain the same, we cannot transform it by setting
         // the variables that are bound since the join variable would not match
         // after...
-        return new OpSlice(triple, it.current(), Long.MIN_VALUE);
+        return it.preempt();
+        // return new OpSlice(triple, it.current(), Long.MIN_VALUE);
     }
 
     @Override
     public Op visit(OpJoin join) {
-        FullyPreempted<ID,VALUE> fp = new FullyPreempted<>(this);
-        Op leftFullyPreempt = ReturningOpVisitorRouter.visit(fp, join.getLeft());
         Op right = ReturningOpVisitorRouter.visit(this, join.getRight());
+        Op left = ReturningOpVisitorRouter.visit(this, join.getLeft());
 
-        // TODO left + right only if left is preemptable
-        boolean shouldI = ReturningOpVisitorRouter.visit(new ShouldPreempt(this), join.getLeft());
-        if (shouldI) {
-            Op left = ReturningOpVisitorRouter.visit(this, join.getLeft());
-            return OpUnion.create(
-                    distributeJoin(leftFullyPreempt, right), // preempted
-                    OpJoin.create(left, join.getRight()) // rest
-            );
-        } else {
-            return distributeJoin(leftFullyPreempt, right);
-        }
+        return FlattenUnflatten.unflattenUnion(List.of(right, OpJoin.create(left, join.getRight())));
+
+//        FullyPreempted<ID,VALUE> fp = new FullyPreempted<>(this);
+//        Op leftFullyPreempt = ReturningOpVisitorRouter.visit(fp, join.getLeft());
+//        Op right = ReturningOpVisitorRouter.visit(this, join.getRight());
+//
+//        // TODO left + right only if left is preemptable
+//        boolean shouldI = ReturningOpVisitorRouter.visit(new ShouldPreempt(this), join.getLeft());
+//        if (shouldI) {
+//            Op left = ReturningOpVisitorRouter.visit(this, join.getLeft());
+//            return OpUnion.create(
+//                    distributeJoin(leftFullyPreempt, right), // preempted
+//                    OpJoin.create(left, join.getRight()) // rest
+//            );
+//        } else {
+//            return distributeJoin(leftFullyPreempt, right);
+//        }
+        // throw new UnsupportedOperationException("join");
     }
 //
 //    @Override

@@ -18,14 +18,12 @@ import fr.gdd.sage.generics.LazyIterator;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.interfaces.BackendIterator;
 import fr.gdd.sage.interfaces.SPOC;
-import org.apache.jena.rdf.model.ResourceFactory;
 import org.openrdf.model.Resource;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.query.*;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.sail.SailException;
 
-import java.util.Objects;
 import java.util.Properties;
 
 /**
@@ -127,7 +125,11 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
 
     @Override
     public String getString(IV value, int... type) {
-        return store.getLexiconRelation().getTerm(value).toString();
+        if (value.isURI()) {
+            return "<"+ store.getLexiconRelation().getTerm(value).toString() + ">";
+        } else {
+            return store.getLexiconRelation().getTerm(value).toString();
+        }
     }
 
     @Override

@@ -9,6 +9,7 @@ import fr.gdd.sage.sager.pause.Save2SPARQL;
 import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.atlas.lib.tuple.Tuple3;
 import org.apache.jena.atlas.lib.tuple.TupleFactory;
+import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpExtend;
 import org.apache.jena.sparql.algebra.op.OpSequence;
@@ -38,7 +39,7 @@ public class SagerScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE>
         this.wrapped = wrapped;
         this.op = triple;
         this.saver = context.getContext().get(SagerConstants.SAVER);
-        saver.register(triple, this);
+        // saver.register(triple, this);
 
         this.vars = TupleFactory.create3(
                 triple.getTriple().getSubject().isVariable() && Objects.isNull(spo.get(0)) ? Var.alloc(triple.getTriple().getSubject()) : null,

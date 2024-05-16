@@ -62,9 +62,14 @@ public class BlazegraphIterator extends BackendIterator<IV, BigdataValue, Long> 
         return getId(code).getValue();
     }
 
+    @Override
     public String getString(int type) {
         IV iv = this.getId(type);
-        return store.getLexiconRelation().getTerm(iv).toString();
+        String lexiconized = store.getLexiconRelation().getTerm(iv).toString();
+        if (iv.isURI()) {
+            return "<"+lexiconized+">";
+        }
+        return lexiconized;
     }
 
     public boolean hasNext() {

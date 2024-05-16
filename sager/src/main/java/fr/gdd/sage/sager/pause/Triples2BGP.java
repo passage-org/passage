@@ -27,16 +27,12 @@ public class Triples2BGP extends ReturningOpBaseVisitor {
         List<Op> rest = ops.stream().filter(o -> ! (o instanceof OpTriple)).toList();
         OpBGP bgp = new OpBGP(BasicPattern.wrap(triples));
         if (!triples.isEmpty() && !rest.isEmpty()) {
-            return OpJoin.create(bgp, BGP2Triples.asJoins(rest));
+            return OpJoin.create(BGP2Triples.asJoins(rest), bgp);
         } else if (!triples.isEmpty()){
             return bgp;
         } else {
             return BGP2Triples.asJoins(rest);
         }
     }
-
-    /* *************************************************************** */
-
-
 
 }

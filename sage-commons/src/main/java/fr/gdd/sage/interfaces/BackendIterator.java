@@ -1,6 +1,8 @@
 package fr.gdd.sage.interfaces;
 
 
+import org.apache.jena.graph.Node;
+
 import java.io.Serializable;
 
 /**
@@ -29,6 +31,14 @@ public abstract class BackendIterator<ID, VALUE, SKIP extends Serializable> impl
      * @return The value of the variable code as a string.
      */
     public abstract String getString(int code);
+
+    /**
+     * Convenience for engine based on Jena's AST, this avoids making
+     * useless translations between types.
+     * @param code Same as `getId`.
+     * @return The value of the variable as Jena `Node`.
+     */
+    // public abstract Node getNode(int code);
 
     /**
      * @return true if there are other elements matching the pattern,
