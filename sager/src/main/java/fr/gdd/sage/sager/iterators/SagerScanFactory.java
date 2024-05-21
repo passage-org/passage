@@ -79,6 +79,10 @@ public class SagerScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID,
 
 
     public Op preempt() {
+        if (!instantiated.hasNext()) {
+            return null;
+        }
+
         Set<Var> vars = inputBinding.vars();
         OpSequence seq = OpSequence.create();
         for (Var v : vars) {

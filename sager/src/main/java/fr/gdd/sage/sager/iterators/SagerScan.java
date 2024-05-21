@@ -94,21 +94,4 @@ public class SagerScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE>
         return wrapped.current();
     }
 
-    /**
-     * @return The iterator's current state in form of `Bind As` clause.
-     */
-    public Op asBindAs () {
-        OpSequence seq = OpSequence.create();
-        if (Objects.nonNull(vars.get(SPOC.SUBJECT))) { // ugly x3
-            seq.add(OpExtend.extend(OpTable.unit(), vars.get(SPOC.SUBJECT), ExprUtils.parse(wrapped.getString(SPOC.SUBJECT)))); // ExprUtils.parse(NodeFmtLib.displayStr(wrapped.getString(SPOC.SUBJECT)))););
-        }
-        if (Objects.nonNull(vars.get(SPOC.PREDICATE))) {
-            seq.add(OpExtend.extend(OpTable.unit(), vars.get(SPOC.PREDICATE), ExprUtils.parse(wrapped.getString(SPOC.PREDICATE))));
-        }
-        if (Objects.nonNull(vars.get(SPOC.OBJECT))) {
-            seq.add(OpExtend.extend(OpTable.unit(), vars.get(SPOC.OBJECT), ExprUtils.parse(wrapped.getString(SPOC.OBJECT))));
-        }
-        return seq.size() > 1 ? seq : seq.get(0); // remove sequence if not needed
-    }
-
 }

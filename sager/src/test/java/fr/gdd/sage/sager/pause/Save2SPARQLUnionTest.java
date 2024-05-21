@@ -1,7 +1,8 @@
 package fr.gdd.sage.sager.pause;
 
+import fr.gdd.sage.blazegraph.BlazegraphBackend;
+import fr.gdd.sage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.sage.databases.inmemory.IM4Jena;
-import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.jena.JenaBackend;
 import org.apache.jena.query.Dataset;
 import org.junit.jupiter.api.Disabled;
@@ -17,8 +18,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class Save2SPARQLUnionTest {
 
     private static final Logger log = LoggerFactory.getLogger(Save2SPARQLUnionTest.class);
-    private static final Dataset dataset = IM4Jena.triple9();
-    private static final JenaBackend backend = new JenaBackend(dataset);
+    private static final JenaBackend jena = new JenaBackend(IM4Jena.triple9());
+    private static final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
 
     @Test
     public void create_an_simple_union_that_does_not_come_from_preemption() {
@@ -31,10 +32,10 @@ public class Save2SPARQLUnionTest {
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
-            queryAsString = Save2SPARQLTest.executeQuery(queryAsString, backend);
-            sum += 1;
+            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            sum += result.getLeft();
+            queryAsString = result.getRight();
         }
-        sum -= 1; // last call does not retrieve results
         assertEquals(5, sum); // Alice * 3 + Alice + Carol
     }
 
@@ -49,10 +50,10 @@ public class Save2SPARQLUnionTest {
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
-            queryAsString = Save2SPARQLTest.executeQuery(queryAsString, backend);
-            sum += 1;
+            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            sum += result.getLeft();
+            queryAsString = result.getRight();
         }
-        sum -= 1; // last call does not retrieve results
         assertEquals(5, sum); // Alice * 3 + Alice + Carol
     }
 }

@@ -17,9 +17,7 @@ import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Generate a SPARQL query from the paused state.
@@ -45,8 +43,8 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
     public Op save(Op caller) {
         this.caller = caller;
         Op saved = ReturningOpVisitorRouter.visit(this, root);
-        saved = ReturningOpVisitorRouter.visit(new Triples2BGP(), saved);
-        saved = ReturningOpVisitorRouter.visit(new Subqueries2LeftOfJoins(), saved);
+        saved = Objects.isNull(saved) ? saved : ReturningOpVisitorRouter.visit(new Triples2BGP(), saved);
+        saved = Objects.isNull(saved) ? saved : ReturningOpVisitorRouter.visit(new Subqueries2LeftOfJoins(), saved);
         return saved;
     }
 
@@ -65,40 +63,26 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
 
     @Override
     public Op visit(OpJoin join) {
-        Op right = ReturningOpVisitorRouter.visit(this, join.getRight());
         Op left = ReturningOpVisitorRouter.visit(this, join.getLeft());
+        Op right = ReturningOpVisitorRouter.visit(this, join.getRight());
 
-        return FlattenUnflatten.unflattenUnion(List.of(right, OpJoin.create(left, join.getRight())));
-
-//        FullyPreempted<ID,VALUE> fp = new FullyPreempted<>(this);
-//        Op leftFullyPreempt = ReturningOpVisitorRouter.visit(fp, join.getLeft());
-//        Op right = ReturningOpVisitorRouter.visit(this, join.getRight());
-//
-//        // TODO left + right only if left is preemptable
-//        boolean shouldI = ReturningOpVisitorRouter.visit(new ShouldPreempt(this), join.getLeft());
-//        if (shouldI) {
-//            Op left = ReturningOpVisitorRouter.visit(this, join.getLeft());
-//            return OpUnion.create(
-//                    distributeJoin(leftFullyPreempt, right), // preempted
-//                    OpJoin.create(left, join.getRight()) // rest
-//            );
-//        } else {
-//            return distributeJoin(leftFullyPreempt, right);
-//        }
-        // throw new UnsupportedOperationException("join");
+        if (Objects.isNull(left)) {
+            return FlattenUnflatten.unflattenUnion(Collections.singletonList(right));
+        }
+        return FlattenUnflatten.unflattenUnion(Arrays.asList(right, OpJoin.create(left, join.getRight())));
     }
 
     @Override
     public Op visit(OpUnion union) {
         SagerUnion<ID,VALUE> u = (SagerUnion<ID,VALUE>) op2it.get(union);
-        if (Objects.isNull(u)) {
+        if (Objects.isNull(u)) { // not executed yet
             return union;
         }
 
         if (u.onLeft()) {
             Op left = ReturningOpVisitorRouter.visit(this, union.getLeft());
-            return OpUnion.create(left, union.getRight());
-        } else { // on right
+            return FlattenUnflatten.unflattenUnion(Arrays.asList(left, union.getRight()));
+        } else { // on right: remove left part of union
             return  ReturningOpVisitorRouter.visit(this, union.getRight());
         }
     }

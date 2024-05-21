@@ -1,11 +1,14 @@
 package fr.gdd.sage.sager.pause;
 
+import com.github.jsonldjava.utils.Obj;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.SagerOpExecutor;
 import fr.gdd.sage.sager.resume.BGP2Triples;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.graph.Node;
 import org.apache.jena.query.ARQ;
 import org.apache.jena.query.Dataset;
@@ -22,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
+import java.util.Objects;
 
 @Disabled
 class Save2SPARQLTest {
@@ -33,7 +37,7 @@ class Save2SPARQLTest {
      * @param backend The backend to execute on.
      * @return The preempted query after one result.
      */
-    public static <ID, VALUE> String executeQuery(String queryAsString, Backend<ID, VALUE, ?> backend) {
+    public static <ID, VALUE> Pair<Integer, String> executeQuery(String queryAsString, Backend<ID, VALUE, ?> backend) {
         ARQ.enableOptimizer(false);
 
         Op query = Algebra.compile(QueryFactory.create(queryAsString));
@@ -47,15 +51,20 @@ class Save2SPARQLTest {
 
         Iterator<BackendBindings<ID, VALUE>> iterator = executor.execute(query);
         if (!iterator.hasNext()) {
-            return null;
+            return new ImmutablePair<>(0, null);
         }
         log.debug("{}", iterator.next());
 
         Save2SPARQL<ID, VALUE> saver = ec.getContext().get(SagerConstants.SAVER);
         Op saved = saver.save(null);
-        String savedAsString = OpAsQuery.asQuery(saved).toString();
-        log.debug(savedAsString);
-        return savedAsString;
+        if (Objects.nonNull(saved)) {
+            String savedAsString = OpAsQuery.asQuery(saved).toString();
+            log.debug(savedAsString);
+            return new ImmutablePair<>(1, savedAsString);
+        } else {
+            return new ImmutablePair<>(1, null);
+        }
+
     }
 
 }

@@ -27,10 +27,10 @@ public class Save2SPARQLBGPTest {
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
-            queryAsString = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
-            sum += 1;
+            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            sum += result.getLeft();
+            queryAsString = result.getRight();
         }
-        sum -= 1; // last call does not retrieve results
         assertEquals(3, sum);
     }
 
@@ -45,10 +45,10 @@ public class Save2SPARQLBGPTest {
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
-            queryAsString = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
-            sum += 1;
+            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            sum += result.getLeft();
+            queryAsString = result.getRight();
         }
-        sum -= 1; // last call does not retrieve results
         assertEquals(3, sum);
     }
 
@@ -64,10 +64,10 @@ public class Save2SPARQLBGPTest {
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
-            queryAsString = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
-            sum += 1;
+            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            sum += result.getLeft();
+            queryAsString = result.getRight();
         }
-        sum -= 1; // last call does not retrieve results
         assertEquals(3, sum);
     }
 
@@ -84,10 +84,10 @@ public class Save2SPARQLBGPTest {
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
-            queryAsString = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
-            sum += 1;
+            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            sum += result.getLeft();
+            queryAsString = result.getRight();
         }
-        sum -= 1; // last call does not retrieve results
         assertEquals(3, sum);
     }
 

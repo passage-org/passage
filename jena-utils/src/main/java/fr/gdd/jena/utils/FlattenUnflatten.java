@@ -1,13 +1,13 @@
 package fr.gdd.jena.utils;
 
 import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.algebra.op.OpExtend;
 import org.apache.jena.sparql.algebra.op.OpJoin;
-import org.apache.jena.sparql.algebra.op.OpTable;
 import org.apache.jena.sparql.algebra.op.OpUnion;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Multijoins and multiunions do not exist in SPARQL algebra, but they are
@@ -38,6 +38,7 @@ public class FlattenUnflatten {
      * @return A tree of operators linked by cascading unions.
      */
     public static Op unflattenUnion(List<Op> ops) {
+        ops = ops.stream().filter(Objects::nonNull).collect(Collectors.toList());
         return switch (ops.size()) {
             case 0 -> null;
             case 1 -> ops.get(0);
@@ -76,7 +77,5 @@ public class FlattenUnflatten {
             default -> List.of(op);
         };
     }
-
-
 
 }
