@@ -60,23 +60,23 @@ public class BackendBindings<ID, VALUE> {
 
         public VALUE getValue() {
             if (Objects.isNull(value))
-                value = backend.getValue(id, code);
+                value = Objects.isNull(code) ? backend.getValue(id) : backend.getValue(id, code);
             return value;
         }
 
         public ID getId() {
             if (Objects.isNull(id))
                 if (Objects.nonNull(value)) {
-                    id = backend.getId(value, code);
+                    id = Objects.isNull(code) ? backend.getId(value) : backend.getId(value, code);
                 } else {
-                    id = backend.getId(asString, code);
+                    id = Objects.isNull(code) ? backend.getId(asString) : backend.getId(asString, code);
                 }
             return id;
         }
 
         public String getString() {
             if (Objects.isNull(value))
-                asString = backend.getString(id, code);
+                asString = Objects.isNull(code) ? backend.getString(id) : backend.getString(id, code);
             return asString;
         }
     }

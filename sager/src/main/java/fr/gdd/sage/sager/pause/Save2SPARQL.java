@@ -1,6 +1,7 @@
 package fr.gdd.sage.sager.pause;
 
 import fr.gdd.jena.utils.FlattenUnflatten;
+import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.jena.visitors.ReturningOpVisitor;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.sage.generics.BackendBindings;
@@ -9,12 +10,11 @@ import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.iterators.SagerScan;
 import fr.gdd.sage.sager.iterators.SagerScanFactory;
+import fr.gdd.sage.sager.iterators.SagerUnion;
+import fr.gdd.sage.sager.resume.IsSkippable;
 import fr.gdd.sage.sager.resume.Subqueries2LeftOfJoins;
 import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.algebra.op.OpJoin;
-import org.apache.jena.sparql.algebra.op.OpSlice;
-import org.apache.jena.sparql.algebra.op.OpTriple;
-import org.apache.jena.sparql.algebra.op.OpUnion;
+import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
 import java.util.Iterator;
@@ -87,37 +87,39 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
 //        }
         // throw new UnsupportedOperationException("join");
     }
-//
-//    @Override
-//    public Op visit(OpUnion union) {
-//        SagerUnion u = (SagerUnion) op2it.get(union);
-//        if (Objects.isNull(u)) {
-//            return union;
-//        }
-//
-//        if (u.onLeft()) {
-//            Op left = ReturningOpVisitorRouter.visit(this, union.getLeft());
-//            return OpUnion.create(left, union.getRight());
-//        } else { // on right
-//            return  ReturningOpVisitorRouter.visit(this, union.getRight());
-//        }
-//    }
+
+    @Override
+    public Op visit(OpUnion union) {
+        SagerUnion<ID,VALUE> u = (SagerUnion<ID,VALUE>) op2it.get(union);
+        if (Objects.isNull(u)) {
+            return union;
+        }
+
+        if (u.onLeft()) {
+            Op left = ReturningOpVisitorRouter.visit(this, union.getLeft());
+            return OpUnion.create(left, union.getRight());
+        } else { // on right
+            return  ReturningOpVisitorRouter.visit(this, union.getRight());
+        }
+    }
 
     @Override
     public Op visit(OpSlice slice) {
-        if (slice.getSubOp() instanceof OpTriple triple) {
+        IsSkippable isSkippableVisitor = new IsSkippable();
+        Boolean isSkippable = ReturningOpVisitorRouter.visit(isSkippableVisitor, slice);
+        if (isSkippable) {
             // behaves as if it does not exist since the tp is interpreted as tp with skip.
             // If need be, the tp will add the slice OFFSET itself.
-            return ReturningOpVisitorRouter.visit(this, triple);
+            return ReturningOpVisitorRouter.visit(this, isSkippableVisitor.getOpTriple());
         }
         throw new UnsupportedOperationException("TODO OpSlice cannot be saved right now."); // TODO
     }
 
 
-//    @Override
-//    public Op visit(OpExtend extend) {
-//        return OpCloningUtil.clone(extend, ReturningOpVisitorRouter.visit(this, extend.getSubOp()));
-//    }
+    @Override
+    public Op visit(OpExtend extend) { // cloned
+        return OpCloningUtil.clone(extend, ReturningOpVisitorRouter.visit(this, extend.getSubOp()));
+    }
 
     /* ************************************************************ */
 

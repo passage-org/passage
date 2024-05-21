@@ -2,7 +2,6 @@ package fr.gdd.sage.sager.iterators;
 
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.sage.generics.BackendBindings;
-import fr.gdd.sage.sager.BindingId2Value;
 import fr.gdd.sage.sager.SagerOpExecutor;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.sparql.algebra.Op;

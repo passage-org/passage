@@ -12,6 +12,11 @@ import org.apache.jena.sparql.algebra.op.*;
 public class IsSkippable extends ReturningOpVisitor<Boolean> {
 
     Integer nbTriplePatterns = 0;
+    OpTriple opTriple = null;
+
+    public OpTriple getOpTriple() {
+        return opTriple;
+    }
 
     public static Boolean visit(Op op) {
         if (op instanceof OpSlice slice) { // The root slice
@@ -22,16 +27,13 @@ public class IsSkippable extends ReturningOpVisitor<Boolean> {
 
     @Override
     public Boolean visit(OpTriple triple) {
-        if (nbTriplePatterns > 0) return false;
         ++nbTriplePatterns;
-        return true;
+        opTriple = triple;
+        return nbTriplePatterns <= 1;
     }
 
     @Override
     public Boolean visit(OpBGP bgp) {
-        if (nbTriplePatterns > 0) return false;
-        if (bgp.getPattern().size() > 1) return false;
-        nbTriplePatterns += bgp.getPattern().size();
         return false;
     }
 
@@ -55,5 +57,10 @@ public class IsSkippable extends ReturningOpVisitor<Boolean> {
     public Boolean visit(OpUnion union) {
         return ReturningOpVisitorRouter.visit(this, union.getLeft()) &&
                 ReturningOpVisitorRouter.visit(this, union.getRight());
+    }
+
+    @Override
+    public Boolean visit(OpSlice slice) {
+        return ReturningOpVisitorRouter.visit(this, slice.getSubOp());
     }
 }

@@ -24,6 +24,7 @@ import org.openrdf.query.*;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.sail.SailException;
 
+import java.util.Objects;
 import java.util.Properties;
 
 /**
@@ -90,13 +91,30 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
     @Override
     public IV getId(String value, int... type) {
         Resource res = null;
+        // TODO not only URIs
+        // TODO could use `Node node = NodeFactoryExtra.parseNode(value);`
         if (value.startsWith("<") && value.endsWith(">")) {
             res = new URIImpl(value.substring(1, value.length()-1));
         } else {
             throw new UnsupportedOperationException("parse value to resource");
         }
-        // TODO not only URIs
-        // TODO could use `Node node = NodeFactoryExtra.parseNode(value);`
+
+        if (Objects.isNull(type) || type.length == 0) { // ugly when type is not set
+            try {
+                return getId(value, SPOC.SUBJECT);
+            } catch (NotFoundException e) {
+                try {
+                    return getId(value, SPOC.PREDICATE);
+                } catch (NotFoundException f) {
+                    try {
+                        return getId(value, SPOC.OBJECT);
+                    } catch (NotFoundException g) {
+                        return getId(value, SPOC.CONTEXT);
+                    }
+                }
+            }
+        }
+
         IAccessPath<ISPO> accessPath = switch(type[0]) {
             case SPOC.SUBJECT -> store.getAccessPath(res,null, null);
             case SPOC.PREDICATE -> store.getAccessPath(null, (URIImpl) res, null);

@@ -23,6 +23,7 @@ public class Save2SPARQLBGPTest {
     @Test
     public void create_a_simple_query_and_pause_at_each_result () {
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c}";
+        log.debug(queryAsString);
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
@@ -35,10 +36,6 @@ public class Save2SPARQLBGPTest {
 
     @Test
     public void create_a_bgp_query_and_pause_at_each_result () {
-//        Op bind = OpExtend.extend(new OpTriple(new Triple(Var.alloc("s"), Var.alloc("p"), Var.alloc("o"))),
-//                Var.alloc("s"), ExprUtils.parse("<http://meow>"));
-//        String savedAsString = OpAsQuery.asQuery(bind).toString();
-//        System.out.println(savedAsString);
         String queryAsString = """
                SELECT * WHERE {
                 ?p <http://address> <http://nantes> .
@@ -67,7 +64,7 @@ public class Save2SPARQLBGPTest {
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
-            queryAsString = Save2SPARQLTest.executeQuery(queryAsString, jena);
+            queryAsString = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
             sum += 1;
         }
         sum -= 1; // last call does not retrieve results

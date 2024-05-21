@@ -1,9 +1,9 @@
 package fr.gdd.sage.rawer.accumulators;
 
 import fr.gdd.jena.visitors.ReturningOpVisitor;
-import fr.gdd.sage.rawer.iterators.RandomScan;
-import fr.gdd.sage.sager.BindingId2Value;
+import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.generics.PtrMap;
+import fr.gdd.sage.rawer.iterators.RandomScan;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpTriple;
 
@@ -15,9 +15,9 @@ import java.util.Iterator;
  */
 public class WanderJoinVisitor extends ReturningOpVisitor<Double> {
 
-    public final PtrMap<Op, Iterator<BindingId2Value>> op2it;
+    public final PtrMap<Op, Iterator<BackendBindings>> op2it;
 
-    public WanderJoinVisitor (PtrMap<Op, Iterator<BindingId2Value>> op2it) {
+    public WanderJoinVisitor (PtrMap<Op, Iterator<BackendBindings>> op2it) {
         this.op2it = op2it;
     }
 

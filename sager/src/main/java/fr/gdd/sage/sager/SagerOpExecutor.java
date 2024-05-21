@@ -2,17 +2,19 @@ package fr.gdd.sage.sager;
 
 import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
+import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.interfaces.Backend;
+import fr.gdd.sage.sager.iterators.SagerBind;
 import fr.gdd.sage.sager.iterators.SagerRoot;
 import fr.gdd.sage.sager.iterators.SagerScanFactory;
+import fr.gdd.sage.sager.iterators.SagerUnion;
 import fr.gdd.sage.sager.optimizers.SagerOptimizer;
 import fr.gdd.sage.sager.pause.Save2SPARQL;
+import fr.gdd.sage.sager.resume.IsSkippable;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.algebra.op.OpJoin;
-import org.apache.jena.sparql.algebra.op.OpSlice;
-import org.apache.jena.sparql.algebra.op.OpTriple;
+import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
 import java.util.Iterator;
@@ -63,7 +65,7 @@ public class SagerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
     }
 
     public Iterator<BackendBindings<ID, VALUE>> execute(Op root) {
-        execCxt.getContext().set(SagerConstants.SAVER, new Save2SPARQL(root, execCxt));
+        execCxt.getContext().set(SagerConstants.SAVER, new Save2SPARQL<ID,VALUE>(root, execCxt));
 
         Iterator<BackendBindings<ID, VALUE>> wrapped = new SagerRoot<>(execCxt,
                 ReturningArgsOpVisitorRouter.visit(this, root, Iter.of(new BackendBindings<>())));
@@ -99,28 +101,28 @@ public class SagerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         return ReturningArgsOpVisitorRouter.visit(this, join.getRight(), input);
     }
 
-//    @Override
-//    public Iterator<BindingId2Value> visit(OpUnion union, Iterator<BindingId2Value> input) {
-//        // TODO What about some parallelism here? :)
-//        Save2SPARQL saver = execCxt.getContext().get(SagerConstants.SAVER);
-//        SagerUnion iterator = new SagerUnion(this, input, union.getLeft(), union.getRight());
-//        saver.register(union, iterator);
-//        return iterator;
-//    }
-//
-//    @Override
-//    public Iterator<BindingId2Value> visit(OpExtend extend, Iterator<BindingId2Value> input) {
-//        Iterator<BindingId2Value> newInput = ReturningArgsOpVisitorRouter.visit(this, extend.getSubOp(), input);
-//        return new SagerBind(newInput, extend, execCxt);
-//    }
-//
-//    @Override
-//    public Iterator<BindingId2Value> visit(OpTable table, Iterator<BindingId2Value> input) {
-//        if (table.isJoinIdentity())
-//            return input;
-//        throw new UnsupportedOperationException("TODO: VALUES Should be considered as a Scan iterator…"); // TODO
-//    }
-//
+    @Override
+    public Iterator<BackendBindings<ID,VALUE>> visit(OpUnion union, Iterator<BackendBindings<ID,VALUE>> input) {
+        // TODO What about some parallelism here? :)
+        Save2SPARQL<ID,VALUE> saver = execCxt.getContext().get(SagerConstants.SAVER);
+        SagerUnion<ID,VALUE> iterator = new SagerUnion<>(this, input, union.getLeft(), union.getRight());
+        saver.register(union, iterator);
+        return iterator;
+    }
+
+    @Override
+    public Iterator<BackendBindings<ID,VALUE>> visit(OpExtend extend, Iterator<BackendBindings<ID,VALUE>> input) {
+        Iterator<BackendBindings<ID,VALUE>> newInput = ReturningArgsOpVisitorRouter.visit(this, extend.getSubOp(), input);
+        return new SagerBind<>(newInput, extend, execCxt);
+    }
+
+    @Override
+    public Iterator<BackendBindings<ID,VALUE>> visit(OpTable table, Iterator<BackendBindings<ID,VALUE>> input) {
+        if (table.isJoinIdentity())
+            return input;
+        throw new UnsupportedOperationException("TODO: VALUES Should be considered as a Scan iterator…"); // TODO
+    }
+
     /**
      * Preemption mostly comes from this: the ability to start over from an OFFSET efficiently.
      * When we find a pattern like SELECT * WHERE {?s ?p ?o} OFFSET X, the engine know that
@@ -129,8 +131,11 @@ public class SagerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
      */
     @Override
     public Iterator<BackendBindings<ID, VALUE>> visit(OpSlice slice, Iterator<BackendBindings<ID, VALUE>> input) {
-        if (slice.getSubOp() instanceof OpTriple triple) { // TODO OpQuad
-            return new SagerScanFactory<>(input, execCxt, triple, slice.getStart());
+        Boolean isSkippable = ReturningOpVisitorRouter.visit(new IsSkippable(), slice);
+
+        if (isSkippable) {
+            PreemptedSubQueryOpExecutor<ID,VALUE> subExec = new PreemptedSubQueryOpExecutor<>(execCxt, backend);
+            return ReturningArgsOpVisitorRouter.visit(subExec, slice, input);
         }
         // TODO otherwise it's a normal slice (TODO) handle it
         throw new UnsupportedOperationException("TODO Default LIMIT OFFSET not implemented yet.");

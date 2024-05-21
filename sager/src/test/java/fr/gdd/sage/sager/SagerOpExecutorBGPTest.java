@@ -1,7 +1,10 @@
 package fr.gdd.sage.sager;
 
+import fr.gdd.sage.blazegraph.BlazegraphBackend;
+import fr.gdd.sage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.sage.databases.inmemory.IM4Jena;
-import org.apache.jena.query.Dataset;
+import fr.gdd.sage.jena.JenaBackend;
+import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -13,38 +16,46 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @Disabled
 public class SagerOpExecutorBGPTest {
 
-    private static final Logger log = LoggerFactory.getLogger(SagerOpExecutorBGPTest.class);
-    private static final Dataset dataset = IM4Jena.triple9();
+    static final Logger log = LoggerFactory.getLogger(SagerOpExecutorBGPTest.class);
+    static final JenaBackend jena = new JenaBackend(IM4Jena.triple9());
+    static final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
 
     @Test
     public void bgp_of_1_tp () {
-        ExecutionContext ec = new ExecutionContext(dataset.asDatasetGraph());
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c}";
+
+        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
+        ec.getContext().set(SagerConstants.BACKEND, blazegraph);
+
         int nbResults = SagerOpExecutorTest.executeWithSager(queryAsString, ec);
         assertEquals(3, nbResults); // Bob, Alice, and Carol.
     }
 
     @Test
     public void bgp_of_2_tp () {
-        ExecutionContext ec = new ExecutionContext(dataset.asDatasetGraph());
         String queryAsString = """
                SELECT * WHERE {
                 ?p <http://address> <http://nantes> .
                 ?p <http://own> ?a .
                }""";
+
+        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
+        ec.getContext().set(SagerConstants.BACKEND, blazegraph);
         int nbResults = SagerOpExecutorTest.executeWithSager(queryAsString, ec);
         assertEquals(3, nbResults); // Alice, Alice, and Alice.
     }
 
     @Test
     public void bgp_of_3_tps () {
-        ExecutionContext ec = new ExecutionContext(dataset.asDatasetGraph());
         String queryAsString = """
                SELECT * WHERE {
                 ?p <http://address> <http://nantes> .
                 ?p <http://own> ?a .
                 ?a <http://species> ?s
                }""";
+
+        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
+        ec.getContext().set(SagerConstants.BACKEND, blazegraph);
         int nbResults = SagerOpExecutorTest.executeWithSager(queryAsString, ec);
         assertEquals(3, nbResults); // Alice->own->cat,dog,snake
     }
