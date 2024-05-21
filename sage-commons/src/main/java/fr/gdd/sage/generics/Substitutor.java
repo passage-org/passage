@@ -15,22 +15,18 @@ import java.util.Objects;
  */
 public class Substitutor {
 
-    public static <ID, VALUE> Tuple3<ID> substitute(Backend<ID, VALUE, ?> backend, Triple triple, BackendBindings<ID, VALUE> binding) {
-        return TupleFactory.create3(substitute(backend, triple.getSubject(), binding, SPOC.SUBJECT),
-                substitute(backend, triple.getPredicate(),binding, SPOC.PREDICATE),
-                substitute(backend, triple.getObject(), binding, SPOC.OBJECT));
+    public static <ID, VALUE> Tuple3<ID> substitute(Backend<ID, VALUE, ?> backend, Triple triple, BackendBindings<ID, VALUE> binding, CacheId<ID,VALUE> cache) {
+        return TupleFactory.create3(substitute(backend, triple.getSubject(), binding, SPOC.SUBJECT, cache),
+                substitute(backend, triple.getPredicate(),binding, SPOC.PREDICATE, cache),
+                substitute(backend, triple.getObject(), binding, SPOC.OBJECT, cache));
     }
 
-    protected static <ID, VALUE> ID substitute(Backend<ID, VALUE, ?> backend, Node sOrPOrO, BackendBindings<ID, VALUE> binding, Integer spoc) {
+    public static <ID, VALUE> ID substitute(Backend<ID, VALUE, ?> backend, Node sOrPOrO, BackendBindings<ID, VALUE> binding, Integer spoc, CacheId<ID,VALUE> cache) {
         if (sOrPOrO.isVariable()) {
             BackendBindings.IdValueBackend<ID, VALUE> b = binding.get(Var.alloc(sOrPOrO));
             return Objects.isNull(b) ? null : b.getId();
         } else {
-            if (sOrPOrO.isURI()) { // ugly… TODO maybe a getId of Node in Backend…
-                return backend.getId("<" + sOrPOrO + ">", spoc);
-            } else {
-                return backend.getId(sOrPOrO.toString(), spoc);
-            }
+            return cache.getId(sOrPOrO, spoc);
         }
     }
 

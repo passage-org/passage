@@ -16,6 +16,10 @@ public class SagerConstants {
     static public final Symbol SCANS = allocVariableSymbol("Scans"); // current number of scans
     static public final Symbol LIMIT = allocConstantSymbol("Limit"); // max number of scans
 
+    static public final Symbol CACHE = allocVariableSymbol("Cache"); // some kind of cache
+
+    /* ********************************************************************** */
+
     /**
      * Symbol in use in the global context.
      */

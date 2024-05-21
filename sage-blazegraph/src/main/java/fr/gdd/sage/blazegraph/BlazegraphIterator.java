@@ -95,6 +95,9 @@ public class BlazegraphIterator extends BackendIterator<IV, BigdataValue, Long> 
 
     @Override
     public void skip(Long to) {
+        if (to == 0) { // Nothing to do
+            return;
+        }
         this.offset = to;
         long startFrom = Objects.isNull(min) ? 0L: iindex.rangeCount(null, min);
         if (to > 0) {

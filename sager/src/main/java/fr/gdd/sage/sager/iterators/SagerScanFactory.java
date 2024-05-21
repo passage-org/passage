@@ -1,6 +1,7 @@
 package fr.gdd.sage.sager.iterators;
 
 import fr.gdd.sage.generics.BackendBindings;
+import fr.gdd.sage.generics.CacheId;
 import fr.gdd.sage.generics.Substitutor;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.interfaces.SPOC;
@@ -27,6 +28,7 @@ public class SagerScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID,
     final ExecutionContext context;
     final SagerOptimizer loader;
     final OpTriple triple;
+    final CacheId<ID,VALUE> cache;
 
     final Iterator<BackendBindings<ID, VALUE>> input;
     BackendBindings<ID, VALUE> inputBinding;
@@ -43,6 +45,7 @@ public class SagerScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID,
         this.skip = 0L;
         Save2SPARQL<ID, VALUE> saver = context.getContext().get(SagerConstants.SAVER);
         saver.register(triple, this);
+        this.cache = context.getContext().get(SagerConstants.CACHE);
     }
 
     public SagerScanFactory(Iterator<BackendBindings<ID, VALUE>> input, ExecutionContext context, OpTriple triple, Long skip) {
@@ -55,6 +58,7 @@ public class SagerScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID,
         this.skip = skip;
         Save2SPARQL<ID, VALUE> saver = context.getContext().get(SagerConstants.SAVER);
         saver.register(triple, this);
+        this.cache = context.getContext().get(SagerConstants.CACHE);
     }
 
     @Override
@@ -63,7 +67,7 @@ public class SagerScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID,
             return false;
         } else while (!instantiated.hasNext() && input.hasNext()) {
             inputBinding = input.next();
-            Tuple3<ID> spo = Substitutor.substitute(backend, triple.getTriple(), inputBinding);
+            Tuple3<ID> spo = Substitutor.substitute(backend, triple.getTriple(), inputBinding, cache);
 
             instantiated = new SagerScan<>(context, triple, spo, backend.search(spo.get(0), spo.get(1), spo.get(2)))
                     .skip(skip);

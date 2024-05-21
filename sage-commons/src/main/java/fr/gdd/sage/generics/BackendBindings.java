@@ -75,8 +75,13 @@ public class BackendBindings<ID, VALUE> {
         }
 
         public String getString() {
-            if (Objects.isNull(value))
-                asString = Objects.isNull(code) ? backend.getString(id) : backend.getString(id, code);
+            if (Objects.isNull(asString)) {
+                if (Objects.isNull(value)) {
+                    asString = Objects.isNull(code) ? backend.getString(id) : backend.getString(id, code);
+                } else {
+                    throw new UnsupportedOperationException("as String from value");
+                }
+            }
             return asString;
         }
     }

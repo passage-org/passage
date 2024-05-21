@@ -133,6 +133,7 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
             case SPOC.CONTEXT-> spo.getContext().toString();
             default -> throw new IllegalStateException("Unexpected value: " + type[0]);
         };
+        it.close();
         return TermId.fromString(str);
     }
 

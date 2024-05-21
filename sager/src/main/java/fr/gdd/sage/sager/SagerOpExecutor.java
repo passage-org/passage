@@ -4,6 +4,7 @@ import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.sage.generics.BackendBindings;
+import fr.gdd.sage.generics.CacheId;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.sager.iterators.SagerBind;
 import fr.gdd.sage.sager.iterators.SagerRoot;
@@ -38,6 +39,7 @@ public class SagerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         execCxt.getContext().setIfUndef(SagerConstants.SCANS, 0L);
         execCxt.getContext().setIfUndef(SagerConstants.LIMIT, Long.MAX_VALUE);
         execCxt.getContext().setIfUndef(SagerConstants.TIMEOUT, Long.MAX_VALUE);
+        execCxt.getContext().setIfUndef(SagerConstants.CACHE, new CacheId<ID,VALUE>(backend));
 
         // as setifundef so outsiders can configure their own list of optimizers
         execCxt.getContext().setIfUndef(SagerConstants.LOADER, new SagerOptimizer());

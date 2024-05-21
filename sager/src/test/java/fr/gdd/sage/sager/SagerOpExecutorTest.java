@@ -1,7 +1,9 @@
 package fr.gdd.sage.sager;
 
+import fr.gdd.sage.blazegraph.BlazegraphBackend;
 import fr.gdd.sage.generics.BackendBindings;
 import org.apache.jena.query.ARQ;
+import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
@@ -12,6 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Disabled
 class SagerOpExecutorTest {
@@ -28,7 +32,7 @@ class SagerOpExecutorTest {
         int sum = 0;
         while (iterator.hasNext()) {
             BackendBindings<?,?> binding = iterator.next();
-            log.debug("{}", binding.toString());
+            log.debug("{}: {}", sum, binding.toString());
             sum += 1;
         }
 
@@ -36,6 +40,60 @@ class SagerOpExecutorTest {
     }
 
     /* ****************************************************************** */
+
+    @Disabled
+    @Test
+    public void on_watdiv_conjunctive_query_10124 () {
+        BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
+        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
+        ec.getContext().set(SagerConstants.BACKEND, watdivBlazegraph);
+
+        String query0 = """
+                SELECT * WHERE {
+                        ?v1 <http://www.geonames.org/ontology#parentCountry> ?v2.
+                        ?v3 <http://purl.org/ontology/mo/performed_in> ?v1.
+                        ?v0 <http://purl.org/dc/terms/Location> ?v1.
+                        ?v0 <http://db.uwaterloo.ca/~galuc/wsdbm/gender> <http://db.uwaterloo.ca/~galuc/wsdbm/Gender1>.
+                        ?v0 <http://db.uwaterloo.ca/~galuc/wsdbm/userId> ?v5.
+                        ?v0 <http://db.uwaterloo.ca/~galuc/wsdbm/follows> ?v0.
+                }
+                """;
+
+        int sum = executeWithSager(query0, ec);
+
+        assertEquals(117, sum);
+    }
+
+    @Disabled
+    @Test
+    public void on_watdiv_conjunctive_query_10124_after_3_pause () {
+        BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
+        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
+        ec.getContext().set(SagerConstants.BACKEND, watdivBlazegraph);
+
+        String query0 = """        
+                    SELECT  *
+                    WHERE
+                    { { SELECT  *
+                            WHERE
+                        { ?v1  <http://www.geonames.org/ontology#parentCountry>  ?v2 }
+                            OFFSET  218
+                        }
+                    ?v3  <http://purl.org/ontology/mo/performed_in>  ?v1 .
+                    ?v0  <http://purl.org/dc/terms/Location>  ?v1 ;
+                         <http://db.uwaterloo.ca/~galuc/wsdbm/gender>  <http://db.uwaterloo.ca/~galuc/wsdbm/Gender1> ;
+                         <http://db.uwaterloo.ca/~galuc/wsdbm/userId>  ?v5 ;
+                         <http://db.uwaterloo.ca/~galuc/wsdbm/follows>  ?v0
+                    }
+                """;
+
+        int sum = executeWithSager(query0, ec);
+
+        assertEquals(117, sum);
+    }
+
+
+        /* ****************************************************************** */
 
     @Disabled
     @Test
