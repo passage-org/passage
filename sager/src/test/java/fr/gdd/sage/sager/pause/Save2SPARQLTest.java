@@ -1,31 +1,25 @@
 package fr.gdd.sage.sager.pause;
 
-import com.github.jsonldjava.utils.Obj;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.SagerOpExecutor;
+import fr.gdd.sage.sager.iterators.PauseException;
 import fr.gdd.sage.sager.resume.BGP2Triples;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.jena.graph.Node;
 import org.apache.jena.query.ARQ;
-import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.algebra.OpAsQuery;
 import org.apache.jena.sparql.engine.ExecutionContext;
-import org.apache.jena.tdb2.TDB2Factory;
-import org.apache.jena.tdb2.store.NodeId;
 import org.junit.jupiter.api.Disabled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
-import java.util.Objects;
 
 @Disabled
 class Save2SPARQLTest {
@@ -51,20 +45,11 @@ class Save2SPARQLTest {
 
         Iterator<BackendBindings<ID, VALUE>> iterator = executor.execute(query);
         if (!iterator.hasNext()) {
-            return new ImmutablePair<>(0, null);
+            return new ImmutablePair<>(0, executor.pauseAsString());
         }
         log.debug("{}", iterator.next());
 
-        Save2SPARQL<ID, VALUE> saver = ec.getContext().get(SagerConstants.SAVER);
-        Op saved = saver.save(null);
-        if (Objects.nonNull(saved)) {
-            String savedAsString = OpAsQuery.asQuery(saved).toString();
-            log.debug(savedAsString);
-            return new ImmutablePair<>(1, savedAsString);
-        } else {
-            return new ImmutablePair<>(1, null);
-        }
-
+        return new ImmutablePair<>(1, executor.pauseAsString());
     }
 
 }

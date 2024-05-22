@@ -15,10 +15,12 @@ import fr.gdd.sage.sager.pause.Save2SPARQL;
 import fr.gdd.sage.sager.resume.IsSkippable;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.sparql.algebra.Op;
+import org.apache.jena.sparql.algebra.OpAsQuery;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
 import java.util.Iterator;
+import java.util.Objects;
 
 /**
  * Execute only operators that can be preempted. Operators work
@@ -40,6 +42,7 @@ public class SagerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         execCxt.getContext().setIfUndef(SagerConstants.LIMIT, Long.MAX_VALUE);
         execCxt.getContext().setIfUndef(SagerConstants.TIMEOUT, Long.MAX_VALUE);
         execCxt.getContext().setIfUndef(SagerConstants.CACHE, new CacheId<ID,VALUE>(backend));
+        execCxt.getContext().setFalse(SagerConstants.PAUSED);
 
         // as setifundef so outsiders can configure their own list of optimizers
         execCxt.getContext().setIfUndef(SagerConstants.LOADER, new SagerOptimizer());
@@ -80,6 +83,17 @@ public class SagerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
 //            }
 //            return builder.build();
 //        }), execCxt);
+    }
+
+    public String pauseAsString () {
+        Op paused = pause();
+        return Objects.isNull(paused) ? null : OpAsQuery.asQuery(paused).toString();
+    }
+
+    public Op pause() {
+        execCxt.getContext().setTrue(SagerConstants.PAUSED);
+        Save2SPARQL<ID, VALUE> saver = execCxt.getContext().get(SagerConstants.SAVER);
+        return saver.save(null);
     }
 
     /* ******************************************************************* */

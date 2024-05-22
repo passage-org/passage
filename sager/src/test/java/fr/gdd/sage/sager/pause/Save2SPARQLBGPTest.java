@@ -6,9 +6,6 @@ import fr.gdd.sage.databases.inmemory.IM4Jena;
 import fr.gdd.sage.jena.JenaBackend;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

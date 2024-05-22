@@ -9,31 +9,35 @@ import fr.gdd.sage.sager.pause.Save2SPARQL;
 import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.atlas.lib.tuple.Tuple3;
 import org.apache.jena.atlas.lib.tuple.TupleFactory;
-import org.apache.jena.riot.out.NodeFmtLib;
-import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.algebra.op.OpExtend;
-import org.apache.jena.sparql.algebra.op.OpSequence;
-import org.apache.jena.sparql.algebra.op.OpTable;
 import org.apache.jena.sparql.algebra.op.OpTriple;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ExecutionContext;
-import org.apache.jena.sparql.util.ExprUtils;
 
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.function.Function;
 
 public class SagerScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE>> {
+
+    /**
+     * By default, this is based on execution time. However, developers can change it
+     * e.g., for testing purposes.
+     */
+    public static Function<ExecutionContext, Boolean> stopping = (ec) ->
+            System.currentTimeMillis() >= ec.getContext().getLong(SagerConstants.DEADLINE, Long.MAX_VALUE);
 
     final Long deadline;
     final OpTriple op;
     final Save2SPARQL<ID, VALUE> saver;
     final Backend<ID, VALUE, Long> backend;
     final BackendIterator<ID, VALUE, Long> wrapped;
-    final protected Tuple3<Var> vars; // needed to create bindings
+    final Tuple3<Var> vars; // needed to create bindings
+    final ExecutionContext context;
 
     boolean first = true;
 
     public SagerScan(ExecutionContext context, OpTriple triple, Tuple<ID> spo, BackendIterator<ID, VALUE, Long> wrapped) {
+        this.context = context;
         this.deadline = context.getContext().getLong(SagerConstants.DEADLINE, Long.MAX_VALUE);
         this.backend = context.getContext().get(SagerConstants.BACKEND);
         this.wrapped = wrapped;
@@ -51,20 +55,22 @@ public class SagerScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE>
     public boolean hasNext() {
         boolean result = wrapped.hasNext();
 
-        if (result && !first && System.currentTimeMillis() >= deadline) {
+        if (result && context.getContext().isFalse(SagerConstants.PAUSED) && stopping.apply(context)) {
             // execution stops immediately, caught by {@link PreemptRootIter}
             throw new PauseException(op);
         }
 
-        // if (!result) { saver.unregister(op); }
+        // if (!result) { saver.unregister(op); } // TODO think about when to clean, same for UNION
 
         return result;
     }
 
     @Override
     public BackendBindings<ID, VALUE> next() {
-        first = false; // at least one iteration
+        // first = false; // at least one iteration
         wrapped.next();
+
+        context.getContext().set(SagerConstants.SCANS, context.getContext().getLong(SagerConstants.SCANS,0L) + 1);
 
         BackendBindings<ID, VALUE> newBinding = new BackendBindings<>();
 

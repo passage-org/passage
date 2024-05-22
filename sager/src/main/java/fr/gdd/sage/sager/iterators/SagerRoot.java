@@ -15,6 +15,7 @@ public class SagerRoot<T> implements Iterator<T> {
 
     final Save2SPARQL saver;
     final Iterator<T> wrapped;
+    final ExecutionContext context;
 
     boolean doesHaveNext = false;
     boolean consumed = true;
@@ -23,6 +24,7 @@ public class SagerRoot<T> implements Iterator<T> {
     public SagerRoot(ExecutionContext context, Iterator<T> wrapped) {
         this.wrapped = wrapped;
         this.saver = context.getContext().get(SagerConstants.SAVER);
+        this.context = context;
     }
 
     @Override
@@ -34,19 +36,16 @@ public class SagerRoot<T> implements Iterator<T> {
         try {
             doesHaveNext = wrapped.hasNext();
         } catch (PauseException e) {
-            // close(); TODO
-            this.saver.save(e.caller);
             return false;
         }
 
         if (doesHaveNext) {
             try {
                 buffered = wrapped.next();
+                // TODO double check if with custom engine it's still the case. might not be as complex now.
                 // may save during the `.next()` which would set `.hasNext()` as false while
                 // it expects and checks `true`. When it happens, it throws a `NoSuchElementException`
             } catch (PauseException e) {
-                // close(); TODO
-                this.saver.save(e.caller);
                 return false;
             }
             consumed = false;
