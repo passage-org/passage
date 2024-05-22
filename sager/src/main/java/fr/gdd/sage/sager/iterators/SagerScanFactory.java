@@ -82,6 +82,20 @@ public class SagerScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID,
     }
 
 
+    public double cardinality() {
+        if (instantiated instanceof SagerScan<ID,VALUE> scan) {
+            return scan.cardinality();
+        }
+        return 0.;
+    }
+
+    public long offset() {
+        if (instantiated instanceof SagerScan<ID,VALUE> scan) {
+            return scan.current();
+        }
+        return 0L;
+    }
+
     public Op preempt() {
         if (!instantiated.hasNext()) {
             return null;

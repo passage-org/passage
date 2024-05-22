@@ -23,10 +23,10 @@ public class Save2SPARQLBGPTest {
     @Test
     public void create_a_simple_query_and_pause_at_each_result () {
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c}";
-        log.debug(queryAsString);
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
+            log.debug(queryAsString);
             var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
             sum += result.getLeft();
             queryAsString = result.getRight();
@@ -41,10 +41,10 @@ public class Save2SPARQLBGPTest {
                 ?p <http://address> <http://nantes> .
                 ?p <http://own> ?a .
                }""";
-        log.debug(queryAsString);
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
+            log.debug(queryAsString);
             var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
             sum += result.getLeft();
             queryAsString = result.getRight();
@@ -60,10 +60,9 @@ public class Save2SPARQLBGPTest {
                 ?p <http://address> <http://nantes> .
                }""";
 
-        log.debug(queryAsString);
-
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
+            log.debug(queryAsString);
             var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
             sum += result.getLeft();
             queryAsString = result.getRight();
@@ -80,10 +79,9 @@ public class Save2SPARQLBGPTest {
                 ?a <http://species> ?s
                }""";
 
-        log.debug(queryAsString);
-
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
+            log.debug(queryAsString);
             var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
             sum += result.getLeft();
             queryAsString = result.getRight();
@@ -98,12 +96,12 @@ public class Save2SPARQLBGPTest {
 
         String query0 = """
         SELECT * WHERE {
-        ?v0 <http://schema.org/eligibleRegion> <http://db.uwaterloo.ca/~galuc/wsdbm/Country21>.
-        ?v0 <http://purl.org/goodrelations/validThrough> ?v3.
-        ?v0 <http://purl.org/goodrelations/includes> ?v1.
-        ?v1 <http://schema.org/text> ?v6.
-        ?v0 <http://schema.org/eligibleQuantity> ?v4.
-        ?v0 <http://purl.org/goodrelations/price> ?v2.
+            ?v0 <http://schema.org/eligibleRegion> <http://db.uwaterloo.ca/~galuc/wsdbm/Country21>.
+            ?v0 <http://purl.org/goodrelations/validThrough> ?v3.
+            ?v0 <http://purl.org/goodrelations/includes> ?v1.
+            ?v1 <http://schema.org/text> ?v6.
+            ?v0 <http://schema.org/eligibleQuantity> ?v4.
+            ?v0 <http://purl.org/goodrelations/price> ?v2.
         }""";
 
         int sum = 0;
@@ -120,22 +118,22 @@ public class Save2SPARQLBGPTest {
     public void on_watdiv_conjunctive_query_10124 () {
         BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
 
-        String query0 = """
+        String query10124 = """
                 SELECT * WHERE {
-                        ?v1 <http://www.geonames.org/ontology#parentCountry> ?v2.
-                        ?v3 <http://purl.org/ontology/mo/performed_in> ?v1.
-                        ?v0 <http://purl.org/dc/terms/Location> ?v1.
-                        ?v0 <http://db.uwaterloo.ca/~galuc/wsdbm/gender> <http://db.uwaterloo.ca/~galuc/wsdbm/Gender1>.
-                        ?v0 <http://db.uwaterloo.ca/~galuc/wsdbm/userId> ?v5.
-                        ?v0 <http://db.uwaterloo.ca/~galuc/wsdbm/follows> ?v0.
+                    ?v1 <http://www.geonames.org/ontology#parentCountry> ?v2.
+                    ?v3 <http://purl.org/ontology/mo/performed_in> ?v1.
+                    ?v0 <http://purl.org/dc/terms/Location> ?v1.
+                    ?v0 <http://db.uwaterloo.ca/~galuc/wsdbm/gender> <http://db.uwaterloo.ca/~galuc/wsdbm/Gender1>.
+                    ?v0 <http://db.uwaterloo.ca/~galuc/wsdbm/userId> ?v5.
+                    ?v0 <http://db.uwaterloo.ca/~galuc/wsdbm/follows> ?v0.
                 }
                 """;
 
         int sum = 0;
-        while (Objects.nonNull(query0)) {
-            var result = Save2SPARQLTest.executeQuery(query0, watdivBlazegraph);
+        while (Objects.nonNull(query10124)) {
+            var result = Save2SPARQLTest.executeQuery(query10124, watdivBlazegraph);
             sum += result.getLeft();
-            query0 = result.getRight();
+            query10124 = result.getRight();
         }
         assertEquals(117, sum);
     }

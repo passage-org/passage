@@ -10,6 +10,7 @@ import fr.gdd.sage.sager.iterators.SagerBind;
 import fr.gdd.sage.sager.iterators.SagerRoot;
 import fr.gdd.sage.sager.iterators.SagerScanFactory;
 import fr.gdd.sage.sager.iterators.SagerUnion;
+import fr.gdd.sage.sager.optimizers.Progress;
 import fr.gdd.sage.sager.optimizers.SagerOptimizer;
 import fr.gdd.sage.sager.pause.Save2SPARQL;
 import fr.gdd.sage.sager.resume.IsSkippable;
@@ -94,6 +95,11 @@ public class SagerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         execCxt.getContext().setTrue(SagerConstants.PAUSED);
         Save2SPARQL<ID, VALUE> saver = execCxt.getContext().get(SagerConstants.SAVER);
         return saver.save(null);
+    }
+
+    public double progress() {
+        Progress progress = new Progress(execCxt.getContext().get(SagerConstants.SAVER));
+        return progress.get();
     }
 
     /* ******************************************************************* */

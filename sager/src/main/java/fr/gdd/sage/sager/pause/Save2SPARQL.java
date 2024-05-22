@@ -38,6 +38,8 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
     public void register(Op op, Iterator<BackendBindings<ID, VALUE>> it) {op2it.put(op, it);}
     public void unregister(Op op) {op2it.remove(op);}
 
+    public Op getRoot() {return root;}
+
     /* **************************************************************************** */
 
     public Op save(Op caller) {

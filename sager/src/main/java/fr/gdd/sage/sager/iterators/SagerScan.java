@@ -100,4 +100,8 @@ public class SagerScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE>
         return wrapped.current();
     }
 
+    public double cardinality () {
+        return wrapped.cardinality();
+    }
+
 }
