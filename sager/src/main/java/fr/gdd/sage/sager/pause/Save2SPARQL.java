@@ -8,6 +8,7 @@ import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.generics.PtrMap;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.sager.SagerConstants;
+import fr.gdd.sage.sager.iterators.SagerOptional;
 import fr.gdd.sage.sager.iterators.SagerScan;
 import fr.gdd.sage.sager.iterators.SagerScanFactory;
 import fr.gdd.sage.sager.iterators.SagerUnion;
@@ -101,28 +102,30 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
         throw new UnsupportedOperationException("TODO OpSlice cannot be saved right now."); // TODO
     }
 
-
     @Override
     public Op visit(OpExtend extend) { // cloned
         return OpCloningUtil.clone(extend, ReturningOpVisitorRouter.visit(this, extend.getSubOp()));
     }
 
-    /* ************************************************************ */
-
-    public static Op distributeJoin(Op op, Op over) {
-        List<Op> ops = FlattenUnflatten.flattenUnion(over);
-        return switch (ops.size()) {
-            case 0 -> op;
-            case 1 -> OpJoin.create(op, over);
-            default -> {
-                Op left = ops.get(0);
-                for (int i = 1; i < ops.size(); ++i) {
-                    Op right = OpJoin.create(op, ops.get(i));
-                    left = OpUnion.create(left, right);
-                }
-                yield left;
-            }
-        };
+    @Override
+    public Op visit(OpConditional cond) {
+        throw new UnsupportedOperationException("Copy the behavior of OPLeftJoin")
     }
 
+    @Override
+    public Op visit(OpLeftJoin lj) {
+//        if (Objects.isNull(lj.getExprs()) || lj.getExprs().isEmpty()) {
+//            SagerOptional<ID,VALUE> opt = (SagerOptional<ID, VALUE>) op2it.get(lj);
+//
+//            if (Objects.isNull(opt)) {
+//                return lj;
+//            }
+//
+//            if (opt.hasOptionalPart()) {
+//                Op left = ReturningOpVisitorRouter.visit(this, lj.getLeft());
+//            }
+//
+//        }
+        throw new UnsupportedOperationException("Saving Left join with expression(s) is not handled yet.");
+    }
 }

@@ -37,6 +37,14 @@ public class SagerOptional<ID,VALUE>  implements Iterator<BackendBindings<ID, VA
         saver.register(op, this);
     }
 
+    public boolean hasOptionalPart() {
+        return !noOptionalPart;
+    }
+
+    public boolean DoesNotHaveOptionalPart() {
+        return noOptionalPart;
+    }
+
     @Override
     public boolean hasNext() {
         // optional part already exists and need to be iterated over
