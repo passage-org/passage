@@ -26,21 +26,18 @@ public class SagerScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID,
     final Long skip; // offset
     final Backend<ID, VALUE, Long> backend;
     final ExecutionContext context;
-    final SagerOptimizer loader;
-    final OpTriple triple;
+    final OpTriple triple; // TODO OpQuad
     final CacheId<ID,VALUE> cache;
 
     final Iterator<BackendBindings<ID, VALUE>> input;
     BackendBindings<ID, VALUE> inputBinding;
 
-    Iterator<BackendBindings<ID, VALUE>> instantiated;
+    Iterator<BackendBindings<ID, VALUE>> instantiated = Iter.empty();
 
     public SagerScanFactory(Iterator<BackendBindings<ID, VALUE>> input, ExecutionContext context, OpTriple triple) {
         this.input = input;
         this.triple = triple;
-        instantiated = Iter.empty();
         backend = context.getContext().get(SagerConstants.BACKEND);
-        loader = context.getContext().get(SagerConstants.LOADER);
         this.context = context;
         this.skip = 0L;
         Save2SPARQL<ID, VALUE> saver = context.getContext().get(SagerConstants.SAVER);
@@ -51,9 +48,7 @@ public class SagerScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID,
     public SagerScanFactory(Iterator<BackendBindings<ID, VALUE>> input, ExecutionContext context, OpTriple triple, Long skip) {
         this.input = input;
         this.triple = triple;
-        instantiated = Iter.empty();
         backend = context.getContext().get(SagerConstants.BACKEND);
-        loader = context.getContext().get(SagerConstants.LOADER);
         this.context = context;
         this.skip = skip;
         Save2SPARQL<ID, VALUE> saver = context.getContext().get(SagerConstants.SAVER);

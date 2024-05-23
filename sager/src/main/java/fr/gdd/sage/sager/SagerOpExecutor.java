@@ -6,10 +6,7 @@ import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.generics.CacheId;
 import fr.gdd.sage.interfaces.Backend;
-import fr.gdd.sage.sager.iterators.SagerBind;
-import fr.gdd.sage.sager.iterators.SagerRoot;
-import fr.gdd.sage.sager.iterators.SagerScanFactory;
-import fr.gdd.sage.sager.iterators.SagerUnion;
+import fr.gdd.sage.sager.iterators.*;
 import fr.gdd.sage.sager.optimizers.Progress;
 import fr.gdd.sage.sager.optimizers.SagerOptimizer;
 import fr.gdd.sage.sager.pause.Save2SPARQL;
@@ -161,6 +158,20 @@ public class SagerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         }
         // TODO otherwise it's a normal slice (TODO) handle it
         throw new UnsupportedOperationException("TODO Default LIMIT OFFSET not implemented yet.");
+    }
+
+
+    @Override
+    public Iterator<BackendBindings<ID,VALUE>> visit(OpConditional cond, Iterator<BackendBindings<ID, VALUE>> input) {
+        return new SagerOptional<>(this, cond, input, execCxt);
+    }
+
+    @Override
+    public Iterator<BackendBindings<ID,VALUE>> visit(OpLeftJoin lj, Iterator<BackendBindings<ID,VALUE>> input) {
+        if (Objects.isNull(lj.getExprs()) || lj.getExprs().isEmpty()) {
+            return new SagerOptional<>(this, lj, input, execCxt);
+        }
+        throw new UnsupportedOperationException("Left join with embedded expression(s) is not handled yet.");
     }
 
 }
