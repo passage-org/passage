@@ -8,8 +8,6 @@ import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.generics.PtrMap;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.sager.SagerConstants;
-import fr.gdd.sage.sager.iterators.SagerOptional;
-import fr.gdd.sage.sager.iterators.SagerScan;
 import fr.gdd.sage.sager.iterators.SagerScanFactory;
 import fr.gdd.sage.sager.iterators.SagerUnion;
 import fr.gdd.sage.sager.resume.IsSkippable;
@@ -18,7 +16,10 @@ import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Objects;
 
 /**
  * Generate a SPARQL query from the paused state.
@@ -109,7 +110,7 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
 
     @Override
     public Op visit(OpConditional cond) {
-        throw new UnsupportedOperationException("Copy the behavior of OPLeftJoin")
+        throw new UnsupportedOperationException("Copy the behavior of OPLeftJoin"); // TODO TODO TODO
     }
 
     @Override

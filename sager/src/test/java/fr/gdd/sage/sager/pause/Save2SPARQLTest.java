@@ -84,4 +84,26 @@ public class Save2SPARQLTest {
         return new ImmutableTriple<>(1, executor.pauseAsString(), executor.progress());
     }
 
+    public static <ID, VALUE> Pair<Integer, String> executeQueryWithTimeout(String queryAsString, Backend<ID, VALUE, ?> backend, Long timeout) {
+        ARQ.enableOptimizer(false);
+
+        Op query = Algebra.compile(QueryFactory.create(queryAsString));
+        query = ReturningOpVisitorRouter.visit(new BGP2Triples(), query);
+
+        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
+        ec.getContext().set(SagerConstants.BACKEND, backend);
+
+        SagerOpExecutor<ID, VALUE> executor = new SagerOpExecutor<ID,VALUE>(ec).setTimeout(timeout);
+
+        Iterator<BackendBindings<ID, VALUE>> iterator = executor.execute(query);
+
+        int nbResults = 0;
+        while (iterator.hasNext()){
+            log.debug("{}", iterator.next());
+            ++nbResults;
+        }
+
+        return new ImmutablePair<>(nbResults, executor.pauseAsString());
+    }
+
 }

@@ -32,6 +32,7 @@ public class SagerUnion<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE
         if (Objects.isNull(current) && input.hasNext()) {
             current = input.next();
         }
+        if (Objects.isNull(current)) { return false; } // recursive call might not trigger
 
         while (Objects.isNull(currentIt) || !currentIt.hasNext()) {
             if (currentOp < 0) {
@@ -55,7 +56,7 @@ public class SagerUnion<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE
             }
         }
 
-        return currentIt.hasNext();
+        return true; // by the loop, currentIt.hasNext() is always true at this point
     }
 
     @Override

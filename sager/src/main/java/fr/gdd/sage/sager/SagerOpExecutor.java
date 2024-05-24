@@ -68,6 +68,11 @@ public class SagerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
     }
 
     public Iterator<BackendBindings<ID, VALUE>> execute(Op root) {
+        // TODO remove this and handle OpProject properly
+        if (root instanceof OpProject project) {
+            root = project.getSubOp();
+        }
+
         execCxt.getContext().set(SagerConstants.SAVER, new Save2SPARQL<ID,VALUE>(root, execCxt));
 
         Iterator<BackendBindings<ID, VALUE>> wrapped = new SagerRoot<>(execCxt,

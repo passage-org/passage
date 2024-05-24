@@ -3,6 +3,7 @@ package fr.gdd.sage.blazegraph;
 import com.bigdata.journal.Options;
 import com.bigdata.rdf.internal.IV;
 import com.bigdata.rdf.internal.impl.TermId;
+import com.bigdata.rdf.internal.impl.uri.VocabURIByteIV;
 import com.bigdata.rdf.model.BigdataValue;
 import com.bigdata.rdf.sail.BigdataSail;
 import com.bigdata.rdf.sail.BigdataSailRepository;
@@ -19,6 +20,7 @@ import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.interfaces.BackendIterator;
 import fr.gdd.sage.interfaces.SPOC;
 import org.openrdf.model.Resource;
+import org.openrdf.model.Value;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.query.*;
 import org.openrdf.repository.RepositoryException;
@@ -126,15 +128,30 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
         if (!it.hasNext()) throw new NotFoundException("The value "); // not found
         ISPO spo = it.next();
         // Get the Value from the index
-        String str = switch(type[0]){
-            case SPOC.SUBJECT -> spo.getSubject().toString();
-            case SPOC.PREDICATE -> spo.getPredicate().toString();
-            case SPOC.OBJECT -> spo.getObject().toString();
-            case SPOC.CONTEXT-> spo.getContext().toString();
+//        String str = switch(type[0]){
+//            case SPOC.SUBJECT -> spo.getSubject().toString();
+//            case SPOC.PREDICATE -> spo.getPredicate().toString();
+//            case SPOC.OBJECT -> spo.getObject().toString();
+//            case SPOC.CONTEXT-> spo.getContext().toString();
+//            default -> throw new IllegalStateException("Unexpected value: " + type[0]);
+//        };
+        IV result = switch(type[0]){
+            case SPOC.SUBJECT -> get(spo.getSubject());
+            case SPOC.PREDICATE -> get(spo.getPredicate());
+            case SPOC.OBJECT -> get(spo.getObject());
+            case SPOC.CONTEXT-> get(spo.getContext());
             default -> throw new IllegalStateException("Unexpected value: " + type[0]);
         };
         it.close();
-        return TermId.fromString(str);
+        return result;
+    }
+
+    private static IV get(Value sOrPOrO) {
+        return switch (sOrPOrO) {
+            case TermId t -> t;
+            case VocabURIByteIV v -> v;
+            default -> TermId.fromString(sOrPOrO.toString());
+        };
     }
 
     @Override

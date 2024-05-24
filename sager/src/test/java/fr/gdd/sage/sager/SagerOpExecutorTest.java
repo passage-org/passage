@@ -66,34 +66,29 @@ class SagerOpExecutorTest {
 
     @Disabled
     @Test
-    public void on_watdiv_conjunctive_query_10124_after_3_pause () {
+    public void sandbox_of_test () {
         BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
         ec.getContext().set(SagerConstants.BACKEND, watdivBlazegraph);
 
-        String query0 = """        
-                    SELECT  *
-                    WHERE
-                    { { SELECT  *
-                            WHERE
-                        { ?v1  <http://www.geonames.org/ontology#parentCountry>  ?v2 }
-                            OFFSET  218
-                        }
-                    ?v3  <http://purl.org/ontology/mo/performed_in>  ?v1 .
-                    ?v0  <http://purl.org/dc/terms/Location>  ?v1 ;
-                         <http://db.uwaterloo.ca/~galuc/wsdbm/gender>  <http://db.uwaterloo.ca/~galuc/wsdbm/Gender1> ;
-                         <http://db.uwaterloo.ca/~galuc/wsdbm/userId>  ?v5 ;
-                         <http://db.uwaterloo.ca/~galuc/wsdbm/follows>  ?v0
-                    }
+        String query = """        
+                SELECT ?v7 ?v1 ?v5 ?v6 ?v0 ?v3 ?v2 WHERE {
+                        ?v0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://db.uwaterloo.ca/~galuc/wsdbm/Genre13>.
+                        ?v2 <http://db.uwaterloo.ca/~galuc/wsdbm/hasGenre> ?v0.
+                        ?v2 <http://schema.org/caption> ?v5.
+                        ?v2 <http://schema.org/keywords> ?v7.
+                        ?v2 <http://schema.org/contentRating> ?v6.
+                        ?v2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?v3.
+                        ?v0 <http://ogp.me/ns#tag> ?v1.
+                }
                 """;
 
-        int sum = executeWithSager(query0, ec);
+        int sum = executeWithSager(query, ec);
+        log.info("{}", sum);
 
-        assertEquals(117, sum);
     }
 
-
-        /* ****************************************************************** */
+    /* ****************************************************************** */
 
     @Disabled
     @Test
