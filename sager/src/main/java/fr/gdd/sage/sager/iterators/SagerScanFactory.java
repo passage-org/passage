@@ -4,9 +4,7 @@ import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.generics.CacheId;
 import fr.gdd.sage.generics.Substitutor;
 import fr.gdd.sage.interfaces.Backend;
-import fr.gdd.sage.interfaces.SPOC;
 import fr.gdd.sage.sager.SagerConstants;
-import fr.gdd.sage.sager.optimizers.SagerOptimizer;
 import fr.gdd.sage.sager.pause.Save2SPARQL;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.atlas.lib.tuple.Tuple3;
@@ -17,8 +15,6 @@ import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.util.ExprUtils;
 
 import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 public class SagerScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE>> {
@@ -91,6 +87,12 @@ public class SagerScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID,
         return 0L;
     }
 
+    /**
+     * @return The Jena operator that summarizes the current state of this scan iterator.
+     * It is made of `Bind … As …` to save the state that created this iterator, plus the triple pattern
+     * itself unmoved, plus a slice operator that defines an offset.
+     * It returns `null` when the wrapped scan iterator does not have a next binding.
+     */
     public Op preempt() {
         if (!instantiated.hasNext()) {
             return null;

@@ -61,36 +61,45 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
 
     @Override
     public Op visit(OpTriple triple) {
+        // It gets a ScanFactory instead of a Scan because the factory
+        // contains the input binding that constitutes the state of the scan.
         SagerScanFactory<ID, VALUE> it = (SagerScanFactory<ID, VALUE>) op2it.get(triple);
 
-        if (Objects.isNull(it)) {return null;}
+        if (Objects.isNull(it)) {return null;} // TODO double check the meaning of null here
 
-        // OpTriple must remain the same, we cannot transform it by setting
-        // the variables that are bound since the join variable would not match
-        // after...
+        // In `it.preempt()`, it returns null if the scan does not have a next, i.e.,
+        // if the can is done. This aims at removing the branches of the plans that are
+        // done, finished. Otherwise, they would pollute the preempted plan forever.
         return it.preempt();
-        // return new OpSlice(triple, it.current(), Long.MIN_VALUE);
     }
 
     @Override
     public Op visit(OpJoin join) {
+        // no state needed really, everything is in the returned value of these:
         Op left = ReturningOpVisitorRouter.visit(this, join.getLeft());
         Op right = ReturningOpVisitorRouter.visit(this, join.getRight());
 
+        // If the left is empty, i.e., it's done. Then you don't need to preempt it.
+        // However, you still need to consider to preempt the right part. TODO check if null as well ?
         if (Objects.isNull(left)) {
             return FlattenUnflatten.unflattenUnion(Collections.singletonList(right));
         }
+
+        // Otherwise, create a union with:
+        // (i) The preempted right part (The current pointer to where we are executing)
+        // (ii) The preempted left part with a copy of the right (The rest of the query)
+        // In other words, it's like, (i) finish the OFFSET you where in. (ii) start at OFFSET + 1
         return FlattenUnflatten.unflattenUnion(Arrays.asList(right, OpJoin.create(left, join.getRight())));
     }
 
     @Override
     public Op visit(OpUnion union) {
         SagerUnion<ID,VALUE> u = (SagerUnion<ID,VALUE>) op2it.get(union);
-        if (Objects.isNull(u)) { // not executed yet
+        if (Objects.isNull(u)) { // not executed yet, otherwise would exist TODO again, double check
             return union;
         }
 
-        if (u.onLeft()) {
+        if (u.onLeft()) {  // preempt the left, copy the right for later
             Op left = ReturningOpVisitorRouter.visit(this, union.getLeft());
             return FlattenUnflatten.unflattenUnion(Arrays.asList(left, union.getRight()));
         } else { // on right: remove left part of union
