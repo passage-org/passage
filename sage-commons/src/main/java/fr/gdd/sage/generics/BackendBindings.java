@@ -89,6 +89,22 @@ public class BackendBindings<ID, VALUE> {
     final Map<Var, IdValueBackend<ID, VALUE>> var2binding = new HashMap<>();
     BackendBindings<ID, VALUE> parent = null;
 
+    public BackendBindings () {}
+
+    /**
+     * Creates a new BackendBinding that copies the one as argument but only keep
+     * the designated variables. Useful for projections.
+     * @param copy The backend binding to copy from.
+     * @param varsToKeep The variables to keep from the backend binding.
+     */
+    public BackendBindings (BackendBindings<ID,VALUE> copy, List<Var> varsToKeep) {
+        for (Var v: varsToKeep) {
+            if (copy.contains(v)) {
+                this.put(v, copy.get(v));
+            }
+        }
+    }
+
     public BackendBindings<ID, VALUE> setParent(BackendBindings<ID, VALUE> parent) {
         this.parent = parent;
         return this;

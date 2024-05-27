@@ -1,5 +1,12 @@
 package fr.gdd.sage.blazegraph;
 
+import com.bigdata.bop.BOp;
+import com.bigdata.bop.Constant;
+import com.bigdata.bop.PipelineOp;
+import com.bigdata.bop.ap.SampleIndex;
+import com.bigdata.bop.join.HashJoinOp;
+import com.bigdata.bop.join.JVMHashJoinAnnotations;
+import com.bigdata.bop.join.PipelineJoin;
 import com.bigdata.journal.Options;
 import com.bigdata.rdf.internal.IV;
 import com.bigdata.rdf.internal.impl.TermId;
@@ -25,6 +32,8 @@ import org.openrdf.model.impl.URIImpl;
 import org.openrdf.query.*;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.sail.SailException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 import java.util.Properties;
@@ -35,6 +44,8 @@ import java.util.Properties;
  */
 public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
 
+    private final static Logger log = LoggerFactory.getLogger(BlazegraphBackend.class);
+
     AbstractTripleStore store;
     BigdataSailRepository repository;
     BigdataSailRepositoryConnection connection;
@@ -42,6 +53,8 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
     public BlazegraphBackend(String path) {
         final Properties props = new Properties();
         props.put(Options.FILE, path);
+        props.put(PipelineOp.Annotations.PIPELINED, "false");
+        props.put(PipelineJoin.Annotations.MAX_PARALLEL, "0");
 
         final BigdataSail sail = new BigdataSail(props);
         this.repository = new BigdataSailRepository(sail);
@@ -193,6 +206,17 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
             results.add(result.next());
         }
         return results;
+    }
+
+    public long countQuery(String queryString) throws RepositoryException, MalformedQueryException, QueryEvaluationException {
+        TupleQuery tupleQuery = connection.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        TupleQueryResult result = tupleQuery.evaluate();
+        long count = 0L;
+        while (result.hasNext()) {
+            log.debug(result.next().toString());
+            count+=1;
+        }
+        return count;
     }
 
 }

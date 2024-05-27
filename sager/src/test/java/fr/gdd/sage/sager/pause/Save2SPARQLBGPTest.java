@@ -119,7 +119,7 @@ public class Save2SPARQLBGPTest {
         BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
 
         String query10124 = """
-                SELECT * WHERE {
+                SELECT ?v0 ?v1 ?v2 ?v3 ?v5 WHERE {
                     ?v1 <http://www.geonames.org/ontology#parentCountry> ?v2.
                     ?v3 <http://purl.org/ontology/mo/performed_in> ?v1.
                     ?v0 <http://purl.org/dc/terms/Location> ?v1.
@@ -134,6 +134,7 @@ public class Save2SPARQLBGPTest {
             var result = Save2SPARQLTest.executeQuery(query10124, watdivBlazegraph);
             sum += result.getLeft();
             query10124 = result.getRight();
+            log.debug(query10124);
         }
         assertEquals(117, sum);
     }

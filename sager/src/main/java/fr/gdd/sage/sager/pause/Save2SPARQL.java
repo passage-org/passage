@@ -2,6 +2,7 @@ package fr.gdd.sage.sager.pause;
 
 import fr.gdd.jena.utils.FlattenUnflatten;
 import fr.gdd.jena.utils.OpCloningUtil;
+import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.jena.visitors.ReturningOpVisitor;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.sage.generics.BackendBindings;
@@ -50,6 +51,12 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
         saved = Objects.isNull(saved) ? saved : ReturningOpVisitorRouter.visit(new Triples2BGP(), saved);
         saved = Objects.isNull(saved) ? saved : ReturningOpVisitorRouter.visit(new Subqueries2LeftOfJoins(), saved);
         return saved;
+    }
+
+    @Override
+    public Op visit(OpProject project) {
+        Op subop =  ReturningOpVisitorRouter.visit(this, project.getSubOp());
+        return Objects.isNull(subop) ? null : OpCloningUtil.clone(project, subop);
     }
 
     @Override
