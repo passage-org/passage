@@ -1,15 +1,24 @@
 package fr.gdd.sage.sager.iterators;
 
+import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.SagerOpExecutor;
 import fr.gdd.sage.sager.pause.Save2SPARQL;
+import org.apache.http.client.utils.CloneUtils;
 import org.apache.jena.atlas.iterator.Iter;
-import org.apache.jena.sparql.algebra.op.Op2;
+import org.apache.jena.sparql.algebra.Op;
+import org.apache.jena.sparql.algebra.op.*;
+import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ExecutionContext;
+import org.apache.jena.sparql.expr.ExprList;
+import org.apache.jena.sparql.util.ExprUtils;
 
 import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * Always returns the left results when they exist, plus the right results optionally.
@@ -26,6 +35,7 @@ public class SagerOptional<ID,VALUE>  implements Iterator<BackendBindings<ID, VA
     BackendBindings<ID,VALUE> mandatoryBinding;
     Iterator<BackendBindings<ID,VALUE>> optional = Iter.empty();
     Boolean noOptionalPart = true; // saving the fact that the optional exist or not
+    BackendBindings<ID,VALUE> optionalBinding;
 
     public SagerOptional(SagerOpExecutor<ID, VALUE> executor, Op2 op, Iterator<BackendBindings<ID,VALUE>> input, ExecutionContext context) {
         this.op = op;
@@ -75,8 +85,29 @@ public class SagerOptional<ID,VALUE>  implements Iterator<BackendBindings<ID, VA
 
     @Override
     public BackendBindings<ID, VALUE> next() {
-        return noOptionalPart ?
-                mandatoryBinding :
-                optional.next();
+        if (noOptionalPart) {
+            return mandatoryBinding;
+        } else {
+            optionalBinding = optional.next();
+            return optionalBinding;
+        }
+    }
+
+    public Op preempt(Op preemptedLeft, Op preemptedRight) {
+        Set<Var> mandatoryVars = mandatoryBinding.vars();
+        OpSequence seq = OpSequence.create();
+        for (Var v : mandatoryVars) {
+            seq.add(OpExtend.extend(OpTable.unit(), v, ExprUtils.parse(mandatoryBinding.get(v).getString())));
+        }
+
+        // if (Objects.isNull(optionalBinding)) {
+
+        // }
+
+        // Set<Var> optionalVars = optionalBinding.vars();
+        // optionalVars.removeAll(mandatoryVars);
+        Op subop = new OpProject(preemptedLeft, mandatoryVars.stream().toList());
+
+        return OpLeftJoin.create(seq, subop, ExprList.emptyList);
     }
 }

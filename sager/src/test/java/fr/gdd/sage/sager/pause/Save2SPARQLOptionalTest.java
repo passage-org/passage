@@ -33,55 +33,68 @@ public class Save2SPARQLOptionalTest {
             sum += result.getLeft();
             queryAsString = result.getRight();
         }
-        assertEquals(3, sum);
+        assertEquals(5, sum); // (Alice + animal) * 3 + Bob + Carol
     }
 
-//    @Test
-//    public void tp_with_optional_tp_reverse_order () {
-//        String queryAsString = """
-//               SELECT * WHERE {
-//                ?person <http://own> ?animal .
-//                OPTIONAL {?person <http://address> <http://nantes>}
-//               }""";
-//
-//        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-//        ec.getContext().set(SagerConstants.BACKEND, blazegraph);
-//        int nbResults = SagerOpExecutorTest.executeWithSager(queryAsString, ec);
-//        assertEquals(3, nbResults); // Alice, Alice, and Alice.
-//    }
-//
-//    @Test
-//    public void bgp_of_3_tps_and_optional () {
-//        String queryAsString = """
-//               SELECT * WHERE {
-//                 ?person <http://address> ?address .
-//                 OPTIONAL {
-//                   ?person <http://own> ?animal.
-//                   ?animal <http://species> ?specie
-//                 }
-//               }""";
-//
-//        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-//        ec.getContext().set(SagerConstants.BACKEND, blazegraph);
-//        int nbResults = SagerOpExecutorTest.executeWithSager(queryAsString, ec);
-//        assertEquals(5, nbResults); // same as "<address> OPT <own>" query
-//    }
-//
-//    @Test
-//    public void bgp_of_3_tps_and_optional_of_optional () {
-//        String queryAsString = """
-//               SELECT * WHERE {
-//                 ?person <http://address> ?address .
-//                 OPTIONAL {
-//                   ?person <http://own> ?animal.
-//                   OPTIONAL {?animal <http://species> ?specie}
-//                 }
-//               }""";
-//
-//        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-//        ec.getContext().set(SagerConstants.BACKEND, blazegraph);
-//        int nbResults = SagerOpExecutorTest.executeWithSager(queryAsString, ec);
-//        assertEquals(5, nbResults); // same as "<address> OPT <own>" query
-//    }
+    @Test
+    public void tp_with_optional_tp_reverse_order () {
+        String queryAsString = """
+               SELECT * WHERE {
+                ?person <http://own> ?animal .
+                OPTIONAL {?person <http://address> <http://nantes>}
+               }""";
+
+
+        int sum = 0;
+        while (Objects.nonNull(queryAsString)) {
+            log.debug(queryAsString);
+            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            sum += result.getLeft();
+            queryAsString = result.getRight();
+        }
+        assertEquals(3, sum); // (Alice * 3)
+    }
+
+    @Test
+    public void bgp_of_3_tps_and_optional () {
+        String queryAsString = """
+               SELECT * WHERE {
+                 ?person <http://address> ?address .
+                 OPTIONAL {
+                   ?person <http://own> ?animal.
+                   ?animal <http://species> ?specie
+                 }
+               }""";
+
+        int sum = 0;
+        while (Objects.nonNull(queryAsString)) {
+            log.debug(queryAsString);
+            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            sum += result.getLeft();
+            queryAsString = result.getRight();
+        }
+        assertEquals(5, sum); // (Alice + animal) * 3 + Bob + Carol
+    }
+
+    @Test
+    public void bgp_of_3_tps_and_optional_of_optional () {
+        String queryAsString = """
+               SELECT * WHERE {
+                 ?person <http://address> ?address .
+                 OPTIONAL {
+                   ?person <http://own> ?animal.
+                   OPTIONAL {?animal <http://species> ?specie}
+                 }
+               }""";
+
+        int sum = 0;
+        while (Objects.nonNull(queryAsString)) {
+            log.debug(queryAsString);
+            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            sum += result.getLeft();
+            queryAsString = result.getRight();
+        }
+        assertEquals(5, sum); // (Alice + animal) * 3 + Bob + Carol
+    }
 
 }

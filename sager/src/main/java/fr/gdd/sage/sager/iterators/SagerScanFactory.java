@@ -104,7 +104,9 @@ public class SagerScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID,
             seq.add(OpExtend.extend(OpTable.unit(), v, ExprUtils.parse(inputBinding.get(v).getString())));
         }
         seq.add(triple);
-        return new OpSlice(seq, ((SagerScan<ID, VALUE>) instantiated).current(), Long.MIN_VALUE);
+
+        Op seqOrSingle = seq.size() > 1 ? seq : seq.get(0);
+        return new OpSlice(seqOrSingle, ((SagerScan<ID, VALUE>) instantiated).current(), Long.MIN_VALUE);
     }
 
 }

@@ -2,13 +2,13 @@ package fr.gdd.sage.sager.pause;
 
 import fr.gdd.jena.utils.FlattenUnflatten;
 import fr.gdd.jena.utils.OpCloningUtil;
-import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.jena.visitors.ReturningOpVisitor;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.generics.PtrMap;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.sager.SagerConstants;
+import fr.gdd.sage.sager.iterators.SagerOptional;
 import fr.gdd.sage.sager.iterators.SagerScanFactory;
 import fr.gdd.sage.sager.iterators.SagerUnion;
 import fr.gdd.sage.sager.resume.IsSkippable;
@@ -16,6 +16,7 @@ import fr.gdd.sage.sager.resume.Subqueries2LeftOfJoins;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.engine.ExecutionContext;
+import org.apache.jena.sparql.expr.ExprList;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -65,11 +66,14 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
         // contains the input binding that constitutes the state of the scan.
         SagerScanFactory<ID, VALUE> it = (SagerScanFactory<ID, VALUE>) op2it.get(triple);
 
-        if (Objects.isNull(it)) {return null;} // TODO double check the meaning of null here
+        // If the scan iterator is not registered, it should not be preempted
+        if (Objects.isNull(it)) {return null;}
 
         // In `it.preempt()`, it returns null if the scan does not have a next, i.e.,
         // if the can is done. This aims at removing the branches of the plans that are
         // done, finished. Otherwise, they would pollute the preempted plan forever.
+        // It creates a subquery including bindings with `BIND AS`, then the triple
+        // pattern. Then wraps it all with `OFFSET`.
         return it.preempt();
     }
 
@@ -80,8 +84,9 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
         Op right = ReturningOpVisitorRouter.visit(this, join.getRight());
 
         // If the left is empty, i.e., it's done. Then you don't need to preempt it.
-        // However, you still need to consider to preempt the right part. TODO check if null as well ?
+        // However, you still need to consider to preempt the right part.
         if (Objects.isNull(left)) {
+            // (if right is null, it's handled by the union flattener)
             return FlattenUnflatten.unflattenUnion(Collections.singletonList(right));
         }
 
@@ -95,9 +100,9 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
     @Override
     public Op visit(OpUnion union) {
         SagerUnion<ID,VALUE> u = (SagerUnion<ID,VALUE>) op2it.get(union);
-        if (Objects.isNull(u)) { // not executed yet, otherwise would exist TODO again, double check
-            return union;
-        }
+
+        // not executed yet, otherwise would exist. So no need to preempt it.
+        if (Objects.isNull(u)) {return null;}
 
         if (u.onLeft()) {  // preempt the left, copy the right for later
             Op left = ReturningOpVisitorRouter.visit(this, union.getLeft());
@@ -131,18 +136,47 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
 
     @Override
     public Op visit(OpLeftJoin lj) {
-//        if (Objects.isNull(lj.getExprs()) || lj.getExprs().isEmpty()) {
-//            SagerOptional<ID,VALUE> opt = (SagerOptional<ID, VALUE>) op2it.get(lj);
+        if (Objects.nonNull(lj.getExprs()) && !lj.getExprs().isEmpty()) {
+            throw new UnsupportedOperationException("Saving Left join with expression(s) is not handled yet.");
+        }
+
+        SagerOptional<ID,VALUE> optional = (SagerOptional<ID, VALUE>) op2it.get(lj);
+
+        if (Objects.isNull(optional)) {return null;} // again, not saved => no preempted
+
+        Op left = ReturningOpVisitorRouter.visit(this, lj.getLeft());
+        Op right = ReturningOpVisitorRouter.visit(this, lj.getRight());
+
+        // If the optional part exists
+        if (optional.hasOptionalPart()) {
+            // same as a join. Therefore, if there are no results in the optional part,
+            // it returns no results overall, as expected.
+            if (Objects.isNull(left)) {
+                return FlattenUnflatten.unflattenUnion(Collections.singletonList(right));
+            }
+            return FlattenUnflatten.unflattenUnion(Arrays.asList(right,
+                    OpCloningUtil.clone(lj, left, lj.getRight()))); // but here, it's an optional still
+        }
+
+        // But it might mean that the optional part is not executed yet
+        if (Objects.isNull(left)) {
+            return null;
+        }
+
+        Op rest = OpLeftJoin.create(left, lj.getRight(), ExprList.emptyList);
+
+        if (Objects.isNull(right)) {return rest;}
+
+        throw new UnsupportedOperationException("meow");
+//        return OpUnion.create(
 //
-//            if (Objects.isNull(opt)) {
-//                return lj;
-//            }
-//
-//            if (opt.hasOptionalPart()) {
-//                Op left = ReturningOpVisitorRouter.visit(this, lj.getLeft());
-//            }
-//
-//        }
-        throw new UnsupportedOperationException("Saving Left join with expression(s) is not handled yet.");
+//                ,
+//            rest
+//        )
+
+
+        // otherwise, even the right part alone is not enough…
+        // return optional.preempt(left, right);
+        // return rest;
     }
 }
