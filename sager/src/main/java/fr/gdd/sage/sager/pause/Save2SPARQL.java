@@ -126,7 +126,16 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
 
     @Override
     public Op visit(OpExtend extend) { // cloned
-        return OpCloningUtil.clone(extend, ReturningOpVisitorRouter.visit(this, extend.getSubOp()));
+        // return OpCloningUtil.clone(extend, ReturningOpVisitorRouter.visit(this, extend.getSubOp()));
+        return null;
+    }
+
+    @Override
+    public Op visit(OpTable table) {
+        if (!table.isJoinIdentity()){
+            throw new UnsupportedOperationException("OpTable not implemented when not join identity…");
+        }
+        return table;
     }
 
     @Override
@@ -159,24 +168,23 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
         }
 
         // But it might mean that the optional part is not executed yet
-        if (Objects.isNull(left)) {
+        if (Objects.isNull(left) && Objects.isNull(right)) {
             return null;
+        }
+
+        if (Objects.isNull(left)) {
+            return FlattenUnflatten.unflattenUnion(Arrays.asList(
+                    optional.preempt(right) // the right needs mandatory bindings
+            ));
         }
 
         Op rest = OpLeftJoin.create(left, lj.getRight(), ExprList.emptyList);
 
         if (Objects.isNull(right)) {return rest;}
 
-        throw new UnsupportedOperationException("meow");
-//        return OpUnion.create(
-//
-//                ,
-//            rest
-//        )
-
-
-        // otherwise, even the right part alone is not enough…
-        // return optional.preempt(left, right);
-        // return rest;
+        return FlattenUnflatten.unflattenUnion(Arrays.asList(
+            optional.preempt(right), // the right needs mandatory bindings
+            rest
+        ));
     }
 }

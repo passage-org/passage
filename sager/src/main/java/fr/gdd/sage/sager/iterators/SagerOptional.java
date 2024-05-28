@@ -9,16 +9,15 @@ import fr.gdd.sage.sager.pause.Save2SPARQL;
 import org.apache.http.client.utils.CloneUtils;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.sparql.algebra.Op;
+import org.apache.jena.sparql.algebra.OpVars;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ExecutionContext;
+import org.apache.jena.sparql.engine.main.VarFinder;
 import org.apache.jena.sparql.expr.ExprList;
 import org.apache.jena.sparql.util.ExprUtils;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Always returns the left results when they exist, plus the right results optionally.
@@ -93,20 +92,23 @@ public class SagerOptional<ID,VALUE>  implements Iterator<BackendBindings<ID, VA
         }
     }
 
-    public Op preempt(Op preemptedLeft, Op preemptedRight) {
+    public Op preempt(Op preemptedRight) {
         Set<Var> mandatoryVars = mandatoryBinding.vars();
         OpSequence seq = OpSequence.create();
         for (Var v : mandatoryVars) {
             seq.add(OpExtend.extend(OpTable.unit(), v, ExprUtils.parse(mandatoryBinding.get(v).getString())));
         }
 
-        // if (Objects.isNull(optionalBinding)) {
+        Set<Var> optionalVars = OpVars.visibleVars(op.getRight());
+        optionalVars.removeAll(mandatoryVars);
+        if (optionalVars.isEmpty()) {
+            // if there are no variables, it means that the optional part
+            // ended up being a simple check. Either passed or failed, the
+            // mandatory part only remains. The optional part is removed.
+            return seq;
+        }
 
-        // }
-
-        // Set<Var> optionalVars = optionalBinding.vars();
-        // optionalVars.removeAll(mandatoryVars);
-        Op subop = new OpProject(preemptedLeft, mandatoryVars.stream().toList());
+        Op subop = new OpProject(preemptedRight, optionalVars.stream().toList());
 
         return OpLeftJoin.create(seq, subop, ExprList.emptyList);
     }
