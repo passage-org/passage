@@ -111,6 +111,10 @@ public class SagerOptional<ID,VALUE>  implements Iterator<BackendBindings<ID, VA
         }
 
         if (preemptedRight instanceof OpProject preemptedProject) {
+            // instead of creating project of project of project, we
+            // take advantage of the already present one. The subop should
+            // not return the binding of the mandatory part, so we filter
+            // them out.
             optionalVars = new HashSet<>(preemptedProject.getVars());
             optionalVars.removeAll(mandatoryVars);
             Op subop = new OpProject(preemptedProject.getSubOp(), optionalVars.stream().toList());

@@ -180,4 +180,31 @@ public class SagerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         throw new UnsupportedOperationException("Left join with embedded expression(s) is not handled yet.");
     }
 
+    //    @Override
+//    public Iterator<BackendBindings<ID, VALUE>> visit(OpGroup groupBy, Iterator<BackendBindings<ID, VALUE>> input) {
+//        Long limit = execCxt.getContext().getLong(RawerConstants.LIMIT, 0L);
+//        if (limit <= 0L) {
+//            return input;
+//        }
+//
+//        // execCxt.getContext().set(RawerConstants.LIMIT, (long) limit/2);
+//        for (int i = 0; i < groupBy.getAggregators().size(); ++i) {
+//            switch (groupBy.getAggregators().get(i).getAggregator()) {
+//                case AggCount ac -> groupBy.getAggregators().set(i,
+//                        new ExprAggregator(groupBy.getAggregators().get(i).getVar(),
+//                            new ApproximateAggCount(execCxt, groupBy.getSubOp())));
+////                case AggCountDistinct acd -> groupBy.getAggregators().set(i,
+////                        new ExprAggregator(groupBy.getAggregators().get(i).getVar(),
+////                            new ApproximateAggCountDistinct(execCxt, groupBy.getSubOp())));
+//                default -> throw new UnsupportedOperationException("The aggregation function is not implemented: " +
+//                        groupBy.getAggregators().get(i).toString());
+//            }
+//        }
+//
+//        //vv wrapped = ReturningArgsOpVisitorRouter.visit(this, groupBy.getSubOp(), input);
+//        Iterator<BackendBindings<ID, VALUE>> wrapped = new RandomRoot<>(this, execCxt, groupBy.getSubOp());
+//        return  qi2biv(new QueryIterGroup(biv2qi(wrapped, execCxt),
+//                groupBy.getGroupVars(), groupBy.getAggregators(), execCxt), backend);
+//    }
+
 }
