@@ -1,23 +1,23 @@
 package fr.gdd.sage.sager.iterators;
 
-import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.SagerOpExecutor;
 import fr.gdd.sage.sager.pause.Save2SPARQL;
-import org.apache.http.client.utils.CloneUtils;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpVars;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ExecutionContext;
-import org.apache.jena.sparql.engine.main.VarFinder;
 import org.apache.jena.sparql.expr.ExprList;
 import org.apache.jena.sparql.util.ExprUtils;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * Always returns the left results when they exist, plus the right results optionally.
@@ -108,6 +108,13 @@ public class SagerOptional<ID,VALUE>  implements Iterator<BackendBindings<ID, VA
             // ended up being a simple check. Either passed or failed, the
             // mandatory part only remains. The optional part is removed.
             return seq;
+        }
+
+        if (preemptedRight instanceof OpProject preemptedProject) {
+            optionalVars = new HashSet<>(preemptedProject.getVars());
+            optionalVars.removeAll(mandatoryVars);
+            Op subop = new OpProject(preemptedProject.getSubOp(), optionalVars.stream().toList());
+            return OpLeftJoin.create(seq, subop, ExprList.emptyList);
         }
 
         Op subop = new OpProject(preemptedRight, optionalVars.stream().toList());

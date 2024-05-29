@@ -156,6 +156,10 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
         Op left = ReturningOpVisitorRouter.visit(this, lj.getLeft());
         Op right = ReturningOpVisitorRouter.visit(this, lj.getRight());
 
+        if (Objects.isNull(left) && Objects.isNull(right)) {
+            return null;
+        }
+
         // If the optional part exists
         if (optional.hasOptionalPart()) {
             // same as a join. Therefore, if there are no results in the optional part,
