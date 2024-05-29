@@ -106,92 +106,71 @@ public class Save2SPARQLOptionalTimeoutTest {
         assertEquals(5, sum); // (Alice + animal) * 3 + Bob + Carol
     }
 
-//
-//    @Disabled
-//    @Test
-//    public void on_watdiv_conjunctive_query_0_every_scan () {
-//        BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
-//        SagerScan.stopping = Save2SPARQLTest.stopAtEveryScan;
-//
-//        String query0 = """
-//        SELECT * WHERE {
-//        ?v0 <http://schema.org/eligibleRegion> <http://db.uwaterloo.ca/~galuc/wsdbm/Country21>.
-//        ?v0 <http://purl.org/goodrelations/validThrough> ?v3.
-//        ?v0 <http://purl.org/goodrelations/includes> ?v1.
-//        ?v1 <http://schema.org/text> ?v6.
-//        ?v0 <http://schema.org/eligibleQuantity> ?v4.
-//        ?v0 <http://purl.org/goodrelations/price> ?v2.
-//        }""";
-//
-//        int sum = 0;
-//        while (Objects.nonNull(query0)) {
-//            var result = Save2SPARQLTest.executeQuery(query0, watdivBlazegraph);
-//            sum += result.getLeft();
-//            query0 = result.getRight();
-//        }
-//        assertEquals(326, sum);
-//    }
-//
-//
-//    @Disabled
-//    @Test
-//    public void on_watdiv_conjunctive_query_10124_every_scan () { // /!\ it takes time (19minutes)
-//        BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
-//        SagerScan.stopping = Save2SPARQLTest.stopAtEveryScan;
-//
-//        String query10124 = """
-//                SELECT * WHERE {
-//                        ?v1 <http://www.geonames.org/ontology#parentCountry> ?v2.
-//                        ?v3 <http://purl.org/ontology/mo/performed_in> ?v1.
-//                        ?v0 <http://purl.org/dc/terms/Location> ?v1.
-//                        ?v0 <http://db.uwaterloo.ca/~galuc/wsdbm/gender> <http://db.uwaterloo.ca/~galuc/wsdbm/Gender1>.
-//                        ?v0 <http://db.uwaterloo.ca/~galuc/wsdbm/userId> ?v5.
-//                        ?v0 <http://db.uwaterloo.ca/~galuc/wsdbm/follows> ?v0.
-//                }
-//                """;
-//
-//        int sum = 0;
-//        while (Objects.nonNull(query10124)) {
-//            log.debug(query10124);
-//            var result = Save2SPARQLTest.executeQuery(query10124, watdivBlazegraph);
-//            sum += result.getLeft();
-//            query10124 = result.getRight();
-//            // log.debug("progress = {}", result.getRight());
-//        }
-//        // took 19 minutes of execution to pass… (while printing every query)
-//        assertEquals(117, sum);
-//    }
-//
-//
-//    @Disabled
-//    @Test
-//    public void on_watdiv_conjunctive_query_10124_every_1k_scans () { // way faster, matter of seconds
-//        BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
-//        SagerScan.stopping = (ec) -> {
-//            return ec.getContext().getLong(SagerConstants.SCANS, 0L) >= 1000; // stop every 1000 scans
-//        };
-//
-//
-//        String query10124 = """
-//                SELECT * WHERE {
-//                        ?v1 <http://www.geonames.org/ontology#parentCountry> ?v2.
-//                        ?v3 <http://purl.org/ontology/mo/performed_in> ?v1.
-//                        ?v0 <http://purl.org/dc/terms/Location> ?v1.
-//                        ?v0 <http://db.uwaterloo.ca/~galuc/wsdbm/gender> <http://db.uwaterloo.ca/~galuc/wsdbm/Gender1>.
-//                        ?v0 <http://db.uwaterloo.ca/~galuc/wsdbm/userId> ?v5.
-//                        ?v0 <http://db.uwaterloo.ca/~galuc/wsdbm/follows> ?v0.
-//                }
-//                """;
-//
-//        int sum = 0;
-//        while (Objects.nonNull(query10124)) {
-//            log.debug(query10124);
-//            var result = Save2SPARQLTest.executeQuery(query10124, watdivBlazegraph);
-//            sum += result.getLeft();
-//            query10124 = result.getRight();
-//            // log.debug("progress = {}", result.getRight());
-//        }
-//        // took 19 minutes of execution to pass… (while printing every query)
-//        assertEquals(117, sum);
-//    }
+    @Test
+    public void bgp_of_3_tps_and_optional_of_optional () {
+        String queryAsString = """
+               SELECT * WHERE {
+                 ?person <http://address> ?address .
+                 OPTIONAL {
+                   ?person <http://own> ?animal.
+                   OPTIONAL {?animal <http://species> ?specie}
+                 }
+               }""";
+
+        SagerScan.stopping = Save2SPARQLTest.stopAtEveryScan;
+
+        int sum = 0;
+        while (Objects.nonNull(queryAsString)) {
+            log.debug(queryAsString);
+            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            sum += result.getLeft();
+            queryAsString = result.getRight();
+        }
+        assertEquals(5, sum); // (Alice + animal) * 3 + Bob + Carol
+    }
+
+    @Test
+    public void intermediate_query () {
+        String queryAsString = """
+                SELECT * WHERE { {
+                    BIND(<http://Alice> AS ?person)
+                    BIND(<http://nantes> AS ?address)
+                    OPTIONAL { {
+                        SELECT ?animal ?specie WHERE {
+                            SELECT ?animal ?specie WHERE { {
+                                BIND(<http://Alice> AS ?person)
+                                BIND(<http://nantes> AS ?address)
+                                BIND(<http://cat> AS ?animal)
+                                OPTIONAL { {
+                                    SELECT ?specie WHERE {
+                                        SELECT * WHERE {
+                                            BIND(<http://Alice> AS ?person)
+                                            BIND(<http://nantes> AS ?address)
+                                            BIND(<http://cat> AS ?animal)
+                                            ?animal  <http://species>  ?specie
+                                        } OFFSET  0 } } } }
+                            UNION { {
+                                SELECT * WHERE {
+                                    BIND(<http://Alice> AS ?person)
+                                    BIND(<http://nantes> AS ?address)
+                                    ?person  <http://own>  ?animal
+                                } OFFSET  1 }
+                                OPTIONAL {
+                                    ?animal  <http://species>  ?specie
+                                } } } } } } } }
+                """;
+
+        SagerScan.stopping = Save2SPARQLTest.stopAtEveryScan;
+
+        int sum = 0;
+        while (Objects.nonNull(queryAsString)) {
+            log.debug(queryAsString);
+            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            sum += result.getLeft();
+            queryAsString = result.getRight();
+        }
+        assertEquals(3, sum); // (Alice + animal) * 3 with every variable setup
+    }
+
+
 }

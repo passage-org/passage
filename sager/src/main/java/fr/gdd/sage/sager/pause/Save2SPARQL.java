@@ -161,16 +161,25 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
             // same as a join. Therefore, if there are no results in the optional part,
             // it returns no results overall, as expected.
             if (Objects.isNull(left)) {
-                return FlattenUnflatten.unflattenUnion(Collections.singletonList(right));
+
+//                if (right instanceof OpProject project) {
+//                    return FlattenUnflatten.unflattenUnion(Collections.singletonList(project.getSubOp()));
+//                }
+//                 return FlattenUnflatten.unflattenUnion(Collections.singletonList(right));
+                if (Objects.isNull(right)) {
+                    return null;
+                }
+                return FlattenUnflatten.unflattenUnion(
+                        Collections.singletonList(OpCloningUtil.clone(lj, lj.getLeft(), right)));
             }
             return FlattenUnflatten.unflattenUnion(Arrays.asList(right,
                     OpCloningUtil.clone(lj, left, lj.getRight()))); // but here, it's an optional still
         }
 
-        // But it might mean that the optional part is not executed yet
-        if (Objects.isNull(left) && Objects.isNull(right)) {
-            return null;
-        }
+//        // But it might mean that the optional part is not executed yet
+//        if (Objects.isNull(left) && Objects.isNull(right)) {
+//            return null;
+//        }
 
         if (Objects.isNull(left)) {
             return FlattenUnflatten.unflattenUnion(Arrays.asList(

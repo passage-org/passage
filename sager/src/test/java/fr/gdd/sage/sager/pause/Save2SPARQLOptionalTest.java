@@ -4,6 +4,9 @@ import fr.gdd.sage.blazegraph.BlazegraphBackend;
 import fr.gdd.sage.databases.inmemory.IM4Blazegraph;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.openrdf.query.MalformedQueryException;
+import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,6 +98,37 @@ public class Save2SPARQLOptionalTest {
             queryAsString = result.getRight();
         }
         assertEquals(5, sum); // (Alice + animal) * 3 + Bob + Carol
+    }
+
+    @Test
+    public void query_with_optional_where_project_filter_too_much () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
+        String queryAsString = """
+                SELECT * WHERE
+                { { BIND(<http://Alice> AS ?person)
+                    BIND(<http://nantes> AS ?address)
+                    OPTIONAL { {
+                        SELECT  ?animal ?specie WHERE {
+                            SELECT  ?animal ?specie WHERE {
+                              { BIND(<http://Alice> AS ?person)
+                                BIND(<http://nantes> AS ?address)
+                                BIND(<http://cat> AS ?animal)
+                                OPTIONAL { {
+                                    SELECT ?specie WHERE {
+                                        SELECT * WHERE {
+                                            BIND(<http://Alice> AS ?person)
+                                            BIND(<http://nantes> AS ?address)
+                                            BIND(<http://cat> AS ?animal)
+                                            ?animal  <http://species>  ?specie
+                                        } OFFSET  0
+                } } } }  } }} }} }
+                """;
+
+            var expected = blazegraph.executeQuery(queryAsString);
+            log.debug(expected.toString());
+
+            log.debug(queryAsString);
+            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            // should return alice cat feline, and not feline all alone…
     }
 
 }

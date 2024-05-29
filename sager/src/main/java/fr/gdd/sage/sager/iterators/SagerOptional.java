@@ -93,6 +93,8 @@ public class SagerOptional<ID,VALUE>  implements Iterator<BackendBindings<ID, VA
     }
 
     public Op preempt(Op preemptedRight) {
+        if (Objects.isNull(mandatoryBinding)) return null;
+
         Set<Var> mandatoryVars = mandatoryBinding.vars();
         OpSequence seq = OpSequence.create();
         for (Var v : mandatoryVars) {
