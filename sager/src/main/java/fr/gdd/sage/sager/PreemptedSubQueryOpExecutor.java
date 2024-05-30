@@ -14,8 +14,6 @@ import java.util.Iterator;
 /**
  * Executor dedicated to sub-queries that are preempted. For now, these are as simple
  * as a triple pattern, with "BIND … AS …" to create its context.
- * @param <ID>
- * @param <VALUE>
  */
 public class PreemptedSubQueryOpExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
         Iterator<BackendBindings<ID, VALUE>>, // input
