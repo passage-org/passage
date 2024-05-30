@@ -36,10 +36,10 @@ public class SagerOptional<ID,VALUE>  implements Iterator<BackendBindings<ID, VA
     Boolean noOptionalPart = true; // saving the fact that the optional exist or not
     BackendBindings<ID,VALUE> optionalBinding;
 
-    public SagerOptional(SagerOpExecutor<ID, VALUE> executor, Op2 op, Iterator<BackendBindings<ID,VALUE>> input, ExecutionContext context) {
+    public SagerOptional(SagerOpExecutor<ID, VALUE> executor, Op2 op, Iterator<BackendBindings<ID,VALUE>> input) {
         this.op = op;
         this.input = input;
-        this.context = context;
+        this.context = executor.getExecutionContext();
         this.executor = executor;
 
         Save2SPARQL<ID,VALUE> saver = context.getContext().get(SagerConstants.SAVER);

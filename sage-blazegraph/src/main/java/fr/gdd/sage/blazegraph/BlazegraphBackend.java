@@ -1,16 +1,13 @@
 package fr.gdd.sage.blazegraph;
 
-import com.bigdata.bop.BOp;
-import com.bigdata.bop.Constant;
 import com.bigdata.bop.PipelineOp;
-import com.bigdata.bop.ap.SampleIndex;
-import com.bigdata.bop.join.HashJoinOp;
-import com.bigdata.bop.join.JVMHashJoinAnnotations;
 import com.bigdata.bop.join.PipelineJoin;
 import com.bigdata.journal.Options;
 import com.bigdata.rdf.internal.IV;
 import com.bigdata.rdf.internal.impl.TermId;
 import com.bigdata.rdf.internal.impl.uri.VocabURIByteIV;
+import com.bigdata.rdf.model.BigdataURI;
+import com.bigdata.rdf.model.BigdataURIImpl;
 import com.bigdata.rdf.model.BigdataValue;
 import com.bigdata.rdf.sail.BigdataSail;
 import com.bigdata.rdf.sail.BigdataSailRepository;
@@ -138,7 +135,7 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
             default -> throw new UnsupportedOperationException("Unknown SPOC…");
         };
         IChunkedOrderedIterator<ISPO> it = accessPath.iterator();
-        if (!it.hasNext()) throw new NotFoundException("The value "); // not found
+        if (!it.hasNext()) throw new NotFoundException(value); // not found
         ISPO spo = it.next();
         // Get the Value from the index
 //        String str = switch(type[0]){
@@ -173,17 +170,26 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
     }
 
     @Override
-    public String getString(IV value, int... type) {
-        if (value.isURI()) {
-            return "<"+ store.getLexiconRelation().getTerm(value).toString() + ">";
+    public String getString(IV id, int... type) {
+        if (id.isURI()) {
+            return "<"+ store.getLexiconRelation().getTerm(id).toString() + ">";
         } else {
-            return store.getLexiconRelation().getTerm(value).toString();
+            return store.getLexiconRelation().getTerm(id).toString();
         }
     }
 
     @Override
     public BigdataValue getValue(IV iv, int... type) {
         throw new UnsupportedOperationException("TODO"); // TODO
+    }
+
+    @Override
+    public BigdataValue getValue(String valueAsString, int... type) {
+        if (valueAsString.startsWith("<") && valueAsString.endsWith(">")) {
+            return store.getValueFactory().asValue(new URIImpl(valueAsString));
+        } else {
+            return store.getValueFactory().createLiteral(valueAsString);
+        }
     }
 
     @Override

@@ -29,6 +29,13 @@ class BlazegraphBackendTest {
     private final static Logger log = LoggerFactory.getLogger(BlazegraphBackendTest.class);
 
     @Test
+     public void create_values_with_string_repr () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
+        BlazegraphBackend bb = new BlazegraphBackend(IM4Blazegraph.triples9());
+        var meow = bb.getValue("12");
+        log.debug("{}", meow);
+    }
+
+    @Test
     public void create_a_simple_pet_dataset () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
         BlazegraphBackend bb = new BlazegraphBackend(IM4Blazegraph.triples9());
 

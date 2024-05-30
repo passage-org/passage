@@ -22,17 +22,30 @@ public class SagerOpExecutorAggTest {
     @Disabled
     @Test
     public void simple_count_on_a_single_triple_pattern () {
-        String query = """
-                SELECT (COUNT(*) AS ?count) {
-                    ?p <http://address> ?c
-                }
-                """;
+        String query = "SELECT (COUNT(*) AS ?count) { ?p <http://address> ?c }";
 
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
         ec.getContext().set(SagerConstants.BACKEND, blazegraph);
 
         int nbResults = SagerOpExecutorTest.executeWithSager(query, ec);
-        assertEquals(1, nbResults); // ?c = 3
+        assertEquals(1, nbResults); // ?count = 3
+    }
+
+    @Disabled
+    @Test
+    public void simple_count_on_a_single_triple_pattern_driven_by_another_one () {
+        String query = """
+        SELECT * WHERE {
+            ?p <http://address> ?c .
+            {SELECT (COUNT(*) AS ?count) { ?p <http://own> ?animal }}
+        }
+        """;
+
+        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
+        ec.getContext().set(SagerConstants.BACKEND, blazegraph);
+
+        int nbResults = SagerOpExecutorTest.executeWithSager(query, ec);
+        assertEquals(3, nbResults); // ?count = 3 for Alice; Bob and Carol have ?count = 0
     }
 
 }

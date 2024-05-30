@@ -34,8 +34,19 @@ public interface Backend<ID, VALUE, SKIP extends Serializable> {
      * for. Depending on the backend, it may improve lookup time.
      * @return The identifier of the value.
      */
-    ID getId(final String value, final int... type);
-    ID getId(final VALUE value, final int... type);
+    default ID getId(final String value, final int... type) {throw new UnsupportedOperationException();}
+    default ID getId(final VALUE value, final int... type) {throw new UnsupportedOperationException();}
+
+    /**
+     * Calls the underlying dictionary to retrieve the value
+     * corresponding to the identifier. This allows a
+     * `BackendIterator` to call and cache the value as long as it can
+     * stay relevant in the execution context.
+     * @param value The identifier of the value to retrieve in the dictionary.
+     * @return The value as a string corresponding to the identifier.
+     */
+    default VALUE getValue(final String value, final int... type) {throw new UnsupportedOperationException();}
+    default VALUE getValue(final ID id, final int... type) {throw new UnsupportedOperationException();}
 
     /**
      * Calls the underlying dictionary to retrieve the value
@@ -45,17 +56,7 @@ public interface Backend<ID, VALUE, SKIP extends Serializable> {
      * @param id The identifier of the value to retrieve in the dictionary.
      * @return The value as a string corresponding to the identifier.
      */
-    VALUE getValue(final ID id, final int... type);
-
-    /**
-     * Calls the underlying dictionary to retrieve the value
-     * corresponding to the identifier. This allows a
-     * `BackendIterator` to call and cache the value as long as it can
-     * stay relevant in the execution context.
-     * @param id The identifier of the value to retrieve in the dictionary.
-     * @return The value as a string corresponding to the identifier.
-     */
-    String getString(final ID id, final int... type);
+    default String getString(final ID id, final int... type) {throw new UnsupportedOperationException();}
 
     /**
      * @return The identifier of the wildcard `any` or `*` for the

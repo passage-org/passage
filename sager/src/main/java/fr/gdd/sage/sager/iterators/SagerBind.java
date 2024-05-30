@@ -46,8 +46,12 @@ public class SagerBind<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> 
             Expr expr = exprs.getExpr(v);
             // NodeValue nv = expr.eval(Binding.noParent, context); // basic expressions only
             BackendBindings.IdValueBackend<ID,VALUE> newBinding = new BackendBindings.IdValueBackend<ID,VALUE>()
-                    .setBackend(backend)
-                            .setString(expr.toString()); // try subject
+                    .setBackend(backend);
+            if (expr.isVariable()) {
+                newBinding.setValue(b.get(expr.asVar()).getValue());
+            } else {
+                newBinding.setString(expr.toString()); // try subject
+            }
 
             b.put(v, newBinding);
 //            if (Objects.isNull(expr)) {

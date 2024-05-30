@@ -47,6 +47,14 @@ public class SagerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         execCxt.getContext().setIfUndef(SagerConstants.LOADER, new SagerOptimizer());
     }
 
+    public Backend<ID, VALUE, Long> getBackend() {
+        return backend;
+    }
+
+    public ExecutionContext getExecutionContext() {
+        return execCxt;
+    }
+
     public SagerOpExecutor<ID, VALUE> setTimeout(Long timeout) {
         execCxt.getContext().set(SagerConstants.TIMEOUT, timeout);
         execCxt.getContext().set(SagerConstants.DEADLINE, System.currentTimeMillis()+timeout);
@@ -170,28 +178,28 @@ public class SagerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
 
     @Override
     public Iterator<BackendBindings<ID,VALUE>> visit(OpConditional cond, Iterator<BackendBindings<ID, VALUE>> input) {
-        return new SagerOptional<>(this, cond, input, execCxt);
+        return new SagerOptional<>(this, cond, input);
     }
 
     @Override
     public Iterator<BackendBindings<ID,VALUE>> visit(OpLeftJoin lj, Iterator<BackendBindings<ID,VALUE>> input) {
         if (Objects.isNull(lj.getExprs()) || lj.getExprs().isEmpty()) {
-            return new SagerOptional<>(this, lj, input, execCxt);
+            return new SagerOptional<>(this, lj, input);
         }
         throw new UnsupportedOperationException("Left join with embedded expression(s) is not handled yet.");
     }
 
         @Override
     public Iterator<BackendBindings<ID, VALUE>> visit(OpGroup groupBy, Iterator<BackendBindings<ID, VALUE>> input) {
-        if (!groupBy.getGroupVars().isEmpty()) {
-            throw new UnsupportedOperationException("Group by not handled (yet).");
-        }
+//        if (!groupBy.getGroupVars().isEmpty()) {
+//            throw new UnsupportedOperationException("Group by not handled (yet).");
+//        }
 
         if (groupBy.getAggregators().size() > 1) {
             throw new UnsupportedOperationException("Only one aggregator supported for now.");
         }
 
-        return new SagerAgg<>(this, groupBy, input, execCxt);
+        return new SagerAgg<>(this, groupBy, input);
    }
 
 }

@@ -1,5 +1,6 @@
 package fr.gdd.sage.generics;
 
+import com.github.jsonldjava.utils.Obj;
 import fr.gdd.sage.interfaces.Backend;
 import org.apache.jena.sparql.core.Var;
 
@@ -79,7 +80,7 @@ public class BackendBindings<ID, VALUE> {
                 if (Objects.isNull(value)) {
                     asString = Objects.isNull(code) ? backend.getString(id) : backend.getString(id, code);
                 } else {
-                    throw new UnsupportedOperationException("as String from value");
+                    return value.toString();
                 }
             }
             return asString;
@@ -161,4 +162,5 @@ public class BackendBindings<ID, VALUE> {
         builder.append("}");
         return builder.toString();
     }
+
 }
