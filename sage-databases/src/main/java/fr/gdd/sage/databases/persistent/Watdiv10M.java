@@ -100,6 +100,7 @@ public class Watdiv10M extends BenchmarkDataset {
             if (blacklist.contains(queryFile.getName())) { continue; }
             try {
                 String query = Files.readString(queryFile.toPath(), StandardCharsets.UTF_8);
+                query = query.replaceAll("(?m)#.*$", " "); // remove the comments
                 query = query.replace('\n', ' '); // to get a clearer one line rendering
                 query = query.replace('\t', ' ');
                 // query = String.format("# %s\n%s", queryFile.getName(), query);

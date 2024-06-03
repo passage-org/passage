@@ -50,11 +50,7 @@ public class IM4Blazegraph {
             connection.add(statementsStream, "", RDFFormat.NTRIPLES);
 
             connection.commit();
-        } catch (RepositoryException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (RDFParseException e) {
+        } catch (RepositoryException | IOException | RDFParseException e) {
             throw new RuntimeException(e);
         }
         return sail;

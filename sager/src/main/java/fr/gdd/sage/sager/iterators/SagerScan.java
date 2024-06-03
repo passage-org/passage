@@ -34,8 +34,6 @@ public class SagerScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE>
     final Tuple3<Var> vars; // needed to create bindings
     final ExecutionContext context;
 
-    boolean first = true;
-
     public SagerScan(ExecutionContext context, OpTriple triple, Tuple<ID> spo, BackendIterator<ID, VALUE, Long> wrapped) {
         this.context = context;
         this.deadline = context.getContext().getLong(SagerConstants.DEADLINE, Long.MAX_VALUE);
