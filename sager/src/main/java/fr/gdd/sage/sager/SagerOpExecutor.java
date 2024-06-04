@@ -110,10 +110,18 @@ public class SagerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
 
     /* ******************************************************************* */
 
+    public Iterator<BackendBindings<ID, VALUE>> visit(Op op, Iterator<BackendBindings<ID,VALUE>> input) {
+        return ReturningArgsOpVisitorRouter.visit(this, op, input); // only routing
+    }
 
     @Override
     public Iterator<BackendBindings<ID, VALUE>> visit(OpProject project, Iterator<BackendBindings<ID, VALUE>> input) {
         return new SagerProject<>(this, project, input);
+    }
+
+    @Override
+    public Iterator<BackendBindings<ID, VALUE>> visit(OpDistinct distinct, Iterator<BackendBindings<ID, VALUE>> input) { // see QueryIterDistinct
+        return new SagerDistinct<>(distinct, execCxt, ReturningArgsOpVisitorRouter.visit(this, distinct.getSubOp(), input));
     }
 
     @Override

@@ -163,4 +163,17 @@ public class BackendBindings<ID, VALUE> {
         return builder.toString();
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (Objects.isNull(obj)) return false;
+
+        if (obj instanceof BackendBindings<?, ?> other) {
+            if (!other.vars().equals(this.vars())) return false;
+
+            // TODO optimize this by comparing on ID, VALUE etc, hence reducing the number of transformation to string
+            return obj.toString().equals(this.toString());
+        } else {
+            return false; // other is not a BackendBinding
+        }
+    }
 }

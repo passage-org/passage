@@ -18,18 +18,40 @@ public class SagerOpExecutorDistinctTest {
     static final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
 
     @Test
+    public void basic_trial_to_create_distinct_without_projected_variable() {
+        String query = "SELECT DISTINCT * WHERE { ?p <http://address> ?a }";
+
+        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
+        ec.getContext().set(SagerConstants.BACKEND, blazegraph);
+
+        int nbResults = SagerOpExecutorTest.executeWithSager(query, ec);
+        assertEquals(3, nbResults); // Alice, Carol, and Bob
+    }
+
+    @Test
     public void basic_trial_to_create_distinct_from_other_implemented_operators() {
+        String query = "SELECT DISTINCT ?a WHERE { ?p <http://address> ?a }";
+
+        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
+        ec.getContext().set(SagerConstants.BACKEND, blazegraph);
+
+        int nbResults = SagerOpExecutorTest.executeWithSager(query, ec);
+        assertEquals(2, nbResults); // Nantes and Paris
+    }
+
+    @Test
+    public void distinct_of_bgp() {
         String query = """
-        SELECT DISTINCT ?a
-            { ?p <http://address> ?a }
+        SELECT DISTINCT ?address WHERE {
+            ?person <http://address> ?address.
+            ?person <http://own> ?animal }
         """;
 
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
         ec.getContext().set(SagerConstants.BACKEND, blazegraph);
 
         int nbResults = SagerOpExecutorTest.executeWithSager(query, ec);
-        assertEquals(1, nbResults); // ?count = 3
-
+        assertEquals(1, nbResults); // Nantes only, since only Alice has animals
     }
 
 }

@@ -17,7 +17,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 @Disabled
 public class WDBenchTest {
@@ -47,9 +49,26 @@ public class WDBenchTest {
         log.info("Kept {} queries out of {}.", filtered.size(), queries.size());
         queries = filtered;
 
+        int i = 0; // do not redo work
+        while (i < filtered.size()) {
+            if (!filtered.get(i).getLeft().endsWith("query_403.sparql")) {
+                filtered.remove(i);
+            } else {
+                filtered.remove(i);
+                break;
+            }
+        }
+
+        log.info("Remaining: {} queries…", filtered.size());
+
+        Set<String> blacklist = Set.of("query_483.sparql", "query_403.sparql");
+
         for (Pair<String, String> nameAndQuery: queries) {
             String[] splitted = nameAndQuery.getLeft().split("/");
             String name = splitted[splitted.length-1];
+            if (blacklist.contains(name)) {
+                log.debug("Skipping {}…", name);
+            }
             String query = nameAndQuery.getRight();
             log.debug("Executing query {}…", name);
             log.debug(query);
