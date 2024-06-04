@@ -120,4 +120,12 @@ public class CardinalityJoinOrderingTest {
         assertTrue(ordering.hasCartesianProduct());
     }
 
+    // An issue comes from such queries of WDBench where there are no
+    // Cartesian product per se… Although there could be… not sure what to
+    // decide of this…
+    // SELECT * WHERE {
+    // ?x1 <http://www.wikidata.org/prop/direct/P2174> ?x2 .
+    // ?x3 <http://www.wikidata.org/prop/direct/P625> ?x4 .
+    // OPTIONAL { ?x1 <http://www.wikidata.org/prop/direct/P937> ?x3 . }   }
+
 }

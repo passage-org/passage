@@ -2,6 +2,7 @@ package fr.gdd.sage.blazegraph;
 
 import com.bigdata.bop.PipelineOp;
 import com.bigdata.bop.join.PipelineJoin;
+import com.bigdata.concurrent.TimeoutException;
 import com.bigdata.journal.Options;
 import com.bigdata.rdf.internal.IV;
 import com.bigdata.rdf.internal.impl.TermId;
@@ -217,10 +218,28 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
     public long countQuery(String queryString) throws RepositoryException, MalformedQueryException, QueryEvaluationException {
         TupleQuery tupleQuery = connection.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         TupleQueryResult result = tupleQuery.evaluate();
+        long start = System.currentTimeMillis();
         long count = 0L;
         while (result.hasNext()) {
             log.debug(result.next().toString());
             count+=1;
+        }
+        return count;
+    }
+
+    public long countQuery(String queryString, Long timeout) throws RepositoryException, MalformedQueryException, QueryEvaluationException {
+        TupleQuery tupleQuery = connection.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        TupleQueryResult result = tupleQuery.evaluate();
+        long start = System.currentTimeMillis();
+        long count = 0L;
+        while (result.hasNext()) {
+            log.debug(result.next().toString());
+            count+=1;
+            if (System.currentTimeMillis() > start + timeout) {
+                // /!\ if the timeout happens in hasNext, this does not work
+                // before getting a new result.
+                throw new TimeoutException(String.valueOf(count));
+            }
         }
         return count;
     }

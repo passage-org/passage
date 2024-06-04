@@ -14,6 +14,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.DatasetFactory;
+import fr.gdd.sage.exceptions.NotFoundException;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpVars;
 import org.apache.jena.sparql.algebra.op.OpBGP;
@@ -77,10 +78,15 @@ public class CardinalityJoinOrdering<ID,VALUE> extends ReturningArgsOpVisitor<
         for (Triple t : bgp.getPattern()) {
             OpTriple key = new OpTriple(t);
             SagerScanFactory<ID,VALUE> scan = new SagerScanFactory<>(Iter.of(new BackendBindings<>()), fakeContext, key);
-            if (scan.hasNext()) {
-                log.debug("{} => {}", key.getTriple(), scan.cardinality());
-                triple2card.add(new ImmutablePair<>(key, scan.cardinality()));
-            } else {
+            try {
+                if (scan.hasNext()) {
+                    log.debug("{} => {}", key.getTriple(), scan.cardinality());
+                    triple2card.add(new ImmutablePair<>(key, scan.cardinality()));
+                } else {
+                    log.debug("{} => Not results so 0", key.getTriple());
+                    triple2card.add(new ImmutablePair<>(key, 0.)); // no results
+                }
+            } catch (NotFoundException e) {
                 log.debug("{} => Not found so 0", key.getTriple());
                 triple2card.add(new ImmutablePair<>(key, 0.)); // not found, so 0 it is, the query should stop quickly then
             }
