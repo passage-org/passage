@@ -17,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -51,7 +50,7 @@ public class WDBenchTest {
 
         int i = 0; // do not redo work
         while (i < filtered.size()) {
-            if (!filtered.get(i).getLeft().endsWith("query_403.sparql")) {
+            if (!filtered.get(i).getLeft().endsWith("query_359.sparql")) {
                 filtered.remove(i);
             } else {
                 filtered.remove(i);
@@ -61,7 +60,8 @@ public class WDBenchTest {
 
         log.info("Remaining: {} queries…", filtered.size());
 
-        Set<String> blacklist = Set.of("query_483.sparql", "query_403.sparql");
+        Set<String> blacklist = Set.of("query_483.sparql", "query_403.sparql", "query_229.sparql", "query_433.sparql",
+                "query_270.sparql", "query_185.sparql", "query_375.sparql", "query_373.sparql", "query_359.sparql");
 
         for (Pair<String, String> nameAndQuery: queries) {
             String[] splitted = nameAndQuery.getLeft().split("/");

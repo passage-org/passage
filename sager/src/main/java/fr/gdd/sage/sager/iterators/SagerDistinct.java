@@ -3,11 +3,17 @@ package fr.gdd.sage.sager.iterators;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.pause.Save2SPARQL;
+import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpDistinct;
+import org.apache.jena.sparql.algebra.op.OpFilter;
+import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ExecutionContext;
+import org.apache.jena.sparql.expr.*;
+import org.apache.jena.sparql.util.ExprUtils;
 
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * A distinct iterator that only check if the last one is the same, because it assumes
@@ -52,5 +58,21 @@ public class SagerDistinct<ID,VALUE> implements Iterator<BackendBindings<ID,VALU
         lastBinding = newBinding;
         newBinding = null; // consumed
         return lastBinding;
+    }
+
+    public Op getFilter(Op subop) {
+        ExprList exprs = new ExprList();
+
+        // TODO use E_NotEquals and E_LogicalOr
+        String expr = lastBinding.vars().stream().map(
+                v-> String.format("%s != %s", v, lastBinding.get(v).getString())
+        ).collect(Collectors.joining( " || "));
+
+        for (Var v : lastBinding.vars()) {
+            String exprAsString = String.format("%s != %s", v, lastBinding.get(v).getString());
+            exprs.add(ExprUtils.parse(exprAsString));// ugly but whatever
+        }
+
+        return OpFilter.filter(ExprUtils.parse(expr), subop); // if empty, it returns subop
     }
 }

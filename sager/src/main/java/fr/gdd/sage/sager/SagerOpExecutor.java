@@ -129,7 +129,12 @@ public class SagerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         return new SagerScanFactory<>(input, execCxt, opTriple);
     }
 
-//    @Override
+    @Override
+    public Iterator<BackendBindings<ID, VALUE>> visit(OpFilter filter, Iterator<BackendBindings<ID, VALUE>> input) { // see QueryIterFilterExpr
+        return new SagerFilter<>(this, filter, ReturningArgsOpVisitorRouter.visit(this, filter.getSubOp(), input));
+    }
+
+    //    @Override
 //    public Iterator<BindingId2Value> visit(OpSequence sequence, Iterator<BindingId2Value> input) {
 //        for (Op op : sequence.getElements()) {
 //            input = ReturningArgsOpVisitorRouter.visit(this, op, input);

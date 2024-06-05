@@ -8,6 +8,7 @@ import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.generics.PtrMap;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.sager.SagerConstants;
+import fr.gdd.sage.sager.iterators.SagerDistinct;
 import fr.gdd.sage.sager.iterators.SagerOptional;
 import fr.gdd.sage.sager.iterators.SagerScanFactory;
 import fr.gdd.sage.sager.iterators.SagerUnion;
@@ -58,6 +59,35 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
     public Op visit(OpProject project) {
         Op subop =  ReturningOpVisitorRouter.visit(this, project.getSubOp());
         return Objects.isNull(subop) ? null : OpCloningUtil.clone(project, subop);
+    }
+
+    @Override
+    public Op visit(OpDistinct distinct) {
+        SagerDistinct<ID, VALUE> it = (SagerDistinct<ID, VALUE>) op2it.get(distinct);
+
+        // If the scan iterator is not registered, it should not be preempted
+        if (Objects.isNull(it)) {return null;}
+
+        Op subop = ReturningOpVisitorRouter.visit(this, distinct.getSubOp());
+
+        if (Objects.isNull(subop)) {return null;}
+
+        if (subop instanceof OpFilter filter) {
+            // TODO check that this cannot be a filter from somewhere else
+            // TODO btw, it would not be wrong semantically-wise to stack them, however
+            // TODO this would consume space.
+            subop = filter.getSubOp(); // remove the last filter applied
+        }
+
+        subop = it.getFilter(subop);
+
+        return OpCloningUtil.clone(distinct, subop);
+    }
+
+    @Override
+    public Op visit(OpFilter filter) {
+        Op subop = ReturningOpVisitorRouter.visit(this, filter.getSubOp());
+        return Objects.isNull(subop) ? null : OpCloningUtil.clone(filter, subop);
     }
 
     @Override
