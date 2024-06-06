@@ -1,19 +1,28 @@
 package fr.gdd.sage.sager.iterators;
 
+import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.sage.generics.BackendBindings;
+import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.SagerOpExecutor;
 import fr.gdd.sage.sager.accumulators.SagerAccCount;
 import fr.gdd.sage.sager.accumulators.SagerAccumulator;
+import fr.gdd.sage.sager.pause.Save2SPARQL;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.atlas.iterator.Iter;
+import org.apache.jena.sparql.algebra.Op;
+import org.apache.jena.sparql.algebra.op.OpExtend;
 import org.apache.jena.sparql.algebra.op.OpGroup;
 import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.expr.ExprAggregator;
+import org.apache.jena.sparql.core.VarExprList;
+import org.apache.jena.sparql.expr.*;
 import org.apache.jena.sparql.expr.aggregate.AggCount;
+import org.apache.jena.sparql.expr.nodevalue.NodeValueInteger;
+import org.apache.jena.sparql.util.ExprUtils;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
 
 public class SagerAgg<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
 
@@ -36,6 +45,10 @@ public class SagerAgg<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
             Var v = agg.getVar();
             var2accumulator = new ImmutablePair<>(v, sagerX);
         }
+
+        Save2SPARQL<ID,VALUE> saver = executor.getExecutionContext().getContext().get(SagerConstants.SAVER);
+        saver.register(op, this);
+
     }
 
     @Override
@@ -56,6 +69,52 @@ public class SagerAgg<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
 
         return createBinding(var2accumulator);
     }
+
+
+    public OpExtend save(OpExtend parent, Op subop) {
+        BackendBindings<ID,VALUE> export = createBinding(var2accumulator);
+
+        OpGroup clonedGB = OpCloningUtil.clone(op, subop);
+        OpExtend cloned = OpCloningUtil.clone(parent, clonedGB);
+
+        VarExprList exprList = parent.getVarExprList();
+        for (int i = 0; i < exprList.size(); ++i) {
+            Var varFullName = exprList.getVars().get(i);
+            Var varRenamed = null;
+            if (exprList.getExpr(varFullName) instanceof ExprVar exprVar) {
+                varRenamed = exprVar.asVar();
+            } else if (exprList.getExpr(varFullName) instanceof E_Add add) {
+                varRenamed = add.getArg1().asVar();
+            }
+
+            String binding = export.get(varRenamed).getString(); // substr because it has ""
+            binding = binding.substring(1, binding.length()-1); // ugly af
+
+            NodeValueInteger oldValue = new NodeValueInteger(0);
+            if (exprList.getExpr(varFullName) instanceof E_Add add) {
+                oldValue = (NodeValueInteger) add.getArg2();
+            }
+
+            NodeValue newValue = ExprUtils.eval(new E_Add(oldValue, (NodeValueInteger) NodeValue.parse(binding)));
+
+//            if (exprList.getExpr(varFullName) instanceof E_Add add) {
+//                E_Add old = (E_Add) exprList.getExpr(varFullName);
+//                NodeValue oldValue = (NodeValueInteger) old.getArg2();
+//            } else {
+//                old = exprList.getExpr(varFullName);
+//            }
+//            String binding = export.get(old.getArg1().asVar()).getString(); // substr because it has ""
+            // NodeValue newValue = ExprUtils.eval(new E_Add(oldValue, (NodeValueInteger) NodeValue.parse(binding.substring(1, binding.length()-1))));
+            Expr newExpr = new E_Add(new ExprVar(varRenamed), newValue); // ugly af
+            cloned.getVarExprList().remove(varFullName);
+            cloned.getVarExprList().add(varFullName, newExpr);
+        }
+
+        return cloned;
+    }
+
+
+    /* ************************************************************************* */
 
     private static <ID,VALUE> BackendBindings<ID,VALUE> getKeyBinding(List<Var> vars, BackendBindings<ID,VALUE> binding) {
         BackendBindings<ID,VALUE> keyBinding = new BackendBindings<>();

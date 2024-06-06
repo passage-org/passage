@@ -2,16 +2,15 @@ package fr.gdd.sage.sager.pause;
 
 import fr.gdd.jena.utils.FlattenUnflatten;
 import fr.gdd.jena.utils.OpCloningUtil;
+import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
+import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.jena.visitors.ReturningOpVisitor;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.generics.PtrMap;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.sager.SagerConstants;
-import fr.gdd.sage.sager.iterators.SagerDistinct;
-import fr.gdd.sage.sager.iterators.SagerOptional;
-import fr.gdd.sage.sager.iterators.SagerScanFactory;
-import fr.gdd.sage.sager.iterators.SagerUnion;
+import fr.gdd.sage.sager.iterators.*;
 import fr.gdd.sage.sager.resume.IsSkippable;
 import fr.gdd.sage.sager.resume.Subqueries2LeftOfJoins;
 import org.apache.jena.sparql.algebra.Op;
@@ -156,8 +155,20 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
 
     @Override
     public Op visit(OpExtend extend) { // cloned
-        // return OpCloningUtil.clone(extend, ReturningOpVisitorRouter.visit(this, extend.getSubOp()));
-        return null;
+        Op subop = ReturningOpVisitorRouter.visit(this, extend.getSubOp());
+
+        if (Objects.nonNull(subop) && subop instanceof OpGroup groupBy) {
+            // performed here because the value is saved in extend
+            SagerAgg<ID,VALUE> agg = (SagerAgg<ID, VALUE>) op2it.get(groupBy);
+
+            Op subopGB = ReturningOpVisitorRouter.visit(this, groupBy.getSubOp());
+
+            if (Objects.isNull(subopGB)) {return null;}
+
+            return agg.save(extend, subopGB);
+        }
+
+        return Objects.isNull(subop) ? null : OpCloningUtil.clone(extend, subop);
     }
 
     @Override
@@ -229,5 +240,13 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
             optional.preempt(right), // the right needs mandatory bindings
             rest
         ));
+    }
+
+    @Override
+    public Op visit(OpGroup groupBy) {
+        SagerAgg<ID,VALUE> it = (SagerAgg<ID, VALUE>) op2it.get(groupBy);
+        if (Objects.isNull(it)) return null;
+
+        return groupBy;
     }
 }

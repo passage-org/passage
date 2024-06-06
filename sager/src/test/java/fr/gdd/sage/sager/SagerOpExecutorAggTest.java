@@ -2,8 +2,6 @@ package fr.gdd.sage.sager;
 
 import fr.gdd.sage.blazegraph.BlazegraphBackend;
 import fr.gdd.sage.databases.inmemory.IM4Blazegraph;
-import fr.gdd.sage.databases.inmemory.IM4Jena;
-import fr.gdd.sage.jena.JenaBackend;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.junit.jupiter.api.Disabled;

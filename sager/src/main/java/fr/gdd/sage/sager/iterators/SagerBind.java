@@ -9,7 +9,9 @@ import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.core.VarExprList;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.expr.E_Add;
 import org.apache.jena.sparql.expr.Expr;
+import org.apache.jena.sparql.expr.ExprVar;
 import org.apache.jena.sparql.expr.NodeValue;
 
 import java.util.Iterator;
@@ -49,8 +51,10 @@ public class SagerBind<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> 
                     .setBackend(backend);
             if (expr.isVariable()) {
                 newBinding.setValue(b.get(expr.asVar()).getValue());
-            } else {
+            } else if (expr.isConstant()) {
                 newBinding.setString(expr.toString()); // try subject
+            } else if (expr instanceof E_Add add) {
+                throw new UnsupportedOperationException("add");
             }
 
             b.put(v, newBinding);
