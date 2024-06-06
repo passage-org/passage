@@ -13,6 +13,8 @@ import org.apache.jena.sparql.expr.E_Add;
 import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.expr.ExprVar;
 import org.apache.jena.sparql.expr.NodeValue;
+import org.apache.jena.sparql.expr.nodevalue.NodeValueInteger;
+import org.apache.jena.sparql.util.ExprUtils;
 
 import java.util.Iterator;
 
@@ -43,6 +45,7 @@ public class SagerBind<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> 
         BackendBindings<ID,VALUE> current = input.next();
         BackendBindings<ID,VALUE> b = new BackendBindings<ID,VALUE>().setParent(current);
         // BackendBindings<ID,VALUE> b = new BindingId2Value().setParent(current).setDefaultTable(current.getDefaultTable());
+        // BackendBindings<ID,VALUE> b = new BackendBindings<ID,VALUE>();
 
         for (Var v : exprs.getVars()) {
             Expr expr = exprs.getExpr(v);
@@ -54,7 +57,13 @@ public class SagerBind<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> 
             } else if (expr.isConstant()) {
                 newBinding.setString(expr.toString()); // try subject
             } else if (expr instanceof E_Add add) {
-                throw new UnsupportedOperationException("add");
+                String binding = current.get(add.getArg1().asVar()).getString(); // substr because it has ""
+                binding = binding.substring(1, binding.length()-1); // ugly af
+
+                NodeValueInteger right = (NodeValueInteger) add.getArg2();
+
+                NodeValue newValue = ExprUtils.eval(new E_Add(right, (NodeValueInteger) NodeValue.parse(binding)));
+                newBinding.setString(newValue.asString());
             }
 
             b.put(v, newBinding);

@@ -58,7 +58,7 @@ public class Save2SPARQLAggTimeoutTest {
 
         }
         assertEquals(1, sum); // 1 result where ?count = 3
-        assertEquals(3, nbPreempt);
+        assertEquals(1, nbPreempt);
     }
 
 
