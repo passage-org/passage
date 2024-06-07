@@ -218,7 +218,6 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
     public long countQuery(String queryString) throws RepositoryException, MalformedQueryException, QueryEvaluationException {
         TupleQuery tupleQuery = connection.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         TupleQueryResult result = tupleQuery.evaluate();
-        long start = System.currentTimeMillis();
         long count = 0L;
         while (result.hasNext()) {
             log.debug(result.next().toString());

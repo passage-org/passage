@@ -16,7 +16,6 @@ import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpAsQuery;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.engine.ExecutionContext;
-import org.apache.jena.sparql.expr.aggregate.AggCount;
 
 import java.util.Iterator;
 import java.util.Objects;

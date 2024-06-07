@@ -30,6 +30,7 @@ public class SagerAgg<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
     final OpGroup op;
     final Iterator<BackendBindings<ID,VALUE>> input;
 
+    BackendBindings<ID,VALUE> inputBinding;
     Pair<Var, SagerAccumulator<ID,VALUE>> var2accumulator = null;
 
     public SagerAgg (SagerOpExecutor<ID, VALUE> executor, OpGroup op, Iterator<BackendBindings<ID,VALUE>> input){
@@ -58,7 +59,8 @@ public class SagerAgg<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
 
     @Override
     public BackendBindings<ID, VALUE> next() {
-        Iterator<BackendBindings<ID,VALUE>> subop = ReturningArgsOpVisitorRouter.visit(executor, op.getSubOp(), Iter.of(input.next()));
+        inputBinding = input.next();
+        Iterator<BackendBindings<ID,VALUE>> subop = ReturningArgsOpVisitorRouter.visit(executor, op.getSubOp(), Iter.of(inputBinding));
 
         while (subop.hasNext()) {
             BackendBindings<ID,VALUE> bindings = subop.next();
@@ -76,6 +78,10 @@ public class SagerAgg<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
 
         OpGroup clonedGB = OpCloningUtil.clone(op, subop);
         OpExtend cloned = OpCloningUtil.clone(parent, clonedGB);
+
+//        for (Var v : inputBinding.vars()) {
+//            clonedGB.getGroupVars().add(v);
+//        }
 
         VarExprList exprList = parent.getVarExprList();
         for (int i = 0; i < exprList.size(); ++i) {
@@ -95,17 +101,11 @@ public class SagerAgg<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
                 oldValue = (NodeValueInteger) add.getArg2();
             }
 
-            NodeValue newValue = ExprUtils.eval(new E_Add(oldValue, (NodeValueInteger) NodeValue.parse(binding)));
+            NodeValue newValue = ExprUtils.eval(new E_Add(oldValue, NodeValue.parse(binding)));
 
-//            if (exprList.getExpr(varFullName) instanceof E_Add add) {
-//                E_Add old = (E_Add) exprList.getExpr(varFullName);
-//                NodeValue oldValue = (NodeValueInteger) old.getArg2();
-//            } else {
-//                old = exprList.getExpr(varFullName);
-//            }
-//            String binding = export.get(old.getArg1().asVar()).getString(); // substr because it has ""
-            // NodeValue newValue = ExprUtils.eval(new E_Add(oldValue, (NodeValueInteger) NodeValue.parse(binding.substring(1, binding.length()-1))));
-            Expr newExpr = new E_Add(new ExprVar(varRenamed), newValue); // ugly af
+            Expr newExpr = newValue.equals(new NodeValueInteger((0))) ? // 0 is default, so we can remove it when it is
+                    new ExprVar(varRenamed) :
+                    new E_Add(new ExprVar(varRenamed), newValue); // ugly af
             cloned.getVarExprList().remove(varFullName);
             cloned.getVarExprList().add(varFullName, newExpr);
         }
