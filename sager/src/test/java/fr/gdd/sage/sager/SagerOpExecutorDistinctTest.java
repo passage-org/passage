@@ -54,4 +54,23 @@ public class SagerOpExecutorDistinctTest {
         assertEquals(1, nbResults); // Nantes only, since only Alice has animals
     }
 
+    @Test
+    public void distinct_of_bgp_rewritten() {
+        String query = """
+        SELECT DISTINCT ?address WHERE {
+            {SELECT DISTINCT ?address ?person WHERE {
+                ?person <http://address> ?address .
+            }}
+            {SELECT DISTINCT ?person WHERE {
+                ?person <http://own> ?animal .
+            }}
+        }""";
+
+        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
+        ec.getContext().set(SagerConstants.BACKEND, blazegraph);
+
+        int nbResults = SagerOpExecutorTest.executeWithSager(query, ec);
+        assertEquals(1, nbResults); // Nantes only, since only Alice has animals
+    }
+
 }

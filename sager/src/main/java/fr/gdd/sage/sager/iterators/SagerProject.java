@@ -34,7 +34,7 @@ public class SagerProject<ID,VALUE> implements Iterator<BackendBindings<ID, VALU
             this.instantiated = ReturningArgsOpVisitorRouter.visit(executor, project.getSubOp(), Iter.of(inputBinding));
         }
 
-        return true;
+        return instantiated.hasNext();
     }
 
     @Override

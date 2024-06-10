@@ -46,6 +46,25 @@ public class Save2SPARQLDistinctTest {
 
         int nbResults = executeAll(queryAsString);
         assertEquals(1, nbResults); // Nantes only since only Alice has animals
+
+        // Produces:
+        //        SELECT DISTINCT  *  WHERE {
+        //          { SELECT  ?address  WHERE {
+        //              { { SELECT  *  WHERE
+        //                { BIND(<http://Alice> AS ?person)
+        //                  BIND(<http://nantes> AS ?address)
+        //                  ?person  <http://own>  ?animal }
+        //                OFFSET  1 }
+        //              } UNION {
+        //                { SELECT  *  WHERE { ?person  <http://address>  ?address }  OFFSET  1 } ## FILTER can be pushed down here
+        //                ?person  <http://own>  ?animal
+        //                } }
+        //         } ## here should: ORDER BY ?address
+        //         FILTER ( ?address != <http://nantes> )
+        //        }
+        // Question is: is it still valid with reordering?
+        // A) Here, we can simplify the first part of the union since BIND are FILTERED
+        // B) Does it need ORDER BY ? yes, should have an OrderBy ?address on the big one
     }
 
     /* ************************************************************* */

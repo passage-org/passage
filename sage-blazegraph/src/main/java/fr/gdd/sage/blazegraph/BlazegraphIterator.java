@@ -73,7 +73,11 @@ public class BlazegraphIterator extends BackendIterator<IV, BigdataValue, Long> 
     }
 
     public boolean hasNext() {
-        return this.tupleIterator.hasNext();
+        try {
+            return this.tupleIterator.hasNext();
+        } catch (Exception e ) {
+            return false;
+        }
     }
 
     public void next() {
