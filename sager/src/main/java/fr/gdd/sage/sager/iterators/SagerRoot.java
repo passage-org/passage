@@ -16,7 +16,9 @@ public class SagerRoot<T> implements Iterator<T> {
     final Save2SPARQL saver;
     final Iterator<T> wrapped;
     final ExecutionContext context;
+    final Long limit;
 
+    long count = 0L;
     boolean doesHaveNext = false;
     boolean consumed = true;
     T buffered = null;
@@ -25,10 +27,15 @@ public class SagerRoot<T> implements Iterator<T> {
         this.wrapped = wrapped;
         this.saver = context.getContext().get(SagerConstants.SAVER);
         this.context = context;
+        this.limit = context.getContext().get(SagerConstants.LIMIT);
     }
 
     @Override
     public boolean hasNext() {
+        if (count >= limit) {
+            return false;
+        }
+
         if (!consumed) {
             return doesHaveNext;
         }
@@ -56,6 +63,7 @@ public class SagerRoot<T> implements Iterator<T> {
 
     @Override
     public T next() {
+        count += 1;
         consumed = true;
         return buffered;
     }

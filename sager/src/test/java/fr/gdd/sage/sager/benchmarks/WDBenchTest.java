@@ -4,6 +4,7 @@ import com.bigdata.concurrent.TimeoutException;
 import fr.gdd.sage.blazegraph.BlazegraphBackend;
 import fr.gdd.sage.databases.persistent.Watdiv10M;
 import fr.gdd.sage.sager.optimizers.CardinalityJoinOrdering;
+import fr.gdd.sage.sager.pause.Save2SPARQLTest;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.algebra.Algebra;
@@ -18,7 +19,10 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Disabled
 public class WDBenchTest {
@@ -85,7 +89,46 @@ public class WDBenchTest {
             long elapsed = System.currentTimeMillis() - start;
 
             log.info("{} {} {} {} {}", name, 0, nbResults, elapsed, timedout);
-     }
+        }
     }
 
+
+
+    @Disabled
+    @Test
+    public void execute_a_particular_opt_query_with_preempt () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
+        String name = "meow";
+        String query = """
+                SELECT * WHERE {
+                  ?x1 <http://www.wikidata.org/prop/direct/P31> <http://www.wikidata.org/entity/Q850270> .
+                  OPTIONAL { ?x1 <http://www.wikidata.org/prop/direct/P18> ?x2 . }
+                }
+                """;
+
+        log.debug("Executing query {}…", name);
+
+        long nbResults = 0;
+        int nbPreempt = -1;
+        long start = System.currentTimeMillis();
+        // nbResults = wdbenchBlazegraph.countQuery(query, TIMEOUT);
+//        while (Objects.nonNull(query)) {
+//            log.debug(query);
+//            var result = Save2SPARQLTest.executeQueryWithTimeout(query, wdbenchBlazegraph, 200L); // 1s timeout
+//            nbResults += result.getLeft();
+//            query = result.getRight();
+//            nbPreempt += 1;
+//        }
+
+
+        while (Objects.nonNull(query)) {
+            log.debug(query);
+            var result = Save2SPARQLTest.executeQuery(query, wdbenchBlazegraph);
+            nbResults += result.getLeft();
+            query = result.getRight();
+            nbPreempt += 1;
+        }
+        long elapsed = System.currentTimeMillis() - start;
+
+        log.info("{} {} {} {}", name, nbPreempt, nbResults, elapsed);
+    }
 }

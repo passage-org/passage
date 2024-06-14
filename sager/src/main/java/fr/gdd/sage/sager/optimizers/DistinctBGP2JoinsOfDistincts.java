@@ -29,10 +29,11 @@ public class DistinctBGP2JoinsOfDistincts extends ReturningOpBaseVisitor {
 
     @Override
     public Op visit(OpDistinct distinct) {
+        // TODO TODO TODO
         if (distinct.getSubOp() instanceof OpBGP || // Project *
                 (distinct.getSubOp() instanceof OpProject project && // Project Vars
                         project.getSubOp() instanceof OpBGP bgp)) {
-            throw new UnsupportedOperationException("TODO");
+            throw new UnsupportedOperationException("TODO"); // TODO TODO
         }
         return super.visit(distinct); // otherwise copy
     }

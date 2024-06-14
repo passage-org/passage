@@ -45,17 +45,17 @@ public class Save2SPARQLTest {
 
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
         ec.getContext().set(SagerConstants.BACKEND, backend);
-        ec.getContext().set(SagerConstants.LIMIT, 1);
 
-        SagerOpExecutor<ID, VALUE> executor = new SagerOpExecutor<>(ec);
+        SagerOpExecutor<ID, VALUE> executor = new SagerOpExecutor<ID,VALUE>(ec).setLimit(1L);
 
         Iterator<BackendBindings<ID, VALUE>> iterator = executor.execute(query);
-        if (!iterator.hasNext()) {
-            return new ImmutablePair<>(0, executor.pauseAsString());
-        }
-        log.debug("{}", iterator.next());
+        int nbResults = 0;
+        while (iterator.hasNext()) {
+            log.debug("{}", iterator.next());
+            nbResults += 1;
+        };
 
-        return new ImmutablePair<>(1, executor.pauseAsString());
+        return new ImmutablePair<>(nbResults, executor.pauseAsString());
     }
 
     /**
