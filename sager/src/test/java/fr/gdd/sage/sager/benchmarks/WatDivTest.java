@@ -2,6 +2,7 @@ package fr.gdd.sage.sager.benchmarks;
 
 import fr.gdd.sage.blazegraph.BlazegraphBackend;
 import fr.gdd.sage.databases.persistent.Watdiv10M;
+import fr.gdd.sage.sager.iterators.SagerScan;
 import fr.gdd.sage.sager.pause.Save2SPARQLTest;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Disabled;
@@ -12,10 +13,11 @@ import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -25,29 +27,39 @@ public class WatDivTest {
     private final static Logger log = LoggerFactory.getLogger(WatDivTest.class);
     static BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
 
+
     @Disabled
     @Test
-    public void watdiv_with_1s_timeout () {
+    public void watdiv_with_1s_timeout () throws IOException {
+        Map<String, Long> groundTruth = readGroundTruth("/Users/nedelec-b-2/Desktop/Projects/sage-jena/results/baseline.csv", 2);
         List<Pair<String, String>> queries = Watdiv10M.getQueries("/Users/nedelec-b-2/Desktop/Projects/" + Watdiv10M.QUERIES_PATH, Watdiv10M.blacklist);
+
+        SagerScan.stopping = Save2SPARQLTest.stopEveryThreeScans;
+
+        Set<String> skip = Set.of("query_10122.sparql", "query_10020.sparql", "query_10061.sparql", "query_10168.sparql",
+                "query_10083.sparql");
 
         for (Pair<String, String> nameAndQuery : queries) {
             String[] splitted = nameAndQuery.getLeft().split("/");
             String name = splitted[splitted.length-1];
+            // if (!Objects.equals(name, "query_10088.sparql")) { continue ; }
+            if (skip.contains(name)) {continue;}
             String query = nameAndQuery.getRight();
-            log.debug("Executing query {}…", name);
+            log.info("Executing query {}…", name);
 
             int nbResults = 0;
             int nbPreempt = -1;
             long start = System.currentTimeMillis();
             while (Objects.nonNull(query)) {
                 log.debug(query);
-                var result = Save2SPARQLTest.executeQueryWithTimeout(query, watdivBlazegraph, 60000L); // 1s timeout
+                var result = Save2SPARQLTest.executeQuery(query, watdivBlazegraph);
+                // var result = Save2SPARQLTest.executeQueryWithTimeout(query, watdivBlazegraph, 60000L); // 1s timeout
                 nbResults += result.getLeft();
                 query = result.getRight();
                 nbPreempt += 1;
             }
             long elapsed = System.currentTimeMillis() - start;
-
+            assertEquals (groundTruth.get(name), (long) nbResults);
             log.info("{} {} {} {}", name, nbPreempt, nbResults, elapsed);
         }
     }
@@ -118,6 +130,29 @@ public class WatDivTest {
         long elapsed = System.currentTimeMillis() - start;
 
         log.info("{} {} {} {}", "query_10061", 0, nbResults, elapsed);
+    }
+
+//    @Disabled
+//    @Test
+//    public void meow () throws IOException {
+//        var woof = readGroundTruth("/Users/nedelec-b-2/Desktop/Projects/sage-jena/results/baseline.csv", 2);
+//        System.out.println(woof);
+//    }
+
+    public static Map<String, Long> readGroundTruth(String pathAsString, Integer column) throws IOException {
+        List<List<String>> records = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(pathAsString))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] values = line.split(",");
+                records.add(Arrays.asList(values));
+            }
+        }
+
+        // skip header
+        records.remove(0);
+
+        return records.stream().map(l -> Map.entry(l.get(0), Long.parseLong(l.get(column)))).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
 }

@@ -24,6 +24,7 @@ public class SagerScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE>
      * e.g., for testing purposes.
      */
     public static Function<ExecutionContext, Boolean> stopping = (ec) ->
+            // ec.getContext().getLong(SagerConstants.SCANS, Long.MAX_VALUE) > 1 &&
             System.currentTimeMillis() >= ec.getContext().getLong(SagerConstants.DEADLINE, Long.MAX_VALUE);
 
     final Long deadline;

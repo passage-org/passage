@@ -70,22 +70,32 @@ public class SagerOptional<ID,VALUE>  implements Iterator<BackendBindings<ID, VA
             inputBinding = input.next();
 
             mandatory = ReturningArgsOpVisitorRouter.visit(executor, op.getLeft(), Iter.of(inputBinding));
+            mandatoryBinding = null;
         }
-        if (!mandatory.hasNext()) { // after iterating over all elements, might not exists, so we stop there.
+        if (!mandatory.hasNext()) { // after iterating over all elements, might not exist, so we stop there.
             return false;
         }
 
         // if the mandatory part exists, no need to iterate, since we will return it;
-        mandatoryBinding = mandatory.next();
+        // but we do not need to next each time…
+        if (Objects.isNull(mandatoryBinding)) {
+            mandatoryBinding = mandatory.next();
+        };
+
         optional = ReturningArgsOpVisitorRouter.visit(executor, op.getRight(), Iter.of(mandatoryBinding));
         noOptionalPart = !optional.hasNext(); // make sure all hasNext are called in hasNext
+        if (!noOptionalPart) {
+            mandatoryBinding = null;
+        }
         return true;
     }
 
     @Override
     public BackendBindings<ID, VALUE> next() {
         if (noOptionalPart) {
-            return mandatoryBinding;
+            BackendBindings<ID,VALUE> consumed = mandatoryBinding;
+            mandatoryBinding = null;
+            return consumed;
         } else {
             optionalBinding = optional.next();
             return optionalBinding;
@@ -93,7 +103,7 @@ public class SagerOptional<ID,VALUE>  implements Iterator<BackendBindings<ID, VA
     }
 
     public Op preempt(Op preemptedRight) {
-        if (Objects.isNull(mandatoryBinding)) return null;
+        if (Objects.isNull(mandatoryBinding)) return null; // TODO probably something to do with this condition
 
         Set<Var> mandatoryVars = mandatoryBinding.vars();
         OpSequence seq = OpSequence.create();

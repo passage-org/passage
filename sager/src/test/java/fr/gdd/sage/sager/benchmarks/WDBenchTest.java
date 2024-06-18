@@ -3,6 +3,7 @@ package fr.gdd.sage.sager.benchmarks;
 import com.bigdata.concurrent.TimeoutException;
 import fr.gdd.sage.blazegraph.BlazegraphBackend;
 import fr.gdd.sage.databases.persistent.Watdiv10M;
+import fr.gdd.sage.sager.iterators.SagerScan;
 import fr.gdd.sage.sager.optimizers.CardinalityJoinOrdering;
 import fr.gdd.sage.sager.pause.Save2SPARQLTest;
 import org.apache.commons.lang3.tuple.Pair;
@@ -99,13 +100,11 @@ public class WDBenchTest {
     public void execute_a_particular_opt_query_with_preempt () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
         String name = "meow";
         String query = """
-                SELECT * WHERE {
+                SELECT * WHERE { # 1598 results expected
                   ?x1 <http://www.wikidata.org/prop/direct/P31> <http://www.wikidata.org/entity/Q850270> .
                   OPTIONAL { ?x1 <http://www.wikidata.org/prop/direct/P18> ?x2 . }
                 }
                 """;
-
-        log.debug("Executing query {}…", name);
 
         long nbResults = 0;
         int nbPreempt = -1;
@@ -113,22 +112,79 @@ public class WDBenchTest {
         // nbResults = wdbenchBlazegraph.countQuery(query, TIMEOUT);
 //        while (Objects.nonNull(query)) {
 //            log.debug(query);
-//            var result = Save2SPARQLTest.executeQueryWithTimeout(query, wdbenchBlazegraph, 200L); // 1s timeout
+//            var result = Save2SPARQLTest.executeQueryWithTimeout(query, wdbenchBlazegraph, 2L); // 1s timeout
 //            nbResults += result.getLeft();
 //            query = result.getRight();
 //            nbPreempt += 1;
 //        }
 
+//        while (Objects.nonNull(query)) {
+//            log.debug(query);
+//            var result = Save2SPARQLTest.executeQuery(query, wdbenchBlazegraph, 3L);
+//            nbResults += result.getLeft();
+//            query = result.getRight();
+//            nbPreempt += 1;
+//        }
 
+        SagerScan.stopping = Save2SPARQLTest.stopEveryThreeScans;
         while (Objects.nonNull(query)) {
             log.debug(query);
-            var result = Save2SPARQLTest.executeQuery(query, wdbenchBlazegraph);
+            var result = Save2SPARQLTest.executeQuery(query, wdbenchBlazegraph, 10000L);
             nbResults += result.getLeft();
             query = result.getRight();
             nbPreempt += 1;
         }
-        long elapsed = System.currentTimeMillis() - start;
 
+        long elapsed = System.currentTimeMillis() - start;
         log.info("{} {} {} {}", name, nbPreempt, nbResults, elapsed);
+        assertEquals(1598, nbResults);
+    }
+
+    @Disabled
+    @Test
+    public void execute_preempted_query() throws QueryEvaluationException, MalformedQueryException, RepositoryException {
+//        String queryAsString = """
+//                SELECT * WHERE {
+//                { SELECT  * WHERE {
+//                    ?x1  <http://www.wikidata.org/prop/direct/P31>  <http://www.wikidata.org/entity/Q850270>
+//                } OFFSET  433 }
+//                OPTIONAL {
+//                    ?x1  <http://www.wikidata.org/prop/direct/P18>  ?x2
+//                } }""";
+
+        // for whatever reason, the SECOND result {?x1-> <http://www.wikidata.org/entity/Q738663> ; } exists in
+        // the query above, and disappear in the query below… Does it come from UNION, or OPTIONAL?
+
+        String queryAsString = """
+                SELECT  * WHERE {
+                { { SELECT  * WHERE {
+                        BIND(<http://www.wikidata.org/entity/Q660850> AS ?x1)
+                        ?x1  <http://www.wikidata.org/prop/direct/P18>  ?x2
+                  } OFFSET  1 }
+                } UNION
+                { { SELECT  * WHERE {
+                        ?x1  <http://www.wikidata.org/prop/direct/P31>  <http://www.wikidata.org/entity/Q850270>
+                  } OFFSET  433 }
+                  OPTIONAL {
+                        ?x1  <http://www.wikidata.org/prop/direct/P18>  ?x2
+                  }
+                } }""";
+
+        // below it saves wrong, skipping a result before it's consumed
+        queryAsString = """
+                SELECT  *
+                WHERE
+                  { { SELECT  *
+                      WHERE
+                        { ?x1  <http://www.wikidata.org/prop/direct/P31>  <http://www.wikidata.org/entity/Q850270> }
+                      OFFSET  434
+                    }
+                    OPTIONAL
+                      { ?x1  <http://www.wikidata.org/prop/direct/P18>  ?x2 }
+                  }
+                """;
+        // var result = Save2SPARQLTest.executeQuery(queryAsString, wdbenchBlazegraph, 10000L);
+        var results = wdbenchBlazegraph.executeQuery(queryAsString);
+         System.out.println(results);
     }
 }
