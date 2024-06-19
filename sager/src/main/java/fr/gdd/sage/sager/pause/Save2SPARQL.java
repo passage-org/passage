@@ -176,7 +176,7 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
         if (!table.isJoinIdentity()){
             throw new UnsupportedOperationException("OpTable not implemented when not join identity…");
         }
-        return table;
+        return null; // TODO preempted singleton is none.
     }
 
     @Override
@@ -211,9 +211,7 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
 //                    return FlattenUnflatten.unflattenUnion(Collections.singletonList(project.getSubOp()));
 //                }
 //                 return FlattenUnflatten.unflattenUnion(Collections.singletonList(right));
-                if (Objects.isNull(right)) {
-                    return null;
-                }
+
                 return FlattenUnflatten.unflattenUnion(
                         Collections.singletonList(OpCloningUtil.clone(lj, lj.getLeft(), right)));
             }
@@ -221,10 +219,6 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
                     OpCloningUtil.clone(lj, left, lj.getRight()))); // but here, it's an optional still
         }
 
-//        // But it might mean that the optional part is not executed yet
-//        if (Objects.isNull(left) && Objects.isNull(right)) {
-//            return null;
-//        }
 
         if (Objects.isNull(left)) {
             return FlattenUnflatten.unflattenUnion(Arrays.asList(

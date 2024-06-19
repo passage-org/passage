@@ -10,6 +10,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
+import org.apache.jena.sparql.algebra.OpAsQuery;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.query.MalformedQueryException;
@@ -18,10 +19,9 @@ import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -34,7 +34,8 @@ public class WDBenchTest {
 
     @Disabled
     @Test
-    public void execute_and_monitor_optionals_of_wdbench () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
+    public void execute_and_monitor_optionals_of_wdbench () throws QueryEvaluationException, MalformedQueryException, RepositoryException, IOException {
+        Map<String, Long> groundTruth = WatDivTest.readGroundTruth("/Users/nedelec-b-2/Desktop/Projects/sage-jena/results/wdbench_opts", 2);
         List<Pair<String, String>> queries = Watdiv10M.getQueries("/Users/nedelec-b-2/Desktop/Projects/sage-jena-benchmarks/queries/wdbench_opts", List.of());
 
         List<Pair<String, String>> filtered = new ArrayList<>();
@@ -94,6 +95,50 @@ public class WDBenchTest {
     }
 
 
+    @Disabled
+    @Test
+    public void run_wdbench_opts_based_on_baseline_csv () throws IOException {
+        Map<String, Long> groundTruth = WatDivTest.readGroundTruth("/Users/nedelec-b-2/Desktop/Projects/sage-jena/results/wdbench_opts/baseline.csv", 2);
+        Map<String, Long> executionTimes = WatDivTest.readGroundTruth("/Users/nedelec-b-2/Desktop/Projects/sage-jena/results/wdbench_opts/baseline.csv", 3);
+
+        List<String> sortedByTimes = executionTimes.entrySet().stream().sorted(Map.Entry.comparingByValue()).map(Map.Entry::getKey).toList();
+
+        String queryPath = "/Users/nedelec-b-2/Desktop/Projects/sage-jena-benchmarks/queries/wdbench_opts";
+
+        for (String name : sortedByTimes) {
+            log.info("Executing " + name + "…");
+            if (!name.equals("query_21.sparql")) {continue;}
+            long nbResults = 0;
+            int nbPreempt = -1;
+            long start = System.currentTimeMillis();
+
+            String query = Watdiv10M.readQueryFromFile(queryPath+"/"+name).getValue();
+            Op original = Algebra.compile(QueryFactory.create(query));
+            CardinalityJoinOrdering cjo = new CardinalityJoinOrdering(wdbenchBlazegraph);
+            Op reordered = cjo.visit(original);
+            query = OpAsQuery.asQuery(reordered).toString();
+
+            // SagerScan.stopping = Save2SPARQLTest.stopEveryFiveScans;
+            try {
+            while (Objects.nonNull(query)) {
+                log.debug("nbResults so far: " + nbResults);
+                log.debug(query);
+                var result = Save2SPARQLTest.executeQuery(query, wdbenchBlazegraph, 1000L);
+                nbResults += result.getLeft();
+                query = result.getRight();
+                nbPreempt += 1;
+            }
+
+            long elapsed = System.currentTimeMillis() - start;
+            log.info("{} {} {} {}", name, nbPreempt, nbResults, elapsed);
+            assertEquals(groundTruth.get(name), nbResults);
+            } catch (fr.gdd.sage.exceptions.NotFoundException e) {
+                log.info("Skipped.");
+            }
+        }
+    }
+
+
 
     @Disabled
     @Test
@@ -126,7 +171,7 @@ public class WDBenchTest {
 //            nbPreempt += 1;
 //        }
 
-        SagerScan.stopping = Save2SPARQLTest.stopEveryTwoScans;
+        SagerScan.stopping = Save2SPARQLTest.stopEveryFiveScans;
         while (Objects.nonNull(query)) {
             log.debug(query);
             var result = Save2SPARQLTest.executeQuery(query, wdbenchBlazegraph, 10000L);
