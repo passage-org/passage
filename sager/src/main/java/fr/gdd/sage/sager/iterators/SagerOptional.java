@@ -1,5 +1,6 @@
 package fr.gdd.sage.sager.iterators;
 
+import com.github.jsonldjava.utils.Obj;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.sager.SagerConstants;
@@ -57,11 +58,11 @@ public class SagerOptional<ID,VALUE>  implements Iterator<BackendBindings<ID, VA
     @Override
     public boolean hasNext() {
         // optional part already exists and need to be iterated over
-        if (optional.hasNext()) {
+        if (optional.hasNext() || mandatory.hasNext()) {
             return true;
         }
 
-        if (!mandatory.hasNext() && !input.hasNext()) {
+        if (!input.hasNext()) { // we need input at this point if optional and mandatory failed
             return false;
         }
 
@@ -72,38 +73,55 @@ public class SagerOptional<ID,VALUE>  implements Iterator<BackendBindings<ID, VA
             mandatory = ReturningArgsOpVisitorRouter.visit(executor, op.getLeft(), Iter.of(inputBinding));
             mandatoryBinding = null;
         }
-        if (!mandatory.hasNext()) { // after iterating over all elements, might not exist, so we stop there.
-            return false;
-        }
 
-        // if the mandatory part exists, no need to iterate, since we will return it;
-        // but we do not need to next each time…
-        if (Objects.isNull(mandatoryBinding)) {
-            mandatoryBinding = mandatory.next();
-        };
+        return mandatory.hasNext();
 
-        optional = ReturningArgsOpVisitorRouter.visit(executor, op.getRight(), Iter.of(mandatoryBinding));
-        noOptionalPart = !optional.hasNext(); // make sure all hasNext are called in hasNext
-        if (!noOptionalPart) {
-            mandatoryBinding = null;
-        }
-        return true;
+//        // if the mandatory part exists, no need to iterate, since we will return it;
+//        // but we do not need to next each time…
+//        if (Objects.isNull(mandatoryBinding)) {
+//            mandatoryBinding = mandatory.next();
+//        };
+//
+//        optional = ReturningArgsOpVisitorRouter.visit(executor, op.getRight(), Iter.of(mandatoryBinding));
+//        noOptionalPart = !optional.hasNext(); // make sure all hasNext are called in hasNext
+//        if (!noOptionalPart) {
+//            mandatoryBinding = null;
+//        }
+//        return true;
     }
 
     @Override
     public BackendBindings<ID, VALUE> next() {
-        if (noOptionalPart) {
-            BackendBindings<ID,VALUE> consumed = mandatoryBinding;
+        // At this point, we know that at least mandatory exists.
+        if (Objects.isNull(mandatoryBinding)) {
+            mandatoryBinding = mandatory.next();
+            optional = ReturningArgsOpVisitorRouter.visit(executor, op.getRight(), Iter.of(mandatoryBinding));
+            optionalBinding = null;
+            noOptionalPart = true;
+        }
+
+        // but we check optional first, since it's priority 1
+        if (optional.hasNext()) {
+            noOptionalPart = false;
+            optionalBinding = optional.next();
+            return optionalBinding;
+        }
+
+        // otherwise, we check mandatory, but it should not produce if optional produced
+        // even in previous calls to next.
+        if (Objects.isNull(optionalBinding)) {
+            BackendBindings<ID, VALUE> consumed = mandatoryBinding;
             mandatoryBinding = null;
             return consumed;
         } else {
-            optionalBinding = optional.next();
-            return optionalBinding;
+            // optional has been fully consumed before, mandatory next needed
+            mandatoryBinding = null;
+            return this.next();
         }
     }
 
     public Op preempt(Op preemptedRight) {
-        if (Objects.isNull(mandatoryBinding)) return null; // TODO probably something to do with this condition
+        if (Objects.isNull(mandatoryBinding) && (Objects.isNull(optionalBinding) || !optional.hasNext())) return null; // TODO probably something to do with this condition
 
         Set<Var> mandatoryVars = mandatoryBinding.vars();
         OpSequence seq = OpSequence.create();

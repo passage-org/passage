@@ -28,9 +28,12 @@ public class Save2SPARQLTest {
 
     private static final Logger log = LoggerFactory.getLogger(Save2SPARQLTest.class);
 
+    // just a sample of stopping conditions based on scans
     public static final Function<ExecutionContext, Boolean> stopAtEveryScan = (ec) -> ec.getContext().getLong(SagerConstants.SCANS, 0L) >= 1;
     public static final Function<ExecutionContext, Boolean> stopEveryTwoScans = (ec) -> ec.getContext().getLong(SagerConstants.SCANS, 0L) >= 2;
     public static final Function<ExecutionContext, Boolean> stopEveryThreeScans = (ec) -> ec.getContext().getLong(SagerConstants.SCANS, 0L) >= 3;
+    public static final Function<ExecutionContext, Boolean> stopEveryFourScans = (ec) -> ec.getContext().getLong(SagerConstants.SCANS, 0L) >= 4;
+    public static final Function<ExecutionContext, Boolean> stopEveryFiveScans = (ec) -> ec.getContext().getLong(SagerConstants.SCANS, 0L) >= 5;
 
     /**
      * @param queryAsString The SPARQL query to execute.

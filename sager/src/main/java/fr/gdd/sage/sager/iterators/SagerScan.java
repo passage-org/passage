@@ -59,8 +59,6 @@ public class SagerScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE>
             throw new PauseException(op);
         }
 
-        // if (!result) { saver.unregister(op); } // TODO think about when to clean, same for UNION
-
         return result;
     }
 

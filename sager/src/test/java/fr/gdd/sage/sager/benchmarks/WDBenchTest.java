@@ -126,7 +126,7 @@ public class WDBenchTest {
 //            nbPreempt += 1;
 //        }
 
-        SagerScan.stopping = Save2SPARQLTest.stopEveryThreeScans;
+        SagerScan.stopping = Save2SPARQLTest.stopEveryTwoScans;
         while (Objects.nonNull(query)) {
             log.debug(query);
             var result = Save2SPARQLTest.executeQuery(query, wdbenchBlazegraph, 10000L);
@@ -183,8 +183,8 @@ public class WDBenchTest {
                       { ?x1  <http://www.wikidata.org/prop/direct/P18>  ?x2 }
                   }
                 """;
-        // var result = Save2SPARQLTest.executeQuery(queryAsString, wdbenchBlazegraph, 10000L);
-        var results = wdbenchBlazegraph.executeQuery(queryAsString);
-         System.out.println(results);
+        var result = Save2SPARQLTest.executeQuery(queryAsString, wdbenchBlazegraph, 10000L);
+        //var results = wdbenchBlazegraph.executeQuery(queryAsString);
+        // System.out.println(results);
     }
 }
