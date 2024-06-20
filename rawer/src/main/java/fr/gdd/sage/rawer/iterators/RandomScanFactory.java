@@ -1,6 +1,7 @@
 package fr.gdd.sage.rawer.iterators;
 
 import fr.gdd.sage.generics.BackendBindings;
+import fr.gdd.sage.generics.CacheId;
 import fr.gdd.sage.generics.Substitutor;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.rawer.RawerConstants;
@@ -34,7 +35,7 @@ public class RandomScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID
             return false;
         } else while (!instantiated.hasNext() && input.hasNext()) {
             inputBinding = input.next();
-            Tuple3<ID> spo = Substitutor.substitute(backend, triple.getTriple(), inputBinding);
+            Tuple3<ID> spo = Substitutor.substitute(backend, triple.getTriple(), inputBinding, new CacheId<>(backend)); // TODO rework cache
 
             instantiated = new RandomScan<>(context, triple, spo);
         }
