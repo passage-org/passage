@@ -6,6 +6,7 @@ import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.generics.CacheId;
 import fr.gdd.sage.interfaces.Backend;
+import fr.gdd.sage.iterators.SagerBind;
 import fr.gdd.sage.sager.iterators.*;
 import fr.gdd.sage.sager.optimizers.Progress;
 import fr.gdd.sage.sager.optimizers.SagerOptimizer;
@@ -159,7 +160,7 @@ public class SagerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
     @Override
     public Iterator<BackendBindings<ID,VALUE>> visit(OpExtend extend, Iterator<BackendBindings<ID,VALUE>> input) {
         Iterator<BackendBindings<ID,VALUE>> newInput = ReturningArgsOpVisitorRouter.visit(this, extend.getSubOp(), input);
-        return new SagerBind<>(newInput, extend, execCxt);
+        return new SagerBind<>(newInput, extend, backend, execCxt);
     }
 
     @Override

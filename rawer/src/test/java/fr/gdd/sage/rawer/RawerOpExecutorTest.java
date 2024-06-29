@@ -94,7 +94,7 @@ public class RawerOpExecutorTest {
         Multiset<String> resultsBlaze = execute(queryAsString, new BlazegraphBackend(blazegraph), 1000L);
         // spo contains other default triples… That why we need more than 100L to
         // retrieve expected spo with high probability.
-        results.elementSet().forEach(e -> assertTrue(resultsBlaze.contains(e)));
+        results.elementSet().forEach(e -> assertTrue(resultsBlaze.contains(e))); // TODO output contains <> while the expected do not
         assertEquals(3, resultsBlaze.elementSet().size());
     }
 

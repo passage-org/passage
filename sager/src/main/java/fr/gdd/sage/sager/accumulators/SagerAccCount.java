@@ -3,7 +3,6 @@ package fr.gdd.sage.sager.accumulators;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.sager.SagerConstants;
-import fr.gdd.sage.sager.iterators.SagerBind;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.function.FunctionEnv;

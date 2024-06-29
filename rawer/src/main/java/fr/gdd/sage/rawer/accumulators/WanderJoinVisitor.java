@@ -15,15 +15,15 @@ import java.util.Iterator;
  */
 public class WanderJoinVisitor extends ReturningOpVisitor<Double> {
 
-    public final PtrMap<Op, Iterator<BackendBindings>> op2it;
+    public final PtrMap<Op, Iterator<BackendBindings<?,?>>> op2it;
 
-    public WanderJoinVisitor (PtrMap<Op, Iterator<BackendBindings>> op2it) {
+    public WanderJoinVisitor (PtrMap<Op, Iterator<BackendBindings<?,?>>> op2it) {
         this.op2it = op2it;
     }
 
     @Override
     public Double visit(OpTriple triple) {
-        RandomScan scan = (RandomScan) op2it.get(triple);
+        RandomScan<?,?> scan = (RandomScan<?,?>) op2it.get(triple);
         return scan.getProbability();
     }
 }

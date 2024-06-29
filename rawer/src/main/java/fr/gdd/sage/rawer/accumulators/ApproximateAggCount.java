@@ -1,7 +1,9 @@
 package fr.gdd.sage.rawer.accumulators;
 
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
+import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.sager.SagerConstants;
+import fr.gdd.sage.sager.accumulators.SagerAccumulator;
 import fr.gdd.sage.sager.pause.Save2SPARQL;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.engine.ExecutionContext;
@@ -15,7 +17,7 @@ import org.apache.jena.sparql.function.FunctionEnv;
  * Perform an estimate of the COUNT based on random walks performed on
  * the subQuery.
  */
-public class ApproximateAggCount extends AggCount {
+public class ApproximateAggCount<ID, VALUE> implements SagerAccumulator<ID,VALUE> {
 
     final ExecutionContext context;
     final Op op;
@@ -26,8 +28,14 @@ public class ApproximateAggCount extends AggCount {
     }
 
     @Override
-    public Accumulator createAccumulator() {
-        return new ApproximateAccCount(context, op);
+    public void accumulate(BackendBindings<ID, VALUE> binding, FunctionEnv functionEnv) {
+        // TODO
+        throw new UnsupportedOperationException("TODO");
+    }
+
+    @Override
+    public VALUE getValue() {
+        return null;
     }
 
     /* ******************************************************************** */

@@ -4,7 +4,7 @@ import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.interfaces.Backend;
-import fr.gdd.sage.sager.iterators.SagerBind;
+import fr.gdd.sage.iterators.SagerBind;
 import fr.gdd.sage.sager.iterators.SagerScanFactory;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.engine.ExecutionContext;
@@ -38,7 +38,7 @@ public class PreemptedSubQueryOpExecutor<ID,VALUE> extends ReturningArgsOpVisito
     @Override
     public Iterator<BackendBindings<ID,VALUE>> visit(OpExtend extend, Iterator<BackendBindings<ID,VALUE>> input) {
         Iterator<BackendBindings<ID,VALUE>> newInput = ReturningArgsOpVisitorRouter.visit(this, extend.getSubOp(), input);
-        return new SagerBind<>(newInput, extend, execCxt);
+        return new SagerBind<>(newInput, extend, backend, execCxt);
     }
 
     @Override

@@ -6,6 +6,8 @@ import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.sage.budgeting.NaiveBudgeting;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.interfaces.Backend;
+import fr.gdd.sage.iterators.SagerBind;
+import fr.gdd.sage.rawer.accumulators.ApproximateAggCount;
 import fr.gdd.sage.rawer.iterators.ProjectIterator;
 import fr.gdd.sage.rawer.iterators.RandomRoot;
 import fr.gdd.sage.rawer.iterators.RandomScanFactory;
@@ -13,10 +15,10 @@ import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.pause.Save2SPARQL;
 import fr.gdd.sage.sager.resume.BGP2Triples;
 import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.algebra.op.OpJoin;
-import org.apache.jena.sparql.algebra.op.OpProject;
-import org.apache.jena.sparql.algebra.op.OpTriple;
+import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.engine.ExecutionContext;
+import org.apache.jena.sparql.expr.ExprAggregator;
+import org.apache.jena.sparql.expr.aggregate.AggCount;
 
 import java.util.Iterator;
 
@@ -51,6 +53,14 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         return this;
     }
 
+    public Backend<ID, VALUE, ?> getBackend() {
+        return backend;
+    }
+
+    public ExecutionContext getExecutionContext() {
+        return execCxt;
+    }
+
     /* ************************************************************************ */
 
     public Iterator<BackendBindings<ID, VALUE>> execute(Op root) {
@@ -76,14 +86,13 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
     }
 
 
-//    @Override
-//    public Iterator<BackendBindings<ID, VALUE>> visit(OpExtend extend, Iterator<BackendBindings<ID, VALUE>> input) {
-//        Iterator<BindingId2Value> wrapped = ReturningArgsOpVisitorRouter.visit(this, extend.getSubOp(), input);
-//        // TODO implement a QueryIterAssign that returns BindingId2Value directly
-//        QueryIterator qi = new QueryIterAssign(biv2qi(wrapped, execCxt), extend.getVarExprList(), execCxt, true);
-//        return qi2biv(qi, backend);
-//    }
-//
+    @Override
+    public Iterator<BackendBindings<ID, VALUE>> visit(OpExtend extend, Iterator<BackendBindings<ID, VALUE>> input) {
+        // TODO throw when the expressions inside the OpExtend are not supported
+        Iterator<BackendBindings<ID, VALUE>> wrapped = ReturningArgsOpVisitorRouter.visit(this, extend.getSubOp(), input);
+        return new SagerBind<>(wrapped, extend, backend, execCxt);
+    }
+
 
     @Override
     public Iterator<BackendBindings<ID, VALUE>> visit(OpJoin join, Iterator<BackendBindings<ID, VALUE>> input) {
@@ -91,82 +100,40 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         return ReturningArgsOpVisitorRouter.visit(this, join.getRight(), input);
     }
 
-//    @Override
-//    public Iterator<BackendBindings<ID, VALUE>> visit(OpTable table, Iterator<BackendBindings<ID, VALUE>> input) {
-//        if (table.isJoinIdentity())
-//            return input;
-//        throw new UnsupportedOperationException("TODO: VALUES…"); // TODO
-//    }
-//
-//    @Override
-//    public Iterator<BackendBindings<ID, VALUE>> visit(OpGroup groupBy, Iterator<BackendBindings<ID, VALUE>> input) {
-//        Long limit = execCxt.getContext().getLong(RawerConstants.LIMIT, 0L);
-//        if (limit <= 0L) {
-//            return input;
-//        }
-//
-//        // execCxt.getContext().set(RawerConstants.LIMIT, (long) limit/2);
-//        for (int i = 0; i < groupBy.getAggregators().size(); ++i) {
-//            switch (groupBy.getAggregators().get(i).getAggregator()) {
-//                case AggCount ac -> groupBy.getAggregators().set(i,
+    @Override
+    public Iterator<BackendBindings<ID, VALUE>> visit(OpTable table, Iterator<BackendBindings<ID, VALUE>> input) {
+        if (table.isJoinIdentity())
+            return input;
+        throw new UnsupportedOperationException("TODO: VALUES…"); // TODO
+    }
+
+    @Override
+    public Iterator<BackendBindings<ID, VALUE>> visit(OpGroup groupBy, Iterator<BackendBindings<ID, VALUE>> input) {
+        // TODO make it budget-based
+        long limit = execCxt.getContext().getLong(RawerConstants.LIMIT, 0L);
+        if (limit <= 0L) {
+            return input;
+        }
+
+        // execCxt.getContext().set(RawerConstants.LIMIT, (long) limit/2);
+        for (int i = 0; i < groupBy.getAggregators().size(); ++i) {
+            switch (groupBy.getAggregators().get(i).getAggregator()) {
+                case AggCount ac -> groupBy.getAggregators().set(i,
+                        new ExprAggregator(groupBy.getAggregators().get(i).getVar(),
+                            new ApproximateAggCount(execCxt, groupBy.getSubOp())));
+//                case AggCountDistinct acd -> groupBy.getAggregators().set(i,
 //                        new ExprAggregator(groupBy.getAggregators().get(i).getVar(),
-//                            new ApproximateAggCount(execCxt, groupBy.getSubOp())));
-////                case AggCountDistinct acd -> groupBy.getAggregators().set(i,
-////                        new ExprAggregator(groupBy.getAggregators().get(i).getVar(),
-////                            new ApproximateAggCountDistinct(execCxt, groupBy.getSubOp())));
-//                default -> throw new UnsupportedOperationException("The aggregation function is not implemented: " +
-//                        groupBy.getAggregators().get(i).toString());
-//            }
-//        }
-//
-//        //vv wrapped = ReturningArgsOpVisitorRouter.visit(this, groupBy.getSubOp(), input);
-//        Iterator<BackendBindings<ID, VALUE>> wrapped = new RandomRoot<>(this, execCxt, groupBy.getSubOp());
+//                            new ApproximateAggCountDistinct(execCxt, groupBy.getSubOp())));
+                default -> throw new UnsupportedOperationException("The aggregation function is not implemented: " +
+                        groupBy.getAggregators().get(i).toString());
+            }
+        }
+
+        //vv wrapped = ReturningArgsOpVisitorRouter.visit(this, groupBy.getSubOp(), input);
+        Iterator<BackendBindings<ID, VALUE>> wrapped = new RandomRoot<>(this, execCxt, groupBy.getSubOp());
 //        return  qi2biv(new QueryIterGroup(biv2qi(wrapped, execCxt),
 //                groupBy.getGroupVars(), groupBy.getAggregators(), execCxt), backend);
-//    }
-//
-//    /* ****************************************************************** */
-//
-//    /**
-//     * @param biv The iterator used in this query executor.
-//     * @param ec The execution context of the query.
-//     * @return The QueryIterator that is most used in Apache Jena.
-//     */
-//    public QueryIterator biv2qi(Iterator<BackendBindings<ID, VALUE>> biv, ExecutionContext ec) {
-//        return QueryIterPlainWrapper.create(Iter.map(biv, bnid -> bnid), ec);
-//    }
-//
-//    /**
-//     * @param qi The QueryIterator that is most used in Apache Jena.
-//     * @param backend The backend to provide a default table to use to retrieve Node and NodeId.
-//     * @return An iterator suited for this engine.
-//     */
-//    public Iterator<BackendBindings<ID, VALUE>> qi2biv(QueryIterator qi, JenaBackend backend) {
-//        return new Iterator<BackendBindings<ID, VALUE>>() {
-//            @Override
-//            public boolean hasNext() {
-//                return qi.hasNext();
-//            }
-//
-//            @Override
-//            public BackendBindings<ID, VALUE> next() {
-//                Binding binding = qi.next();
-//                return switch (binding) {
-//                    case BackendBindings<ID, VALUE> biv -> biv;
-//                    default -> {
-//                        // TODO change default table
-//                        BindingId2Value biv = new BindingId2Value().setDefaultTable(backend.getNodeTripleTable());
-//                        for (Iterator<Var> it = binding.vars(); it.hasNext(); ) {
-//                            Var v = it.next();
-//                            biv.put(v, binding.get(v));
-//                        }
-//                        yield biv;
-//                    }
-//                };
-//            }
-//        };
-//    }
-
-
+        throw new UnsupportedOperationException("TODO");
+    }
 
 }

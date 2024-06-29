@@ -1,17 +1,13 @@
-package fr.gdd.sage.sager.iterators;
+package fr.gdd.sage.iterators;
 
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.interfaces.Backend;
-import fr.gdd.sage.interfaces.SPOC;
-import fr.gdd.sage.sager.SagerConstants;
 import org.apache.jena.sparql.algebra.op.OpExtend;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.core.VarExprList;
 import org.apache.jena.sparql.engine.ExecutionContext;
-import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.expr.E_Add;
 import org.apache.jena.sparql.expr.Expr;
-import org.apache.jena.sparql.expr.ExprVar;
 import org.apache.jena.sparql.expr.NodeValue;
 import org.apache.jena.sparql.expr.nodevalue.NodeValueInteger;
 import org.apache.jena.sparql.util.ExprUtils;
@@ -28,11 +24,11 @@ public class SagerBind<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> 
     final VarExprList exprs;
     final Backend<ID,VALUE,?> backend;
 
-    public SagerBind(Iterator<BackendBindings<ID,VALUE>> input, OpExtend op, ExecutionContext context) {
+    public SagerBind(Iterator<BackendBindings<ID,VALUE>> input, OpExtend op, Backend<ID,VALUE,?> backend, ExecutionContext context) {
         this.exprs =  op.getVarExprList();
         this.context = context;
         this.input = input;
-        this.backend = context.getContext().get(SagerConstants.BACKEND);
+        this.backend = backend;
     }
 
     @Override
