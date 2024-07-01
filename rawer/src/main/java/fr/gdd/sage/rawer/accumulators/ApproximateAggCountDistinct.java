@@ -8,12 +8,13 @@ import fr.gdd.sage.rawer.RawerOpExecutor;
 import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.accumulators.SagerAccumulator;
 import fr.gdd.sage.sager.pause.Save2SPARQL;
+import org.apache.jena.datatypes.TypeMapper;
+import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.query.DatasetFactory;
+import org.apache.jena.rdf.model.Literal;
+import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.algebra.op.OpExtend;
-import org.apache.jena.sparql.algebra.op.OpGroup;
-import org.apache.jena.sparql.algebra.op.OpSequence;
-import org.apache.jena.sparql.algebra.op.OpTable;
+import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.core.VarExprList;
 import org.apache.jena.sparql.engine.ExecutionContext;
@@ -24,7 +25,6 @@ import org.apache.jena.sparql.function.FunctionEnv;
 import org.apache.jena.sparql.util.ExprUtils;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Perform an estimate of the COUNT based on random walks performed on
@@ -35,13 +35,12 @@ public class ApproximateAggCountDistinct<ID,VALUE> implements SagerAccumulator<I
     final ExecutionContext context;
     final OpGroup group;
 
-    Double numberOfSuccessRWs = 0.;
     Double sumOfInversedProba = 0.;
     Double sumOfInversedProbaOverFmu = 0.;
 
     WanderJoinVisitor<ID,VALUE> wj;
 
-    ApproximateAggCount<ID,VALUE> count;
+    ApproximateAggCount<ID,VALUE> bigN;
 
     final Set<Var> vars;
 
@@ -49,7 +48,7 @@ public class ApproximateAggCountDistinct<ID,VALUE> implements SagerAccumulator<I
     public ApproximateAggCountDistinct(RawerOpExecutor<ID,VALUE> executor, ExprList varsAsExpr, ExecutionContext context, OpGroup group) {
         this.context = context;
         this.group = group;
-        this.count = new ApproximateAggCount<>(context, group.getSubOp());
+        this.bigN = new ApproximateAggCount<>(context, group.getSubOp());
         Save2SPARQL<ID,VALUE> saver = context.getContext().get(SagerConstants.SAVER);
         this.wj = new WanderJoinVisitor<>(saver.op2it);
         this.vars = varsAsExpr.getVarsMentioned();
@@ -59,7 +58,7 @@ public class ApproximateAggCountDistinct<ID,VALUE> implements SagerAccumulator<I
     @Override
     public void accumulate(BackendBindings<ID, VALUE> binding, FunctionEnv functionEnv) {
         // #1 processing of N
-        this.count.accumulate(binding, functionEnv);
+        this.bigN.accumulate(binding, functionEnv);
 
         if (Objects.isNull(binding)) {return;}
 
@@ -69,17 +68,18 @@ public class ApproximateAggCountDistinct<ID,VALUE> implements SagerAccumulator<I
 
         // #3 processing of F_mu
         // #A bind the variable with their respective value
-        OpSequence seq = OpSequence.create();
+        Op right = group.getSubOp();
         for (Var v : vars) {
-            seq.add(OpExtend.extend(OpTable.unit(), v, ExprUtils.parse(binding.get(v).getString())));
+            right = OpJoin.create(OpExtend.extend(OpTable.unit(), v, ExprUtils.parse(binding.get(v).getString())),
+            right);
         }
-        seq.add(group.getSubOp());
+
         // #B wrap as a COUNT query
-        OpGroup countQuery = new OpGroup(seq, new VarExprList(),
-                List.of(new ExprAggregator(Var.alloc("?count"), new AggCount())));
+        OpGroup countQuery = new OpGroup(right, new VarExprList(),
+                List.of(new ExprAggregator(Var.alloc("count"), new AggCount())));
 
         ExecutionContext newExecutionContext = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        newExecutionContext.getContext().set(SagerConstants.BACKEND, context.getContext().get(RawerConstants.BACKEND));
+        newExecutionContext.getContext().set(RawerConstants.BACKEND, context.getContext().get(RawerConstants.BACKEND));
         RawerOpExecutor<ID,VALUE> fmuExecutor = new RawerOpExecutor<>(newExecutionContext);
         fmuExecutor.setLimit(1L);
 
@@ -92,16 +92,26 @@ public class ApproximateAggCountDistinct<ID,VALUE> implements SagerAccumulator<I
         BackendBindings<ID,VALUE> estimatedFmu = estimatedFmus.next();
 
         // #D TODO ugly but need to be parsed to Double again…
-        String fmu = estimatedFmu.get(Var.alloc("?count")).getString();
+        String fmu = estimatedFmu.get(Var.alloc("count")).getString();
 
-        System.out.println(fmu);
+        // Remove the datatype part and quotes from the string to get the numeric value
+        String valueString = fmu.substring(2, fmu.indexOf("\"^^")); // TODO unuglify all this...
 
+        // Create a Literal with the given value and the full xsd:double URI
+        Literal literal = ResourceFactory.createTypedLiteral(valueString, TypeMapper.getInstance().getSafeTypeByName("http://www.w3.org/2001/XMLSchema#double"));
+        Double doubleValue = literal.getDouble();
+        sumOfInversedProbaOverFmu += inversedProba / doubleValue;
 
     }
 
     @Override
     public VALUE getValue() {
         Backend<ID,VALUE,?> backend = context.getContext().get(RawerConstants.BACKEND);
-        return backend.getValue(String.format("\"%s\"^^xsd:double", sumOfInversedProba == 0. ? 0. : sumOfInversedProba / numberOfSuccessRWs));
+        return backend.getValue(String.format("\"%s\"^^%s", getValueAsDouble(), XSDDatatype.XSDdouble.getURI()));
     }
+
+    public double getValueAsDouble () {
+        return sumOfInversedProba == 0. ? 0. : bigN.getValueAsDouble()/sumOfInversedProba * sumOfInversedProbaOverFmu;
+    }
+
 }

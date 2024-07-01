@@ -7,6 +7,7 @@ import fr.gdd.sage.rawer.RawerConstants;
 import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.accumulators.SagerAccumulator;
 import fr.gdd.sage.sager.pause.Save2SPARQL;
+import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.function.FunctionEnv;
@@ -45,7 +46,7 @@ public class ApproximateAggCount<ID, VALUE> implements SagerAccumulator<ID,VALUE
     @Override
     public VALUE getValue() {
         Backend<ID,VALUE,?> backend = context.getContext().get(RawerConstants.BACKEND);
-        return backend.getValue(String.format("\"%s\"^^xsd:double", getValueAsDouble()));
+        return backend.getValue(String.format("\"%s\"^^%s", getValueAsDouble(), XSDDatatype.XSDdouble.getURI()));
     }
 
     public double getValueAsDouble () {

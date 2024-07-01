@@ -6,6 +6,7 @@ import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.generics.PtrMap;
 import fr.gdd.sage.rawer.iterators.RandomScan;
 import org.apache.jena.sparql.algebra.Op;
+import org.apache.jena.sparql.algebra.op.OpExtend;
 import org.apache.jena.sparql.algebra.op.OpJoin;
 import org.apache.jena.sparql.algebra.op.OpTriple;
 
@@ -35,5 +36,12 @@ public class WanderJoinVisitor<ID, VALUE> extends ReturningOpVisitor<Double> {
         Double leftProba = ReturningOpVisitorRouter.visit(this, join.getLeft());
         Double rightProba = ReturningOpVisitorRouter.visit(this, join.getRight());
         return leftProba * rightProba;
+    }
+
+    @Override
+    public Double visit(OpExtend extend) {
+        // always true so, 1
+        // TODO but what happens with OpTable below?
+        return 1.;
     }
 }
