@@ -102,28 +102,47 @@ public class RawerOpExecutorTest {
     @Test
     public void simple_bind_on_a_triple_pattern () {
         String queryAsString = "SELECT * WHERE {BIND (<http://Alice> AS ?s) ?s ?p ?o}";
-        execute(queryAsString, new JenaBackend(dataset), 100L);
+        execute(queryAsString, new BlazegraphBackend(blazegraph), 100L);
     }
 
     @Disabled
     @Test
     public void count_of_simple_triple_pattern () {
-        String queryAsString = "SELECT (COUNT(*) AS ?c) WHERE {?s ?p ?o}";
-        execute(queryAsString, new JenaBackend(dataset), 10L);
+        String queryAsString = "SELECT (COUNT(*) AS ?c) WHERE {<http://Alice> ?p ?o}";
+        execute(queryAsString, new BlazegraphBackend(blazegraph), 10L);
+        // should be 4
+    }
+
+    @Disabled
+    @Test
+    public void count_of_carthesian_product_bgp () {
+        String queryAsString = "SELECT (COUNT(*) AS ?c) WHERE {<http://Alice> ?p ?o . <http://Alice> <http://own> ?a}";
+        execute(queryAsString, new BlazegraphBackend(blazegraph), 1L); // 12 since cartesian product
+    }
+
+    @Disabled
+    @Test
+    public void count_of_bgp () {
+        String queryAsString = "SELECT (COUNT(*) AS ?c) WHERE {?person <http://address> ?location . ?person <http://own> ?animal}";
+        // ~3 since only Alice has animals. Choosing a person that has no animal makes the RW fails, hence the approximate
+        // value.
+        execute(queryAsString, new BlazegraphBackend(blazegraph), 1L);
     }
 
     @Disabled
     @Test
     public void count_with_group_on_simple_tp () {
+        // TODO TODO not good yet
         String queryAsString = "SELECT (COUNT(*) AS ?c) ?p WHERE {?s ?p ?o} GROUP BY ?p";
-        execute(queryAsString, new JenaBackend(dataset), 10L);
+        execute(queryAsString, new BlazegraphBackend(blazegraph), 1L);
+        assert false; // The group by should not be handled as in Sage…
     }
 
     @Disabled
     @Test
     public void count_distinct_of_simple_triple_pattern () {
-        String queryAsString = "SELECT (COUNT(DISTINCT *) AS ?c) WHERE {?s ?p ?o}";
-        execute(queryAsString, new JenaBackend(dataset), 10L);
+        String queryAsString = "SELECT (COUNT(DISTINCT ?s) AS ?c) WHERE {?s ?p ?o}";
+        execute(queryAsString, new BlazegraphBackend(blazegraph), 1L);
     }
 
     /* ************************************************************* */

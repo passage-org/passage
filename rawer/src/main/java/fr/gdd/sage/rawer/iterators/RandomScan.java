@@ -5,6 +5,8 @@ import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.interfaces.BackendIterator;
 import fr.gdd.sage.interfaces.SPOC;
 import fr.gdd.sage.rawer.RawerConstants;
+import fr.gdd.sage.sager.SagerConstants;
+import fr.gdd.sage.sager.pause.Save2SPARQL;
 import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.atlas.lib.tuple.Tuple3;
 import org.apache.jena.atlas.lib.tuple.TupleFactory;
@@ -39,6 +41,9 @@ public class RandomScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE
                 triple.getTriple().getSubject().isVariable() && Objects.isNull(spo.get(0)) ? Var.alloc(triple.getTriple().getSubject()) : null,
                 triple.getTriple().getPredicate().isVariable() && Objects.isNull(spo.get(1)) ? Var.alloc(triple.getTriple().getPredicate()) : null,
                 triple.getTriple().getObject().isVariable() && Objects.isNull(spo.get(2)) ? Var.alloc(triple.getTriple().getObject()) : null);
+
+        Save2SPARQL<ID,VALUE> saver = this.context.getContext().get(SagerConstants.SAVER);
+        saver.register(triple, this);
     }
 
     @Override

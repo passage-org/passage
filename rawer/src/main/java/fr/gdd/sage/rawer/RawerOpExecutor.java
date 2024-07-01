@@ -7,18 +7,20 @@ import fr.gdd.sage.budgeting.NaiveBudgeting;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.iterators.SagerBind;
-import fr.gdd.sage.rawer.accumulators.ApproximateAggCount;
 import fr.gdd.sage.rawer.iterators.ProjectIterator;
 import fr.gdd.sage.rawer.iterators.RandomRoot;
 import fr.gdd.sage.rawer.iterators.RandomScanFactory;
+import fr.gdd.sage.rawer.iterators.RawerAgg;
 import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.pause.Save2SPARQL;
 import fr.gdd.sage.sager.resume.BGP2Triples;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.engine.ExecutionContext;
-import org.apache.jena.sparql.expr.ExprAggregator;
 import org.apache.jena.sparql.expr.aggregate.AggCount;
+import org.apache.jena.sparql.expr.aggregate.AggCountDistinct;
+import org.apache.jena.sparql.expr.aggregate.AggCountVar;
+import org.apache.jena.sparql.expr.aggregate.AggCountVarDistinct;
 
 import java.util.Iterator;
 
@@ -118,22 +120,15 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         // execCxt.getContext().set(RawerConstants.LIMIT, (long) limit/2);
         for (int i = 0; i < groupBy.getAggregators().size(); ++i) {
             switch (groupBy.getAggregators().get(i).getAggregator()) {
-                case AggCount ac -> groupBy.getAggregators().set(i,
-                        new ExprAggregator(groupBy.getAggregators().get(i).getVar(),
-                            new ApproximateAggCount(execCxt, groupBy.getSubOp())));
-//                case AggCountDistinct acd -> groupBy.getAggregators().set(i,
-//                        new ExprAggregator(groupBy.getAggregators().get(i).getVar(),
-//                            new ApproximateAggCountDistinct(execCxt, groupBy.getSubOp())));
+                case AggCount ac -> {} // nothing, just checking it's handled
+                case AggCountVarDistinct acvd -> {}
+                // case AggCountDistinct acd -> {} // nothing
                 default -> throw new UnsupportedOperationException("The aggregation function is not implemented: " +
                         groupBy.getAggregators().get(i).toString());
             }
         }
 
-        //vv wrapped = ReturningArgsOpVisitorRouter.visit(this, groupBy.getSubOp(), input);
-        Iterator<BackendBindings<ID, VALUE>> wrapped = new RandomRoot<>(this, execCxt, groupBy.getSubOp());
-//        return  qi2biv(new QueryIterGroup(biv2qi(wrapped, execCxt),
-//                groupBy.getGroupVars(), groupBy.getAggregators(), execCxt), backend);
-        throw new UnsupportedOperationException("TODO");
+        return new RawerAgg<>(this, groupBy, input);
     }
 
 }

@@ -1,27 +1,22 @@
 package fr.gdd.sage.rawer.iterators;
 
-import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.rawer.RawerOpExecutor;
 import fr.gdd.sage.rawer.accumulators.ApproximateAggCount;
+import fr.gdd.sage.rawer.accumulators.ApproximateAggCountDistinct;
 import fr.gdd.sage.sager.SagerConstants;
-import fr.gdd.sage.sager.SagerOpExecutor;
-import fr.gdd.sage.sager.accumulators.SagerAccCount;
 import fr.gdd.sage.sager.accumulators.SagerAccumulator;
 import fr.gdd.sage.sager.pause.Save2SPARQL;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.atlas.iterator.Iter;
-import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.algebra.op.OpExtend;
 import org.apache.jena.sparql.algebra.op.OpGroup;
 import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.core.VarExprList;
-import org.apache.jena.sparql.expr.*;
+import org.apache.jena.sparql.expr.ExprAggregator;
 import org.apache.jena.sparql.expr.aggregate.AggCount;
-import org.apache.jena.sparql.expr.nodevalue.NodeValueInteger;
-import org.apache.jena.sparql.util.ExprUtils;
+import org.apache.jena.sparql.expr.aggregate.AggCountDistinct;
+import org.apache.jena.sparql.expr.aggregate.AggCountVarDistinct;
 
 import java.util.Iterator;
 import java.util.List;
@@ -38,6 +33,8 @@ public class RawerAgg<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
 
     BackendBindings<ID,VALUE> inputBinding;
     Pair<Var, SagerAccumulator<ID,VALUE>> var2accumulator = null;
+    Long budgetForEachInput = 1000L; // timeout threshold
+
 
     public RawerAgg(RawerOpExecutor<ID, VALUE> executor, OpGroup op, Iterator<BackendBindings<ID,VALUE>> input){
         this.executor = executor;
@@ -45,8 +42,9 @@ public class RawerAgg<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
         this.input = input;
 
         for (ExprAggregator agg : op.getAggregators() ) {
-            ApproximateAggCount<ID,VALUE> sagerX = switch (agg.getAggregator()) {
+            SagerAccumulator<ID,VALUE> sagerX = switch (agg.getAggregator()) {
                 case AggCount ac -> new ApproximateAggCount<>(executor.getExecutionContext(), op.getSubOp());
+                case AggCountVarDistinct acvd -> new ApproximateAggCountDistinct<>(executor,  acvd.getExprList(), executor.getExecutionContext(), op);
                 default -> throw new UnsupportedOperationException("The aggregator is not supported yet.");
             };
             Var v = agg.getVar();
@@ -55,7 +53,6 @@ public class RawerAgg<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
 
         Save2SPARQL<ID,VALUE> saver = executor.getExecutionContext().getContext().get(SagerConstants.SAVER);
         saver.register(op, this);
-
     }
 
     @Override
@@ -66,57 +63,22 @@ public class RawerAgg<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
     @Override
     public BackendBindings<ID, VALUE> next() {
         inputBinding = input.next();
-        Iterator<BackendBindings<ID,VALUE>> subop = ReturningArgsOpVisitorRouter.visit(executor, op.getSubOp(), Iter.of(inputBinding));
 
-        while (subop.hasNext()) { // TODO limit 
-            BackendBindings<ID,VALUE> bindings = subop.next();
+
+        Long start = System.currentTimeMillis();
+        while (System.currentTimeMillis() < start + budgetForEachInput) { // TODO limit
+            Iterator<BackendBindings<ID,VALUE>> subop = ReturningArgsOpVisitorRouter.visit(executor, op.getSubOp(), Iter.of(inputBinding));
+            BackendBindings<ID,VALUE> bindings = null;
+            if (subop.hasNext()) {
+                bindings = subop.next();
+            }
             // BackendBindings<ID,VALUE> keyBinding = getKeyBinding(op.getGroupVars().getVars(), bindings);
 
+            // bindings can be null
             var2accumulator.getRight().accumulate(bindings, executor.getExecutionContext());
         }
 
         return createBinding(var2accumulator);
-    }
-
-
-    public OpExtend save(OpExtend parent, Op subop) {
-        BackendBindings<ID,VALUE> export = createBinding(var2accumulator);
-
-        OpGroup clonedGB = OpCloningUtil.clone(op, subop);
-        OpExtend cloned = OpCloningUtil.clone(parent, clonedGB);
-
-//        for (Var v : inputBinding.vars()) {
-//            clonedGB.getGroupVars().add(v);
-//        }
-
-        VarExprList exprList = parent.getVarExprList();
-        for (int i = 0; i < exprList.size(); ++i) {
-            Var varFullName = exprList.getVars().get(i);
-            Var varRenamed = null;
-            if (exprList.getExpr(varFullName) instanceof ExprVar exprVar) {
-                varRenamed = exprVar.asVar();
-            } else if (exprList.getExpr(varFullName) instanceof E_Add add) {
-                varRenamed = add.getArg1().asVar();
-            }
-
-            String binding = export.get(varRenamed).getString(); // substr because it has ""
-            binding = binding.substring(1, binding.length()-1); // ugly af
-
-            NodeValueInteger oldValue = new NodeValueInteger(0);
-            if (exprList.getExpr(varFullName) instanceof E_Add add) {
-                oldValue = (NodeValueInteger) add.getArg2();
-            }
-
-            NodeValue newValue = ExprUtils.eval(new E_Add(oldValue, NodeValue.parse(binding)));
-
-            Expr newExpr = newValue.equals(new NodeValueInteger((0))) ? // 0 is default, so we can remove it when it is
-                    new ExprVar(varRenamed) :
-                    new E_Add(new ExprVar(varRenamed), newValue); // ugly af
-            cloned.getVarExprList().remove(varFullName);
-            cloned.getVarExprList().add(varFullName, newExpr);
-        }
-
-        return cloned;
     }
 
 
