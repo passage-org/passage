@@ -5,11 +5,13 @@ import com.bigdata.bop.join.PipelineJoin;
 import com.bigdata.concurrent.TimeoutException;
 import com.bigdata.journal.Options;
 import com.bigdata.rdf.internal.IV;
+import com.bigdata.rdf.internal.IVUtility;
+import com.bigdata.rdf.internal.VTE;
+import com.bigdata.rdf.internal.impl.BlobIV;
 import com.bigdata.rdf.internal.impl.TermId;
+import com.bigdata.rdf.internal.impl.bnode.NumericBNodeIV;
 import com.bigdata.rdf.internal.impl.uri.VocabURIByteIV;
-import com.bigdata.rdf.model.BigdataURI;
-import com.bigdata.rdf.model.BigdataURIImpl;
-import com.bigdata.rdf.model.BigdataValue;
+import com.bigdata.rdf.model.*;
 import com.bigdata.rdf.sail.BigdataSail;
 import com.bigdata.rdf.sail.BigdataSailRepository;
 import com.bigdata.rdf.sail.BigdataSailRepositoryConnection;
@@ -26,6 +28,7 @@ import fr.gdd.sage.interfaces.BackendIterator;
 import fr.gdd.sage.interfaces.SPOC;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Value;
+import org.openrdf.model.impl.LiteralImpl;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.query.*;
 import org.openrdf.repository.RepositoryException;
@@ -33,6 +36,7 @@ import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URI;
 import java.util.Objects;
 import java.util.Properties;
 
@@ -103,49 +107,83 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
 
     @Override
     public IV getId(String value, int... type) {
-        Resource res = null;
-        // TODO not only URIs
-        // TODO could use `Node node = NodeFactoryExtra.parseNode(value);`
-        if (value.startsWith("<") && value.endsWith(">")) {
-            res = new URIImpl(value.substring(1, value.length()-1));
-        } else {
-            throw new UnsupportedOperationException("parse value to resource");
-        }
-
+        // When the type does not exist, we look for the one.
+        // Unfortunately, it's not efficient, so we would like to use the most relevant as often as possible
         if (Objects.isNull(type) || type.length == 0) { // ugly when type is not set
             try {
-                return getId(value, SPOC.SUBJECT);
-            } catch (NotFoundException e) {
-                try {
-                    return getId(value, SPOC.PREDICATE);
-                } catch (NotFoundException f) {
+                if (value.startsWith("\"") && value.endsWith("\"")) {
+                    return getId(value, SPOC.OBJECT);
+                }
+                try { // else not a string
+                    return getId(value, SPOC.SUBJECT);
+                } catch (Exception e) {
                     try {
-                        return getId(value, SPOC.OBJECT);
-                    } catch (NotFoundException g) {
-                        return getId(value, SPOC.CONTEXT);
+                        return getId(value, SPOC.PREDICATE);
+                    } catch (Exception f) {
+                        try {
+                            return getId(value, SPOC.OBJECT); // might still be the object
+                        } catch (Exception g) {
+                            try {
+                                return getId(value, SPOC.CONTEXT);
+                            } catch (Exception h) { // otherwise, it throws at runtime
+                                throw new NotFoundException(value);
+                            }
+                        }
                     }
                 }
+            } catch (Exception i) {
+                throw new NotFoundException(value);
             }
         }
 
         IAccessPath<ISPO> accessPath = switch(type[0]) {
-            case SPOC.SUBJECT -> store.getAccessPath(res,null, null);
-            case SPOC.PREDICATE -> store.getAccessPath(null, (URIImpl) res, null);
-            case SPOC.OBJECT -> store.getAccessPath(null,null, res);
-            case SPOC.CONTEXT -> store.getAccessPath(null,null, null, res);
-            default -> throw new UnsupportedOperationException("Unknown SPOC…");
+            case SPOC.SUBJECT -> {
+                Resource res = (value.startsWith("<") && value.endsWith(">")) ?
+                        new URIImpl(value.substring(1, value.length()-1)):
+                        new URIImpl(value);
+                yield store.getAccessPath(res, null, null);
+            }
+            case SPOC.PREDICATE -> {
+                URIImpl uri = (value.startsWith("<") && value.endsWith(">")) ?
+                    new URIImpl(value.substring(1, value.length()-1)):
+                    new URIImpl(value);
+                yield store.getAccessPath(null, uri, null);
+            }
+            case SPOC.OBJECT -> {
+                if (value.startsWith("<") && value.endsWith(">")) {
+                    URIImpl uri = new URIImpl(value.substring(1, value.length()-1));
+                    yield store.getAccessPath(null,null, uri);
+                }
+                Value object = (value.startsWith("\"") && value.endsWith("\"")) ?
+                        store.getValueFactory().createLiteral(value.substring(1, value.length()-1)):
+                        store.getValueFactory().createLiteral(value);
+
+                // The string might be too long to be inlined in the identifier,
+                // therefore, we need to proceed differently.
+                // IV possiblyNotInline = store.getVocabulary().get(object);
+                IV possiblyNotInline = store.getIV(object);
+                if (Objects.isNull(possiblyNotInline)) {   // could not be inlined must do something else…
+                    BigdataLiteral blob = store.getValueFactory().createLiteral(value.substring(1, value.length()-1), new URIImpl("http://www.w3.org/2001/XMLSchema#string" ));
+                    IV possiblyABlob = store.getIV(blob);
+                    BigdataValue bdv = store.getLexiconRelation().getTerm(possiblyABlob);
+                    yield store.getAccessPath(null,null, bdv);
+                }
+                BigdataValue bdv = store.getLexiconRelation().getTerm(possiblyNotInline);
+                yield store.getAccessPath(null,null, bdv);
+            }
+            case SPOC.GRAPH -> {
+                Resource res = (value.startsWith("<") && value.endsWith(">")) ?
+                        new URIImpl(value.substring(1, value.length()-1)):
+                        new URIImpl(value);
+                yield store.getAccessPath(null, null, null, res);
+            }
+            default -> throw new UnsupportedOperationException("Unknown SPOC: " + type[0]);
         };
+
         IChunkedOrderedIterator<ISPO> it = accessPath.iterator();
         if (!it.hasNext()) throw new NotFoundException(value); // not found
         ISPO spo = it.next();
-        // Get the Value from the index
-//        String str = switch(type[0]){
-//            case SPOC.SUBJECT -> spo.getSubject().toString();
-//            case SPOC.PREDICATE -> spo.getPredicate().toString();
-//            case SPOC.OBJECT -> spo.getObject().toString();
-//            case SPOC.CONTEXT-> spo.getContext().toString();
-//            default -> throw new IllegalStateException("Unexpected value: " + type[0]);
-//        };
+
         IV result = switch(type[0]){
             case SPOC.SUBJECT -> get(spo.getSubject());
             case SPOC.PREDICATE -> get(spo.getPredicate());

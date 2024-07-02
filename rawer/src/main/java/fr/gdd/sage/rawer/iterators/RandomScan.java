@@ -57,6 +57,8 @@ public class RandomScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE
         this.currentProbability = iterator.random(); // position at random index
         iterator.next(); // read the value
 
+        context.getContext().set(RawerConstants.SCANS, context.getContext().getLong(RawerConstants.SCANS,0L) + 1);
+
         BackendBindings<ID, VALUE> newBinding = new BackendBindings<>();
 
         if (Objects.nonNull(vars.get(0))) { // ugly x3

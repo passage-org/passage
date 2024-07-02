@@ -70,11 +70,8 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
                         execCxt.getContext().get(RawerConstants.TIMEOUT),
                         execCxt.getContext().get(RawerConstants.LIMIT)));
         root = ReturningOpVisitorRouter.visit(new BGP2Triples(), root); // TODO fix
-        execCxt.getContext().set(SagerConstants.SAVER, new Save2SPARQL(root, execCxt));
-        Iterator<BackendBindings<ID, VALUE>> wrapped = new RandomRoot<>(this, execCxt, root);
-        // Iterator<BindingId2Value> wrapped = ReturningArgsOpVisitorRouter.visit(this, root, Iter.of(new BindingId2Value()));
-        // return biv2qi(wrapped, execCxt);
-        return wrapped;
+        execCxt.getContext().set(SagerConstants.SAVER, new Save2SPARQL<>(root, execCxt));
+        return new RandomRoot<>(this, execCxt, root);
     }
 
     @Override
@@ -120,7 +117,8 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         // execCxt.getContext().set(RawerConstants.LIMIT, (long) limit/2);
         for (int i = 0; i < groupBy.getAggregators().size(); ++i) {
             switch (groupBy.getAggregators().get(i).getAggregator()) {
-                case AggCount ac -> {} // nothing, just checking it's handled
+                case AggCount ac -> {} // nothing, just checking it's handled (this is COUNT(*))
+                // case AggCountVar acv -> {} // TODO count when (a) variable(s) is/are bound
                 case AggCountVarDistinct acvd -> {}
                 // case AggCountDistinct acd -> {} // nothing
                 default -> throw new UnsupportedOperationException("The aggregation function is not implemented: " +

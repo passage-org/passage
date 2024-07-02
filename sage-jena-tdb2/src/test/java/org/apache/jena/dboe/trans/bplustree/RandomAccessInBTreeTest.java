@@ -1,5 +1,7 @@
 package org.apache.jena.dboe.trans.bplustree;
 
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
 import fr.gdd.sage.ArtificallySkewedGraph;
 import fr.gdd.sage.databases.inmemory.IM4Jena;
 import fr.gdd.sage.generics.LazyIterator;
@@ -8,8 +10,6 @@ import fr.gdd.sage.interfaces.SPOC;
 import fr.gdd.sage.jena.JenaBackend;
 import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.dboe.base.record.Record;
-import org.apache.jena.ext.com.google.common.collect.HashMultiset;
-import org.apache.jena.ext.com.google.common.collect.Multiset;
 import org.apache.jena.graph.Node;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.tdb2.store.NodeId;

@@ -1,14 +1,14 @@
 package fr.gdd.sage.rawer;
 
 import com.bigdata.rdf.sail.BigdataSail;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
 import fr.gdd.sage.blazegraph.BlazegraphBackend;
 import fr.gdd.sage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.sage.databases.inmemory.IM4Jena;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.jena.JenaBackend;
-import org.apache.jena.ext.com.google.common.collect.HashMultiset;
-import org.apache.jena.ext.com.google.common.collect.Multiset;
 import org.apache.jena.graph.Node;
 import org.apache.jena.query.ARQ;
 import org.apache.jena.query.Dataset;

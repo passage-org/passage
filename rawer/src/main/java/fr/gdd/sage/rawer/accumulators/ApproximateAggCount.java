@@ -23,8 +23,8 @@ public class ApproximateAggCount<ID, VALUE> implements SagerAccumulator<ID,VALUE
     final ExecutionContext context;
     final Op op;
 
-    Double numberOfRWs = 0.;
-    Double sumOfInversedProba = 0.;
+    double sampleSize = 0.;
+    double sumOfInversedProba = 0.;
 
     WanderJoinVisitor<ID,VALUE> wj;
 
@@ -40,7 +40,7 @@ public class ApproximateAggCount<ID, VALUE> implements SagerAccumulator<ID,VALUE
         if (Objects.nonNull(binding)) {
             sumOfInversedProba += 1. / ReturningOpVisitorRouter.visit(wj, op);
         }
-        numberOfRWs += 1;
+        sampleSize += 1;
     }
 
     @Override
@@ -50,7 +50,7 @@ public class ApproximateAggCount<ID, VALUE> implements SagerAccumulator<ID,VALUE
     }
 
     public double getValueAsDouble () {
-        return sumOfInversedProba == 0. ? 0. : sumOfInversedProba /numberOfRWs;
+        return sampleSize == 0. ? 0. : sumOfInversedProba / sampleSize;
     }
 
 }

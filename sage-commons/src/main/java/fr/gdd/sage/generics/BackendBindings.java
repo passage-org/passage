@@ -1,6 +1,5 @@
 package fr.gdd.sage.generics;
 
-import com.github.jsonldjava.utils.Obj;
 import fr.gdd.sage.interfaces.Backend;
 import org.apache.jena.sparql.core.Var;
 

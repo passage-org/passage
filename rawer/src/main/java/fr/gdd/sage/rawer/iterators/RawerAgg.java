@@ -2,6 +2,7 @@ package fr.gdd.sage.rawer.iterators;
 
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.sage.generics.BackendBindings;
+import fr.gdd.sage.rawer.RawerConstants;
 import fr.gdd.sage.rawer.RawerOpExecutor;
 import fr.gdd.sage.rawer.accumulators.ApproximateAggCount;
 import fr.gdd.sage.rawer.accumulators.ApproximateAggCountDistinct;
@@ -33,7 +34,7 @@ public class RawerAgg<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
 
     BackendBindings<ID,VALUE> inputBinding;
     Pair<Var, SagerAccumulator<ID,VALUE>> var2accumulator = null;
-    Long budgetForEachInput = 1000L; // timeout threshold
+    Long budgetForEachInput = 60_000L; // timeout threshold
 
 
     public RawerAgg(RawerOpExecutor<ID, VALUE> executor, OpGroup op, Iterator<BackendBindings<ID,VALUE>> input){
@@ -44,7 +45,7 @@ public class RawerAgg<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
         for (ExprAggregator agg : op.getAggregators() ) {
             SagerAccumulator<ID,VALUE> sagerX = switch (agg.getAggregator()) {
                 case AggCount ac -> new ApproximateAggCount<>(executor.getExecutionContext(), op.getSubOp());
-                case AggCountVarDistinct acvd -> new ApproximateAggCountDistinct<>(executor,  acvd.getExprList(), executor.getExecutionContext(), op);
+                case AggCountVarDistinct acvd -> new ApproximateAggCountDistinct<>(acvd.getExprList(), executor.getExecutionContext(), op);
                 default -> throw new UnsupportedOperationException("The aggregator is not supported yet.");
             };
             Var v = agg.getVar();
@@ -63,14 +64,14 @@ public class RawerAgg<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
     @Override
     public BackendBindings<ID, VALUE> next() {
         inputBinding = input.next();
-
-
+        long limit = executor.getExecutionContext().getContext().get(RawerConstants.LIMIT);
         Long start = System.currentTimeMillis();
-        while (System.currentTimeMillis() < start + budgetForEachInput) { // TODO limit
-            Iterator<BackendBindings<ID,VALUE>> subop = ReturningArgsOpVisitorRouter.visit(executor, op.getSubOp(), Iter.of(inputBinding));
+        while (System.currentTimeMillis() < start + budgetForEachInput &&
+                executor.getExecutionContext().getContext().getLong(RawerConstants.SCANS, 0L) < limit) {
+            Iterator<BackendBindings<ID,VALUE>> subquery = ReturningArgsOpVisitorRouter.visit(executor, op.getSubOp(), Iter.of(inputBinding));
             BackendBindings<ID,VALUE> bindings = null;
-            if (subop.hasNext()) {
-                bindings = subop.next();
+            if (subquery.hasNext()) {
+                bindings = subquery.next();
             }
             // BackendBindings<ID,VALUE> keyBinding = getKeyBinding(op.getGroupVars().getVars(), bindings);
 

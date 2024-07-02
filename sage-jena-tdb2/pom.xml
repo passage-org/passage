@@ -36,6 +36,11 @@
       <artifactId>slf4j-simple</artifactId>
     </dependency>
 
+    <dependency> <!-- to get multisets -->
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>

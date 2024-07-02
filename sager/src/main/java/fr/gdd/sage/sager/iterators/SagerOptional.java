@@ -1,6 +1,5 @@
 package fr.gdd.sage.sager.iterators;
 
-import com.github.jsonldjava.utils.Obj;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.sager.SagerConstants;
