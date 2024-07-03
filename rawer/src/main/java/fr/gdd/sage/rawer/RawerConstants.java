@@ -15,6 +15,10 @@ public class RawerConstants {
 
     static public final Symbol BUDGETING = allocVariableSymbol("Budgeting"); // distribute thresholds
 
+    static public final Symbol CACHE = allocVariableSymbol("Cache"); // some kind of cache
+
+    static public final String COUNT_VARIABLE = "rawer_count"; // the name of the count variable for subqueries
+
     /**
      * Symbol in use in the global context.
      */

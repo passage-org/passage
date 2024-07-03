@@ -31,4 +31,19 @@ public class CacheId<ID,VALUE> {
 
         return id;
     }
+
+    public ID getId(Node node) {
+        return node2id.get(node);
+    }
+
+    /**
+     * Register in the cache a node that is already known by ID.
+     * Useful for initializing the cache of subquery where bound variables
+     * have been added.
+     * @return this, for convenience.
+     */
+    public CacheId<ID,VALUE> register(Node node, ID id) {
+        node2id.put(node, id); // we don't check anything
+        return this;
+    }
 }

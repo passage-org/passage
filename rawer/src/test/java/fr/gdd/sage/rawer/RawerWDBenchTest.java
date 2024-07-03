@@ -1,13 +1,28 @@
 package fr.gdd.sage.rawer;
 
+import com.google.common.collect.Multiset;
 import fr.gdd.sage.blazegraph.BlazegraphBackend;
+import org.apache.jena.atlas.lib.EscapeStr;
+import org.apache.jena.graph.Node;
+import org.apache.jena.query.QueryFactory;
+import org.apache.jena.sparql.algebra.Algebra;
+import org.apache.jena.sparql.algebra.Op;
+import org.apache.jena.sparql.algebra.op.OpExtend;
+import org.apache.jena.sparql.lang.arq.ARQParser;
+import org.apache.jena.sparql.lang.arq.ParseException;
+import org.apache.jena.sparql.util.ExprUtils;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.query.MalformedQueryException;
+import org.openrdf.query.Query;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 @Disabled
 public class RawerWDBenchTest {
@@ -56,10 +71,51 @@ public class RawerWDBenchTest {
     @Test
     public void weird_object_not_getting_parsed () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
         String queryAsString = """
-            SELECT * WHERE { ?s ?p "IT\\ICCU\\CFIV\\072994" }
+            SELECT * WHERE { ?s ?p "IT\\\\ICCU\\\\CFIV\\\\072994" }
             """;
-        wdbenchBlazegraph.executeQuery(queryAsString);
+        var results = wdbenchBlazegraph.executeQuery(queryAsString);
+        System.out.println(results);
     }
+
+    @Disabled
+    @Test
+    public void jena_expr_parser_doesnot_parse_this_value () {
+        String queryAsString = """
+            SELECT * WHERE { ?s ?p "IT\\\\ICCU\\\\CFIV\\\\072994" }
+            """;
+        Op op = Algebra.compile(QueryFactory.create(queryAsString));
+    }
+
+    @Disabled
+    @Test
+    public void make_jena_understand_with_lang () throws ParseException {
+        String queryAsString = """
+              SELECT * WHERE {  ?s ?p "Results of surgical treatment in patients with \\"western\\" intrahepatic lithiasis."@en }
+            """;
+        Op op = Algebra.compile(QueryFactory.create(queryAsString));
+
+        String lit = """
+                "Results of surgical treatment in patients with \\"western\\" intrahepatic lithiasis."@en
+                """;
+        var parser = new ARQParser(new ByteArrayInputStream(lit.getBytes(StandardCharsets.UTF_8)));
+        Node n = parser.RDFLiteral();
+    }
+
+    @Disabled
+    @Test
+    public void trying_to_format_horrible_strings () throws ParseException {
+        String escaped = """
+                IT\\ICCU\\CFIV\\072994"""; // one slash in reality
+        escaped = EscapeStr.stringEsc(escaped);
+        // escaped = EscapeStr.stringEsc(escaped);
+        escaped = "\""+ escaped + "\"";
+        System.out.println(escaped);
+
+        var parser = new ARQParser(new ByteArrayInputStream(escaped.getBytes(StandardCharsets.UTF_8)));
+        Node n = parser.RDFLiteral();
+        System.out.println(n.toString());
+    }
+
 
 
 }

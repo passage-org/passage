@@ -5,6 +5,7 @@ import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.sage.budgeting.NaiveBudgeting;
 import fr.gdd.sage.generics.BackendBindings;
+import fr.gdd.sage.generics.CacheId;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.iterators.SagerBind;
 import fr.gdd.sage.rawer.iterators.ProjectIterator;
@@ -42,6 +43,7 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         execCxt.getContext().setIfUndef(RawerConstants.SCANS, 0L);
         execCxt.getContext().setIfUndef(RawerConstants.LIMIT, Long.MAX_VALUE);
         execCxt.getContext().setIfUndef(RawerConstants.TIMEOUT, Long.MAX_VALUE);
+        execCxt.getContext().setIfUndef(RawerConstants.CACHE, new CacheId<>(this.backend));
     }
 
     public RawerOpExecutor<ID, VALUE> setTimeout(Long timeout) {
@@ -52,6 +54,11 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
 
     public RawerOpExecutor<ID, VALUE> setLimit(Long limit) {
         execCxt.getContext().set(RawerConstants.LIMIT, limit);
+        return this;
+    }
+
+    public RawerOpExecutor<ID, VALUE> setCache(CacheId<ID,VALUE> cache) {
+        execCxt.getContext().set(RawerConstants.CACHE, cache);
         return this;
     }
 
@@ -88,8 +95,9 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
     @Override
     public Iterator<BackendBindings<ID, VALUE>> visit(OpExtend extend, Iterator<BackendBindings<ID, VALUE>> input) {
         // TODO throw when the expressions inside the OpExtend are not supported
+        CacheId<ID,VALUE> cache = execCxt.getContext().get(RawerConstants.CACHE);
         Iterator<BackendBindings<ID, VALUE>> wrapped = ReturningArgsOpVisitorRouter.visit(this, extend.getSubOp(), input);
-        return new SagerBind<>(wrapped, extend, backend, execCxt);
+        return new SagerBind<>(wrapped, extend, backend, cache, execCxt);
     }
 
 

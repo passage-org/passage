@@ -3,6 +3,7 @@ package fr.gdd.sage.sager;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.sage.generics.BackendBindings;
+import fr.gdd.sage.generics.CacheId;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.iterators.SagerBind;
 import fr.gdd.sage.sager.iterators.SagerScanFactory;
@@ -21,12 +22,14 @@ public class PreemptedSubQueryOpExecutor<ID,VALUE> extends ReturningArgsOpVisito
 
     final ExecutionContext execCxt;
     final Backend<ID, VALUE, Long> backend;
+    final CacheId<ID,VALUE> cache;
 
     Long skipTo = null;
 
     public PreemptedSubQueryOpExecutor(ExecutionContext execCxt, Backend<ID,VALUE,Long> backend) {
         this.execCxt = execCxt;
         this.backend = backend;
+        this.cache = execCxt.getContext().get(SagerConstants.CACHE);
     }
 
     @Override
@@ -38,7 +41,7 @@ public class PreemptedSubQueryOpExecutor<ID,VALUE> extends ReturningArgsOpVisito
     @Override
     public Iterator<BackendBindings<ID,VALUE>> visit(OpExtend extend, Iterator<BackendBindings<ID,VALUE>> input) {
         Iterator<BackendBindings<ID,VALUE>> newInput = ReturningArgsOpVisitorRouter.visit(this, extend.getSubOp(), input);
-        return new SagerBind<>(newInput, extend, backend, execCxt);
+        return new SagerBind<>(newInput, extend, backend, cache, execCxt);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package fr.gdd.sage.iterators;
 
 import fr.gdd.sage.generics.BackendBindings;
+import fr.gdd.sage.generics.CacheId;
 import fr.gdd.sage.interfaces.Backend;
 import org.apache.jena.sparql.algebra.op.OpExtend;
 import org.apache.jena.sparql.core.Var;
@@ -23,12 +24,15 @@ public class SagerBind<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> 
     final ExecutionContext context;
     final VarExprList exprs;
     final Backend<ID,VALUE,?> backend;
+    final CacheId<ID,VALUE> cache;
 
-    public SagerBind(Iterator<BackendBindings<ID,VALUE>> input, OpExtend op, Backend<ID,VALUE,?> backend, ExecutionContext context) {
+    public SagerBind(Iterator<BackendBindings<ID,VALUE>> input, OpExtend op,
+                     Backend<ID,VALUE,?> backend, CacheId<ID, VALUE> cache, ExecutionContext context) {
         this.exprs =  op.getVarExprList();
         this.context = context;
         this.input = input;
         this.backend = backend;
+        this.cache = cache;
     }
 
     @Override
@@ -40,8 +44,6 @@ public class SagerBind<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> 
     public BackendBindings<ID,VALUE> next() {
         BackendBindings<ID,VALUE> current = input.next();
         BackendBindings<ID,VALUE> b = new BackendBindings<ID,VALUE>().setParent(current);
-        // BackendBindings<ID,VALUE> b = new BindingId2Value().setParent(current).setDefaultTable(current.getDefaultTable());
-        // BackendBindings<ID,VALUE> b = new BackendBindings<ID,VALUE>();
 
         for (Var v : exprs.getVars()) {
             Expr expr = exprs.getExpr(v);
@@ -51,6 +53,9 @@ public class SagerBind<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> 
             if (expr.isVariable()) {
                 newBinding.setValue(b.get(expr.asVar()).getValue());
             } else if (expr.isConstant()) {
+                if (expr instanceof NodeValue nv) {
+                    newBinding.setId(cache.getId(nv.getNode())); // The id might already exist in cache
+                }
                 newBinding.setString(expr.toString()); // try subject
             } else if (expr instanceof E_Add add) {
                 String binding = current.get(add.getArg1().asVar()).getString(); // substr because it has ""
@@ -63,15 +68,6 @@ public class SagerBind<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> 
             }
 
             b.put(v, newBinding);
-//            if (Objects.isNull(expr)) {
-//                b.put(v, b.getId(v));
-//            } else {
-//            try {
-//                NodeValue nv = expr.eval(b, context);
-//                if (Objects.nonNull(nv))
-//                    b.put(v, nv.asNode());
-//            } catch (ExprEvalException ex) {}
-            //}
         }
 
         return b;

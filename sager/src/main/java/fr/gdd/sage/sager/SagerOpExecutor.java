@@ -33,6 +33,7 @@ public class SagerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
 
     final ExecutionContext execCxt;
     final Backend<ID, VALUE, Long> backend;
+    final CacheId<ID,VALUE> cache;
 
     public SagerOpExecutor(ExecutionContext execCxt) {
         this.execCxt = execCxt;
@@ -40,7 +41,8 @@ public class SagerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         execCxt.getContext().setIfUndef(SagerConstants.SCANS, 0L);
         execCxt.getContext().setIfUndef(SagerConstants.LIMIT, Long.MAX_VALUE);
         execCxt.getContext().setIfUndef(SagerConstants.TIMEOUT, Long.MAX_VALUE);
-        execCxt.getContext().setIfUndef(SagerConstants.CACHE, new CacheId<ID,VALUE>(backend));
+        this.cache = new CacheId<>(backend);
+        execCxt.getContext().setIfUndef(SagerConstants.CACHE, this.cache);
         execCxt.getContext().setFalse(SagerConstants.PAUSED);
 
         // as setifundef so outsiders can configure their own list of optimizers
@@ -79,17 +81,8 @@ public class SagerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
     public Iterator<BackendBindings<ID, VALUE>> execute(Op root) {
         execCxt.getContext().set(SagerConstants.SAVER, new Save2SPARQL<ID,VALUE>(root, execCxt));
 
-        Iterator<BackendBindings<ID, VALUE>> wrapped = new SagerRoot<>(execCxt,
+        return new SagerRoot<>(execCxt,
                 ReturningArgsOpVisitorRouter.visit(this, root, Iter.of(new BackendBindings<>())));
-
-        return wrapped;
-//        return QueryIterPlainWrapper.create(Iter.map(wrapped, bnid -> {
-//            BindingBuilder builder = BindingFactory.builder();
-//            for (Var var : bnid) {
-//                builder.add(var, bnid.getValue(var));
-//            }
-//            return builder.build();
-//        }), execCxt);
     }
 
     public String pauseAsString () {
@@ -160,7 +153,7 @@ public class SagerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
     @Override
     public Iterator<BackendBindings<ID,VALUE>> visit(OpExtend extend, Iterator<BackendBindings<ID,VALUE>> input) {
         Iterator<BackendBindings<ID,VALUE>> newInput = ReturningArgsOpVisitorRouter.visit(this, extend.getSubOp(), input);
-        return new SagerBind<>(newInput, extend, backend, execCxt);
+        return new SagerBind<>(newInput, extend, backend, cache, execCxt);
     }
 
     @Override

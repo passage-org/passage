@@ -18,15 +18,18 @@ public class RandomScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID
     final Iterator<BackendBindings<ID, VALUE>> input;
     final ExecutionContext context;
     final OpTriple triple;
+    final CacheId<ID,VALUE> cache;
 
     BackendBindings<ID, VALUE> inputBinding;
     Iterator<BackendBindings<ID, VALUE>> instantiated = Iter.empty();
+
 
     public RandomScanFactory(Iterator<BackendBindings<ID, VALUE>> input, ExecutionContext context, OpTriple triple) {
         this.input = input;
         this.context = context;
         this.triple = triple;
         this.backend = context.getContext().get(RawerConstants.BACKEND);
+        this.cache = context.getContext().get(RawerConstants.CACHE);
     }
 
     @Override
@@ -35,7 +38,7 @@ public class RandomScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID
             return false;
         } else while (!instantiated.hasNext() && input.hasNext()) {
             inputBinding = input.next();
-            Tuple3<ID> spo = Substitutor.substitute(backend, triple.getTriple(), inputBinding, new CacheId<>(backend)); // TODO rework cache
+            Tuple3<ID> spo = Substitutor.substitute(triple.getTriple(), inputBinding, cache);
 
             instantiated = new RandomScan<>(context, triple, spo);
         }

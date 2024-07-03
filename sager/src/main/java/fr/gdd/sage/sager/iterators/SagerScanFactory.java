@@ -58,7 +58,7 @@ public class SagerScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID,
             return false;
         } else while (!instantiated.hasNext() && input.hasNext()) {
             inputBinding = input.next();
-            Tuple3<ID> spo = Substitutor.substitute(backend, triple.getTriple(), inputBinding, cache);
+            Tuple3<ID> spo = Substitutor.substitute(triple.getTriple(), inputBinding, cache);
 
             instantiated = new SagerScan<>(context, triple, spo, backend.search(spo.get(0), spo.get(1), spo.get(2)))
                     .skip(skip);
