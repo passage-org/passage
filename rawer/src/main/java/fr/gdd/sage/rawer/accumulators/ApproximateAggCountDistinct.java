@@ -60,18 +60,14 @@ public class ApproximateAggCountDistinct<ID,VALUE> implements SagerAccumulator<I
     final Backend<ID,VALUE,?> backend;
     final OpGroup group;
 
-    ApproximateAggCount<ID,VALUE> bigN;
+    final ApproximateAggCount<ID,VALUE> bigN;
     Double sumOfInversedProba = 0.;
     Double sumOfInversedProbaOverFmu = 0.;
     final WanderJoinVisitor<ID,VALUE> wj;
 
-
-
     final Set<Var> vars;
-    long sampleSize = 0;
-    long nbZeroFmu = 0;
-
-
+    long sampleSize = 0; // for debug purposes
+    long nbZeroFmu = 0; // for debug purposes
 
     public ApproximateAggCountDistinct(ExprList varsAsExpr, ExecutionContext context, OpGroup group) {
         this.context = context;
@@ -131,24 +127,21 @@ public class ApproximateAggCountDistinct<ID,VALUE> implements SagerAccumulator<I
             right = OpJoin.create(OpExtend.extend(OpTable.unit(), v, ExprLib.nodeToExpr(valueAsNode)), right);
         }
 
-        // #B optimize the COUNT subquery based on cardinality
-        // TODO maybe put this part inside COUNT query processing instead of here.
-        // TODO Bind precludes an ordering based on cardinality since triple pattern remain triple patterns…
-        CardinalityJoinOrdering<ID,VALUE> cardinalityJoinOrdering = new CardinalityJoinOrdering<>(backend);
+        // #B The join ordering of the COUNT subquery using cardinalities will be done by the query executor.
+        // However, it needs triple patterns to be organized into BGPs.
         right = ReturningOpVisitorRouter.visit(new Triples2BGP(), right);
-        right = cardinalityJoinOrdering.visit(right);
 
         // #C wrap as a COUNT query
         Var countVariable = Var.alloc(RawerConstants.COUNT_VARIABLE);
-        OpGroup countQuery = new OpGroup(right, new VarExprList(),
-                List.of(new ExprAggregator(countVariable, new AggCount())));
+        // Does not print as a proper COUNT because it does not follow the PROJECT EXTEND GROUP BY
+        OpGroup countQuery = new OpGroup(right, new VarExprList(), List.of(new ExprAggregator(countVariable, new AggCount())));
 
 
         ExecutionContext newExecutionContext = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
         newExecutionContext.getContext().set(RawerConstants.BACKEND, backend);
         RawerOpExecutor<ID,VALUE> fmuExecutor = new RawerOpExecutor<ID,VALUE>(newExecutionContext)
-                .setLimit(1000L) // TODO make this configurable, the number of scans in the subquery
-                .setTimeout(1000L) // TODO make this configurable as well, the allowed execution time for the subquery
+                .setLimit(7_000L) // TODO make this configurable, the number of scans in the subquery
+                .setTimeout(10_000L) // TODO make this configurable as well, the allowed execution time for the subquery
                 .setCache(cache);
 
         Iterator<BackendBindings<ID,VALUE>> estimatedFmus = fmuExecutor.execute(countQuery);

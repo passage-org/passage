@@ -16,7 +16,7 @@ import java.util.Objects;
 
 /**
  * Perform an estimate of the COUNT based on random walks performed on
- * the subQuery.
+ * the subQuery. This is based on WanderJoin.
  */
 public class ApproximateAggCount<ID, VALUE> implements SagerAccumulator<ID,VALUE> {
 

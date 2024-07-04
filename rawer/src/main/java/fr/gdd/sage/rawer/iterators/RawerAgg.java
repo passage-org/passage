@@ -34,7 +34,7 @@ public class RawerAgg<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
 
     BackendBindings<ID,VALUE> inputBinding;
     Pair<Var, SagerAccumulator<ID,VALUE>> var2accumulator = null;
-    Long budgetForEachInput = 60_000L; // timeout threshold
+    Long budgetForEachInput = 500_000L; // timeout threshold
 
 
     public RawerAgg(RawerOpExecutor<ID, VALUE> executor, OpGroup op, Iterator<BackendBindings<ID,VALUE>> input){

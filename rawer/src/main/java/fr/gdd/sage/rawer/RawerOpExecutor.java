@@ -13,15 +13,17 @@ import fr.gdd.sage.rawer.iterators.RandomRoot;
 import fr.gdd.sage.rawer.iterators.RandomScanFactory;
 import fr.gdd.sage.rawer.iterators.RawerAgg;
 import fr.gdd.sage.sager.SagerConstants;
+import fr.gdd.sage.sager.optimizers.CardinalityJoinOrdering;
 import fr.gdd.sage.sager.pause.Save2SPARQL;
 import fr.gdd.sage.sager.resume.BGP2Triples;
 import org.apache.jena.sparql.algebra.Op;
+import org.apache.jena.sparql.algebra.OpAsQuery;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.expr.aggregate.AggCount;
-import org.apache.jena.sparql.expr.aggregate.AggCountDistinct;
-import org.apache.jena.sparql.expr.aggregate.AggCountVar;
 import org.apache.jena.sparql.expr.aggregate.AggCountVarDistinct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 
@@ -33,6 +35,8 @@ import java.util.Iterator;
 public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         Iterator<BackendBindings<ID, VALUE>>, // input
         Iterator<BackendBindings<ID, VALUE>>> { // output
+
+    private final static Logger log = LoggerFactory.getLogger(RawerOpExecutor.class);
 
     final ExecutionContext execCxt;
     final Backend<ID, VALUE, ?> backend;
@@ -76,7 +80,8 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         execCxt.getContext().setIfUndef(RawerConstants.BUDGETING, new NaiveBudgeting(
                         execCxt.getContext().get(RawerConstants.TIMEOUT),
                         execCxt.getContext().get(RawerConstants.LIMIT)));
-        root = ReturningOpVisitorRouter.visit(new BGP2Triples(), root); // TODO fix
+        root = new CardinalityJoinOrdering<>(backend).visit(root);
+        root = ReturningOpVisitorRouter.visit(new BGP2Triples(), root);
         execCxt.getContext().set(SagerConstants.SAVER, new Save2SPARQL<>(root, execCxt));
         return new RandomRoot<>(this, execCxt, root);
     }

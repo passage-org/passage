@@ -32,7 +32,7 @@ public class CardinalityJoinOrdering<ID,VALUE> extends ReturningArgsOpVisitor<
         Op, // built operator.
         Set<Var>> { // the variables already set when the operator is visited.
 
-    final ExecutionContext fakeContext;
+    final ExecutionContext fakeContext; // (to create the iterators)
     private static final Logger log = LoggerFactory.getLogger(CardinalityJoinOrdering.class);
 
     private boolean hasCartesianProduct = false;
@@ -63,7 +63,7 @@ public class CardinalityJoinOrdering<ID,VALUE> extends ReturningArgsOpVisitor<
     @Override
     public Op visit(OpJoin join, Set<Var> alreadySetVars) {
         // TODO flatten, then order operators based on their estimated cardinality
-        // (but for now, it visits each op independently.
+        // (but for now, it visits each op independently. (might be a job for another visitor though)
         Op left = ReturningArgsOpVisitorRouter.visit(this, join.getLeft(), new HashSet<>(alreadySetVars));
         alreadySetVars.addAll(OpVars.visibleVars(join.getLeft()));
         Op right = ReturningArgsOpVisitorRouter.visit(this, join.getRight(), alreadySetVars);
@@ -72,7 +72,12 @@ public class CardinalityJoinOrdering<ID,VALUE> extends ReturningArgsOpVisitor<
 
     @Override
     public Op visit(OpExtend extend, Set<Var> alreadySetVars) {
-        return extend; // nothing to do, maybe TODO explore subop
+        return extend; // nothing to do, maybe TODO explore subop when subop's table is not join identity
+    }
+
+    @Override
+    public Op visit(OpGroup groupBy, Set<Var> alreadySetVars) {
+        return OpCloningUtil.clone(groupBy, ReturningArgsOpVisitorRouter.visit(this, groupBy.getSubOp(), alreadySetVars));
     }
 
     @Override

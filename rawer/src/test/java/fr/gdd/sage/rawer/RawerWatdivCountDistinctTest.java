@@ -49,10 +49,10 @@ public class RawerWatdivCountDistinctTest {
     public void count_distinct_on_2_tps () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
         String twoTPsQuery = """
                 SELECT (COUNT( DISTINCT ?v4 ) AS ?count) WHERE {
-                    # ?v0 <http://db.uwaterloo.ca/~galuc/wsdbm/gender> <http://db.uwaterloo.ca/~galuc/wsdbm/Gender1> .
-                    # ?v0 <http://xmlns.com/foaf/givenName> ?v1 .
-                    # ?v0 <http://schema.org/nationality> ?v3 .
-                    # ?v2 <http://www.geonames.org/ontology#parentCountry> ?v3 .
+                    ?v0 <http://db.uwaterloo.ca/~galuc/wsdbm/gender> <http://db.uwaterloo.ca/~galuc/wsdbm/Gender1> .
+                    ?v0 <http://xmlns.com/foaf/givenName> ?v1 .
+                    ?v0 <http://schema.org/nationality> ?v3 .
+                    ?v2 <http://www.geonames.org/ontology#parentCountry> ?v3 .
                     ?v4 <http://schema.org/eligibleRegion> ?v3 .
                 }""";
         var results = watdivBlazegraph.executeQuery(twoTPsQuery);
@@ -71,6 +71,27 @@ public class RawerWatdivCountDistinctTest {
         var results = watdivBlazegraph.executeQuery(twoTPsQuery);
         log.debug("{}", results.toString());
     }
+
+    @Disabled
+    @Test
+    public void count_distinct_on_8_tps () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
+        String twoTPsQuery = """
+                SELECT (COUNT(DISTINCT(?v4)) AS ?count) WHERE {
+                        ?v1 <http://schema.org/priceValidUntil> ?v8.
+                        ?v1 <http://purl.org/goodrelations/validFrom> ?v2.
+                        ?v1 <http://purl.org/goodrelations/validThrough> ?v3.
+                        ?v1 <http://schema.org/eligibleQuantity> ?v6.
+                        ?v0 <http://purl.org/goodrelations/offers> ?v1.
+                        ?v1 <http://schema.org/eligibleRegion> ?v7.
+                        ?v4 <http://schema.org/nationality> ?v7.
+                        ?v4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://db.uwaterloo.ca/~galuc/wsdbm/Role0>.
+                }""";
+        // var results = watdivBlazegraph.executeQuery(twoTPsQuery);
+        // log.debug("{}", results.toString());
+        RawerOpExecutorTest.execute(twoTPsQuery, watdivBlazegraph, 100_000_000L);
+    }
+
+
 
     /* ********************************************************************* */
 
