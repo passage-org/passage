@@ -3,6 +3,7 @@ package fr.gdd.sage.sager.optimizers;
 import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
+import fr.gdd.sage.exceptions.NotFoundException;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.generics.CacheId;
 import fr.gdd.sage.interfaces.Backend;
@@ -14,13 +15,9 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.DatasetFactory;
-import fr.gdd.sage.exceptions.NotFoundException;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpVars;
-import org.apache.jena.sparql.algebra.op.OpBGP;
-import org.apache.jena.sparql.algebra.op.OpLeftJoin;
-import org.apache.jena.sparql.algebra.op.OpProject;
-import org.apache.jena.sparql.algebra.op.OpTriple;
+import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.core.BasicPattern;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ExecutionContext;
@@ -64,11 +61,31 @@ public class CardinalityJoinOrdering<ID,VALUE> extends ReturningArgsOpVisitor<
     }
 
     @Override
+    public Op visit(OpJoin join, Set<Var> alreadySetVars) {
+        // TODO flatten, then order operators based on their estimated cardinality
+        // (but for now, it visits each op independently.
+        Op left = ReturningArgsOpVisitorRouter.visit(this, join.getLeft(), new HashSet<>(alreadySetVars));
+        alreadySetVars.addAll(OpVars.visibleVars(join.getLeft()));
+        Op right = ReturningArgsOpVisitorRouter.visit(this, join.getRight(), alreadySetVars);
+        return OpCloningUtil.clone(join, left, right);
+    }
+
+    @Override
+    public Op visit(OpExtend extend, Set<Var> alreadySetVars) {
+        return extend; // nothing to do, maybe TODO explore subop
+    }
+
+    @Override
     public Op visit(OpLeftJoin lj, Set<Var> alreadySetVars) {
         Op left = ReturningArgsOpVisitorRouter.visit(this, lj.getLeft(), new HashSet<>(alreadySetVars));
         alreadySetVars.addAll(OpVars.visibleVars(lj.getLeft()));
         Op right = ReturningArgsOpVisitorRouter.visit(this, lj.getRight(), alreadySetVars);
         return OpCloningUtil.clone(lj, left, right);
+    }
+
+    @Override
+    public Op visit(OpTriple triple, Set<Var> alreadySetVars) {
+        return triple; // nothing to optimize with a single triple
     }
 
     @Override
