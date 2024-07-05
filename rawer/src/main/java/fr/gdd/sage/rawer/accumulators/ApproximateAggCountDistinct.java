@@ -6,6 +6,7 @@ import fr.gdd.sage.generics.CacheId;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.rawer.RawerConstants;
 import fr.gdd.sage.rawer.RawerOpExecutor;
+import fr.gdd.sage.rawer.subqueries.CountSubqueryBuilder;
 import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.accumulators.SagerAccumulator;
 import fr.gdd.sage.sager.optimizers.CardinalityJoinOrdering;
@@ -67,7 +68,12 @@ public class ApproximateAggCountDistinct<ID,VALUE> implements SagerAccumulator<I
 
     final Set<Var> vars;
     long sampleSize = 0; // for debug purposes
-    long nbZeroFmu = 0; // for debug purposes
+    long nbZeroFmu = 0; // for debug purposes TODO eventually, this should not exist with bootstrapping
+
+    // TODO /!\ This is ugly. There should be a better way to devise
+    // TODO a budget defined by a configuration, or adaptive, or etc.
+    public static long SUBQUERY_LIMIT = 7_000L;
+    public static long SUBQUERY_TIMEOUT = 10_000L;
 
     public ApproximateAggCountDistinct(ExprList varsAsExpr, ExecutionContext context, OpGroup group) {
         this.context = context;
@@ -95,54 +101,15 @@ public class ApproximateAggCountDistinct<ID,VALUE> implements SagerAccumulator<I
 
         // #3 processing of F_mu
         // #A bind the variable with their respective value
-        CacheId<ID,VALUE> cache = new CacheId<>(backend); // bound variables are cached as we already know the ID
-        Op right = group.getSubOp();
-
-        for (Var v : vars) {
-            // Important note: here we have a placeholder because we already have the id, but we
-            // don't need the actual value as a string, since we stay in the same engine overall.
-            // So this improves (i) performance as we don't need to retrieve the actual value in the database;
-            // and (ii) reliability as we get the id from the database, we know for sure it exists as is,
-            // while another round of translation would not guarantee it.
-            // However, if we happen to output the subquery, it would display placeholders that are meaningless
-            // and the query would not return anything. This could be an issue for Sage.
-            Node valueAsNode = NodeFactory.createLiteralString("PLACEHOLDER_" + v.toString());
-//            String valueAsString = binding.get(v).getString();
-//            // valueAsString = EscapeStr.stringEsc(valueAsString);
-//            parser.ReInit(new ByteArrayInputStream(valueAsString.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8.toString());
-//
-//            Node valueAsNode = null;
-//            try {
-//                valueAsNode = parser.VarOrTerm();
-//            } catch (ParseException e){
-//                throw new UnsupportedOperationException("Failed to parse the value as node…");
-//            }
-
-//            if (valueAsString.startsWith("\"") && valueAsString.endsWith("\"")) {
-//                valueAsString = LiteralLabelFactory.createTypedLiteral(valueAsString.substring(1, valueAsString.length()-1)).toString();
-//            }
-
-//            NodeValue valueAsNode = ExprUtils.parseNodeValue(valueAsString);
-            cache.register(valueAsNode, binding.get(v).getId());
-            right = OpJoin.create(OpExtend.extend(OpTable.unit(), v, ExprLib.nodeToExpr(valueAsNode)), right);
-        }
-
-        // #B The join ordering of the COUNT subquery using cardinalities will be done by the query executor.
-        // However, it needs triple patterns to be organized into BGPs.
-        right = ReturningOpVisitorRouter.visit(new Triples2BGP(), right);
-
-        // #C wrap as a COUNT query
-        Var countVariable = Var.alloc(RawerConstants.COUNT_VARIABLE);
-        // Does not print as a proper COUNT because it does not follow the PROJECT EXTEND GROUP BY
-        OpGroup countQuery = new OpGroup(right, new VarExprList(), List.of(new ExprAggregator(countVariable, new AggCount())));
-
+        CountSubqueryBuilder<ID,VALUE> subqueryBuilder = new CountSubqueryBuilder<>(backend, binding, vars);
+        Op countQuery = subqueryBuilder.build(group.getSubOp());
 
         ExecutionContext newExecutionContext = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
         newExecutionContext.getContext().set(RawerConstants.BACKEND, backend);
         RawerOpExecutor<ID,VALUE> fmuExecutor = new RawerOpExecutor<ID,VALUE>(newExecutionContext)
-                .setLimit(7_000L) // TODO make this configurable, the number of scans in the subquery
-                .setTimeout(10_000L) // TODO make this configurable as well, the allowed execution time for the subquery
-                .setCache(cache);
+                .setLimit(SUBQUERY_LIMIT) // TODO make this configurable, the number of scans in the subquery
+                .setTimeout(SUBQUERY_TIMEOUT) // TODO make this configurable as well, the allowed execution time for the subquery
+                .setCache(subqueryBuilder.getCache());
 
         Iterator<BackendBindings<ID,VALUE>> estimatedFmus = fmuExecutor.execute(countQuery);
         if (!estimatedFmus.hasNext()) {
@@ -157,7 +124,7 @@ public class ApproximateAggCountDistinct<ID,VALUE> implements SagerAccumulator<I
                         + nbScansSubQuery);
 
         // #D TODO ugly but need to be parsed to Double again…
-        String fmuAsString = estimatedFmu.get(countVariable).getString();
+        String fmuAsString = estimatedFmu.get(subqueryBuilder.getResultVar()).getString();
 
         // Remove the datatype part and quotes from the string to get the numeric value
         String valueString = fmuAsString.substring(2, fmuAsString.indexOf("\"^^")); // TODO unuglify all this...

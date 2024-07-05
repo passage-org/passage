@@ -1,6 +1,7 @@
 package fr.gdd.sage.rawer;
 
 import fr.gdd.sage.blazegraph.BlazegraphBackend;
+import fr.gdd.sage.rawer.accumulators.ApproximateAggCountDistinct;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.query.MalformedQueryException;
@@ -27,6 +28,7 @@ public class RawerWatdivCountDistinctTest {
     @Test
     public void count_distinct_s_on_spo () {
         String queryAsString = "SELECT (COUNT( DISTINCT ?s ) AS ?count) WHERE { ?s ?p ?o }";
+        ApproximateAggCountDistinct.SUBQUERY_LIMIT = 1;
         RawerOpExecutorTest.execute(queryAsString, watdivBlazegraph, 1000000L); // 521,585 triples (+blaze default ones)
     }
 

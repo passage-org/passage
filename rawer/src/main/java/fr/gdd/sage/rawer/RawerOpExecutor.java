@@ -16,14 +16,14 @@ import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.optimizers.CardinalityJoinOrdering;
 import fr.gdd.sage.sager.pause.Save2SPARQL;
 import fr.gdd.sage.sager.resume.BGP2Triples;
+import org.apache.jena.query.DatasetFactory;
+import org.apache.jena.query.QueryFactory;
+import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.algebra.OpAsQuery;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.expr.aggregate.AggCount;
 import org.apache.jena.sparql.expr.aggregate.AggCountVarDistinct;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 
@@ -36,10 +36,17 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         Iterator<BackendBindings<ID, VALUE>>, // input
         Iterator<BackendBindings<ID, VALUE>>> { // output
 
-    private final static Logger log = LoggerFactory.getLogger(RawerOpExecutor.class);
-
     final ExecutionContext execCxt;
-    final Backend<ID, VALUE, ?> backend;
+    Backend<ID, VALUE, ?> backend;
+
+    public RawerOpExecutor() {
+        // This creates a brandnew execution context, but it's important
+        // that `setBackend` is called, or it will throw.
+        this.execCxt = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
+        execCxt.getContext().setIfUndef(RawerConstants.SCANS, 0L);
+        execCxt.getContext().setIfUndef(RawerConstants.LIMIT, Long.MAX_VALUE);
+        execCxt.getContext().setIfUndef(RawerConstants.TIMEOUT, Long.MAX_VALUE);
+    }
 
     public RawerOpExecutor(ExecutionContext execCxt) {
         this.execCxt = execCxt;
@@ -66,6 +73,13 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         return this;
     }
 
+    public RawerOpExecutor<ID,VALUE> setBackend(Backend<ID,VALUE,?> backend) {
+        this.backend = backend;
+        execCxt.getContext().set(RawerConstants.BACKEND, backend);
+        execCxt.getContext().setIfUndef(RawerConstants.CACHE, new CacheId<>(this.backend));
+        return this;
+    }
+
     public Backend<ID, VALUE, ?> getBackend() {
         return backend;
     }
@@ -75,6 +89,10 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
     }
 
     /* ************************************************************************ */
+
+    public Iterator<BackendBindings<ID,VALUE>> execute(String queryAsString) {
+        return this.execute(Algebra.compile(QueryFactory.create(queryAsString)));
+    }
 
     public Iterator<BackendBindings<ID, VALUE>> execute(Op root) {
         execCxt.getContext().setIfUndef(RawerConstants.BUDGETING, new NaiveBudgeting(
