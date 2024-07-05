@@ -61,7 +61,6 @@ public class CountSubqueryBuilder<ID,VALUE> extends ReturningOpBaseVisitor {
             // this is a URI because it works for all: graph subject predicate object.
             Node valueAsNode = placeholderNode(toBind);
             cache.register(valueAsNode, bindings.get(toBind).getId());
-            // right = OpJoin.create(OpExtend.extend(OpTable.unit(), toBind, ExprLib.nodeToExpr(valueAsNode)), right);
         }
 
         resultVar = Var.alloc(RawerConstants.COUNT_VARIABLE);

@@ -46,4 +46,14 @@ public class CacheId<ID,VALUE> {
         node2id.put(node, id); // we don't check anything
         return this;
     }
+
+    /**
+     * Copy the content of the other cache into this one.
+     * @param otherCache The cache to copy.
+     * @return this, for convenience.
+     */
+    public CacheId<ID,VALUE> copy(CacheId<ID,VALUE> otherCache) {
+        this.node2id.putAll(otherCache.node2id);
+        return this;
+    }
 }
