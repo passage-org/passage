@@ -36,6 +36,7 @@ public class RawerWatdivCountDistinctTest {
     @Test
     public void count_distinct_p_on_spo () {
         String queryAsString = "SELECT (COUNT( DISTINCT ?p ) AS ?count) WHERE { ?s ?p ?o }";
+        ApproximateAggCountDistinct.SUBQUERY_LIMIT = 1;
         RawerOpExecutorTest.execute(queryAsString, watdivBlazegraph, 1000000L); // 86 triples (+blaze default ones)
     }
 
@@ -43,40 +44,30 @@ public class RawerWatdivCountDistinctTest {
     @Test
     public void count_distinct_o_on_spo () {
         String queryAsString = "SELECT (COUNT( DISTINCT ?o ) AS ?count) WHERE { ?s ?p ?o }";
+        ApproximateAggCountDistinct.SUBQUERY_LIMIT = 1;
         RawerOpExecutorTest.execute(queryAsString, watdivBlazegraph, 1000000L); // 1,005,832 triples (+blaze default ones)
     }
 
     @Disabled
     @Test
-    public void count_distinct_on_2_tps () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
+    public void count_distinct_on_query_10069 () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
         String twoTPsQuery = """
-                SELECT (COUNT( DISTINCT ?v4 ) AS ?count) WHERE {
+                SELECT (COUNT( DISTINCT ?v1 ) AS ?count) WHERE {
                     ?v0 <http://db.uwaterloo.ca/~galuc/wsdbm/gender> <http://db.uwaterloo.ca/~galuc/wsdbm/Gender1> .
                     ?v0 <http://xmlns.com/foaf/givenName> ?v1 .
                     ?v0 <http://schema.org/nationality> ?v3 .
                     ?v2 <http://www.geonames.org/ontology#parentCountry> ?v3 .
                     ?v4 <http://schema.org/eligibleRegion> ?v3 .
                 }""";
-        var results = watdivBlazegraph.executeQuery(twoTPsQuery);
-        log.debug("{}", results.toString());
+        //var results = watdivBlazegraph.executeQuery(twoTPsQuery);
+        //log.debug("{}", results.toString());
+        ApproximateAggCountDistinct.SUBQUERY_LIMIT = 5*100;
         RawerOpExecutorTest.execute(twoTPsQuery, watdivBlazegraph, 10_000_000L);
     }
 
     @Disabled
     @Test
-    public void count_distinct_on_2_tps_meow () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
-        String twoTPsQuery = """
-                SELECT ?gender WHERE {
-                    ?v0 <http://db.uwaterloo.ca/~galuc/wsdbm/gender> ?gender .
-                    ?v0 <http://xmlns.com/foaf/givenName> "ANN" .
-                }""";
-        var results = watdivBlazegraph.executeQuery(twoTPsQuery);
-        log.debug("{}", results.toString());
-    }
-
-    @Disabled
-    @Test
-    public void count_distinct_on_8_tps () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
+    public void count_distinct_on_8_tps_of_query_10020 () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
         String twoTPsQuery = """
                 SELECT (COUNT(DISTINCT(?v4)) AS ?count) WHERE {
                         ?v1 <http://schema.org/priceValidUntil> ?v8.
@@ -90,7 +81,8 @@ public class RawerWatdivCountDistinctTest {
                 }""";
         // var results = watdivBlazegraph.executeQuery(twoTPsQuery);
         // log.debug("{}", results.toString());
-        RawerOpExecutorTest.execute(twoTPsQuery, watdivBlazegraph, 100_000_000L);
+        ApproximateAggCountDistinct.SUBQUERY_LIMIT = 8*2000;
+        RawerOpExecutorTest.execute(twoTPsQuery, watdivBlazegraph, 10_000_000L);
     }
 
 

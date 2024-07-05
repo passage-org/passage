@@ -1,5 +1,6 @@
 package fr.gdd.sage.rawer;
 
+import com.google.common.cache.Cache;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
@@ -15,6 +16,7 @@ import fr.gdd.sage.rawer.iterators.RawerAgg;
 import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.optimizers.CardinalityJoinOrdering;
 import fr.gdd.sage.sager.pause.Save2SPARQL;
+import fr.gdd.sage.sager.pause.Triples2BGP;
 import fr.gdd.sage.sager.resume.BGP2Triples;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.QueryFactory;
@@ -38,6 +40,7 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
 
     final ExecutionContext execCxt;
     Backend<ID, VALUE, ?> backend;
+    CacheId<ID, VALUE> cache;
 
     public RawerOpExecutor() {
         // This creates a brandnew execution context, but it's important
@@ -54,12 +57,14 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         execCxt.getContext().setIfUndef(RawerConstants.SCANS, 0L);
         execCxt.getContext().setIfUndef(RawerConstants.LIMIT, Long.MAX_VALUE);
         execCxt.getContext().setIfUndef(RawerConstants.TIMEOUT, Long.MAX_VALUE);
-        execCxt.getContext().setIfUndef(RawerConstants.CACHE, new CacheId<>(this.backend));
+        this.cache = new CacheId<>(this.backend);
+        execCxt.getContext().setIfUndef(RawerConstants.CACHE, cache);
     }
 
     public RawerOpExecutor<ID, VALUE> setTimeout(Long timeout) {
         execCxt.getContext().set(RawerConstants.TIMEOUT, timeout);
-        execCxt.getContext().set(RawerConstants.DEADLINE, System.currentTimeMillis()+timeout);
+        long deadline = System.currentTimeMillis() + timeout;
+        execCxt.getContext().set(RawerConstants.DEADLINE, deadline > 0 ? deadline : Long.MAX_VALUE); // handle overflow
         return this;
     }
 
@@ -70,6 +75,7 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
 
     public RawerOpExecutor<ID, VALUE> setCache(CacheId<ID,VALUE> cache) {
         execCxt.getContext().set(RawerConstants.CACHE, cache);
+        this.cache = cache;
         return this;
     }
 
@@ -98,7 +104,8 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         execCxt.getContext().setIfUndef(RawerConstants.BUDGETING, new NaiveBudgeting(
                         execCxt.getContext().get(RawerConstants.TIMEOUT),
                         execCxt.getContext().get(RawerConstants.LIMIT)));
-        root = new CardinalityJoinOrdering<>(backend).visit(root);
+        root = ReturningOpVisitorRouter.visit(new Triples2BGP(), root);
+        root = new CardinalityJoinOrdering<>(backend, cache).visit(root); // need to have bgp to optimize, no tps
         root = ReturningOpVisitorRouter.visit(new BGP2Triples(), root);
         execCxt.getContext().set(SagerConstants.SAVER, new Save2SPARQL<>(root, execCxt));
         return new RandomRoot<>(this, execCxt, root);

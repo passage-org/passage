@@ -34,8 +34,6 @@ public class RawerAgg<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
 
     BackendBindings<ID,VALUE> inputBinding;
     Pair<Var, SagerAccumulator<ID,VALUE>> var2accumulator = null;
-    Long budgetForEachInput = 500_000L; // timeout threshold
-
 
     public RawerAgg(RawerOpExecutor<ID, VALUE> executor, OpGroup op, Iterator<BackendBindings<ID,VALUE>> input){
         this.executor = executor;
@@ -64,9 +62,9 @@ public class RawerAgg<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
     @Override
     public BackendBindings<ID, VALUE> next() {
         inputBinding = input.next();
-        long limit = executor.getExecutionContext().getContext().get(RawerConstants.LIMIT);
-        Long start = System.currentTimeMillis();
-        while (System.currentTimeMillis() < start + budgetForEachInput &&
+        long limit = executor.getExecutionContext().getContext().getLong(RawerConstants.LIMIT, Long.MAX_VALUE);
+        long deadline = executor.getExecutionContext().getContext().getLong(RawerConstants.DEADLINE, Long.MAX_VALUE);
+        while (System.currentTimeMillis() < deadline &&
                 executor.getExecutionContext().getContext().getLong(RawerConstants.SCANS, 0L) < limit) {
             Iterator<BackendBindings<ID,VALUE>> subquery = ReturningArgsOpVisitorRouter.visit(executor, op.getSubOp(), Iter.of(inputBinding));
             BackendBindings<ID,VALUE> bindings = null;

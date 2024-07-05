@@ -8,20 +8,24 @@ import fr.gdd.sage.rawer.iterators.RandomScan;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpExtend;
 import org.apache.jena.sparql.algebra.op.OpJoin;
+import org.apache.jena.sparql.algebra.op.OpTable;
 import org.apache.jena.sparql.algebra.op.OpTriple;
 
 import java.util.Iterator;
 import java.util.Objects;
 
 /**
- * Process the probability of having retrieved the last random walk.
+ * Process the probability of having retrieved the last random walk, i.e.,
+ * series of successful scans.
+ * This suppose that scan iterator are initialized, and the operators
+ * are the same than at execution time.
  * TODO add the possibility to bind some variables to change the probabilities
  */
-public class WanderJoinVisitor<ID, VALUE> extends ReturningOpVisitor<Double> {
+public class WanderJoin<ID, VALUE> extends ReturningOpVisitor<Double> {
 
     public final PtrMap<Op, Iterator<BackendBindings<ID,VALUE>>> op2it;
 
-    public WanderJoinVisitor (PtrMap<Op, Iterator<BackendBindings<ID,VALUE>>> op2it) {
+    public WanderJoin(PtrMap<Op, Iterator<BackendBindings<ID,VALUE>>> op2it) {
         this.op2it = op2it;
     }
 
@@ -40,8 +44,14 @@ public class WanderJoinVisitor<ID, VALUE> extends ReturningOpVisitor<Double> {
 
     @Override
     public Double visit(OpExtend extend) {
-        // always true so, 1
-        // TODO but what happens with OpTable below?
-        return 1.;
+        return ReturningOpVisitorRouter.visit(this, extend.getSubOp());
+    }
+
+    @Override
+    public Double visit(OpTable table) {
+        if (table.isJoinIdentity()) {
+            return 1.;
+        }
+        throw new UnsupportedOperationException("Tables are not handled properly yet…");
     }
 }

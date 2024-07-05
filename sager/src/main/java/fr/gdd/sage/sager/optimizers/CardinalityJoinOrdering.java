@@ -3,6 +3,7 @@ package fr.gdd.sage.sager.optimizers;
 import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
+import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.sage.exceptions.NotFoundException;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.generics.CacheId;
@@ -45,6 +46,14 @@ public class CardinalityJoinOrdering<ID,VALUE> extends ReturningArgsOpVisitor<
         this.fakeContext = ec;
     }
 
+    public CardinalityJoinOrdering(Backend<ID,VALUE,?> backend, CacheId<ID,VALUE> cache) {
+        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
+        ec.getContext().set(SagerConstants.BACKEND, backend);
+        ec.getContext().set(SagerConstants.CACHE, cache);
+        ec.getContext().set(SagerConstants.SAVER, new Save2SPARQL<>(null, ec));
+        this.fakeContext = ec;
+    }
+
     public Op visit(Op op) {
         return ReturningArgsOpVisitorRouter.visit(this, op, new HashSet<>());
     }
@@ -72,7 +81,7 @@ public class CardinalityJoinOrdering<ID,VALUE> extends ReturningArgsOpVisitor<
 
     @Override
     public Op visit(OpExtend extend, Set<Var> alreadySetVars) {
-        return extend; // nothing to do, maybe TODO explore subop when subop's table is not join identity
+        return OpCloningUtil.clone(extend, ReturningArgsOpVisitorRouter.visit(this, extend.getSubOp(), alreadySetVars));
     }
 
     @Override

@@ -42,13 +42,9 @@ public class CountSubqueryBuilder<ID,VALUE> extends ReturningOpBaseVisitor {
         this.cache = new CacheId<>(backend);
     }
 
-    public Var getResultVar() {
-        return resultVar;
-    }
+    public Var getResultVar() { return resultVar;}
 
-    public CacheId<ID, VALUE> getCache() {
-        return cache;
-    }
+    public CacheId<ID, VALUE> getCache() { return cache;}
 
     public Op build (String queryAsString) {return this.build(Algebra.compile(QueryFactory.create(queryAsString)));}
 
@@ -69,7 +65,7 @@ public class CountSubqueryBuilder<ID,VALUE> extends ReturningOpBaseVisitor {
         }
 
         resultVar = Var.alloc(RawerConstants.COUNT_VARIABLE);
-        Var subCountVariable = Var.alloc(RawerConstants.COUNT_VARIABLE + "0.1");
+        Var subCountVariable = Var.alloc(RawerConstants.COUNT_VARIABLE + "_0.1");
 
         root = new OpGroup(root, new VarExprList(), List.of(new ExprAggregator(subCountVariable, new AggCount())));
         root = OpExtend.create(root, new VarExprList(resultVar, new ExprVar(subCountVariable)));

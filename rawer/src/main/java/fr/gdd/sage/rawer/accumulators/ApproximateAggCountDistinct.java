@@ -2,50 +2,27 @@ package fr.gdd.sage.rawer.accumulators;
 
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.sage.generics.BackendBindings;
-import fr.gdd.sage.generics.CacheId;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.rawer.RawerConstants;
 import fr.gdd.sage.rawer.RawerOpExecutor;
 import fr.gdd.sage.rawer.subqueries.CountSubqueryBuilder;
 import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.accumulators.SagerAccumulator;
-import fr.gdd.sage.sager.optimizers.CardinalityJoinOrdering;
 import fr.gdd.sage.sager.pause.Save2SPARQL;
-import fr.gdd.sage.sager.pause.Triples2BGP;
-import org.apache.jena.atlas.lib.EscapeStr;
 import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.graph.impl.LiteralLabelFactory;
-import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.ResourceFactory;
-import org.apache.jena.riot.lang.LabelToNode;
 import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.algebra.op.OpExtend;
 import org.apache.jena.sparql.algebra.op.OpGroup;
-import org.apache.jena.sparql.algebra.op.OpJoin;
-import org.apache.jena.sparql.algebra.op.OpTable;
 import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.core.VarExprList;
 import org.apache.jena.sparql.engine.ExecutionContext;
-import org.apache.jena.sparql.expr.*;
-import org.apache.jena.sparql.expr.aggregate.AggCount;
+import org.apache.jena.sparql.expr.ExprList;
 import org.apache.jena.sparql.function.FunctionEnv;
-import org.apache.jena.sparql.lang.arq.ARQParser;
-import org.apache.jena.sparql.lang.arq.ParseException;
-import org.apache.jena.sparql.util.ExprUtils;
-import org.apache.jena.sparql.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.beans.Expression;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -64,7 +41,7 @@ public class ApproximateAggCountDistinct<ID,VALUE> implements SagerAccumulator<I
     final ApproximateAggCount<ID,VALUE> bigN;
     Double sumOfInversedProba = 0.;
     Double sumOfInversedProbaOverFmu = 0.;
-    final WanderJoinVisitor<ID,VALUE> wj;
+    final WanderJoin<ID,VALUE> wj;
 
     final Set<Var> vars;
     long sampleSize = 0; // for debug purposes
@@ -72,8 +49,9 @@ public class ApproximateAggCountDistinct<ID,VALUE> implements SagerAccumulator<I
 
     // TODO /!\ This is ugly. There should be a better way to devise
     // TODO a budget defined by a configuration, or adaptive, or etc.
-    public static long SUBQUERY_LIMIT = 7_000L;
-    public static long SUBQUERY_TIMEOUT = 10_000L;
+    // TODO should check that one at least is set.
+    public static long SUBQUERY_LIMIT = Long.MAX_VALUE;
+    public static long SUBQUERY_TIMEOUT = Long.MAX_VALUE;
 
     public ApproximateAggCountDistinct(ExprList varsAsExpr, ExecutionContext context, OpGroup group) {
         this.context = context;
@@ -81,7 +59,7 @@ public class ApproximateAggCountDistinct<ID,VALUE> implements SagerAccumulator<I
         this.group = group;
         this.bigN = new ApproximateAggCount<>(context, group.getSubOp());
         Save2SPARQL<ID,VALUE> saver = context.getContext().get(SagerConstants.SAVER);
-        this.wj = new WanderJoinVisitor<>(saver.op2it);
+        this.wj = new WanderJoin<>(saver.op2it);
         this.vars = varsAsExpr.getVarsMentioned();
 
     }
@@ -104,21 +82,21 @@ public class ApproximateAggCountDistinct<ID,VALUE> implements SagerAccumulator<I
         CountSubqueryBuilder<ID,VALUE> subqueryBuilder = new CountSubqueryBuilder<>(backend, binding, vars);
         Op countQuery = subqueryBuilder.build(group.getSubOp());
 
-        ExecutionContext newExecutionContext = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        newExecutionContext.getContext().set(RawerConstants.BACKEND, backend);
-        RawerOpExecutor<ID,VALUE> fmuExecutor = new RawerOpExecutor<ID,VALUE>(newExecutionContext)
-                .setLimit(SUBQUERY_LIMIT) // TODO make this configurable, the number of scans in the subquery
-                .setTimeout(SUBQUERY_TIMEOUT) // TODO make this configurable as well, the allowed execution time for the subquery
+        RawerOpExecutor<ID,VALUE> fmuExecutor = new RawerOpExecutor<ID,VALUE>()
+                .setBackend(backend)
+                .setLimit(SUBQUERY_LIMIT)
+                .setTimeout(SUBQUERY_TIMEOUT)
                 .setCache(subqueryBuilder.getCache());
 
         Iterator<BackendBindings<ID,VALUE>> estimatedFmus = fmuExecutor.execute(countQuery);
         if (!estimatedFmus.hasNext()) {
             // no time to execute maybe ?
+            // TODO handle this case when the budget is not enough to even get a 0.
             throw new UnsupportedOperationException("TODO need to look at this exception");
         }
         BackendBindings<ID,VALUE> estimatedFmu = estimatedFmus.next();
 
-        long nbScansSubQuery = newExecutionContext.getContext().get(RawerConstants.SCANS);
+        long nbScansSubQuery = fmuExecutor.getExecutionContext().getContext().get(RawerConstants.SCANS);
         context.getContext().set(RawerConstants.SCANS,
                 context.getContext().getLong(RawerConstants.SCANS,0L)
                         + nbScansSubQuery);

@@ -26,13 +26,13 @@ public class ApproximateAggCount<ID, VALUE> implements SagerAccumulator<ID,VALUE
     double sampleSize = 0.;
     double sumOfInversedProba = 0.;
 
-    WanderJoinVisitor<ID,VALUE> wj;
+    WanderJoin<ID,VALUE> wj;
 
     public ApproximateAggCount(ExecutionContext context, Op subOp) {
         this.context = context;
         this.op = subOp;
         Save2SPARQL<ID,VALUE> saver = context.getContext().get(SagerConstants.SAVER);
-        this.wj = new WanderJoinVisitor<>(saver.op2it);
+        this.wj = new WanderJoin<>(saver.op2it);
     }
 
     @Override
