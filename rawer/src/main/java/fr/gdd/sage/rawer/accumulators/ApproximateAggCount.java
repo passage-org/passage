@@ -43,6 +43,11 @@ public class ApproximateAggCount<ID, VALUE> implements SagerAccumulator<ID,VALUE
         sampleSize += 1;
     }
 
+    public void accumulate(double probability) {
+        sumOfInversedProba += 1./ probability;
+        sampleSize += 1;
+    }
+
     @Override
     public VALUE getValue() {
         Backend<ID,VALUE,?> backend = context.getContext().get(RawerConstants.BACKEND);

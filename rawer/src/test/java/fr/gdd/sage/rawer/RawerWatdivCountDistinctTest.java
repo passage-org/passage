@@ -81,8 +81,8 @@ public class RawerWatdivCountDistinctTest {
                 }""";
         // var results = watdivBlazegraph.executeQuery(twoTPsQuery);
         // log.debug("{}", results.toString());
-        ApproximateAggCountDistinct.SUBQUERY_LIMIT = 8*2000;
-        RawerOpExecutorTest.execute(twoTPsQuery, watdivBlazegraph, 10_000_000L);
+        ApproximateAggCountDistinct.SUBQUERY_LIMIT = 8*100;
+        RawerOpExecutorTest.execute(twoTPsQuery, watdivBlazegraph, 1_000_000L);
     }
 
 

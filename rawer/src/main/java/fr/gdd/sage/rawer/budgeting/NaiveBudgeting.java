@@ -1,4 +1,4 @@
-package fr.gdd.sage.budgeting;
+package fr.gdd.sage.rawer.budgeting;
 
 import fr.gdd.sage.generics.BackendBindings;
 import org.apache.commons.lang3.tuple.ImmutablePair;

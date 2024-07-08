@@ -6,6 +6,8 @@ import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.generics.CacheId;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.rawer.RawerConstants;
+import fr.gdd.sage.rawer.accumulators.ApproximateAggCount;
+import fr.gdd.sage.rawer.iterators.RawerAgg;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
@@ -35,6 +37,7 @@ public class CountSubqueryBuilder<ID,VALUE> extends ReturningOpBaseVisitor {
     final CacheId<ID,VALUE> cache;
 
     Var resultVar; // to retrieve the result in the COUNT subquery
+    OpGroup countOperator;
 
     public CountSubqueryBuilder (Backend<ID,VALUE,?> backend, BackendBindings<ID, VALUE> bindings, Set<Var> vars) {
         this.bindings = bindings;
@@ -43,7 +46,6 @@ public class CountSubqueryBuilder<ID,VALUE> extends ReturningOpBaseVisitor {
     }
 
     public Var getResultVar() { return resultVar;}
-
     public CacheId<ID, VALUE> getCache() { return cache;}
 
     public Op build (String queryAsString) {return this.build(Algebra.compile(QueryFactory.create(queryAsString)));}

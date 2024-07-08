@@ -1,10 +1,9 @@
 package fr.gdd.sage.rawer;
 
-import com.google.common.cache.Cache;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
-import fr.gdd.sage.budgeting.NaiveBudgeting;
+import fr.gdd.sage.rawer.budgeting.NaiveBudgeting;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.generics.CacheId;
 import fr.gdd.sage.interfaces.Backend;

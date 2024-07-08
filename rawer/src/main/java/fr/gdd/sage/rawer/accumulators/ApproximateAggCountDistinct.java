@@ -2,17 +2,19 @@ package fr.gdd.sage.rawer.accumulators;
 
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.sage.generics.BackendBindings;
+import fr.gdd.sage.generics.CacheId;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.rawer.RawerConstants;
 import fr.gdd.sage.rawer.RawerOpExecutor;
+import fr.gdd.sage.rawer.iterators.RawerAgg;
 import fr.gdd.sage.rawer.subqueries.CountSubqueryBuilder;
 import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.accumulators.SagerAccumulator;
+import fr.gdd.sage.sager.optimizers.CardinalityJoinOrdering;
 import fr.gdd.sage.sager.pause.Save2SPARQL;
-import org.apache.jena.datatypes.TypeMapper;
+import fr.gdd.sage.sager.pause.Triples2BGP;
+import fr.gdd.sage.sager.resume.BGP2Triples;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
-import org.apache.jena.rdf.model.Literal;
-import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpGroup;
 import org.apache.jena.sparql.core.Var;
@@ -37,9 +39,10 @@ public class ApproximateAggCountDistinct<ID,VALUE> implements SagerAccumulator<I
     final ExecutionContext context;
     final Backend<ID,VALUE,?> backend;
     final OpGroup group;
+    final CacheId<ID,VALUE> cache;
 
     final ApproximateAggCount<ID,VALUE> bigN;
-    Double sumOfInversedProba = 0.;
+    Double sumOfInversedProbabilities = 0.;
     Double sumOfInversedProbaOverFmu = 0.;
     final WanderJoin<ID,VALUE> wj;
 
@@ -61,26 +64,24 @@ public class ApproximateAggCountDistinct<ID,VALUE> implements SagerAccumulator<I
         Save2SPARQL<ID,VALUE> saver = context.getContext().get(SagerConstants.SAVER);
         this.wj = new WanderJoin<>(saver.op2it);
         this.vars = varsAsExpr.getVarsMentioned();
-
+        this.cache = context.getContext().get(RawerConstants.CACHE);
     }
 
     @Override
     public void accumulate(BackendBindings<ID, VALUE> binding, FunctionEnv functionEnv) {
-        // #1 processing of N
-        this.bigN.accumulate(binding, functionEnv);
+        if (Objects.isNull(binding)) {
+            // #1 processing of N
+            this.bigN.accumulate(null, functionEnv); // still register the failure for bigN
+            return;
+        }
 
-        if (Objects.isNull(binding)) {return;}
-        sampleSize += 1; // only account for those which succeed
-
-        // #2 processing of P_mu
-        double proba = ReturningOpVisitorRouter.visit(wj, group.getSubOp());
-        double inversedProba = proba == 0. ? 0. : 1./proba;
-        sumOfInversedProba += inversedProba;
-
-        // #3 processing of F_mu
-        // #A bind the variable with their respective value
+        // #2 processing of Fµ
         CountSubqueryBuilder<ID,VALUE> subqueryBuilder = new CountSubqueryBuilder<>(backend, binding, vars);
         Op countQuery = subqueryBuilder.build(group.getSubOp());
+        // need same join order to bootstrap
+        countQuery = ReturningOpVisitorRouter.visit(new Triples2BGP(), countQuery);
+        countQuery = new CardinalityJoinOrdering<>(backend, cache).visit(countQuery); // need to have bgp to optimize, no tps
+        countQuery = ReturningOpVisitorRouter.visit(new BGP2Triples(), countQuery);
 
         RawerOpExecutor<ID,VALUE> fmuExecutor = new RawerOpExecutor<ID,VALUE>()
                 .setBackend(backend)
@@ -90,10 +91,21 @@ public class ApproximateAggCountDistinct<ID,VALUE> implements SagerAccumulator<I
 
         Iterator<BackendBindings<ID,VALUE>> estimatedFmus = fmuExecutor.execute(countQuery);
         if (!estimatedFmus.hasNext()) {
-            // no time to execute maybe ?
-            // TODO handle this case when the budget is not enough to even get a 0.
-            throw new UnsupportedOperationException("TODO need to look at this exception");
+            // Might happen when stopping conditions trigger immediatly, e.g. not
+            // enough execution time left, or not enough scan left.
+            return ; // do nothing, we don't even want to account the newly found value as 0.
         }
+        // therefore, only then, we modify the inner state of this ApproximateAggCountDistinct
+
+        this.bigN.accumulate(binding, functionEnv); // register the success for bigN
+        sampleSize += 1; // only account for those which succeed (debug purpose)
+
+        // #2 processing of Pµ
+        double probability = ReturningOpVisitorRouter.visit(wj, group.getSubOp());
+        double inversedProbability = probability == 0. ? 0. : 1./probability;
+        sumOfInversedProbabilities += inversedProbability;
+
+        // don't do anything with the value, but still need to create it.
         BackendBindings<ID,VALUE> estimatedFmu = estimatedFmus.next();
 
         long nbScansSubQuery = fmuExecutor.getExecutionContext().getContext().get(RawerConstants.SCANS);
@@ -101,38 +113,18 @@ public class ApproximateAggCountDistinct<ID,VALUE> implements SagerAccumulator<I
                 context.getContext().getLong(RawerConstants.SCANS,0L)
                         + nbScansSubQuery);
 
-        // #D TODO ugly but need to be parsed to Double again…
-        String fmuAsString = estimatedFmu.get(subqueryBuilder.getResultVar()).getString();
+        // #3 get the aggregate and boostrap it with the value found in distinct sample: µ
+        FmuBootstrapper<ID,VALUE> bootsrapper = new FmuBootstrapper<>(backend, cache, binding);
+        double bindingProbability = bootsrapper.visit(countQuery);
+        // TODO get op2it for rawer dedicated
+        Save2SPARQL<ID,VALUE> fmuSaver = fmuExecutor.getExecutionContext().getContext().get(SagerConstants.SAVER);
+        OpGroup groupOperator = new GetRootAggregator().visit(fmuSaver.getRoot());
+        RawerAgg<ID,VALUE> aggIterator = (RawerAgg<ID, VALUE>) fmuSaver.op2it.get(groupOperator);
+        ApproximateAggCount<ID,VALUE> accumulator = (ApproximateAggCount<ID, VALUE>) aggIterator.getAccumulator();
+        accumulator.accumulate(bindingProbability);
 
-        // Remove the datatype part and quotes from the string to get the numeric value
-        String valueString = fmuAsString.substring(2, fmuAsString.indexOf("\"^^")); // TODO unuglify all this...
-        // Create a Literal with the given value and the full xsd:double URI
-        Literal literal = ResourceFactory.createTypedLiteral(valueString, TypeMapper.getInstance().getSafeTypeByName("http://www.w3.org/2001/XMLSchema#double"));
-        double fmuAsDouble = literal.getDouble();
-
-//        // (for debugging TODO remove this)
-//        String countQueryAsString = OpAsQuery.asQuery(countQuery).toString();
-//        long actualFMU = -1;
-//        try {
-//            actualFMU = ((BlazegraphBackend) fmuExecutor.getBackend()).countQuery(countQueryAsString);
-//        } catch (RepositoryException | MalformedQueryException | QueryEvaluationException e) {
-//            throw new RuntimeException(e);
-//        }
-//
-//        if (actualFMU != fmuAsDouble) {
-//            System.out.println(binding);
-//            System.out.println(actualFMU + "     VS     " + fmuAsDouble);
-//        }
-
-        // Math.max because we know for sure that there is at least one result,
-        // but we failed to find it in the subquery.
-        // TODO bootstrap the count with binding that we found in the count distinct part.
-        if (fmuAsDouble == 0.) {
-            nbZeroFmu += 1;
-            log.warn(binding.toString());
-        } // for debug purpose
-        sumOfInversedProbaOverFmu += inversedProba / Math.max(1., fmuAsDouble);
-
+        double fmu = accumulator.getValueAsDouble();
+        sumOfInversedProbaOverFmu += inversedProbability / fmu;
     }
 
     @Override
@@ -146,7 +138,7 @@ public class ApproximateAggCountDistinct<ID,VALUE> implements SagerAccumulator<I
     }
 
     public double getValueAsDouble () {
-        return sumOfInversedProba == 0. ? 0. : (bigN.getValueAsDouble()/sumOfInversedProba) * sumOfInversedProbaOverFmu;
+        return sumOfInversedProbabilities == 0. ? 0. : (bigN.getValueAsDouble()/ sumOfInversedProbabilities) * sumOfInversedProbaOverFmu;
     }
 
 }

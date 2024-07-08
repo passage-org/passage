@@ -54,6 +54,8 @@ public class RawerAgg<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
         saver.register(op, this);
     }
 
+    public SagerAccumulator<ID,VALUE> getAccumulator() {return var2accumulator.getRight();}
+
     @Override
     public boolean hasNext() {
         return this.input.hasNext();
@@ -66,6 +68,8 @@ public class RawerAgg<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
         long deadline = executor.getExecutionContext().getContext().getLong(RawerConstants.DEADLINE, Long.MAX_VALUE);
         while (System.currentTimeMillis() < deadline &&
                 executor.getExecutionContext().getContext().getLong(RawerConstants.SCANS, 0L) < limit) {
+            // Because we don't go through executor.execute, we don't wrap our iterator with a
+            // validity checker, therefore, it might not have a next, hence bindings being null.
             Iterator<BackendBindings<ID,VALUE>> subquery = ReturningArgsOpVisitorRouter.visit(executor, op.getSubOp(), Iter.of(inputBinding));
             BackendBindings<ID,VALUE> bindings = null;
             if (subquery.hasNext()) {
@@ -73,8 +77,7 @@ public class RawerAgg<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
             }
             // BackendBindings<ID,VALUE> keyBinding = getKeyBinding(op.getGroupVars().getVars(), bindings);
 
-            // bindings can be null
-            var2accumulator.getRight().accumulate(bindings, executor.getExecutionContext());
+            var2accumulator.getRight().accumulate(bindings, executor.getExecutionContext()); // bindings can be null
         }
 
         return createBinding(var2accumulator);

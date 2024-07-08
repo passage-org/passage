@@ -20,7 +20,8 @@ import org.slf4j.LoggerFactory;
 import java.util.Iterator;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Disabled
 class FmuBootstrapperTest {
@@ -111,18 +112,16 @@ class FmuBootstrapperTest {
     @Disabled
     @Test
     public void two_tps_with_variable_set () {
-        final long LIMIT = 20L;
+        final long LIMIT_SCANS = 50L;
         final Backend backend = new BlazegraphBackend(blazegraph);
 
-        RawerOpExecutor executor = new RawerOpExecutor().setBackend(backend).setLimit(LIMIT);
+        RawerOpExecutor executor = new RawerOpExecutor().setBackend(backend).setLimit(LIMIT_SCANS);
         String queryAsString = "SELECT * WHERE {?s <http://address> ?c . ?s <http://own> ?a}";
         Var examinedVariable = Var.alloc("s");
 
         Iterator<BackendBindings> iterator = executor.execute(queryAsString);
-        long nbResults = 0L;
         while (iterator.hasNext()) {
             BackendBindings binding = iterator.next();
-            nbResults += 1;
             log.debug("Random binding µ: {}", binding);
 
             CountSubqueryBuilder subqueryBuilder = new CountSubqueryBuilder<>(backend, binding, Set.of(examinedVariable));
@@ -130,16 +129,10 @@ class FmuBootstrapperTest {
             log.debug("Fmu query: {}", OpAsQuery.asQuery(countQuery));
 
             FmuBootstrapper bootsrapper = new FmuBootstrapper<>(backend, executor.getCache(), binding);
-            // Every ?s has only one corresponding ?o, so it's a 100% chance to get it once ?s is set
             double probability = bootsrapper.visit(countQuery);
             log.debug("Probability Fµ: {}", probability);
-            if (binding.get(Var.alloc("o")).getString().contains("nantes")) {
-                assertEquals(1./2., probability);
-            } else if (binding.get(examinedVariable).getString().contains("paris")) {
-                assertEquals(1., probability);
-            }
+            assertEquals(1./3., probability); // cat and dog and snake had all (1/3)*(1/1) chances to exist
         }
-        assertEquals(LIMIT, nbResults);
     }
 
 
