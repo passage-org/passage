@@ -6,10 +6,7 @@ import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.generics.PtrMap;
 import fr.gdd.sage.rawer.iterators.RandomScan;
 import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.algebra.op.OpExtend;
-import org.apache.jena.sparql.algebra.op.OpJoin;
-import org.apache.jena.sparql.algebra.op.OpTable;
-import org.apache.jena.sparql.algebra.op.OpTriple;
+import org.apache.jena.sparql.algebra.op.*;
 
 import java.util.Iterator;
 import java.util.Objects;
@@ -43,9 +40,10 @@ public class WanderJoin<ID, VALUE> extends ReturningOpVisitor<Double> {
     }
 
     @Override
-    public Double visit(OpExtend extend) {
-        return ReturningOpVisitorRouter.visit(this, extend.getSubOp());
-    }
+    public Double visit(OpProject project) { return ReturningOpVisitorRouter.visit(this, project.getSubOp()); }
+
+    @Override
+    public Double visit(OpExtend extend) { return ReturningOpVisitorRouter.visit(this, extend.getSubOp()); }
 
     @Override
     public Double visit(OpTable table) {

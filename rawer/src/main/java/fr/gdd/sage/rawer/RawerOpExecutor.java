@@ -83,16 +83,17 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         this.backend = backend;
         execCxt.getContext().set(RawerConstants.BACKEND, backend);
         execCxt.getContext().setIfUndef(RawerConstants.CACHE, new CacheId<>(this.backend));
+        this.cache = execCxt.getContext().get(RawerConstants.CACHE);
         return this;
     }
 
     public Backend<ID, VALUE, ?> getBackend() {
         return backend;
     }
-
     public ExecutionContext getExecutionContext() {
         return execCxt;
     }
+    public CacheId<ID, VALUE> getCache() {return cache;}
 
     /* ************************************************************************ */
 

@@ -23,7 +23,6 @@ import java.util.Objects;
 public class RandomScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE>> {
 
     boolean consumed = false;
-    Tuple<ID> currentIDs;
     Double currentProbability;
 
     final ExecutionContext context;
@@ -43,7 +42,9 @@ public class RandomScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE
                 triple.getTriple().getObject().isVariable() && Objects.isNull(spo.get(2)) ? Var.alloc(triple.getTriple().getObject()) : null);
 
         Save2SPARQL<ID,VALUE> saver = this.context.getContext().get(SagerConstants.SAVER);
-        saver.register(triple, this);
+        if (Objects.nonNull(saver)) {
+            saver.register(triple, this);
+        }
     }
 
     @Override
@@ -74,7 +75,9 @@ public class RandomScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE
         return newBinding;
     }
 
-    public Double getProbability() {
+    public double getProbability() {
         return currentProbability;
     }
+
+    public double cardinality() {return iterator.cardinality();}
 }
