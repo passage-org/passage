@@ -50,6 +50,7 @@
     <blazegraph.version>2.1.4</blazegraph.version>
     <guava.version>33.1.0-jre</guava.version>
     <apache.lang3.version>3.14.0</apache.lang3.version>
+    <picocli.version>4.7.6</picocli.version>
 
     <maven.surefire.version>3.0.0</maven.surefire.version>
     <maven.compiler.version>3.10.1</maven.compiler.version>
@@ -171,6 +172,12 @@
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
         <version>${apache.lang3.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>info.picocli</groupId>
+        <artifactId>picocli</artifactId>
+        <version>${picocli.version}</version>
       </dependency>
 
     </dependencies>
