@@ -5,13 +5,10 @@ import com.bigdata.bop.join.PipelineJoin;
 import com.bigdata.concurrent.TimeoutException;
 import com.bigdata.journal.Options;
 import com.bigdata.rdf.internal.IV;
-import com.bigdata.rdf.internal.IVUtility;
-import com.bigdata.rdf.internal.VTE;
-import com.bigdata.rdf.internal.impl.BlobIV;
 import com.bigdata.rdf.internal.impl.TermId;
-import com.bigdata.rdf.internal.impl.bnode.NumericBNodeIV;
 import com.bigdata.rdf.internal.impl.uri.VocabURIByteIV;
-import com.bigdata.rdf.model.*;
+import com.bigdata.rdf.model.BigdataLiteral;
+import com.bigdata.rdf.model.BigdataValue;
 import com.bigdata.rdf.sail.BigdataSail;
 import com.bigdata.rdf.sail.BigdataSailRepository;
 import com.bigdata.rdf.sail.BigdataSailRepositoryConnection;
@@ -28,7 +25,6 @@ import fr.gdd.sage.interfaces.BackendIterator;
 import fr.gdd.sage.interfaces.SPOC;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Value;
-import org.openrdf.model.impl.LiteralImpl;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.query.*;
 import org.openrdf.repository.RepositoryException;
@@ -36,7 +32,6 @@ import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URI;
 import java.util.Objects;
 import java.util.Properties;
 
@@ -53,6 +48,7 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
     BigdataSailRepositoryConnection connection;
 
     public BlazegraphBackend(String path) {
+        System.setProperty("com.bigdata.Banner.quiet", "true"); // banner is annoying, sorry blazegraph
         final Properties props = new Properties();
         props.put(Options.FILE, path);
         props.put(PipelineOp.Annotations.PIPELINED, "false");
@@ -77,6 +73,7 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
      * @param sail An already initialized sail (blazegraph) repository.
      */
     public BlazegraphBackend(BigdataSail sail) {
+        System.setProperty("com.bigdata.Banner.quiet", "true"); // banner is annoying, sorry blazegraph
         this.repository = new BigdataSailRepository(sail);
         try {
             this.connection = repository.getReadOnlyConnection();

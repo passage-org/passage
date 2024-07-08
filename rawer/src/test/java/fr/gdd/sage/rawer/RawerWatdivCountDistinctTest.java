@@ -29,7 +29,7 @@ public class RawerWatdivCountDistinctTest {
     public void count_distinct_s_on_spo () {
         String queryAsString = "SELECT (COUNT( DISTINCT ?s ) AS ?count) WHERE { ?s ?p ?o }";
         ApproximateAggCountDistinct.SUBQUERY_LIMIT = 1;
-        RawerOpExecutorTest.execute(queryAsString, watdivBlazegraph, 1000000L); // 521,585 triples (+blaze default ones)
+        RawerOpExecutorTest.execute(queryAsString, watdivBlazegraph, 1000000L); // 521,585 (+blaze default ones)
     }
 
     @Disabled
@@ -37,7 +37,7 @@ public class RawerWatdivCountDistinctTest {
     public void count_distinct_p_on_spo () {
         String queryAsString = "SELECT (COUNT( DISTINCT ?p ) AS ?count) WHERE { ?s ?p ?o }";
         ApproximateAggCountDistinct.SUBQUERY_LIMIT = 1;
-        RawerOpExecutorTest.execute(queryAsString, watdivBlazegraph, 1000000L); // 86 triples (+blaze default ones)
+        RawerOpExecutorTest.execute(queryAsString, watdivBlazegraph, 1000000L); // 86 (+blaze default ones)
     }
 
     @Disabled
@@ -45,7 +45,7 @@ public class RawerWatdivCountDistinctTest {
     public void count_distinct_o_on_spo () {
         String queryAsString = "SELECT (COUNT( DISTINCT ?o ) AS ?count) WHERE { ?s ?p ?o }";
         ApproximateAggCountDistinct.SUBQUERY_LIMIT = 1;
-        RawerOpExecutorTest.execute(queryAsString, watdivBlazegraph, 1000000L); // 1,005,832 triples (+blaze default ones)
+        RawerOpExecutorTest.execute(queryAsString, watdivBlazegraph, 1000000L); // 1,005,832 (+blaze default ones)
     }
 
     @Disabled

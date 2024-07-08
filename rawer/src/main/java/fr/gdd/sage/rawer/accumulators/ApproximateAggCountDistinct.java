@@ -34,7 +34,7 @@ import java.util.Set;
  */
 public class ApproximateAggCountDistinct<ID,VALUE> implements SagerAccumulator<ID, VALUE> {
 
-    private final static Logger log = LoggerFactory.getLogger(ApproximateAggCountDistinct.class);
+    public static Logger log = LoggerFactory.getLogger(ApproximateAggCountDistinct.class);
 
     final ExecutionContext context;
     final Backend<ID,VALUE,?> backend;

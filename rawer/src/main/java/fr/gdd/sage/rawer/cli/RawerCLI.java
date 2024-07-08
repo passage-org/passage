@@ -6,8 +6,13 @@ import fr.gdd.sage.blazegraph.BlazegraphBackend;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.rawer.RawerOpExecutor;
 import fr.gdd.sage.rawer.accumulators.ApproximateAggCountDistinct;
+import org.apache.jena.util.JenaXMLInput;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 
+import javax.xml.XMLConstants;
+import javax.xml.stream.XMLInputFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,11 +24,15 @@ import java.util.Objects;
  */
 public class RawerCLI {
 
+    public static final String YELLOW_BOLD = "\033[1;33m"; // YELLOW
+    public static final String PURPLE_BOLD = "\033[1;35m"; // PURPLE
+    public static final String RESET = "\033[0m";  // Text Reset
+
     @CommandLine.Option(names = "--database",
             description = "The path to your blazegraph database.")
     String database;
 
-    @CommandLine.Option(names = {"-e", "--executions"},
+    @CommandLine.Option(names = {"-n", "--executions"},
             description = "Number of times that it executes the query in sequence (for performance analysis).")
     Integer numberOfExecutions = 1;
 
@@ -98,8 +107,11 @@ public class RawerCLI {
         BlazegraphBackend backend = new BlazegraphBackend(serverOptions.database);
 
         if (serverOptions.report) {
-            System.out.printf("Path to database: %s%n", serverOptions.database);
-            System.out.printf("SPARQL query: %s%n", serverOptions.queryAsString);
+            System.setProperty("org.slf4j.simpleLogger.log.fr.gdd.sage.rawer.accumulators.ApproximateAggCountDistinct", "debug");
+            System.out.printf("%sPath to database:%s %s%n", PURPLE_BOLD, RESET, serverOptions.database);
+            System.out.printf("%sSPARQL query:%s %s%n", PURPLE_BOLD, RESET, serverOptions.queryAsString);
+        } else {
+            System.setProperty("org.slf4j.simpleLogger.log.fr.gdd.sage.rawer.accumulators.ApproximateAggCountDistinct", "error");
         }
 
         for (int i = 0; i < serverOptions.numberOfExecutions; ++i) {
@@ -120,8 +132,8 @@ public class RawerCLI {
 
             if (serverOptions.report) {
                 long elapsed = System.currentTimeMillis() - start;
-                System.out.printf("Elapsed: %s ms%n", elapsed);
-                System.out.printf("Number of Results: %s%n", nbResults);
+                System.out.printf("%sExecution time: %s %s ms%n", PURPLE_BOLD, RESET, elapsed);
+                System.out.printf("%sNumber of Results: %s %s%n", PURPLE_BOLD, RESET, nbResults);
             }
             System.gc(); // no guarantee but still
         }
