@@ -48,7 +48,6 @@ public class ApproximateAggCountDistinct<ID,VALUE> implements SagerAccumulator<I
 
     final Set<Var> vars;
     long sampleSize = 0; // for debug purposes
-    long nbZeroFmu = 0; // for debug purposes TODO eventually, this should not exist with bootstrapping
 
     // TODO /!\ This is ugly. There should be a better way to devise
     // TODO a budget defined by a configuration, or adaptive, or etc.
@@ -132,13 +131,12 @@ public class ApproximateAggCountDistinct<ID,VALUE> implements SagerAccumulator<I
         log.debug("BigN SampleSize: " + bigN.sampleSize);
         log.debug("CRAWD SampleSize: " + sampleSize);
         log.debug("Nb Total Scans: " + context.getContext().get(RawerConstants.SCANS));
-        log.debug("Nb zeros in Fmu: " + nbZeroFmu);
         Backend<ID,VALUE,?> backend = context.getContext().get(RawerConstants.BACKEND);
         return backend.getValue(String.format("\"%s\"^^%s", getValueAsDouble(), XSDDatatype.XSDdouble.getURI()));
     }
 
     public double getValueAsDouble () {
-        return sumOfInversedProbabilities == 0. ? 0. : (bigN.getValueAsDouble()/ sumOfInversedProbabilities) * sumOfInversedProbaOverFmu;
+        return sumOfInversedProbabilities == 0. ? 0. : (bigN.getValueAsDouble() / sumOfInversedProbabilities) * sumOfInversedProbaOverFmu;
     }
 
 }

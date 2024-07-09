@@ -52,7 +52,7 @@ public class RawerWatdivCountDistinctTest {
     @Test
     public void count_distinct_on_query_10069 () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
         String twoTPsQuery = """
-                SELECT (COUNT( DISTINCT ?v1 ) AS ?count) WHERE {
+                SELECT (COUNT( DISTINCT ?v4 ) AS ?count) WHERE {
                     ?v0 <http://db.uwaterloo.ca/~galuc/wsdbm/gender> <http://db.uwaterloo.ca/~galuc/wsdbm/Gender1> .
                     ?v0 <http://xmlns.com/foaf/givenName> ?v1 .
                     ?v0 <http://schema.org/nationality> ?v3 .
@@ -61,8 +61,11 @@ public class RawerWatdivCountDistinctTest {
                 }""";
         //var results = watdivBlazegraph.executeQuery(twoTPsQuery);
         //log.debug("{}", results.toString());
-        ApproximateAggCountDistinct.SUBQUERY_LIMIT = 5*100;
-        RawerOpExecutorTest.execute(twoTPsQuery, watdivBlazegraph, 10_000_000L);
+        ApproximateAggCountDistinct.SUBQUERY_LIMIT = 5*20;
+        // C(Q) = 4.17E9 results
+        // CD(v4) = 44935 offers
+        // CD(v1) = 1720 names
+        RawerOpExecutorTest.execute(twoTPsQuery, watdivBlazegraph, 1_000_000L);
     }
 
     @Disabled
@@ -82,6 +85,8 @@ public class RawerWatdivCountDistinctTest {
         // var results = watdivBlazegraph.executeQuery(twoTPsQuery);
         // log.debug("{}", results.toString());
         ApproximateAggCountDistinct.SUBQUERY_LIMIT = 8*100;
+        // C(Q) = 7_554_617 elements
+        // CD(v4) = 11735
         RawerOpExecutorTest.execute(twoTPsQuery, watdivBlazegraph, 1_000_000L);
     }
 
