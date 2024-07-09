@@ -28,7 +28,7 @@ public class RawerCLI {
     public static final String PURPLE_BOLD = "\033[1;35m"; // PURPLE
     public static final String RESET = "\033[0m";  // Text Reset
 
-    @CommandLine.Option(names = "--database",
+    @CommandLine.Option(names = {"-d","--database"},
             description = "The path to your blazegraph database.")
     String database;
 
