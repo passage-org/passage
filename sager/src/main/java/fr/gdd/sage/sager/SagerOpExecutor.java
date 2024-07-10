@@ -10,7 +10,7 @@ import fr.gdd.sage.iterators.SagerBind;
 import fr.gdd.sage.sager.iterators.*;
 import fr.gdd.sage.sager.optimizers.Progress;
 import fr.gdd.sage.sager.optimizers.SagerOptimizer;
-import fr.gdd.sage.sager.pause.Save2SPARQL;
+import fr.gdd.sage.sager.pause.Pause2SPARQL;
 import fr.gdd.sage.sager.resume.IsSkippable;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.sparql.algebra.Op;
@@ -79,7 +79,7 @@ public class SagerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
     }
 
     public Iterator<BackendBindings<ID, VALUE>> execute(Op root) {
-        execCxt.getContext().set(SagerConstants.SAVER, new Save2SPARQL<ID,VALUE>(root, execCxt));
+        execCxt.getContext().set(SagerConstants.SAVER, new Pause2SPARQL<ID,VALUE>(root, execCxt));
 
         return new SagerRoot<>(execCxt,
                 ReturningArgsOpVisitorRouter.visit(this, root, Iter.of(new BackendBindings<>())));
@@ -92,8 +92,8 @@ public class SagerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
 
     public Op pause() {
         execCxt.getContext().setTrue(SagerConstants.PAUSED);
-        Save2SPARQL<ID, VALUE> saver = execCxt.getContext().get(SagerConstants.SAVER);
-        return saver.save(null);
+        Pause2SPARQL<ID, VALUE> saver = execCxt.getContext().get(SagerConstants.SAVER);
+        return saver.save();
     }
 
     public double progress() {
@@ -144,7 +144,7 @@ public class SagerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
     @Override
     public Iterator<BackendBindings<ID,VALUE>> visit(OpUnion union, Iterator<BackendBindings<ID,VALUE>> input) {
         // TODO What about some parallelism here? :)
-        Save2SPARQL<ID,VALUE> saver = execCxt.getContext().get(SagerConstants.SAVER);
+        Pause2SPARQL<ID,VALUE> saver = execCxt.getContext().get(SagerConstants.SAVER);
         SagerUnion<ID,VALUE> iterator = new SagerUnion<>(this, input, union.getLeft(), union.getRight());
         saver.register(union, iterator);
         return iterator;

@@ -17,6 +17,8 @@ public class RawerConstants {
 
     static public final Symbol CACHE = allocVariableSymbol("Cache"); // some kind of cache
 
+    static public final Symbol SAVER = allocVariableSymbol("Saver"); // register the iterators needed
+
     static public final String COUNT_VARIABLE = "rawer_count"; // the name of the count variable for subqueries
 
     /**

@@ -2,18 +2,14 @@ package fr.gdd.sage.sager.pause;
 
 import fr.gdd.sage.blazegraph.BlazegraphBackend;
 import fr.gdd.sage.databases.inmemory.IM4Blazegraph;
-import fr.gdd.sage.databases.inmemory.IM4Jena;
-import fr.gdd.sage.jena.JenaBackend;
 import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.iterators.SagerScan;
-import org.apache.jena.sparql.engine.ExecutionContext;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
-import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -23,9 +19,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * we must be able to resume execution from where it stopped.
  */
 @Disabled
-public class Save2SPARQLBGPTimeoutTest {
+public class Pause2SPARQLBGPTimeoutTest {
 
-    private static final Logger log = LoggerFactory.getLogger(Save2SPARQLBGPTimeoutTest.class);
+    private static final Logger log = LoggerFactory.getLogger(Pause2SPARQLBGPTimeoutTest.class);
     final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
 
     @Test

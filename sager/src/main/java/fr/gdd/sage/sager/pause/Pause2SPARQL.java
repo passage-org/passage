@@ -2,13 +2,8 @@ package fr.gdd.sage.sager.pause;
 
 import fr.gdd.jena.utils.FlattenUnflatten;
 import fr.gdd.jena.utils.OpCloningUtil;
-import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
-import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
-import fr.gdd.jena.visitors.ReturningOpVisitor;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
-import fr.gdd.sage.generics.BackendBindings;
-import fr.gdd.sage.generics.PtrMap;
-import fr.gdd.sage.interfaces.Backend;
+import fr.gdd.sage.generics.BackendSaver;
 import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.iterators.*;
 import fr.gdd.sage.sager.resume.IsSkippable;
@@ -20,35 +15,20 @@ import org.apache.jena.sparql.expr.ExprList;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.Objects;
 
 /**
- * Generate a SPARQL query from the paused state.
+ * Generate a SPARQL query from the current paused state. By executing
+ * the generated SPARQL query, the query execution becomes complete.
  */
-public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
+public class Pause2SPARQL<ID, VALUE> extends BackendSaver<ID,VALUE,Long> {
 
-    final Backend<ID, VALUE, Long> backend;
-    final Op root; // origin
-
-    Op caller;
-    public final PtrMap<Op, Iterator<BackendBindings<ID, VALUE>>> op2it = new PtrMap<>();
-
-    public Save2SPARQL(Op root, ExecutionContext context) {
-        this.root = root;
-        this.backend = context.getContext().get(SagerConstants.BACKEND);
+    public Pause2SPARQL(Op root, ExecutionContext context) {
+        super(context.getContext().get(SagerConstants.SAVER), root);
     }
 
-    public void register(Op op, Iterator<BackendBindings<ID, VALUE>> it) {op2it.put(op, it);}
-    public void unregister(Op op) {op2it.remove(op);}
-
-    public Op getRoot() {return root;}
-
-    /* **************************************************************************** */
-
-    public Op save(Op caller) {
-        this.caller = caller;
-        Op saved = ReturningOpVisitorRouter.visit(this, root);
+    public Op save() {
+        Op saved = ReturningOpVisitorRouter.visit(this, getRoot());
         saved = Objects.isNull(saved) ? saved : ReturningOpVisitorRouter.visit(new Triples2BGP(), saved);
         saved = Objects.isNull(saved) ? saved : ReturningOpVisitorRouter.visit(new Subqueries2LeftOfJoins(), saved);
         return saved;
@@ -62,7 +42,7 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
 
     @Override
     public Op visit(OpDistinct distinct) {
-        SagerDistinct<ID, VALUE> it = (SagerDistinct<ID, VALUE>) op2it.get(distinct);
+        SagerDistinct<ID, VALUE> it = (SagerDistinct<ID, VALUE>) getIterator(distinct);
 
         // If the scan iterator is not registered, it should not be preempted
         if (Objects.isNull(it)) {return null;}
@@ -93,7 +73,7 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
     public Op visit(OpTriple triple) {
         // It gets a ScanFactory instead of a Scan because the factory
         // contains the input binding that constitutes the state of the scan.
-        SagerScanFactory<ID, VALUE> it = (SagerScanFactory<ID, VALUE>) op2it.get(triple);
+        SagerScanFactory<ID, VALUE> it = (SagerScanFactory<ID, VALUE>) getIterator(triple);
 
         // If the scan iterator is not registered, it should not be preempted
         if (Objects.isNull(it)) {return null;}
@@ -128,7 +108,7 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
 
     @Override
     public Op visit(OpUnion union) {
-        SagerUnion<ID,VALUE> u = (SagerUnion<ID,VALUE>) op2it.get(union);
+        SagerUnion<ID,VALUE> u = (SagerUnion<ID,VALUE>) getIterator(union);
 
         // not executed yet, otherwise would exist. So no need to preempt it.
         if (Objects.isNull(u)) {return null;}
@@ -159,7 +139,7 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
 
         if (Objects.nonNull(subop) && subop instanceof OpGroup groupBy) {
             // performed here because the value is saved in extend
-            SagerAgg<ID,VALUE> agg = (SagerAgg<ID, VALUE>) op2it.get(groupBy);
+            SagerAgg<ID,VALUE> agg = (SagerAgg<ID, VALUE>) getIterator(groupBy);
 
             Op subopGB = ReturningOpVisitorRouter.visit(this, groupBy.getSubOp());
 
@@ -190,7 +170,7 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
             throw new UnsupportedOperationException("Saving Left join with expression(s) is not handled yet.");
         }
 
-        SagerOptional<ID,VALUE> optional = (SagerOptional<ID, VALUE>) op2it.get(lj);
+        SagerOptional<ID,VALUE> optional = (SagerOptional<ID, VALUE>) getIterator(lj);
 
         if (Objects.isNull(optional)) {return null;} // again, not saved => no preempted
 
@@ -238,7 +218,7 @@ public class Save2SPARQL<ID, VALUE> extends ReturningOpVisitor<Op> {
 
     @Override
     public Op visit(OpGroup groupBy) {
-        SagerAgg<ID,VALUE> it = (SagerAgg<ID, VALUE>) op2it.get(groupBy);
+        SagerAgg<ID,VALUE> it = (SagerAgg<ID, VALUE>) getIterator(groupBy);
         if (Objects.isNull(it)) return null;
 
         return groupBy;

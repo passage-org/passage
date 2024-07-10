@@ -7,7 +7,7 @@ import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.SagerOpExecutor;
 import fr.gdd.sage.sager.accumulators.SagerAccCount;
 import fr.gdd.sage.sager.accumulators.SagerAccumulator;
-import fr.gdd.sage.sager.pause.Save2SPARQL;
+import fr.gdd.sage.sager.pause.Pause2SPARQL;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.atlas.iterator.Iter;
@@ -47,7 +47,7 @@ public class SagerAgg<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
             var2accumulator = new ImmutablePair<>(v, sagerX);
         }
 
-        Save2SPARQL<ID,VALUE> saver = executor.getExecutionContext().getContext().get(SagerConstants.SAVER);
+        Pause2SPARQL<ID,VALUE> saver = executor.getExecutionContext().getContext().get(SagerConstants.SAVER);
         saver.register(op, this);
 
     }

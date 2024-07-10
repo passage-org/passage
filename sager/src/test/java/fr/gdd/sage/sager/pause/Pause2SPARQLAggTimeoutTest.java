@@ -3,7 +3,6 @@ package fr.gdd.sage.sager.pause;
 import fr.gdd.sage.blazegraph.BlazegraphBackend;
 import fr.gdd.sage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.sage.sager.SagerConstants;
-import fr.gdd.sage.sager.SagerOpExecutorTest;
 import fr.gdd.sage.sager.iterators.SagerScan;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.QueryFactory;
@@ -29,9 +28,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * having processing 1 fully.
  */
 @Disabled
-public class Save2SPARQLAggTimeoutTest {
+public class Pause2SPARQLAggTimeoutTest {
 
-    private static final Logger log = LoggerFactory.getLogger(Save2SPARQLBGPTimeoutTest.class);
+    private static final Logger log = LoggerFactory.getLogger(Pause2SPARQLBGPTimeoutTest.class);
     final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
 
     @Test

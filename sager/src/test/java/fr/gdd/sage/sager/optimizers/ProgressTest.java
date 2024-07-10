@@ -2,6 +2,7 @@ package fr.gdd.sage.sager.optimizers;
 
 import fr.gdd.sage.blazegraph.BlazegraphBackend;
 import fr.gdd.sage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.sage.sager.pause.Pause2SPARQLBGPTimeoutTest;
 import fr.gdd.sage.sager.pause.Save2SPARQLTest;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @Disabled
 class ProgressTest {
 
-    private static final Logger log = LoggerFactory.getLogger(fr.gdd.sage.sager.pause.Save2SPARQLBGPTimeoutTest.class);
+    private static final Logger log = LoggerFactory.getLogger(Pause2SPARQLBGPTimeoutTest.class);
     final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
 
     @Test

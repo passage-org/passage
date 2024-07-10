@@ -3,14 +3,13 @@ package fr.gdd.sage.sager.optimizers;
 import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
-import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.sage.exceptions.NotFoundException;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.generics.CacheId;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.iterators.SagerScanFactory;
-import fr.gdd.sage.sager.pause.Save2SPARQL;
+import fr.gdd.sage.sager.pause.Pause2SPARQL;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.atlas.iterator.Iter;
@@ -29,6 +28,12 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Reorder basic graph patterns based on triple patterns cardinality. The
+ * lower the cardinality the earlier it should be executed. When no information
+ * about cardinality is provided, it resorts to variable counting, i.e., it
+ * favors the execution of triple patterns with bounded variables.
+ */
 public class CardinalityJoinOrdering<ID,VALUE> extends ReturningArgsOpVisitor<
         Op, // built operator.
         Set<Var>> { // the variables already set when the operator is visited.
@@ -42,7 +47,7 @@ public class CardinalityJoinOrdering<ID,VALUE> extends ReturningArgsOpVisitor<
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
         ec.getContext().set(SagerConstants.BACKEND, backend);
         ec.getContext().set(SagerConstants.CACHE, new CacheId<>(backend));
-        ec.getContext().set(SagerConstants.SAVER, new Save2SPARQL<>(null, ec));
+        ec.getContext().set(SagerConstants.SAVER, new Pause2SPARQL<>(null, ec));
         this.fakeContext = ec;
     }
 
@@ -50,7 +55,7 @@ public class CardinalityJoinOrdering<ID,VALUE> extends ReturningArgsOpVisitor<
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
         ec.getContext().set(SagerConstants.BACKEND, backend);
         ec.getContext().set(SagerConstants.CACHE, cache);
-        ec.getContext().set(SagerConstants.SAVER, new Save2SPARQL<>(null, ec));
+        ec.getContext().set(SagerConstants.SAVER, new Pause2SPARQL<>(null, ec));
         this.fakeContext = ec;
     }
 

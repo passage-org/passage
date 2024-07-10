@@ -2,11 +2,12 @@ package fr.gdd.sage.rawer.accumulators;
 
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.sage.generics.BackendBindings;
+import fr.gdd.sage.generics.BackendSaver;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.rawer.RawerConstants;
 import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.accumulators.SagerAccumulator;
-import fr.gdd.sage.sager.pause.Save2SPARQL;
+import fr.gdd.sage.sager.pause.Pause2SPARQL;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.engine.ExecutionContext;
@@ -31,8 +32,8 @@ public class ApproximateAggCount<ID, VALUE> implements SagerAccumulator<ID,VALUE
     public ApproximateAggCount(ExecutionContext context, Op subOp) {
         this.context = context;
         this.op = subOp;
-        Save2SPARQL<ID,VALUE> saver = context.getContext().get(SagerConstants.SAVER);
-        this.wj = new WanderJoin<>(saver.op2it);
+        BackendSaver<ID,VALUE,?> saver = context.getContext().get(RawerConstants.SAVER);
+        this.wj = new WanderJoin<>(saver);
     }
 
     @Override
