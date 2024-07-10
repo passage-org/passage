@@ -61,7 +61,7 @@ public class RawerCLI {
     Boolean report = false;
 
     @CommandLine.Option(names = {"-cl", "--chao-lee"},
-            description = "Use Chao-Lee as count-distinct estimator.")
+            description = "Use Chao-Lee as count-distinct estimator. Default is CRAWD.")
     Boolean chaolee = false;
 
     @CommandLine.Option(names = {"-h", "--help"}, usageHelp = true, description = "Display this help message.")

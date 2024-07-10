@@ -12,26 +12,21 @@ well-defined scope in terms of supported operators.
 ## Usage
 
 ```shell
-Usage: <main class> [-hr] [-d=<database>] [-f=<queryFile>] [-l=<limit>]
+Usage: <main class> [-hr] [-cl] [-d=<database>] [-f=<queryFile>] [-l=<limit>]
                     [-n=<numberOfExecutions>] [-q=<queryAsString>]
                     [-sl=<subqueryLimit>] [-st=<subquerytimeout>] [-t=<timeout>]
+  -cl, --chao-lee       Use Chao-Lee as count-distinct estimator. Default is CRAWD.
   -d, --database=<database> The path to your blazegraph database.
   -f, --file=<queryFile>    The file containing the SPARQL query to execute.
   -h, --help                Display this help message.
-  -l, --limit=<limit>       Number of scans before the query execution is
-                              stopped.
-  -n, --executions=<numberOfExecutions>
-                            Number of times that it executes the query in
-                              sequence (for performance analysis).
-  -q, --query=<queryAsString>
-                            The SPARQL query to execute.
+  -l, --limit=<limit>       Number of scans before the query execution is stopped.
+  -n, --executions=<numberOfExecutions> Number of times that it executes the query in
+                                        sequence (for performance analysis).
+  -q, --query=<queryAsString> The SPARQL query to execute.
   -r, --report              Provides a concise report on query execution.
-  -sl, --sublimit=<subqueryLimit>
-                            Number of scans before the subquery execution is
-                              stopped (if exists).
-  -st, --subtimeout=<subquerytimeout>
-                            Timeout before the subquery execution is stopped
-                              (if exists).
+  -sl, --sublimit=<subqueryLimit> Number of scans before the subquery execution is
+                                  stopped (if exists).
+  -st, --subtimeout=<subquerytimeout> Timeout before the subquery execution is stopped (if exists).
   -t, --timeout=<timeout>   Timeout before the query execution is stopped.
 ```
 
@@ -71,7 +66,7 @@ of having picked this element at random.
       
 > [!NOTE]
 > To ingest your data into a blazegraph dataset, you can use the CLI
-> of [`blazegraph.jar`](https://github.com/blazegraph/database/releases/tag/BLAZEGRAPH_2_1_6_RC).
+> of [`blazegraph.jar`](https://github.com/blazegraph/database/releases/tag/BLAZEGRAPH_2_1_6_RC):
 > `java -cp blazegraph.jar com.bigdata.rdf.store.DataLoader -defaultGraph http://example.com/watdiv watdiv10M.properties watdiv.10M.nt`
       
 
