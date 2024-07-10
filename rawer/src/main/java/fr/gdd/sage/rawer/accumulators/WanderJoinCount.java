@@ -4,10 +4,8 @@ import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.generics.BackendSaver;
 import fr.gdd.sage.interfaces.Backend;
+import fr.gdd.sage.interfaces.BackendAccumulator;
 import fr.gdd.sage.rawer.RawerConstants;
-import fr.gdd.sage.sager.SagerConstants;
-import fr.gdd.sage.sager.accumulators.SagerAccumulator;
-import fr.gdd.sage.sager.pause.Pause2SPARQL;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.engine.ExecutionContext;
@@ -19,7 +17,7 @@ import java.util.Objects;
  * Perform an estimate of the COUNT based on random walks performed on
  * the subQuery. This is based on WanderJoin.
  */
-public class ApproximateAggCount<ID, VALUE> implements SagerAccumulator<ID,VALUE> {
+public class WanderJoinCount<ID, VALUE> implements BackendAccumulator<ID,VALUE> {
 
     final ExecutionContext context;
     final Op op;
@@ -29,7 +27,7 @@ public class ApproximateAggCount<ID, VALUE> implements SagerAccumulator<ID,VALUE
 
     WanderJoin<ID,VALUE> wj;
 
-    public ApproximateAggCount(ExecutionContext context, Op subOp) {
+    public WanderJoinCount(ExecutionContext context, Op subOp) {
         this.context = context;
         this.op = subOp;
         BackendSaver<ID,VALUE,?> saver = context.getContext().get(RawerConstants.SAVER);

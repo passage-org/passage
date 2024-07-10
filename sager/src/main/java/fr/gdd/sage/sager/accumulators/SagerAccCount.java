@@ -7,6 +7,7 @@ import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.function.FunctionEnv;
 
+// TODO From SagerAccumulator to BackendAccumulator (EZ but still, todo)
 public class SagerAccCount<ID,VALUE> implements SagerAccumulator<ID,VALUE>{
 
     final ExecutionContext context;

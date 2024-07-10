@@ -3,9 +3,6 @@ package fr.gdd.sage.rawer;
 import fr.gdd.sage.blazegraph.BlazegraphBackend;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +23,8 @@ public class RawerWatdivCountTest {
     public void count_star_on_spo () {
         String queryAsString = "SELECT (COUNT(*) AS ?count) WHERE { ?s ?p ?o }";
         RawerOpExecutorTest.execute(queryAsString, watdivBlazegraph, 1L); // 10,916,457 triples
+        // the count is exact with blazegraph, do not need anything but getting a cardinality
+        // of spo.
     }
 
     @Disabled

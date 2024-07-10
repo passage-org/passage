@@ -1,7 +1,8 @@
 package fr.gdd.sage.rawer;
 
 import fr.gdd.sage.blazegraph.BlazegraphBackend;
-import fr.gdd.sage.rawer.accumulators.ApproximateAggCountDistinct;
+import fr.gdd.sage.rawer.accumulators.CountDistinctChaoLee;
+import fr.gdd.sage.rawer.iterators.RandomAggregator;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.query.MalformedQueryException;
@@ -28,24 +29,35 @@ public class RawerWatdivCountDistinctTest {
     @Test
     public void count_distinct_s_on_spo () {
         String queryAsString = "SELECT (COUNT( DISTINCT ?s ) AS ?count) WHERE { ?s ?p ?o }";
-        ApproximateAggCountDistinct.SUBQUERY_LIMIT = 1;
-        RawerOpExecutorTest.execute(queryAsString, watdivBlazegraph, 1000000L); // 521,585 (+blaze default ones)
+        RandomAggregator.SUBQUERY_LIMIT = 1;
+        RawerOpExecutorTest.execute(queryAsString, watdivBlazegraph, 100_000L); // 521,585 (+blaze default ones)
+    }
+
+    @Disabled
+    @Test
+    public void count_distinct_s_on_spo_with_chao_lee () {
+        // chao lee is not expected to be sample efficient…
+        String queryAsString = "SELECT (COUNT( DISTINCT ?s ) AS ?count) WHERE { ?s ?p ?o }";
+        RandomAggregator.SUBQUERY_LIMIT = 1;
+        RawerOpExecutor executor = new RawerOpExecutor();
+        executor.setBackend(watdivBlazegraph).setLimit(1_000_000L).setCountDistinct(CountDistinctChaoLee::new);
+        RawerOpExecutorTest.execute(queryAsString, executor); // 521,585 (+blaze default ones)
     }
 
     @Disabled
     @Test
     public void count_distinct_p_on_spo () {
         String queryAsString = "SELECT (COUNT( DISTINCT ?p ) AS ?count) WHERE { ?s ?p ?o }";
-        ApproximateAggCountDistinct.SUBQUERY_LIMIT = 1;
-        RawerOpExecutorTest.execute(queryAsString, watdivBlazegraph, 1000000L); // 86 (+blaze default ones)
+        RandomAggregator.SUBQUERY_LIMIT = 1;
+        RawerOpExecutorTest.execute(queryAsString, watdivBlazegraph, 100_000L); // 86 (+blaze default ones)
     }
 
     @Disabled
     @Test
     public void count_distinct_o_on_spo () {
         String queryAsString = "SELECT (COUNT( DISTINCT ?o ) AS ?count) WHERE { ?s ?p ?o }";
-        ApproximateAggCountDistinct.SUBQUERY_LIMIT = 1;
-        RawerOpExecutorTest.execute(queryAsString, watdivBlazegraph, 1000000L); // 1,005,832 (+blaze default ones)
+        RandomAggregator.SUBQUERY_LIMIT = 1;
+        RawerOpExecutorTest.execute(queryAsString, watdivBlazegraph, 100_000L); // 1,005,832 (+blaze default ones)
     }
 
     @Disabled
@@ -61,7 +73,7 @@ public class RawerWatdivCountDistinctTest {
                 }""";
         //var results = watdivBlazegraph.executeQuery(twoTPsQuery);
         //log.debug("{}", results.toString());
-        ApproximateAggCountDistinct.SUBQUERY_LIMIT = 5*20;
+        RandomAggregator.SUBQUERY_LIMIT = 5*20;
         // C(Q) = 4.17E9 results
         // CD(v4) = 44935 offers
         // CD(v1) = 1720 names
@@ -84,7 +96,7 @@ public class RawerWatdivCountDistinctTest {
                 }""";
         // var results = watdivBlazegraph.executeQuery(twoTPsQuery);
         // log.debug("{}", results.toString());
-        ApproximateAggCountDistinct.SUBQUERY_LIMIT = 8*100;
+        RandomAggregator.SUBQUERY_LIMIT = 8*100;
         // C(Q) = 7_554_617 elements
         // CD(v4) = 11735
         RawerOpExecutorTest.execute(twoTPsQuery, watdivBlazegraph, 1_000_000L);

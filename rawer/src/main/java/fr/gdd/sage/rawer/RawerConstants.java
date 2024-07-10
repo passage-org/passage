@@ -1,5 +1,6 @@
 package fr.gdd.sage.rawer;
 
+import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.util.Symbol;
 
 public class RawerConstants {
@@ -21,6 +22,10 @@ public class RawerConstants {
 
     static public final String COUNT_VARIABLE = "rawer_count"; // the name of the count variable for subqueries
 
+    // There are multiples implementation of the count distinct accumulator, so which
+    // one should we use?
+    static public final Symbol COUNT_DISTINCT_FACTORY = allocVariableSymbol("CountDistinctFactory");
+
     /**
      * Symbol in use in the global context.
      */
@@ -33,5 +38,26 @@ public class RawerConstants {
      */
     public static Symbol allocVariableSymbol(String name) {
         return Symbol.create(sageSymbolPrefix + name);
+    }
+
+    /**
+     * Increment by 1 the number of scans, i.e., call to scan's `next()`.
+     * @param context The execution context of the query.
+     */
+    public static void incrementScans(ExecutionContext context) {
+        context.getContext().set(RawerConstants.SCANS, context.getContext().getLong(RawerConstants.SCANS,0L) + 1);
+    }
+
+    /**
+     * Increment the number of scans, i.e., call to scan's `next()`. Byt the number of scans
+     * done in the `other` execution context.
+     * @param context The execution context of the query.
+     * @param other The execution context of the subquery.
+     */
+    public static void incrementScansBy(ExecutionContext context, ExecutionContext other) {
+        long nbScansSubQuery = other.getContext().get(RawerConstants.SCANS);
+        context.getContext().set(RawerConstants.SCANS,
+                context.getContext().getLong(RawerConstants.SCANS,0L)
+                        + nbScansSubQuery);
     }
 }

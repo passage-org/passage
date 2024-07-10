@@ -5,14 +5,10 @@ package fr.gdd.sage.rawer.cli;
 import fr.gdd.sage.blazegraph.BlazegraphBackend;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.rawer.RawerOpExecutor;
-import fr.gdd.sage.rawer.accumulators.ApproximateAggCountDistinct;
-import org.apache.jena.util.JenaXMLInput;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import fr.gdd.sage.rawer.accumulators.CountDistinctChaoLee;
+import fr.gdd.sage.rawer.iterators.RandomAggregator;
 import picocli.CommandLine;
 
-import javax.xml.XMLConstants;
-import javax.xml.stream.XMLInputFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -64,6 +60,10 @@ public class RawerCLI {
             description = "Provides a concise report on query execution.")
     Boolean report = false;
 
+    @CommandLine.Option(names = {"-cl", "--chao-lee"},
+            description = "Use Chao-Lee as count-distinct estimator.")
+    Boolean chaolee = false;
+
     @CommandLine.Option(names = {"-h", "--help"}, usageHelp = true, description = "Display this help message.")
     boolean usageHelpRequested;
 
@@ -107,20 +107,26 @@ public class RawerCLI {
         BlazegraphBackend backend = new BlazegraphBackend(serverOptions.database);
 
         if (serverOptions.report) {
-            System.setProperty("org.slf4j.simpleLogger.log.fr.gdd.sage.rawer.accumulators.ApproximateAggCountDistinct", "debug");
+            System.setProperty("org.slf4j.simpleLogger.log.fr.gdd.sage.rawer.accumulators.CountDistinctChaoLee", "debug");
+            System.setProperty("org.slf4j.simpleLogger.log.fr.gdd.sage.rawer.accumulators.CountDistinctCRAWD", "debug");
             System.out.printf("%sPath to database:%s %s%n", PURPLE_BOLD, RESET, serverOptions.database);
             System.out.printf("%sSPARQL query:%s %s%n", PURPLE_BOLD, RESET, serverOptions.queryAsString);
         } else {
-            System.setProperty("org.slf4j.simpleLogger.log.fr.gdd.sage.rawer.accumulators.ApproximateAggCountDistinct", "error");
+            System.setProperty("org.slf4j.simpleLogger.log.fr.gdd.sage.rawer.accumulators.CountDistinctCRAWD", "error");
+            System.setProperty("org.slf4j.simpleLogger.log.fr.gdd.sage.rawer.accumulators.CountDistinctChaoLee", "error");
         }
 
         for (int i = 0; i < serverOptions.numberOfExecutions; ++i) {
-            ApproximateAggCountDistinct.SUBQUERY_LIMIT = serverOptions.subqueryLimit; // ugly, but no better solutions rn
-            ApproximateAggCountDistinct.SUBQUERY_TIMEOUT = serverOptions.subquerytimeout;
+            RandomAggregator.SUBQUERY_LIMIT = serverOptions.subqueryLimit; // ugly, but no better solutions rn
+            RandomAggregator.SUBQUERY_TIMEOUT = serverOptions.subquerytimeout;
             RawerOpExecutor executor = new RawerOpExecutor<>();
             executor.setBackend(backend)
                     .setLimit(serverOptions.limit)
                     .setTimeout(serverOptions.timeout);
+
+            if (serverOptions.chaolee) {
+                executor.setCountDistinct(CountDistinctChaoLee::new);
+            }
 
             long start = System.currentTimeMillis();
             Iterator<BackendBindings> iterator = executor.execute(serverOptions.queryAsString);

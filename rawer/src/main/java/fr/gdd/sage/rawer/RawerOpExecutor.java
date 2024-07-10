@@ -4,6 +4,7 @@ import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.sage.generics.BackendSaver;
+import fr.gdd.sage.rawer.accumulators.CountDistinctFactory;
 import fr.gdd.sage.rawer.budgeting.NaiveBudgeting;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.generics.CacheId;
@@ -12,10 +13,8 @@ import fr.gdd.sage.iterators.SagerBind;
 import fr.gdd.sage.rawer.iterators.ProjectIterator;
 import fr.gdd.sage.rawer.iterators.RandomRoot;
 import fr.gdd.sage.rawer.iterators.RandomScanFactory;
-import fr.gdd.sage.rawer.iterators.RawerAgg;
-import fr.gdd.sage.sager.SagerConstants;
+import fr.gdd.sage.rawer.iterators.RandomAggregator;
 import fr.gdd.sage.sager.optimizers.CardinalityJoinOrdering;
-import fr.gdd.sage.sager.pause.Pause2SPARQL;
 import fr.gdd.sage.sager.pause.Triples2BGP;
 import fr.gdd.sage.sager.resume.BGP2Triples;
 import org.apache.jena.query.DatasetFactory;
@@ -84,6 +83,17 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         execCxt.getContext().set(RawerConstants.BACKEND, backend);
         execCxt.getContext().setIfUndef(RawerConstants.CACHE, new CacheId<>(this.backend));
         this.cache = execCxt.getContext().get(RawerConstants.CACHE);
+        return this;
+    }
+
+    /**
+     * Depending on the backend, it might be profitable to use another count-distinct
+     * algorithm. By default, it's crawd.
+     * @param factory The factory that create the approximate accumulators.
+     * @return this, for convenience.
+     */
+    public RawerOpExecutor<ID,VALUE> setCountDistinct(CountDistinctFactory<ID,VALUE> factory) {
+        execCxt.getContext().set(RawerConstants.COUNT_DISTINCT_FACTORY, factory);
         return this;
     }
 
@@ -165,7 +175,7 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
             }
         }
 
-        return new RawerAgg<>(this, groupBy, input);
+        return new RandomAggregator<>(this, groupBy, input);
     }
 
 }

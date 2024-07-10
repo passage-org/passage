@@ -9,15 +9,10 @@ import fr.gdd.sage.databases.inmemory.IM4Jena;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.jena.JenaBackend;
-import org.apache.jena.graph.Node;
-import org.apache.jena.query.ARQ;
 import org.apache.jena.query.Dataset;
-import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.engine.ExecutionContext;
-import org.apache.jena.tdb2.store.NodeId;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -150,19 +145,17 @@ public class RawerOpExecutorTest {
     /**
      * @param queryAsString The query to execute.
      * @param backend The backend to use.
-     * @param limit The number of random walks to perform.
+     * @param limit The number of scans to perform.
      * @return The random solutions mappings.
      */
-    public static Multiset<String> execute(String queryAsString, Backend<?,?,?> backend, Long limit) {
+    public static <ID,VALUE> Multiset<String> execute(String queryAsString, Backend<ID,VALUE,?> backend, Long limit) {
         Op query = Algebra.compile(QueryFactory.create(queryAsString));
 
-        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(RawerConstants.BACKEND, backend);
-        ARQ.enableOptimizer(false);
-        RawerOpExecutor<?,?> executor = new RawerOpExecutor<NodeId, Node>(ec).setLimit(limit);
+        RawerOpExecutor<ID,VALUE> executor = new RawerOpExecutor<ID,VALUE>()
+                .setBackend(backend)
+                .setLimit(limit);
 
-        // QueryIterator iterator = executor.execute(query);
-        Iterator<? extends BackendBindings<?, ?>> iterator = executor.execute(query);
+        Iterator<BackendBindings<ID,VALUE>> iterator = executor.execute(query);
 
         Multiset<String> results = HashMultiset.create();
         while (iterator.hasNext()) {
@@ -170,7 +163,25 @@ public class RawerOpExecutorTest {
             results.add(binding);
             log.debug("{}", binding);
         }
-        assertEquals(limit, results.size());
+        return results;
+    }
+
+    /**
+     * @param queryAsString The query to execute.
+     * @param executor The fully configured executor that will run the query.
+     * @return The sample-based solutions mappings.
+     */
+    public static <ID,VALUE> Multiset<String> execute(String queryAsString, RawerOpExecutor<ID,VALUE> executor) {
+        Op query = Algebra.compile(QueryFactory.create(queryAsString));
+
+        Iterator<BackendBindings<ID,VALUE>> iterator = executor.execute(query);
+
+        Multiset<String> results = HashMultiset.create();
+        while (iterator.hasNext()) {
+            String binding = iterator.next().toString();
+            results.add(binding);
+            log.debug("{}", binding);
+        }
         return results;
     }
 

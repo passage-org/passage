@@ -1,12 +1,11 @@
 package fr.gdd.sage.rawer.iterators;
 
 import fr.gdd.sage.generics.BackendBindings;
+import fr.gdd.sage.generics.BackendSaver;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.interfaces.BackendIterator;
 import fr.gdd.sage.interfaces.SPOC;
 import fr.gdd.sage.rawer.RawerConstants;
-import fr.gdd.sage.sager.SagerConstants;
-import fr.gdd.sage.sager.pause.Pause2SPARQL;
 import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.atlas.lib.tuple.Tuple3;
 import org.apache.jena.atlas.lib.tuple.TupleFactory;
@@ -41,7 +40,7 @@ public class RandomScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE
                 triple.getTriple().getPredicate().isVariable() && Objects.isNull(spo.get(1)) ? Var.alloc(triple.getTriple().getPredicate()) : null,
                 triple.getTriple().getObject().isVariable() && Objects.isNull(spo.get(2)) ? Var.alloc(triple.getTriple().getObject()) : null);
 
-        Pause2SPARQL<ID,VALUE> saver = this.context.getContext().get(SagerConstants.SAVER);
+        BackendSaver<ID,VALUE,?> saver = this.context.getContext().get(RawerConstants.SAVER);
         if (Objects.nonNull(saver)) {
             saver.register(triple, this);
         }
@@ -58,7 +57,7 @@ public class RandomScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE
         this.currentProbability = iterator.random(); // position at random index
         iterator.next(); // read the value
 
-        context.getContext().set(RawerConstants.SCANS, context.getContext().getLong(RawerConstants.SCANS,0L) + 1);
+        RawerConstants.incrementScans(context);
 
         BackendBindings<ID, VALUE> newBinding = new BackendBindings<>();
 

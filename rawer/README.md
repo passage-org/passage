@@ -69,10 +69,10 @@ of having picked this element at random.
       elements within a range, then getting the element at the
       designated (uniform at random) index.
       
-      > [!NOTE]
-      > To ingest your data into a blazegraph dataset, you can use the CLI
-      > of [`blazegraph.jar`](https://github.com/blazegraph/database/releases/tag/BLAZEGRAPH_2_1_6_RC).
-      > `java -cp blazegraph.jar com.bigdata.rdf.store.DataLoader -defaultGraph http://example.com/watdiv watdiv1B.properties watdiv.1000M/watdiv.1000M.nt
+> [!NOTE]
+> To ingest your data into a blazegraph dataset, you can use the CLI
+> of [`blazegraph.jar`](https://github.com/blazegraph/database/releases/tag/BLAZEGRAPH_2_1_6_RC).
+> `java -cp blazegraph.jar com.bigdata.rdf.store.DataLoader -defaultGraph http://example.com/watdiv watdiv10M.properties watdiv.10M.nt`
       
 
 - [ ] Support [Apache Jena](https://jena.apache.org/). Although

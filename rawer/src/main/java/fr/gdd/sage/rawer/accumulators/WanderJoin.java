@@ -2,14 +2,10 @@ package fr.gdd.sage.rawer.accumulators;
 
 import fr.gdd.jena.visitors.ReturningOpVisitor;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
-import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.generics.BackendSaver;
-import fr.gdd.sage.generics.PtrMap;
 import fr.gdd.sage.rawer.iterators.RandomScan;
-import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
 
-import java.util.Iterator;
 import java.util.Objects;
 
 /**
