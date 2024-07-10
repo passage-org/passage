@@ -24,18 +24,19 @@ import org.apache.jena.sparql.function.FunctionEnv;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
 
 /**
- * Perform an estimate of the COUNT DISTINCT based on random walks
- * performed on the subquery. It makes use of CRAWD as underlying
- * formula.
+ * Perform an estimate of the COUNT DISTINCT based on random walks performed on
+ * the subquery. It makes use of Chao-Lee's original formula. It's expected to
+ * be much slower, and more memory consuming.
  */
-public class ApproximateAggCountDistinct<ID,VALUE> implements SagerAccumulator<ID, VALUE> {
+public class ApproximateAggCountDistinctChaoLee<ID,VALUE> implements SagerAccumulator<ID, VALUE> {
 
-    public static Logger log = LoggerFactory.getLogger(ApproximateAggCountDistinct.class);
+    public static Logger log = LoggerFactory.getLogger(ApproximateAggCountDistinctChaoLee.class);
 
     final ExecutionContext context;
     final Backend<ID,VALUE,?> backend;
@@ -47,6 +48,9 @@ public class ApproximateAggCountDistinct<ID,VALUE> implements SagerAccumulator<I
     Double sumOfInversedProbaOverFmu = 0.;
     final WanderJoin<ID,VALUE> wj;
 
+    // Must keep track of already seen distinct elements to count them once
+    Set<Set<BackendBindings<ID,VALUE>>> distincts = new HashSet<>();
+
     final Set<Var> vars;
     long sampleSize = 0; // for debug purposes
 
@@ -56,7 +60,7 @@ public class ApproximateAggCountDistinct<ID,VALUE> implements SagerAccumulator<I
     public static long SUBQUERY_LIMIT = Long.MAX_VALUE;
     public static long SUBQUERY_TIMEOUT = Long.MAX_VALUE;
 
-    public ApproximateAggCountDistinct(ExprList varsAsExpr, ExecutionContext context, OpGroup group) {
+    public ApproximateAggCountDistinctChaoLee(ExprList varsAsExpr, ExecutionContext context, OpGroup group) {
         this.context = context;
         this.backend = context.getContext().get(RawerConstants.BACKEND);
         this.group = group;
