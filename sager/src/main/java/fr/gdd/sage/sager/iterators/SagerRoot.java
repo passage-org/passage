@@ -1,7 +1,7 @@
 package fr.gdd.sage.sager.iterators;
 
 import fr.gdd.sage.sager.SagerConstants;
-import fr.gdd.sage.sager.pause.Save2SPARQL;
+import fr.gdd.sage.sager.pause.Pause2SPARQL;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
 import java.util.Iterator;
@@ -13,7 +13,7 @@ import java.util.Iterator;
  */
 public class SagerRoot<T> implements Iterator<T> {
 
-    final Save2SPARQL saver;
+    final Pause2SPARQL saver;
     final Iterator<T> wrapped;
     final ExecutionContext context;
     final Long limit;

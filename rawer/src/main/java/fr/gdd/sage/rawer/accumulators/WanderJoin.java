@@ -3,6 +3,7 @@ package fr.gdd.sage.rawer.accumulators;
 import fr.gdd.jena.visitors.ReturningOpVisitor;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.sage.generics.BackendBindings;
+import fr.gdd.sage.generics.BackendSaver;
 import fr.gdd.sage.generics.PtrMap;
 import fr.gdd.sage.rawer.iterators.RandomScan;
 import org.apache.jena.sparql.algebra.Op;
@@ -20,15 +21,15 @@ import java.util.Objects;
  */
 public class WanderJoin<ID, VALUE> extends ReturningOpVisitor<Double> {
 
-    public final PtrMap<Op, Iterator<BackendBindings<ID,VALUE>>> op2it;
+    public final BackendSaver<ID,VALUE,?> saver;
 
-    public WanderJoin(PtrMap<Op, Iterator<BackendBindings<ID,VALUE>>> op2it) {
-        this.op2it = op2it;
+    public WanderJoin(BackendSaver<ID,VALUE,?> saver) {
+        this.saver = saver;
     }
 
     @Override
     public Double visit(OpTriple triple) {
-        RandomScan<ID,VALUE> scan = (RandomScan<ID,VALUE>) op2it.get(triple);
+        RandomScan<ID,VALUE> scan = (RandomScan<ID,VALUE>) saver.getIterator(triple);
         return Objects.isNull(scan) ? 0 : scan.getProbability();
     }
 

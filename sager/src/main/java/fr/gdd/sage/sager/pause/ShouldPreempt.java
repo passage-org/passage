@@ -8,9 +8,9 @@ import java.util.Objects;
 
 public class ShouldPreempt extends ReturningOpVisitor<Boolean> {
 
-    final Save2SPARQL saver;
+    final Pause2SPARQL saver;
 
-    public ShouldPreempt(Save2SPARQL saver) {
+    public ShouldPreempt(Pause2SPARQL saver) {
         this.saver = saver;
     }
 
@@ -21,7 +21,7 @@ public class ShouldPreempt extends ReturningOpVisitor<Boolean> {
 
     @Override
     public Boolean visit(OpTriple triple) {
-        return Objects.nonNull(saver.op2it.get(triple));
+        return Objects.nonNull(saver.getIterator(triple));
     }
 
     @Override
@@ -31,7 +31,7 @@ public class ShouldPreempt extends ReturningOpVisitor<Boolean> {
 
     @Override
     public Boolean visit(OpUnion union) {
-        return Objects.nonNull(saver.op2it.get(union));
+        return Objects.nonNull(saver.getIterator(union));
     }
 
     @Override

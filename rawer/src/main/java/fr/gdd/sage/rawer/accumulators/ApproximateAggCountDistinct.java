@@ -11,7 +11,7 @@ import fr.gdd.sage.rawer.subqueries.CountSubqueryBuilder;
 import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.accumulators.SagerAccumulator;
 import fr.gdd.sage.sager.optimizers.CardinalityJoinOrdering;
-import fr.gdd.sage.sager.pause.Save2SPARQL;
+import fr.gdd.sage.sager.pause.Pause2SPARQL;
 import fr.gdd.sage.sager.pause.Triples2BGP;
 import fr.gdd.sage.sager.resume.BGP2Triples;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
@@ -61,8 +61,8 @@ public class ApproximateAggCountDistinct<ID,VALUE> implements SagerAccumulator<I
         this.backend = context.getContext().get(RawerConstants.BACKEND);
         this.group = group;
         this.bigN = new ApproximateAggCount<>(context, group.getSubOp());
-        Save2SPARQL<ID,VALUE> saver = context.getContext().get(SagerConstants.SAVER);
-        this.wj = new WanderJoin<>(saver.op2it);
+        Pause2SPARQL<ID,VALUE> saver = context.getContext().get(RawerConstants.SAVER);
+        this.wj = new WanderJoin<>(saver);
         this.vars = varsAsExpr.getVarsMentioned();
         this.cache = context.getContext().get(RawerConstants.CACHE);
     }
@@ -117,9 +117,9 @@ public class ApproximateAggCountDistinct<ID,VALUE> implements SagerAccumulator<I
         FmuBootstrapper<ID,VALUE> bootsrapper = new FmuBootstrapper<>(backend, cache, binding);
         double bindingProbability = bootsrapper.visit(countQuery);
         // TODO get op2it for rawer dedicated
-        Save2SPARQL<ID,VALUE> fmuSaver = fmuExecutor.getExecutionContext().getContext().get(SagerConstants.SAVER);
+        Pause2SPARQL<ID,VALUE> fmuSaver = fmuExecutor.getExecutionContext().getContext().get(SagerConstants.SAVER);
         OpGroup groupOperator = new GetRootAggregator().visit(fmuSaver.getRoot());
-        RawerAgg<ID,VALUE> aggIterator = (RawerAgg<ID, VALUE>) fmuSaver.op2it.get(groupOperator);
+        RawerAgg<ID,VALUE> aggIterator = (RawerAgg<ID, VALUE>) fmuSaver.getIterator(groupOperator);
         ApproximateAggCount<ID,VALUE> accumulator = (ApproximateAggCount<ID, VALUE>) aggIterator.getAccumulator();
         accumulator.accumulate(bindingProbability);
 

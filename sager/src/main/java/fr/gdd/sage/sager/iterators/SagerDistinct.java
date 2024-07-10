@@ -2,7 +2,7 @@ package fr.gdd.sage.sager.iterators;
 
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.sager.SagerConstants;
-import fr.gdd.sage.sager.pause.Save2SPARQL;
+import fr.gdd.sage.sager.pause.Pause2SPARQL;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpDistinct;
 import org.apache.jena.sparql.algebra.op.OpFilter;
@@ -25,7 +25,7 @@ public class SagerDistinct<ID,VALUE> implements Iterator<BackendBindings<ID,VALU
     final ExecutionContext context;
     final OpDistinct op;
     final Iterator<BackendBindings<ID,VALUE>> wrapped;
-    final Save2SPARQL<ID,VALUE> saver;
+    final Pause2SPARQL<ID,VALUE> saver;
 
     BackendBindings<ID,VALUE> lastBinding = new BackendBindings<>();
     BackendBindings<ID,VALUE> newBinding;

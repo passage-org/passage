@@ -12,9 +12,9 @@ import java.util.Objects;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Disabled
-public class Save2SPARQLDistinctTest {
+public class Pause2SPARQLDistinctTest {
 
-    static final Logger log = LoggerFactory.getLogger(Save2SPARQLDistinctTest.class);
+    static final Logger log = LoggerFactory.getLogger(Pause2SPARQLDistinctTest.class);
     static final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
 
     @Test

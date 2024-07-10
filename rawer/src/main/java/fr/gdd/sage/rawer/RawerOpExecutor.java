@@ -3,6 +3,7 @@ package fr.gdd.sage.rawer;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
+import fr.gdd.sage.generics.BackendSaver;
 import fr.gdd.sage.rawer.budgeting.NaiveBudgeting;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.generics.CacheId;
@@ -14,7 +15,7 @@ import fr.gdd.sage.rawer.iterators.RandomScanFactory;
 import fr.gdd.sage.rawer.iterators.RawerAgg;
 import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.optimizers.CardinalityJoinOrdering;
-import fr.gdd.sage.sager.pause.Save2SPARQL;
+import fr.gdd.sage.sager.pause.Pause2SPARQL;
 import fr.gdd.sage.sager.pause.Triples2BGP;
 import fr.gdd.sage.sager.resume.BGP2Triples;
 import org.apache.jena.query.DatasetFactory;
@@ -107,7 +108,7 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         root = ReturningOpVisitorRouter.visit(new Triples2BGP(), root);
         root = new CardinalityJoinOrdering<>(backend, cache).visit(root); // need to have bgp to optimize, no tps
         root = ReturningOpVisitorRouter.visit(new BGP2Triples(), root);
-        execCxt.getContext().set(SagerConstants.SAVER, new Save2SPARQL<>(root, execCxt));
+        execCxt.getContext().set(RawerConstants.SAVER, new BackendSaver<>(backend, root));
         return new RandomRoot<>(this, execCxt, root);
     }
 

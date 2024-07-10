@@ -5,7 +5,7 @@ import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.interfaces.BackendIterator;
 import fr.gdd.sage.interfaces.SPOC;
 import fr.gdd.sage.sager.SagerConstants;
-import fr.gdd.sage.sager.pause.Save2SPARQL;
+import fr.gdd.sage.sager.pause.Pause2SPARQL;
 import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.atlas.lib.tuple.Tuple3;
 import org.apache.jena.atlas.lib.tuple.TupleFactory;
@@ -29,7 +29,7 @@ public class SagerScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE>
 
     final Long deadline;
     final OpTriple op;
-    final Save2SPARQL<ID, VALUE> saver;
+    final Pause2SPARQL<ID, VALUE> saver;
     final Backend<ID, VALUE, Long> backend;
     final BackendIterator<ID, VALUE, Long> wrapped;
     final Tuple3<Var> vars; // needed to create bindings

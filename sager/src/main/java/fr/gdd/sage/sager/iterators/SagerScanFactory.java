@@ -5,7 +5,7 @@ import fr.gdd.sage.generics.CacheId;
 import fr.gdd.sage.generics.Substitutor;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.sager.SagerConstants;
-import fr.gdd.sage.sager.pause.Save2SPARQL;
+import fr.gdd.sage.sager.pause.Pause2SPARQL;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.atlas.lib.tuple.Tuple3;
 import org.apache.jena.sparql.algebra.Op;
@@ -15,6 +15,7 @@ import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.util.ExprUtils;
 
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Set;
 
 public class SagerScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE>> {
@@ -36,7 +37,7 @@ public class SagerScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID,
         backend = context.getContext().get(SagerConstants.BACKEND);
         this.context = context;
         this.skip = 0L;
-        Save2SPARQL<ID, VALUE> saver = context.getContext().get(SagerConstants.SAVER);
+        Pause2SPARQL<ID, VALUE> saver = context.getContext().get(SagerConstants.SAVER);
         saver.register(triple, this);
         this.cache = context.getContext().get(SagerConstants.CACHE);
     }
@@ -47,7 +48,7 @@ public class SagerScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID,
         backend = context.getContext().get(SagerConstants.BACKEND);
         this.context = context;
         this.skip = skip;
-        Save2SPARQL<ID, VALUE> saver = context.getContext().get(SagerConstants.SAVER);
+        Pause2SPARQL<ID, VALUE> saver = context.getContext().get(SagerConstants.SAVER);
         saver.register(triple, this);
         this.cache = context.getContext().get(SagerConstants.CACHE);
     }
@@ -60,8 +61,10 @@ public class SagerScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID,
             inputBinding = input.next();
             Tuple3<ID> spo = Substitutor.substitute(triple.getTriple(), inputBinding, cache);
 
-            instantiated = new SagerScan<>(context, triple, spo, backend.search(spo.get(0), spo.get(1), spo.get(2)))
-                    .skip(skip);
+            instantiated = new SagerScan<>(context, triple, spo, backend.search(spo.get(0), spo.get(1), spo.get(2)));
+            if (Objects.nonNull(skip) && skip > 0L) {
+                ((SagerScan<ID,VALUE>) instantiated).skip(skip);
+            }
         }
 
         return instantiated.hasNext();

@@ -8,7 +8,7 @@ import fr.gdd.sage.rawer.accumulators.ApproximateAggCount;
 import fr.gdd.sage.rawer.accumulators.ApproximateAggCountDistinct;
 import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.accumulators.SagerAccumulator;
-import fr.gdd.sage.sager.pause.Save2SPARQL;
+import fr.gdd.sage.sager.pause.Pause2SPARQL;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.atlas.iterator.Iter;
@@ -16,7 +16,6 @@ import org.apache.jena.sparql.algebra.op.OpGroup;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.ExprAggregator;
 import org.apache.jena.sparql.expr.aggregate.AggCount;
-import org.apache.jena.sparql.expr.aggregate.AggCountDistinct;
 import org.apache.jena.sparql.expr.aggregate.AggCountVarDistinct;
 
 import java.util.Iterator;
@@ -50,7 +49,7 @@ public class RawerAgg<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
             var2accumulator = new ImmutablePair<>(v, sagerX);
         }
 
-        Save2SPARQL<ID,VALUE> saver = executor.getExecutionContext().getContext().get(SagerConstants.SAVER);
+        Pause2SPARQL<ID,VALUE> saver = executor.getExecutionContext().getContext().get(SagerConstants.SAVER);
         saver.register(op, this);
     }
 

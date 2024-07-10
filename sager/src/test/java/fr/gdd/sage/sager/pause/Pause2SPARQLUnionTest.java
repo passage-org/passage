@@ -4,7 +4,6 @@ import fr.gdd.sage.blazegraph.BlazegraphBackend;
 import fr.gdd.sage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.sage.databases.inmemory.IM4Jena;
 import fr.gdd.sage.jena.JenaBackend;
-import org.apache.jena.query.Dataset;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -15,9 +14,9 @@ import java.util.Objects;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Disabled
-public class Save2SPARQLUnionTest {
+public class Pause2SPARQLUnionTest {
 
-    private static final Logger log = LoggerFactory.getLogger(Save2SPARQLUnionTest.class);
+    private static final Logger log = LoggerFactory.getLogger(Pause2SPARQLUnionTest.class);
     private static final JenaBackend jena = new JenaBackend(IM4Jena.triple9());
     private static final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
 

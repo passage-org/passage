@@ -3,11 +3,10 @@ package fr.gdd.sage.sager.optimizers;
 import fr.gdd.jena.visitors.ReturningOpVisitor;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.sage.sager.iterators.SagerScanFactory;
-import fr.gdd.sage.sager.pause.Save2SPARQL;
+import fr.gdd.sage.sager.pause.Pause2SPARQL;
 import fr.gdd.sage.sager.resume.IsSkippable;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpJoin;
 import org.apache.jena.sparql.algebra.op.OpSlice;
 import org.apache.jena.sparql.algebra.op.OpTriple;
@@ -18,16 +17,16 @@ import java.util.Objects;
 /**
  * Depending on the physical execution plan, and limited knowledge of
  * iterators' cardinality and current offset, how far am I from finishing
- * the job, approximately?
+ * the job, approximately? TODO TODO
  */
 public class Progress extends ReturningOpVisitor<
         Pair<Double, // progress
                 Double>> { // cardinality
 
-    final Save2SPARQL<?,?> saver;
+    final Pause2SPARQL<?,?> saver;
     private final static double DONE = 1.;
 
-    public Progress(Save2SPARQL<?,?> saver) {
+    public Progress(Pause2SPARQL<?,?> saver) {
         this.saver = saver;
     }
 
@@ -37,7 +36,7 @@ public class Progress extends ReturningOpVisitor<
 
     @Override
     public Pair<Double,Double> visit(OpTriple triple) {
-        SagerScanFactory<?,?> scan = (SagerScanFactory) saver.op2it.get(triple);
+        SagerScanFactory<?,?> scan = (SagerScanFactory) saver.getIterator(triple);
         if (Objects.isNull(scan)) {
             return new ImmutablePair<>(1., DONE); // TODO maybe set as null……………
         }

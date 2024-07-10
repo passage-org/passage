@@ -4,7 +4,7 @@ import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.SagerOpExecutor;
-import fr.gdd.sage.sager.pause.Save2SPARQL;
+import fr.gdd.sage.sager.pause.Pause2SPARQL;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpVars;
@@ -42,7 +42,7 @@ public class SagerOptional<ID,VALUE>  implements Iterator<BackendBindings<ID, VA
         this.context = executor.getExecutionContext();
         this.executor = executor;
 
-        Save2SPARQL<ID,VALUE> saver = context.getContext().get(SagerConstants.SAVER);
+        Pause2SPARQL<ID,VALUE> saver = context.getContext().get(SagerConstants.SAVER);
         saver.register(op, this);
     }
 
