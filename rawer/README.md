@@ -20,12 +20,10 @@ Usage: <main class> [-hr] [-cl] [-d=<database>] [-f=<queryFile>] [-l=<limit>]
   -f, --file=<queryFile>    The file containing the SPARQL query to execute.
   -h, --help                Display this help message.
   -l, --limit=<limit>       Number of scans before the query execution is stopped.
-  -n, --executions=<numberOfExecutions> Number of times that it executes the query in
-                                        sequence (for performance analysis).
+  -n, --executions=<numberOfExecutions> Number of times that it executes the query in sequence (for performance analysis).
   -q, --query=<queryAsString> The SPARQL query to execute.
   -r, --report              Provides a concise report on query execution.
-  -sl, --sublimit=<subqueryLimit> Number of scans before the subquery execution is
-                                  stopped (if exists).
+  -sl, --sublimit=<subqueryLimit> Number of scans before the subquery execution is stopped (if exists).
   -st, --subtimeout=<subquerytimeout> Timeout before the subquery execution is stopped (if exists).
   -t, --timeout=<timeout>   Timeout before the query execution is stopped.
 ```
