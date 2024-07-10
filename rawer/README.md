@@ -68,6 +68,13 @@ of having picked this element at random.
       each node. This proves ideal for retrieving the number of
       elements within a range, then getting the element at the
       designated (uniform at random) index.
+      
+      > [!NOTE]
+      > To ingest your data into a blazegraph dataset, you can use the CLI
+      > of [`blazegraph.jar`](https://github.com/blazegraph/database/releases/tag/BLAZEGRAPH_2_1_6_RC).
+      > `java -cp blazegraph.jar com.bigdata.rdf.store.DataLoader -defaultGraph http://example.com/watdiv watdiv1B.properties watdiv.1000M/watdiv.1000M.nt
+      
+
 - [ ] Support [Apache Jena](https://jena.apache.org/). Although
       RAW-Jena exists, it requires further modifications to adapt to
       the changes brought by Blazegraph.
