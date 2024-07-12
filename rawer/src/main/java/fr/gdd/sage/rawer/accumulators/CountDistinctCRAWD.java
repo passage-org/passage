@@ -41,7 +41,7 @@ public class CountDistinctCRAWD<ID,VALUE> implements BackendAccumulator<ID, VALU
     final OpGroup group;
     final CacheId<ID,VALUE> cache;
 
-    final WanderJoinCount<ID,VALUE> bigN;
+    final CountWanderJoin<ID,VALUE> bigN;
     Double sumOfInversedProbabilities = 0.;
     Double sumOfInversedProbaOverFmu = 0.;
     final WanderJoin<ID,VALUE> wj;
@@ -53,7 +53,7 @@ public class CountDistinctCRAWD<ID,VALUE> implements BackendAccumulator<ID, VALU
         this.context = context;
         this.backend = context.getContext().get(RawerConstants.BACKEND);
         this.group = group;
-        this.bigN = new WanderJoinCount<>(context, group.getSubOp());
+        this.bigN = new CountWanderJoin<>(context, group.getSubOp());
         BackendSaver<ID,VALUE,?> saver = context.getContext().get(RawerConstants.SAVER);
         this.wj = new WanderJoin<>(saver);
         this.vars = varsAsExpr.getVarsMentioned();
@@ -61,9 +61,21 @@ public class CountDistinctCRAWD<ID,VALUE> implements BackendAccumulator<ID, VALU
     }
 
     @Override
+    public void merge(BackendAccumulator<ID, VALUE> other) {
+        if (Objects.isNull(other)) { return; } // do nothing
+
+        if (other instanceof CountDistinctCRAWD<ID,VALUE> otherCRAWD) {
+            sumOfInversedProbabilities += otherCRAWD.sumOfInversedProbabilities;
+            sumOfInversedProbaOverFmu += otherCRAWD.sumOfInversedProbaOverFmu;
+            bigN.merge(otherCRAWD.bigN);
+            sampleSize += otherCRAWD.sampleSize;
+        }
+    }
+
+    @Override
     public void accumulate(BackendBindings<ID, VALUE> binding, FunctionEnv functionEnv) {
         // #1 processing of N
-        this.bigN.accumulate(null, functionEnv); // still register the failure for bigN
+        this.bigN.accumulate(binding, functionEnv); // still register the failure for bigN
         if (Objects.isNull(binding)) {
             return;
         }
@@ -108,7 +120,7 @@ public class CountDistinctCRAWD<ID,VALUE> implements BackendAccumulator<ID, VALU
         BackendSaver<ID,VALUE,?> fmuSaver = fmuExecutor.getExecutionContext().getContext().get(RawerConstants.SAVER);
         OpGroup groupOperator = new GetRootAggregator().visit(fmuSaver.getRoot());
         RandomAggregator<ID,VALUE> aggIterator = (RandomAggregator<ID, VALUE>) fmuSaver.getIterator(groupOperator);
-        WanderJoinCount<ID,VALUE> accumulator = (WanderJoinCount<ID, VALUE>) aggIterator.getAccumulator();
+        CountWanderJoin<ID,VALUE> accumulator = (CountWanderJoin<ID, VALUE>) aggIterator.getAccumulator();
         accumulator.accumulate(bindingProbability);
 
         double fmu = accumulator.getValueAsDouble();
@@ -128,4 +140,8 @@ public class CountDistinctCRAWD<ID,VALUE> implements BackendAccumulator<ID, VALU
         return sumOfInversedProbabilities == 0. ? 0. : (bigN.getValueAsDouble() / sumOfInversedProbabilities) * sumOfInversedProbaOverFmu;
     }
 
+    @Override
+    public ExecutionContext getContext() {
+        return context;
+    }
 }

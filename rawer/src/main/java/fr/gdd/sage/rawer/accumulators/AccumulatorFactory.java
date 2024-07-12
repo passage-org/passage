@@ -10,6 +10,6 @@ import org.apache.jena.sparql.expr.ExprList;
  *  it needs based on the configuration in the execution context
  */
 @FunctionalInterface
-public interface CountDistinctFactory<ID,VALUE> {
+public interface AccumulatorFactory<ID,VALUE> {
     BackendAccumulator<ID,VALUE> create(ExprList varsAsExpr, ExecutionContext context, OpGroup group);
 }

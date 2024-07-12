@@ -26,6 +26,8 @@ public class RawerConstants {
     // one should we use?
     static public final Symbol COUNT_DISTINCT_FACTORY = allocVariableSymbol("CountDistinctFactory");
 
+    static public final Symbol MAX_THREADS = allocConstantSymbol("MaxThread");
+
     /**
      * Symbol in use in the global context.
      */
@@ -45,7 +47,7 @@ public class RawerConstants {
      * @param context The execution context of the query.
      */
     public static void incrementScans(ExecutionContext context) {
-        context.getContext().set(RawerConstants.SCANS, context.getContext().getLong(RawerConstants.SCANS,0L) + 1);
+        context.getContext().set(RawerConstants.SCANS, getScans(context) + 1);
     }
 
     /**
@@ -55,9 +57,15 @@ public class RawerConstants {
      * @param other The execution context of the subquery.
      */
     public static void incrementScansBy(ExecutionContext context, ExecutionContext other) {
-        long nbScansSubQuery = other.getContext().get(RawerConstants.SCANS);
-        context.getContext().set(RawerConstants.SCANS,
-                context.getContext().getLong(RawerConstants.SCANS,0L)
-                        + nbScansSubQuery);
+        long nbScansSubQuery = getScans(other);
+        context.getContext().set(RawerConstants.SCANS, getScans(context) + nbScansSubQuery);
+    }
+
+    /**
+     * @param context The context to look into.
+     * @return The number of scans in the context.
+     */
+    public static long getScans(ExecutionContext context) {
+        return context.getContext().getLong(RawerConstants.SCANS, 0L);
     }
 }

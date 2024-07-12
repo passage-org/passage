@@ -3,17 +3,17 @@ package fr.gdd.sage.rawer;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
-import fr.gdd.sage.generics.BackendSaver;
-import fr.gdd.sage.rawer.accumulators.CountDistinctFactory;
-import fr.gdd.sage.rawer.budgeting.NaiveBudgeting;
 import fr.gdd.sage.generics.BackendBindings;
+import fr.gdd.sage.generics.BackendSaver;
 import fr.gdd.sage.generics.CacheId;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.iterators.SagerBind;
+import fr.gdd.sage.rawer.accumulators.AccumulatorFactory;
+import fr.gdd.sage.rawer.budgeting.NaiveBudgeting;
 import fr.gdd.sage.rawer.iterators.ProjectIterator;
+import fr.gdd.sage.rawer.iterators.RandomAggregator;
 import fr.gdd.sage.rawer.iterators.RandomRoot;
 import fr.gdd.sage.rawer.iterators.RandomScanFactory;
-import fr.gdd.sage.rawer.iterators.RandomAggregator;
 import fr.gdd.sage.sager.optimizers.CardinalityJoinOrdering;
 import fr.gdd.sage.sager.pause.Triples2BGP;
 import fr.gdd.sage.sager.resume.BGP2Triples;
@@ -43,14 +43,18 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
 
     public RawerOpExecutor() {
         // This creates a brandnew execution context, but it's important
-        // that `setBackend` is called, or it will throw.
+        // that `setBackend` is called, or it will throw at runtime.
         this.execCxt = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
         execCxt.getContext().setIfUndef(RawerConstants.SCANS, 0L);
         execCxt.getContext().setIfUndef(RawerConstants.LIMIT, Long.MAX_VALUE);
         execCxt.getContext().setIfUndef(RawerConstants.TIMEOUT, Long.MAX_VALUE);
+        execCxt.getContext().setIfUndef(RawerConstants.BUDGETING, new NaiveBudgeting(
+                execCxt.getContext().get(RawerConstants.TIMEOUT),
+                execCxt.getContext().get(RawerConstants.LIMIT)));
     }
 
     public RawerOpExecutor(ExecutionContext execCxt) {
+        // TODO default execution context to unburden this class
         this.execCxt = execCxt;
         this.backend = execCxt.getContext().get(RawerConstants.BACKEND);
         execCxt.getContext().setIfUndef(RawerConstants.SCANS, 0L);
@@ -58,6 +62,9 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         execCxt.getContext().setIfUndef(RawerConstants.TIMEOUT, Long.MAX_VALUE);
         this.cache = new CacheId<>(this.backend);
         execCxt.getContext().setIfUndef(RawerConstants.CACHE, cache);
+        execCxt.getContext().setIfUndef(RawerConstants.BUDGETING, new NaiveBudgeting(
+                execCxt.getContext().get(RawerConstants.TIMEOUT),
+                execCxt.getContext().get(RawerConstants.LIMIT)));
     }
 
     public RawerOpExecutor<ID, VALUE> setTimeout(Long timeout) {
@@ -86,13 +93,18 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         return this;
     }
 
+    public RawerOpExecutor<ID,VALUE> setMaxThreads(int maxThreads) {
+        execCxt.getContext().set(RawerConstants.MAX_THREADS, maxThreads);
+        return this;
+    }
+
     /**
      * Depending on the backend, it might be profitable to use another count-distinct
      * algorithm. By default, it's crawd.
      * @param factory The factory that create the approximate accumulators.
      * @return this, for convenience.
      */
-    public RawerOpExecutor<ID,VALUE> setCountDistinct(CountDistinctFactory<ID,VALUE> factory) {
+    public RawerOpExecutor<ID,VALUE> setCountDistinct(AccumulatorFactory<ID,VALUE> factory) {
         execCxt.getContext().set(RawerConstants.COUNT_DISTINCT_FACTORY, factory);
         return this;
     }
@@ -103,7 +115,7 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
     public ExecutionContext getExecutionContext() {
         return execCxt;
     }
-    public CacheId<ID, VALUE> getCache() {return cache;}
+    public CacheId<ID, VALUE> getCache() { return cache;}
 
     /* ************************************************************************ */
 
@@ -112,12 +124,11 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
     }
 
     public Iterator<BackendBindings<ID, VALUE>> execute(Op root) {
-        execCxt.getContext().setIfUndef(RawerConstants.BUDGETING, new NaiveBudgeting(
-                        execCxt.getContext().get(RawerConstants.TIMEOUT),
-                        execCxt.getContext().get(RawerConstants.LIMIT)));
+        // #A reordering of bgps if need be
         root = ReturningOpVisitorRouter.visit(new Triples2BGP(), root);
         root = new CardinalityJoinOrdering<>(backend, cache).visit(root); // need to have bgp to optimize, no tps
         root = ReturningOpVisitorRouter.visit(new BGP2Triples(), root);
+
         execCxt.getContext().set(RawerConstants.SAVER, new BackendSaver<>(backend, root));
         return new RandomRoot<>(this, execCxt, root);
     }

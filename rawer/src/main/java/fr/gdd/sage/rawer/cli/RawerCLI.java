@@ -64,6 +64,10 @@ public class RawerCLI {
             description = "Use Chao-Lee as count-distinct estimator. Default is CRAWD.")
     Boolean chaolee = false;
 
+    @CommandLine.Option(names = "--threads",
+            description = "Number of threads to process aggregate queries.")
+    Integer maxThreads = 1;
+
     @CommandLine.Option(names = {"-h", "--help"}, usageHelp = true, description = "Display this help message.")
     boolean usageHelpRequested;
 
@@ -122,7 +126,8 @@ public class RawerCLI {
             RawerOpExecutor executor = new RawerOpExecutor<>();
             executor.setBackend(backend)
                     .setLimit(serverOptions.limit)
-                    .setTimeout(serverOptions.timeout);
+                    .setTimeout(serverOptions.timeout)
+                    .setMaxThreads(serverOptions.maxThreads);
 
             if (serverOptions.chaolee) {
                 executor.setCountDistinct(CountDistinctChaoLee::new);

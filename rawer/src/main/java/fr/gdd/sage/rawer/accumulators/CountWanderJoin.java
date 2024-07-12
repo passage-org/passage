@@ -17,7 +17,7 @@ import java.util.Objects;
  * Perform an estimate of the COUNT based on random walks performed on
  * the subQuery. This is based on WanderJoin.
  */
-public class WanderJoinCount<ID, VALUE> implements BackendAccumulator<ID,VALUE> {
+public class CountWanderJoin<ID, VALUE> implements BackendAccumulator<ID,VALUE> {
 
     final ExecutionContext context;
     final Op op;
@@ -27,11 +27,20 @@ public class WanderJoinCount<ID, VALUE> implements BackendAccumulator<ID,VALUE> 
 
     WanderJoin<ID,VALUE> wj;
 
-    public WanderJoinCount(ExecutionContext context, Op subOp) {
+    public CountWanderJoin(ExecutionContext context, Op subOp) {
         this.context = context;
         this.op = subOp;
         BackendSaver<ID,VALUE,?> saver = context.getContext().get(RawerConstants.SAVER);
         this.wj = new WanderJoin<>(saver);
+    }
+
+    @Override
+    public void merge(BackendAccumulator<ID, VALUE> other) {
+        if (Objects.isNull(other)) {return;}
+        if (other instanceof CountWanderJoin<ID, VALUE> otherWJ) {
+            sampleSize += otherWJ.sampleSize;
+            sumOfInversedProba += otherWJ.sumOfInversedProba;
+        }
     }
 
     @Override
@@ -55,6 +64,11 @@ public class WanderJoinCount<ID, VALUE> implements BackendAccumulator<ID,VALUE> 
 
     public double getValueAsDouble () {
         return sampleSize == 0. ? 0. : sumOfInversedProba / sampleSize;
+    }
+
+    @Override
+    public ExecutionContext getContext() {
+        return context;
     }
 
 }

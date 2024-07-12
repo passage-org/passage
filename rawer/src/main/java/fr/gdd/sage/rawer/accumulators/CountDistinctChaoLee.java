@@ -42,7 +42,7 @@ public class CountDistinctChaoLee<ID,VALUE> implements BackendAccumulator<ID, VA
     final OpGroup group;
     final CacheId<ID,VALUE> cache;
 
-    final WanderJoinCount<ID,VALUE> bigN;
+    final CountWanderJoin<ID,VALUE> bigN;
     Double sumOfFmus = 0.;
     final WanderJoin<ID,VALUE> wj;
 
@@ -56,11 +56,23 @@ public class CountDistinctChaoLee<ID,VALUE> implements BackendAccumulator<ID, VA
         this.context = context;
         this.backend = context.getContext().get(RawerConstants.BACKEND);
         this.group = group;
-        this.bigN = new WanderJoinCount<>(context, group.getSubOp());
+        this.bigN = new CountWanderJoin<>(context, group.getSubOp());
         BackendSaver<ID,VALUE,?> saver = context.getContext().get(RawerConstants.SAVER);
         this.wj = new WanderJoin<>(saver);
         this.vars = varsAsExpr.getVarsMentioned();
         this.cache = context.getContext().get(RawerConstants.CACHE);
+    }
+
+    @Override
+    public void merge(BackendAccumulator<ID, VALUE> other) {
+        throw new UnsupportedOperationException("Does not support multithread yet. Must create map for the sake of correctness…");
+//        if (Objects.isNull(other)) { return; }
+//        if (other instanceof CountDistinctChaoLee<ID,VALUE> chaoLee) {
+//            this.sampleSize += chaoLee.sampleSize;
+//            this.sumOfFmus += chaoLee.sumOfFmus;
+//            this.bigN.merge(chaoLee.bigN);
+//            this.distincts
+//        }
     }
 
     @Override
@@ -114,7 +126,7 @@ public class CountDistinctChaoLee<ID,VALUE> implements BackendAccumulator<ID, VA
         BackendSaver<ID,VALUE,?> fmuSaver = fmuExecutor.getExecutionContext().getContext().get(RawerConstants.SAVER);
         OpGroup groupOperator = new GetRootAggregator().visit(fmuSaver.getRoot());
         RandomAggregator<ID,VALUE> aggIterator = (RandomAggregator<ID, VALUE>) fmuSaver.getIterator(groupOperator);
-        WanderJoinCount<ID,VALUE> accumulator = (WanderJoinCount<ID, VALUE>) aggIterator.getAccumulator();
+        CountWanderJoin<ID,VALUE> accumulator = (CountWanderJoin<ID, VALUE>) aggIterator.getAccumulator();
         accumulator.accumulate(bindingProbability);
 
         double fmu = accumulator.getValueAsDouble();
@@ -144,4 +156,8 @@ public class CountDistinctChaoLee<ID,VALUE> implements BackendAccumulator<ID, VA
         return distincts.size() / fmusOverN;
     }
 
+    @Override
+    public ExecutionContext getContext() {
+        return context;
+    }
 }
