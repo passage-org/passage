@@ -28,7 +28,6 @@ RAndom-Walk-based SPARQL query processing.
   -r, --report            Provides a concise report on query execution.
   -n, --executions=1      Number of times that it executes the query in sequence (for performance analysis).
   -h, --help              Display this help message.
-nedelec-b-2@mac-nedelec-2022 sage-jena %
 ```
 
 ```shell
