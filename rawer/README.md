@@ -14,7 +14,8 @@ well-defined scope in terms of supported operators.
 ```shell
 Usage: <main class> [-hr] [-cl] [-d=<database>] [-f=<queryFile>] [-l=<limit>]
                     [-n=<numberOfExecutions>] [-q=<queryAsString>]
-                    [-sl=<subqueryLimit>] [-st=<subquerytimeout>] [-t=<timeout>]
+                    [-sl=<subqueryLimit>] [-st=<subqueryTimeout>] [-t=<timeout>]
+                    [--threads=<maxThreads>]
   -cl, --chao-lee       Use Chao-Lee as count-distinct estimator. Default is CRAWD.
   -d, --database=<database> The path to your blazegraph database.
   -f, --file=<queryFile>    The file containing the SPARQL query to execute.
@@ -24,8 +25,9 @@ Usage: <main class> [-hr] [-cl] [-d=<database>] [-f=<queryFile>] [-l=<limit>]
   -q, --query=<queryAsString> The SPARQL query to execute.
   -r, --report              Provides a concise report on query execution.
   -sl, --sublimit=<subqueryLimit> Number of scans before the subquery execution is stopped (if exists).
-  -st, --subtimeout=<subquerytimeout> Timeout before the subquery execution is stopped (if exists).
+  -st, --subtimeout=<subqueryTimeout> Timeout before the subquery execution is stopped (if exists).
   -t, --timeout=<timeout>   Timeout before the query execution is stopped.
+      --threads=<maxThreads> Number of threads to process aggregate queries.
 ```
 
 ```shell
@@ -90,6 +92,9 @@ former mappings. Unlisted operators are probably not implemented (yet).
 - [X] Bind with a simple expression e.g. `BIND <http://exist_in_dataset> AS ?variable`
 
 ### Aggregate operators
+
+> [!WARNING] 
+> For now, aggregates are supported at the root, and not in subqueries.
 
 - [X] Approximate Count the number of results with `COUNT(*) AS ?count` based on WanderJoin [3]
 - [ ] Approximate Count on specific variables with `COUNT(?v) AS ?count`

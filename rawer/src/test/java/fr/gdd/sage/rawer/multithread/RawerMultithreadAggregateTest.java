@@ -45,15 +45,15 @@ public class RawerMultithreadAggregateTest {
     public void multithreading_should_be_faster_with_count_long () {
         // chao lee is not expected to be sample efficient…
         String queryAsString = """
-                SELECT (COUNT( DISTINCT ?v4 ) AS ?count) WHERE {
+                SELECT (COUNT( * ) AS ?count) WHERE {
                     ?v0 <http://db.uwaterloo.ca/~galuc/wsdbm/gender> <http://db.uwaterloo.ca/~galuc/wsdbm/Gender1> .
                     ?v0 <http://xmlns.com/foaf/givenName> ?v1 .
                     ?v0 <http://schema.org/nationality> ?v3 .
                     ?v2 <http://www.geonames.org/ontology#parentCountry> ?v3 .
                     ?v4 <http://schema.org/eligibleRegion> ?v3 .
-                }""";
-        RandomAggregator.SUBQUERY_LIMIT = 1;
-        // RandomAggregator.SUBQUERY_LIMIT = 5*20;
+                }"""; // 4_169_173_508
+        //RandomAggregator.SUBQUERY_LIMIT = 1;
+        RandomAggregator.SUBQUERY_LIMIT = 5*20;
         RawerOpExecutor executor = new RawerOpExecutor();
         System.currentTimeMillis();
         executor.setBackend(watdivBlazegraph).setLimit(1_000_000L).setMaxThreads(10);

@@ -50,7 +50,7 @@ public class RawerCLI {
 
     @CommandLine.Option(names = {"-st", "--subtimeout"},
             description = "Timeout before the subquery execution is stopped (if exists).")
-    Long subquerytimeout = Long.MAX_VALUE;
+    Long subqueryTimeout = Long.MAX_VALUE;
 
     @CommandLine.Option(names = {"-sl", "--sublimit"},
             description = "Number of scans before the subquery execution is stopped (if exists).")
@@ -87,7 +87,7 @@ public class RawerCLI {
 
         // (big query limits subqueries)
         serverOptions.subqueryLimit = Math.min(serverOptions.subqueryLimit, serverOptions.limit);
-        serverOptions.subquerytimeout = Math.min(serverOptions.subquerytimeout, serverOptions.timeout);
+        serverOptions.subqueryTimeout = Math.min(serverOptions.subqueryTimeout, serverOptions.timeout);
 
         if (Objects.nonNull(serverOptions.queryFile)) {
             Path queryPath = Path.of(serverOptions.queryFile);
@@ -122,7 +122,7 @@ public class RawerCLI {
 
         for (int i = 0; i < serverOptions.numberOfExecutions; ++i) {
             RandomAggregator.SUBQUERY_LIMIT = serverOptions.subqueryLimit; // ugly, but no better solutions rn
-            RandomAggregator.SUBQUERY_TIMEOUT = serverOptions.subquerytimeout;
+            RandomAggregator.SUBQUERY_TIMEOUT = serverOptions.subqueryTimeout;
             RawerOpExecutor executor = new RawerOpExecutor<>();
             executor.setBackend(backend)
                     .setLimit(serverOptions.limit)
