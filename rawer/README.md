@@ -12,22 +12,23 @@ well-defined scope in terms of supported operators.
 ## Usage
 
 ```shell
-Usage: <main class> [-hr] [-cl] [-d=<database>] [-f=<queryFile>] [-l=<limit>]
-                    [-n=<numberOfExecutions>] [-q=<queryAsString>]
-                    [-sl=<subqueryLimit>] [-st=<subqueryTimeout>] [-t=<timeout>]
-                    [--threads=<maxThreads>]
-  -cl, --chao-lee       Use Chao-Lee as count-distinct estimator. Default is CRAWD.
-  -d, --database=<database> The path to your blazegraph database.
-  -f, --file=<queryFile>    The file containing the SPARQL query to execute.
-  -h, --help                Display this help message.
-  -l, --limit=<limit>       Number of scans before the query execution is stopped.
-  -n, --executions=<numberOfExecutions> Number of times that it executes the query in sequence (for performance analysis).
-  -q, --query=<queryAsString> The SPARQL query to execute.
-  -r, --report              Provides a concise report on query execution.
-  -sl, --sublimit=<subqueryLimit> Number of scans before the subquery execution is stopped (if exists).
-  -st, --subtimeout=<subqueryTimeout> Timeout before the subquery execution is stopped (if exists).
-  -t, --timeout=<timeout>   Timeout before the query execution is stopped.
-      --threads=<maxThreads> Number of threads to process aggregate queries.
+Usage: raw [-rh] -d=<path> [-q=<SPARQL>] [-f=<path>] [-t=<ms>] [-l=<scans>] [-st=<ms>] [-sl=<scans>] [-cl] [--threads=1] [-n=1]
+RAndom-Walk-based SPARQL query processing.
+  -d, --database=<path>   The path to your blazegraph database.
+  -q, --query=<SPARQL>    The SPARQL query to execute.
+  -f, --file=<path>       The file containing the SPARQL query to execute.
+  -t, --timeout=<ms>      Timeout before the query execution is stopped.
+  -l, --limit=<scans>     Number of scans before the query execution is stopped.
+      -st, --subtimeout=<ms>
+                          Timeout before the subquery execution is stopped (if exists).
+      -sl, --sublimit=<scans>
+                          Number of scans before the subquery execution is stopped (if exists).
+      -cl, --chao-lee     Use Chao-Lee as count-distinct estimator. Default is CRAWD.
+      --threads=1         Number of threads to process aggregate queries.
+  -r, --report            Provides a concise report on query execution.
+  -n, --executions=1      Number of times that it executes the query in sequence (for performance analysis).
+  -h, --help              Display this help message.
+nedelec-b-2@mac-nedelec-2022 sage-jena %
 ```
 
 ```shell

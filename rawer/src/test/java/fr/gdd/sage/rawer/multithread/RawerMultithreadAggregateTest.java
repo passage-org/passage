@@ -3,7 +3,6 @@ package fr.gdd.sage.rawer.multithread;
 import fr.gdd.sage.blazegraph.BlazegraphBackend;
 import fr.gdd.sage.rawer.RawerOpExecutor;
 import fr.gdd.sage.rawer.RawerOpExecutorTest;
-import fr.gdd.sage.rawer.accumulators.CountDistinctChaoLee;
 import fr.gdd.sage.rawer.iterators.RandomAggregator;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -43,6 +42,8 @@ public class RawerMultithreadAggregateTest {
     @Disabled
     @Test
     public void multithreading_should_be_faster_with_count_long () {
+        BlazegraphBackend watdivBlazegraph1B = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv1b-blaze/watdiv1B.jnl");
+
         // chao lee is not expected to be sample efficient…
         String queryAsString = """
                 SELECT (COUNT( * ) AS ?count) WHERE {
@@ -51,12 +52,14 @@ public class RawerMultithreadAggregateTest {
                     ?v0 <http://schema.org/nationality> ?v3 .
                     ?v2 <http://www.geonames.org/ontology#parentCountry> ?v3 .
                     ?v4 <http://schema.org/eligibleRegion> ?v3 .
-                }"""; // 4_169_173_508
+                }"""; // exact is 4_169_173_508 results on watdiv10m
         //RandomAggregator.SUBQUERY_LIMIT = 1;
         RandomAggregator.SUBQUERY_LIMIT = 5*20;
         RawerOpExecutor executor = new RawerOpExecutor();
-        System.currentTimeMillis();
-        executor.setBackend(watdivBlazegraph).setLimit(1_000_000L).setMaxThreads(10);
-        RawerOpExecutorTest.execute(queryAsString, executor); // 521,585 (+blaze default ones)
+        long start = System.currentTimeMillis();
+        executor.setBackend(watdivBlazegraph1B).setLimit(10_000_000L).setMaxThreads(1);
+        RawerOpExecutorTest.execute(queryAsString, executor);
+        long elapsed =  System.currentTimeMillis() - start;
+        log.info("Took {} ms to process the estimate.", elapsed);
     }
 }
