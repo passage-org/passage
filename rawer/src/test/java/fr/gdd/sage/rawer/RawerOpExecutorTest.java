@@ -15,6 +15,12 @@ import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.openrdf.model.Literal;
+import org.openrdf.model.Value;
+import org.openrdf.query.BindingSet;
+import org.openrdf.query.MalformedQueryException;
+import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -138,6 +144,71 @@ public class RawerOpExecutorTest {
     public void count_distinct_of_simple_triple_pattern () {
         String queryAsString = "SELECT (COUNT(DISTINCT ?s) AS ?c) WHERE {?s ?p ?o}";
         execute(queryAsString, new BlazegraphBackend(blazegraph), 1L);
+    }
+
+    @Disabled
+    @Test
+    public void frequencies_of_frequencies_for_p () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
+        String queryAsString = """
+                SELECT (COUNT(*) AS ?f) ?c WHERE {
+                    SELECT (COUNT(*) AS ?c) ?p WHERE {?s ?p ?o} GROUP BY ?p
+                } GROUP BY ?c
+                """;
+        BlazegraphBackend watdiv = new BlazegraphBackend("C:\\Users\\brice\\Downloads\\watdiv10m-blaze\\watdiv10m-blaze\\watdiv10M.jnl");
+        var results = watdiv.executeQuery(queryAsString);
+        // System.out.println(results);
+        System.out.println("# f c");
+        for (BindingSet bs : results.elementSet()) {
+            Literal f = (Literal) bs.getBinding("f").getValue();
+            int fAsInt = f.intValue();
+            Literal c = (Literal) bs.getBinding("c").getValue();
+            int cAsInt = c.intValue();
+            System.out.printf("%s %s%n", fAsInt, cAsInt);
+        }
+    }
+
+    @Disabled
+    @Test
+    public void frequencies_of_frequencies_for_s () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
+        String queryAsString = """
+                SELECT (COUNT(*) AS ?f) ?c WHERE {
+                    SELECT (COUNT(*) AS ?c) ?s WHERE {?s ?p ?o} GROUP BY ?s
+                } GROUP BY ?c
+                ORDER BY ?f
+                """;
+        BlazegraphBackend watdiv = new BlazegraphBackend("C:\\Users\\brice\\Downloads\\watdiv10m-blaze\\watdiv10m-blaze\\watdiv10M.jnl");
+        var results = watdiv.executeQuery(queryAsString);
+        // System.out.println(results);
+        System.out.println("# f c");
+        for (BindingSet bs : results.elementSet()) {
+            Literal f = (Literal) bs.getBinding("f").getValue();
+            int fAsInt = f.intValue();
+            Literal c = (Literal) bs.getBinding("c").getValue();
+            int cAsInt = c.intValue();
+            System.out.printf("%s %s%n", fAsInt, cAsInt);
+        }
+    }
+
+    @Disabled
+    @Test
+    public void frequencies_of_frequencies_for_o () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
+        String queryAsString = """
+                SELECT (COUNT(*) AS ?f) ?c WHERE {
+                    SELECT (COUNT(*) AS ?c) ?o WHERE {?s ?p ?o} GROUP BY ?o
+                } GROUP BY ?c
+                ORDER BY ?f
+                """;
+        BlazegraphBackend watdiv = new BlazegraphBackend("C:\\Users\\brice\\Downloads\\watdiv10m-blaze\\watdiv10m-blaze\\watdiv10M.jnl");
+        var results = watdiv.executeQuery(queryAsString);
+        // System.out.println(results);
+        System.out.println("# f c");
+        for (BindingSet bs : results.elementSet()) {
+            Literal f = (Literal) bs.getBinding("f").getValue();
+            int fAsInt = f.intValue();
+            Literal c = (Literal) bs.getBinding("c").getValue();
+            int cAsInt = c.intValue();
+            System.out.printf("%s %s%n", fAsInt, cAsInt);
+        }
     }
 
     /* ************************************************************* */
