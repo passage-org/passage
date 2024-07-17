@@ -36,7 +36,7 @@ public class RawerMultithreadAggregateTest {
         RawerOpExecutor executor = new RawerOpExecutor();
         System.currentTimeMillis();
         executor.setBackend(watdivBlazegraph).setLimit(1_000_000L).setMaxThreads(10);
-        RawerOpExecutorTest.execute(queryAsString, executor); // 521,585 (+blaze default ones)
+        RawerOpExecutorTest.execute(queryAsString, executor); // 10M
     }
 
     @Disabled

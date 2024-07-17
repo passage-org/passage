@@ -32,6 +32,7 @@ import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Properties;
 
@@ -248,6 +249,30 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
             results.add(result.next());
         }
         return results;
+    }
+
+    public Iterator<BindingSet> executeQueryToIterator(String queryString) throws RepositoryException, MalformedQueryException, QueryEvaluationException {
+        TupleQuery tupleQuery = connection.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        TupleQueryResult result = tupleQuery.evaluate();
+        return new Iterator<BindingSet>() {
+            @Override
+            public boolean hasNext() {
+                try {
+                    return result.hasNext();
+                } catch (QueryEvaluationException e) {
+                    return false;
+                }
+            }
+
+            @Override
+            public BindingSet next() {
+                try {
+                    return result.next();
+                } catch (QueryEvaluationException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
     }
 
     public long countQuery(String queryString) throws RepositoryException, MalformedQueryException, QueryEvaluationException {

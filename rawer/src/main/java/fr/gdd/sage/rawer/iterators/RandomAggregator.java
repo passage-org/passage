@@ -69,9 +69,9 @@ public class RandomAggregator<ID,VALUE> implements Iterator<BackendBindings<ID,V
         long maxThreads = executor.getExecutionContext().getContext().getLong(RawerConstants.MAX_THREADS, 1);
 
         // #A multithreading if need be
-        long ACTIVATE_MULTITHREAD_LIMIT = 100_000;
-        long ACTIVATE_MULTITHREAD_TIMEOUT = 100_000;
-        if (limit > ACTIVATE_MULTITHREAD_LIMIT && timeout > ACTIVATE_MULTITHREAD_TIMEOUT && maxThreads > 1) {
+        // long ACTIVATE_MULTITHREAD_LIMIT = 100_000;
+        // long ACTIVATE_MULTITHREAD_TIMEOUT = 100_000;
+        if (maxThreads > 1) {
             try (var pool = Executors.newVirtualThreadPerTaskExecutor()) {
 
                 List<Future<BackendAccumulator<ID,VALUE>>> futureAccumulators = new ArrayList<>();
