@@ -41,19 +41,17 @@ public class CountDistinctCRAWD<ID,VALUE> implements BackendAccumulator<ID, VALU
     final OpGroup group;
     final CacheId<ID,VALUE> cache;
 
-    final CountWanderJoin<ID,VALUE> bigN;
-    Double sumOfInversedProbabilities = 0.;
-    Double sumOfInversedProbaOverFmu = 0.;
-    final WanderJoin<ID,VALUE> wj;
+    final WanderJoin<ID,VALUE> wj; // visitor that processes probability and cardinality
 
     final Set<Var> vars;
-    long sampleSize = 0; // for debug purposes
+    double sampleSizeOfWJ = 0;
+    double sumOfInversedProbaOverFmu = 0.;
+    long sampleSizeOfCRAWD = 0; // for debug purposes
 
     public CountDistinctCRAWD(ExprList varsAsExpr, ExecutionContext context, OpGroup group) {
         this.context = context;
         this.backend = context.getContext().get(RawerConstants.BACKEND);
         this.group = group;
-        this.bigN = new CountWanderJoin<>(context, group.getSubOp());
         BackendSaver<ID,VALUE,?> saver = context.getContext().get(RawerConstants.SAVER);
         this.wj = new WanderJoin<>(saver);
         this.vars = varsAsExpr.getVarsMentioned();
@@ -65,17 +63,16 @@ public class CountDistinctCRAWD<ID,VALUE> implements BackendAccumulator<ID, VALU
         if (Objects.isNull(other)) { return; } // do nothing
 
         if (other instanceof CountDistinctCRAWD<ID,VALUE> otherCRAWD) {
-            sumOfInversedProbabilities += otherCRAWD.sumOfInversedProbabilities;
+            sampleSizeOfWJ += otherCRAWD.sampleSizeOfWJ;
             sumOfInversedProbaOverFmu += otherCRAWD.sumOfInversedProbaOverFmu;
-            bigN.merge(otherCRAWD.bigN);
-            sampleSize += otherCRAWD.sampleSize;
+            sampleSizeOfCRAWD += otherCRAWD.sampleSizeOfCRAWD;
         }
     }
 
     @Override
     public void accumulate(BackendBindings<ID, VALUE> binding, FunctionEnv functionEnv) {
         // #1 processing of N
-        this.bigN.accumulate(binding, functionEnv); // still register the failure for bigN
+        this.sampleSizeOfWJ += 1;
         if (Objects.isNull(binding)) {
             return;
         }
@@ -102,12 +99,11 @@ public class CountDistinctCRAWD<ID,VALUE> implements BackendAccumulator<ID, VALU
         }
         // therefore, only then, we modify the inner state of this ApproximateAggCountDistinct
 
-        sampleSize += 1; // only account for those which succeed (debug purpose)
+        sampleSizeOfCRAWD += 1; // only account for those which succeed (debug purpose)
 
         // #2 processing of Pµ
         double probability = ReturningOpVisitorRouter.visit(wj, group.getSubOp());
         double inversedProbability = probability == 0. ? 0. : 1./probability;
-        sumOfInversedProbabilities += inversedProbability;
 
         // don't do anything with the value, but still need to create it.
         BackendBindings<ID,VALUE> estimatedFmu = estimatedFmus.next();
@@ -129,15 +125,15 @@ public class CountDistinctCRAWD<ID,VALUE> implements BackendAccumulator<ID, VALU
 
     @Override
     public VALUE getValue() {
-        log.debug("BigN SampleSize: " + bigN.sampleSize);
-        log.debug("CRAWD SampleSize: " + sampleSize);
+        log.debug("WJ SampleSize: " + sampleSizeOfWJ);
+        log.debug("CRAWD SampleSize: " + sampleSizeOfCRAWD);
         log.debug("Nb Total Scans: " + context.getContext().get(RawerConstants.SCANS));
         Backend<ID,VALUE,?> backend = context.getContext().get(RawerConstants.BACKEND);
         return backend.getValue(String.format("\"%s\"^^%s", getValueAsDouble(), XSDDatatype.XSDdouble.getURI()));
     }
 
     public double getValueAsDouble () {
-        return sumOfInversedProbabilities == 0. ? 0. : (bigN.getValueAsDouble() / sumOfInversedProbabilities) * sumOfInversedProbaOverFmu;
+        return sampleSizeOfWJ == 0. ? 0. : sumOfInversedProbaOverFmu / sampleSizeOfWJ;
     }
 
     @Override
