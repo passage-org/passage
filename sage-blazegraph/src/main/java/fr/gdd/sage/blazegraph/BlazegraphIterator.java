@@ -135,6 +135,7 @@ public class BlazegraphIterator extends BackendIterator<IV, BigdataValue, Long> 
         currentValue = null;
         long rn = RNG.nextLong((long) cardinality());
         long startFrom = Objects.isNull(min) ? 0L: iindex.rangeCount(null, min);
+        // long startFrom = Objects.isNull(min) ? 0L: ((AbstractBTree) iindex).indexOf(min);
         byte[] keyAt = ((AbstractBTree) iindex).keyAt(startFrom + rn );
         tupleIterator = iindex.rangeIterator(keyAt, max);
         return 1./cardinality();

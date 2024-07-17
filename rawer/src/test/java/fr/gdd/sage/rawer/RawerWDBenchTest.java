@@ -2,6 +2,7 @@ package fr.gdd.sage.rawer;
 
 import com.google.common.collect.Multiset;
 import fr.gdd.sage.blazegraph.BlazegraphBackend;
+import fr.gdd.sage.rawer.iterators.RandomAggregator;
 import org.apache.jena.atlas.lib.EscapeStr;
 import org.apache.jena.graph.Node;
 import org.apache.jena.query.QueryFactory;
@@ -50,6 +51,7 @@ public class RawerWDBenchTest {
     @Test
     public void count_distinct_s_on_spo () {
         String queryAsString = "SELECT (COUNT( DISTINCT ?s ) AS ?count) WHERE { ?s ?p ?o }";
+        RandomAggregator.SUBQUERY_LIMIT = 1;
         RawerOpExecutorTest.execute(queryAsString, wdbenchBlazegraph, 1000000L); // 92,498,623 (+blaze default ones)
     }
 
@@ -57,6 +59,7 @@ public class RawerWDBenchTest {
     @Test
     public void count_distinct_p_on_spo () {
         String queryAsString = "SELECT (COUNT( DISTINCT ?p ) AS ?count) WHERE { ?s ?p ?o }";
+        RandomAggregator.SUBQUERY_LIMIT = 1;
         RawerOpExecutorTest.execute(queryAsString, wdbenchBlazegraph, 1000000L); // 8,604 (+blaze default ones)
     }
 
@@ -64,7 +67,8 @@ public class RawerWDBenchTest {
     @Test
     public void count_distinct_o_on_spo () {
         String queryAsString = "SELECT (COUNT( DISTINCT ?o ) AS ?count) WHERE { ?s ?p ?o }";
-        RawerOpExecutorTest.execute(queryAsString, wdbenchBlazegraph, 1000000L); // 304,967,140 (+blaze default ones)
+        RandomAggregator.SUBQUERY_LIMIT = 1;
+        RawerOpExecutorTest.execute(queryAsString, wdbenchBlazegraph, 100000L); // 304,967,140 (+blaze default ones)
     }
 
     @Disabled
