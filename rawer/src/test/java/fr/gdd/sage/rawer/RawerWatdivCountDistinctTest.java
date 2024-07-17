@@ -40,7 +40,7 @@ public class RawerWatdivCountDistinctTest {
         String queryAsString = "SELECT (COUNT( DISTINCT ?s ) AS ?count) WHERE { ?s ?p ?o }";
         RandomAggregator.SUBQUERY_LIMIT = 1;
         RawerOpExecutor executor = new RawerOpExecutor();
-        executor.setBackend(watdivBlazegraph).setLimit(1_000_000L).setCountDistinct(CountDistinctChaoLee::new);
+        executor.setBackend(watdivBlazegraph).setLimit(1_000_000L).setCountDistinct(CountDistinctChaoLee::new).setMaxThreads(10);
         RawerOpExecutorTest.execute(queryAsString, executor); // 521,585 (+blaze default ones)
     }
 

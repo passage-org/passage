@@ -23,10 +23,7 @@ import org.apache.jena.sparql.function.FunctionEnv;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Perform an estimate of the COUNT DISTINCT based on random walks performed on
@@ -43,11 +40,12 @@ public class CountDistinctChaoLee<ID,VALUE> implements BackendAccumulator<ID, VA
     final CacheId<ID,VALUE> cache;
 
     final CountWanderJoin<ID,VALUE> bigN;
-    Double sumOfFmus = 0.;
     final WanderJoin<ID,VALUE> wj;
 
     // Must keep track of already seen distinct elements to count them once
-    Set<String> distincts = new HashSet<>(); // TODO make it not string, need to implement hashcode
+    // TODO make it not string, but BackendBinding needs to implement hashcode…
+    // TODO should have a concurrentMap to work well.
+    Map<String, Double> distinct2Fmu = new HashMap<>(); // important to merge when multithreaded
 
     final Set<Var> vars;
     long sampleSize = 0; // for debug purposes
@@ -65,14 +63,13 @@ public class CountDistinctChaoLee<ID,VALUE> implements BackendAccumulator<ID, VA
 
     @Override
     public void merge(BackendAccumulator<ID, VALUE> other) {
-        throw new UnsupportedOperationException("Does not support multithread yet. Must create map for the sake of correctness…");
-//        if (Objects.isNull(other)) { return; }
-//        if (other instanceof CountDistinctChaoLee<ID,VALUE> chaoLee) {
-//            this.sampleSize += chaoLee.sampleSize;
-//            this.sumOfFmus += chaoLee.sumOfFmus;
-//            this.bigN.merge(chaoLee.bigN);
-//            this.distincts
-//        }
+//         throw new UnsupportedOperationException("Does not support multithread yet. Must create map for the sake of correctness…");
+        if (Objects.isNull(other)) { return; }
+        if (other instanceof CountDistinctChaoLee<ID,VALUE> chaoLee) {
+            this.sampleSize += chaoLee.sampleSize;
+            this.distinct2Fmu.putAll(chaoLee.distinct2Fmu);
+            this.bigN.merge(chaoLee.bigN);
+        }
     }
 
     @Override
@@ -85,7 +82,7 @@ public class CountDistinctChaoLee<ID,VALUE> implements BackendAccumulator<ID, VA
 
         // #2 check if the element was already processed, in such case, ignore it.
         BackendBindings<ID,VALUE> key = RandomAggregator.getKeyBinding(vars, binding);
-        if (distincts.contains(key.toString())) {
+        if (distinct2Fmu.containsKey(key.toString())) {
             return; // do nothing
         }
 
@@ -111,7 +108,7 @@ public class CountDistinctChaoLee<ID,VALUE> implements BackendAccumulator<ID, VA
         }
         // therefore, only then, we modify the inner state of this ApproximateAggCountDistinct
 
-        this.distincts.add(key.toString());
+
 
         sampleSize += 1; // only account for those which succeed (debug purpose)
 
@@ -131,13 +128,13 @@ public class CountDistinctChaoLee<ID,VALUE> implements BackendAccumulator<ID, VA
 
         double fmu = accumulator.getValueAsDouble();
 
-        sumOfFmus += fmu;
+        this.distinct2Fmu.put(key.toString(), fmu);
     }
 
     @Override
     public VALUE getValue() {
         log.debug("BigN SampleSize: " + bigN.sampleSize);
-        log.debug("CRAWD SampleSize: " + sampleSize);
+        log.debug("ChaoLee SampleSize: " + sampleSize);
         log.debug("Nb Total Scans: " + context.getContext().get(RawerConstants.SCANS));
         Backend<ID,VALUE,?> backend = context.getContext().get(RawerConstants.BACKEND);
         return backend.getValue(String.format("\"%s\"^^%s", getValueAsDouble(), XSDDatatype.XSDdouble.getURI()));
@@ -148,12 +145,12 @@ public class CountDistinctChaoLee<ID,VALUE> implements BackendAccumulator<ID, VA
         if (estimatedN == 0.) {
             return 0.;
         }
-        double fmusOverN = sumOfFmus/estimatedN;
+        double fmusOverN = distinct2Fmu.values().stream().mapToDouble(d->d).sum()/estimatedN;
         if (fmusOverN == 0.) {
             return 0.;
         }
 
-        return distincts.size() / fmusOverN;
+        return distinct2Fmu.size() / fmusOverN;
     }
 
     @Override

@@ -82,6 +82,7 @@ public class RandomAggregator<ID,VALUE> implements Iterator<BackendBindings<ID,V
                                 .setLimit(limit/maxThreads)
                                 .setTimeout(timeout)
                                 .setCache(executor.getCache())
+                                .setCountDistinct(executor.getExecutionContext().getContext().get(RawerConstants.COUNT_DISTINCT_FACTORY))
                                 .setMaxThreads(1);
                         Iterator<BackendBindings<ID,VALUE>> aggregateIterator = executorThread.execute(op);
                         if (!aggregateIterator.hasNext()) {
