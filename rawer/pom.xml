@@ -73,6 +73,31 @@
                     <mainClass>fr.gdd.sage.rawer.cli.RawerCLI</mainClass>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.4.1</version>
+                <executions>
+                    <execution>
+                        <id>make-assembly-rawer</id> <!-- rawer -->
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <archive>
+                                <manifest>
+                                    <mainClass>fr.gdd.sage.rawer.cli.RawerCLI</mainClass>
+                                </manifest>
+                            </archive>
+                            <finalName>rawer</finalName>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 

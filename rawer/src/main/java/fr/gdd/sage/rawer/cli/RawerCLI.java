@@ -1,7 +1,5 @@
 package fr.gdd.sage.rawer.cli;
 
-// TODO TODO TODO
-
 import fr.gdd.sage.blazegraph.BlazegraphBackend;
 import fr.gdd.sage.blazegraph.BlazegraphIterator;
 import fr.gdd.sage.generics.BackendBindings;
