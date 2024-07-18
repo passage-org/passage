@@ -46,8 +46,11 @@ public class CountDistinctCRAWD<ID,VALUE> implements BackendAccumulator<ID, VALU
     final Set<Var> vars;
     double sampleSizeOfWJ = 0;
     double sumOfInversedProbaOverFmu = 0.;
-    long sampleSizeOfCRAWD = 0; // for debug purposes
+    double sumOfInversedProba = 0.; // for debug purposes
+    double sampleSizeOfCRAWD = 0; // for debug purposes
     double sampleSizeOfCountForFmu = 0; // for debug purposes
+    double sumOfSuccessForFmu = 0; // for debug purposes
+    double sumOfFailForFmu = 0; // for debug purposes
 
     public CountDistinctCRAWD(ExprList varsAsExpr, ExecutionContext context, OpGroup group) {
         this.context = context;
@@ -65,9 +68,12 @@ public class CountDistinctCRAWD<ID,VALUE> implements BackendAccumulator<ID, VALU
 
         if (other instanceof CountDistinctCRAWD<ID,VALUE> otherCRAWD) {
             sampleSizeOfWJ += otherCRAWD.sampleSizeOfWJ;
+            sumOfInversedProba += otherCRAWD.sumOfInversedProba;
             sumOfInversedProbaOverFmu += otherCRAWD.sumOfInversedProbaOverFmu;
             sampleSizeOfCRAWD += otherCRAWD.sampleSizeOfCRAWD;
             sampleSizeOfCountForFmu += otherCRAWD.sampleSizeOfCountForFmu;
+            sumOfSuccessForFmu += otherCRAWD.sumOfSuccessForFmu;
+            sumOfFailForFmu += otherCRAWD.sumOfFailForFmu;
         }
     }
 
@@ -106,6 +112,7 @@ public class CountDistinctCRAWD<ID,VALUE> implements BackendAccumulator<ID, VALU
         // #2 processing of Pµ
         double probability = ReturningOpVisitorRouter.visit(wj, group.getSubOp());
         double inversedProbability = probability == 0. ? 0. : 1./probability;
+        sumOfInversedProba += inversedProbability;
 
         // don't do anything with the value, but still need to create it.
         BackendBindings<ID,VALUE> estimatedFmu = estimatedFmus.next();
@@ -121,7 +128,12 @@ public class CountDistinctCRAWD<ID,VALUE> implements BackendAccumulator<ID, VALU
         CountWanderJoin<ID,VALUE> accumulator = (CountWanderJoin<ID, VALUE>) aggIterator.getAccumulator();
         accumulator.accumulate(bindingProbability);
 
+        // for debug
         sampleSizeOfCountForFmu += accumulator.sampleSize;
+        sumOfFailForFmu += accumulator.fail;
+        sumOfSuccessForFmu += accumulator.success;
+
+        // actually important thing to get from subquery
         double fmu = accumulator.getValueAsDouble();
         sumOfInversedProbaOverFmu += inversedProbability / fmu;
     }
@@ -131,6 +143,9 @@ public class CountDistinctCRAWD<ID,VALUE> implements BackendAccumulator<ID, VALU
         log.debug("WJ SampleSize: " + sampleSizeOfWJ);
         log.debug("CRAWD SampleSize: " + sampleSizeOfCRAWD);
         log.debug("∑Fµ SampleSize: " + sampleSizeOfCountForFmu);
+        log.debug("∑Fµ success: " + sumOfSuccessForFmu);
+        log.debug("∑Fµ fail: " + sumOfFailForFmu);
+        log.debug("N̂: " + sumOfInversedProba/sampleSizeOfWJ);
         log.debug("Nb Total Scans: " + context.getContext().get(RawerConstants.SCANS));
         Backend<ID,VALUE,?> backend = context.getContext().get(RawerConstants.BACKEND);
         return backend.getValue(String.format("\"%s\"^^%s", getValueAsDouble(), XSDDatatype.XSDdouble.getURI()));

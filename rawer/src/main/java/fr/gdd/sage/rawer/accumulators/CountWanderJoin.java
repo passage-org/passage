@@ -22,6 +22,8 @@ public class CountWanderJoin<ID, VALUE> implements BackendAccumulator<ID,VALUE> 
     final ExecutionContext context;
     final Op op;
 
+    double fail = 0.;
+    double success = 0.;
     double sampleSize = 0.;
     double sumOfInversedProba = 0.;
 
@@ -38,6 +40,8 @@ public class CountWanderJoin<ID, VALUE> implements BackendAccumulator<ID,VALUE> 
     public void merge(BackendAccumulator<ID, VALUE> other) {
         if (Objects.isNull(other)) {return;}
         if (other instanceof CountWanderJoin<ID, VALUE> otherWJ) {
+            fail += otherWJ.fail;
+            success += otherWJ.success;
             sampleSize += otherWJ.sampleSize;
             sumOfInversedProba += otherWJ.sumOfInversedProba;
         }
@@ -46,12 +50,16 @@ public class CountWanderJoin<ID, VALUE> implements BackendAccumulator<ID,VALUE> 
     @Override
     public void accumulate(BackendBindings<ID, VALUE> binding, FunctionEnv functionEnv) {
         if (Objects.nonNull(binding)) {
+            success += 1;
             sumOfInversedProba += 1. / ReturningOpVisitorRouter.visit(wj, op);
+        } else {
+            fail += 1;
         }
         sampleSize += 1;
     }
 
     public void accumulate(double probability) {
+        success += 1;
         sumOfInversedProba += 1./ probability;
         sampleSize += 1;
     }
