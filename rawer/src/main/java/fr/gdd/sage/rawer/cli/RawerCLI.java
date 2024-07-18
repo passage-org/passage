@@ -3,6 +3,7 @@ package fr.gdd.sage.rawer.cli;
 // TODO TODO TODO
 
 import fr.gdd.sage.blazegraph.BlazegraphBackend;
+import fr.gdd.sage.blazegraph.BlazegraphIterator;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.rawer.RawerOpExecutor;
 import fr.gdd.sage.rawer.accumulators.CountDistinctChaoLee;
@@ -14,6 +15,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Command Line Interface for running sampling-based SPARQL operators.
@@ -95,6 +98,18 @@ public class RawerCLI {
     Boolean chaolee = false;
 
     @CommandLine.Option(
+            order = 6,
+            names = "--seed",
+            description = "Set the seed of random number generators.")
+    Integer seed = 1;
+
+    @CommandLine.Option(
+            order = 7,
+            names = "--no-seed",
+            description = "Default is seeded, this disable it.")
+    Boolean noSeed = false;
+
+    @CommandLine.Option(
             order = 10,
             names = "--threads",
             paramLabel = "1",
@@ -114,6 +129,8 @@ public class RawerCLI {
             usageHelp = true,
             description = "Display this help message.")
     boolean usageHelpRequested;
+
+    static AtomicInteger idProvider = new AtomicInteger(1);
 
     /* ****************************************************************** */
 
@@ -149,6 +166,17 @@ public class RawerCLI {
 
         if (Objects.isNull(serverOptions.timeout)) {
             serverOptions.timeout = Long.MAX_VALUE;
+        }
+
+        // TODO set the seed for any backend blazegraph or jena
+        // /!\ this won't be enough when the thread's executor can have an input…
+        // because the same thread must get the same id with the same input… which
+        // is difficult to guarantee.
+        if (!serverOptions.noSeed) {
+            BlazegraphIterator.RNG = ThreadLocal.withInitial(() -> {
+                long seed = serverOptions.seed + idProvider.getAndIncrement();
+                return new Random(seed);
+            });
         }
 
         // TODO database can be blazegraph or jena

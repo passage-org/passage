@@ -14,10 +14,15 @@ import fr.gdd.sage.interfaces.SPOC;
 
 import java.util.Objects;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.random.RandomGenerator;
 
 public class BlazegraphIterator extends BackendIterator<IV, BigdataValue, Long> {
-    public static RandomGenerator RNG = new Random(12);
+    public static ThreadLocal<Random> RNG = ThreadLocal.withInitial(() -> {
+        // Seed can be derived from a common seed or generated uniquely per thread
+        long seed = System.nanoTime() + Thread.currentThread().threadId();
+        return new Random(seed);
+    });
 
     private ITupleIterator<?> tupleIterator;
     private final byte[] min;
@@ -120,7 +125,7 @@ public class BlazegraphIterator extends BackendIterator<IV, BigdataValue, Long> 
     }
 
     public ISPO getUniformRandomSPO() {
-        long rn = RNG.nextLong((long) cardinality());
+        long rn = RNG.get().nextLong((long) cardinality());
         long startFrom = Objects.isNull(min) ? 0L: iindex.rangeCount(null, min);
         byte[] keyAt = ((AbstractBTree) iindex).keyAt(startFrom + rn );
         ITupleIterator<?> iterator = iindex.rangeIterator(keyAt, max);
@@ -131,12 +136,11 @@ public class BlazegraphIterator extends BackendIterator<IV, BigdataValue, Long> 
 
     @Override
     public Double random() {
-        this.offset = 0L;
         currentValue = null;
-        long rn = RNG.nextLong((long) cardinality());
+        offset = RNG.get().nextLong((long) cardinality()); // random number
         long startFrom = Objects.isNull(min) ? 0L: iindex.rangeCount(null, min);
         // long startFrom = Objects.isNull(min) ? 0L: ((AbstractBTree) iindex).indexOf(min);
-        byte[] keyAt = ((AbstractBTree) iindex).keyAt(startFrom + rn );
+        byte[] keyAt = ((AbstractBTree) iindex).keyAt(startFrom + offset );
         tupleIterator = iindex.rangeIterator(keyAt, max);
         return 1./cardinality();
     }
