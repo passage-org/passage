@@ -88,17 +88,21 @@ public class CountDistinctChaoLee<ID,VALUE> implements BackendAccumulator<ID, VA
 
         // #3 processing of Fµ
         CountSubqueryBuilder<ID,VALUE> subqueryBuilder = new CountSubqueryBuilder<>(backend, binding, vars);
-        Op countQuery = subqueryBuilder.build(group.getSubOp());
-        // need same join order to bootstrap
-        countQuery = ReturningOpVisitorRouter.visit(new Triples2BGP(), countQuery);
-        countQuery = new CardinalityJoinOrdering<>(backend, cache).visit(countQuery); // need to have bgp to optimize, no tps
-        countQuery = ReturningOpVisitorRouter.visit(new BGP2Triples(), countQuery);
-
         RawerOpExecutor<ID,VALUE> fmuExecutor = new RawerOpExecutor<ID,VALUE>()
                 .setBackend(backend)
                 .setLimit(RandomAggregator.SUBQUERY_LIMIT)
                 .setTimeout(RandomAggregator.SUBQUERY_TIMEOUT)
                 .setCache(subqueryBuilder.getCache());
+
+        Op countQuery = subqueryBuilder.build(group.getSubOp());
+        // need same join order to bootstrap
+        if (context.getContext().isFalseOrUndef(RawerConstants.FORCE_ORDER)) {
+            countQuery = ReturningOpVisitorRouter.visit(new Triples2BGP(), countQuery);
+            countQuery = new CardinalityJoinOrdering<>(backend, cache).visit(countQuery); // need to have bgp to optimize, no tps
+        } else {
+            fmuExecutor.forceOrder();
+        }
+        countQuery = ReturningOpVisitorRouter.visit(new BGP2Triples(), countQuery);
 
         Iterator<BackendBindings<ID,VALUE>> estimatedFmus = fmuExecutor.execute(countQuery);
         if (!estimatedFmus.hasNext()) {

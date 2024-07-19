@@ -98,6 +98,11 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         return this;
     }
 
+    public RawerOpExecutor<ID,VALUE> forceOrder() {
+        execCxt.getContext().setTrue(RawerConstants.FORCE_ORDER);
+        return this;
+    }
+
     /**
      * Depending on the backend, it might be profitable to use another count-distinct
      * algorithm. By default, it's crawd.
@@ -125,8 +130,10 @@ public class RawerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
 
     public Iterator<BackendBindings<ID, VALUE>> execute(Op root) {
         // #A reordering of bgps if need be
-        root = ReturningOpVisitorRouter.visit(new Triples2BGP(), root);
-        root = new CardinalityJoinOrdering<>(backend, cache).visit(root); // need to have bgp to optimize, no tps
+        if (execCxt.getContext().isFalseOrUndef(RawerConstants.FORCE_ORDER)) {
+            root = ReturningOpVisitorRouter.visit(new Triples2BGP(), root);
+            root = new CardinalityJoinOrdering<>(backend, cache).visit(root); // need to have bgp to optimize, no tps
+        }
         root = ReturningOpVisitorRouter.visit(new BGP2Triples(), root);
 
         execCxt.getContext().set(RawerConstants.SAVER, new BackendSaver<>(backend, root));

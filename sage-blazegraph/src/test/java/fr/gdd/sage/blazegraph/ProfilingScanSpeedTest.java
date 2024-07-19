@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -32,7 +31,7 @@ public class ProfilingScanSpeedTest {
         for (int i = 0; i < numberOfThreads; i++) {
             int finalI = i;
             service.execute(() -> {
-                BlazegraphIterator.RNG = new Random(finalI);
+                // BlazegraphIterator.RNG = new Random(finalI);
                 final long TIMEOUT = 10000;
                 long start = System.currentTimeMillis();
                 // Context c = dataset.getContext().copy().set(SageConstants.limit, LIMIT);

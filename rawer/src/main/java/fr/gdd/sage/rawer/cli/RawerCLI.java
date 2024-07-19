@@ -96,12 +96,19 @@ public class RawerCLI {
     Boolean chaolee = false;
 
     @CommandLine.Option(
+            order = 5,
+            names = "--force-order",
+            description = "Force the order of triple patterns to the one provided by the query.")
+    Boolean forceOrder = false;
+
+    @CommandLine.Option(
             order = 6,
             names = "--seed",
+            paramLabel = "1",
             description = "Set the seed of random number generators.")
     Integer seed = 1;
 
-    @CommandLine.Option(
+    @CommandLine.Option( // TODO by default, but then need to change XP parameters
             order = 7,
             names = "--no-seed",
             description = "Default is seeded, this disable it.")
@@ -202,6 +209,12 @@ public class RawerCLI {
             if (serverOptions.chaolee) {
                 executor.setCountDistinct(CountDistinctChaoLee::new);
             }
+
+            if (serverOptions.forceOrder) {
+                executor.forceOrder();
+            }
+
+            // executor.setForceOrder();
 
             long start = System.currentTimeMillis();
             Iterator<BackendBindings> iterator = executor.execute(serverOptions.queryAsString);

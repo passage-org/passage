@@ -28,6 +28,8 @@ public class RawerConstants {
 
     static public final Symbol MAX_THREADS = allocConstantSymbol("MaxThread");
 
+    static public final Symbol FORCE_ORDER = allocConstantSymbol("ForceOrder");
+
     /**
      * Symbol in use in the global context.
      */
