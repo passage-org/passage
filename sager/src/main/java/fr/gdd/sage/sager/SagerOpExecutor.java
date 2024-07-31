@@ -13,6 +13,9 @@ import fr.gdd.sage.sager.optimizers.SagerOptimizer;
 import fr.gdd.sage.sager.pause.Pause2SPARQL;
 import fr.gdd.sage.sager.resume.IsSkippable;
 import org.apache.jena.atlas.iterator.Iter;
+import org.apache.jena.query.DatasetFactory;
+import org.apache.jena.query.QueryFactory;
+import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpAsQuery;
 import org.apache.jena.sparql.algebra.op.*;
@@ -32,34 +35,40 @@ public class SagerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         Iterator<BackendBindings<ID, VALUE>>> { // output
 
     final ExecutionContext execCxt;
-    final Backend<ID, VALUE, Long> backend;
-    final CacheId<ID,VALUE> cache;
+    Backend<ID, VALUE, Long> backend;
+    CacheId<ID,VALUE> cache;
 
-    public SagerOpExecutor(ExecutionContext execCxt) {
-        this.execCxt = execCxt;
-        this.backend = execCxt.getContext().get(SagerConstants.BACKEND);
+    public SagerOpExecutor() {
+        // This creates a brandnew execution context, but it's important
+        // that `setBackend` is called, or it will throw at runtime.
+        this.execCxt = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
         execCxt.getContext().setIfUndef(SagerConstants.SCANS, 0L);
         execCxt.getContext().setIfUndef(SagerConstants.LIMIT, Long.MAX_VALUE);
         execCxt.getContext().setIfUndef(SagerConstants.TIMEOUT, Long.MAX_VALUE);
-        this.cache = new CacheId<>(backend);
-        execCxt.getContext().setIfUndef(SagerConstants.CACHE, this.cache);
         execCxt.getContext().setFalse(SagerConstants.PAUSED);
 
-        // as setifundef so outsiders can configure their own list of optimizers
-        execCxt.getContext().setIfUndef(SagerConstants.LOADER, new SagerOptimizer());
+    }
+
+    public SagerOpExecutor(ExecutionContext execCxt) {
+        this.execCxt = execCxt;
+        setBackend(this.backend);
+        execCxt.getContext().setIfUndef(SagerConstants.SCANS, 0L);
+        execCxt.getContext().setIfUndef(SagerConstants.LIMIT, Long.MAX_VALUE);
+        execCxt.getContext().setIfUndef(SagerConstants.TIMEOUT, Long.MAX_VALUE);
+        execCxt.getContext().setFalse(SagerConstants.PAUSED);
     }
 
     public Backend<ID, VALUE, Long> getBackend() {
         return backend;
     }
-
     public ExecutionContext getExecutionContext() {
         return execCxt;
     }
 
     public SagerOpExecutor<ID, VALUE> setTimeout(Long timeout) {
         execCxt.getContext().set(SagerConstants.TIMEOUT, timeout);
-        execCxt.getContext().set(SagerConstants.DEADLINE, System.currentTimeMillis()+timeout);
+        long deadline = (System.currentTimeMillis() + timeout <= 0) ? Long.MAX_VALUE : System.currentTimeMillis() + timeout;
+        execCxt.getContext().set(SagerConstants.DEADLINE, deadline);
         return this;
     }
 
@@ -68,17 +77,32 @@ public class SagerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         return this;
     }
 
-    /**
-     * @param root The query to execute in the form of a Jena `Op`.
-     * @return An iterator that can produce the bindings.
-     */
-    public Iterator<BackendBindings<ID,VALUE>> optimizeThenExecute(Op root) {
-        SagerOptimizer optimizer = execCxt.getContext().get(SagerConstants.LOADER);
-        root = optimizer.optimize(root);
+    public SagerOpExecutor<ID, VALUE> setBackend(Backend<ID,VALUE,Long> backend) {
+        execCxt.getContext().set(SagerConstants.BACKEND, backend);
+        this.backend = backend;
+        this.cache = new CacheId<>(backend);
+        execCxt.getContext().setIfUndef(SagerConstants.CACHE, this.cache);
+        // as setifundef so outsiders can configure their own list of optimizers
+        execCxt.getContext().setIfUndef(SagerConstants.LOADER, new SagerOptimizer<>(backend, cache));
+        return this;
+    }
+
+    public SagerOpExecutor<ID,VALUE> forceOrder() { // TODO do this through an optimizer provider
+        SagerOptimizer<ID,VALUE> optimizer = execCxt.getContext().get(SagerConstants.LOADER);
+        optimizer.forceOrder();
+        return this;
+    }
+
+    /* ******************************************************************* */
+
+    public Iterator<BackendBindings<ID,VALUE>> execute(String rootAsString) {
+        Op root = Algebra.compile(QueryFactory.create(rootAsString));
         return this.execute(root);
     }
 
     public Iterator<BackendBindings<ID, VALUE>> execute(Op root) {
+        SagerOptimizer<ID,VALUE> optimizer = execCxt.getContext().get(SagerConstants.LOADER);
+        root = optimizer.optimize(root);
         execCxt.getContext().set(SagerConstants.SAVER, new Pause2SPARQL<ID,VALUE>(root, execCxt));
 
         return new SagerRoot<>(execCxt,

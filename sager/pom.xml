@@ -21,6 +21,14 @@
             <groupId>fr.gdd.sage</groupId>
             <artifactId>sage-jena-tdb2</artifactId>
         </dependency>
+        <dependency>
+            <groupId>fr.gdd.sage</groupId>
+            <artifactId>sage-blazegraph</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>info.picocli</groupId>
+            <artifactId>picocli</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -37,11 +45,46 @@
             <artifactId>junit-vintage-engine</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>fr.gdd.sage</groupId>
-            <artifactId>sage-blazegraph</artifactId>
-            <scope>test</scope>
-        </dependency>
+
     </dependencies>
+
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <mainClass>fr.gdd.sage.cli.SagerCLI</mainClass>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.4.1</version>
+                <executions>
+                    <execution>
+                        <id>make-assembly-sager</id> <!-- sager -->
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <archive>
+                                <manifest>
+                                    <mainClass>fr.gdd.sage.cli.SagerCLI</mainClass>
+                                </manifest>
+                            </archive>
+                            <finalName>sager</finalName>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
