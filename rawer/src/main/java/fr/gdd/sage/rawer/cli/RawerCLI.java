@@ -6,6 +6,8 @@ import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.rawer.RawerOpExecutor;
 import fr.gdd.sage.rawer.accumulators.CountDistinctChaoLee;
 import fr.gdd.sage.rawer.iterators.RandomAggregator;
+import org.openrdf.repository.RepositoryException;
+import org.openrdf.sail.SailException;
 import picocli.CommandLine;
 
 import java.io.IOException;
@@ -185,7 +187,12 @@ public class RawerCLI {
         }
 
         // TODO database can be blazegraph or jena
-        BlazegraphBackend backend = new BlazegraphBackend(serverOptions.database);
+        BlazegraphBackend backend = null;
+        try {
+            backend = new BlazegraphBackend(serverOptions.database);
+        } catch (SailException | RepositoryException e) {
+            throw new RuntimeException(e);
+        }
 
         if (serverOptions.report) {
             System.setProperty("org.slf4j.simpleLogger.log.fr.gdd.sage.rawer.accumulators.CountDistinctChaoLee", "debug");

@@ -6,6 +6,7 @@ import fr.gdd.sage.sager.pause.Pause2SPARQLBGPTimeoutTest;
 import fr.gdd.sage.sager.pause.Save2SPARQLTest;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,10 +18,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class ProgressTest {
 
     private static final Logger log = LoggerFactory.getLogger(Pause2SPARQLBGPTimeoutTest.class);
-    final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
 
     @Test
-    public void create_a_simple_query_and_pause_at_each_scan () {
+    public void create_a_simple_query_and_pause_at_each_scan () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c}";
 
         int sum = 0;
@@ -37,7 +38,8 @@ class ProgressTest {
     }
 
     @Test
-    public void create_a_bgp_query_and_pause_at_each_result_but_different_order () {
+    public void create_a_bgp_query_and_pause_at_each_result_but_different_order () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = """
                SELECT * WHERE {
                 ?p <http://own> ?a .
@@ -56,7 +58,8 @@ class ProgressTest {
     }
 
     @Test
-    public void bgp_with_3_tps_that_preempt () {
+    public void bgp_with_3_tps_that_preempt () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = """
                SELECT * WHERE {
                 ?p <http://own> ?a .
@@ -74,6 +77,5 @@ class ProgressTest {
         }
         assertEquals(3, sum);
     }
-
 
 }

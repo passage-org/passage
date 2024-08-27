@@ -6,6 +6,8 @@ import fr.gdd.sage.rawer.RawerOpExecutorTest;
 import fr.gdd.sage.rawer.iterators.RandomAggregator;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.openrdf.repository.RepositoryException;
+import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +15,15 @@ import org.slf4j.LoggerFactory;
 public class RawerMultithreadAggregateTest {
 
     private final static Logger log = LoggerFactory.getLogger(RawerMultithreadAggregateTest.class);
-    static BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl");
+    static BlazegraphBackend watdivBlazegraph;
+
+    static {
+        try {
+            watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl");
+        } catch (SailException | RepositoryException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @Disabled
     @Test
@@ -41,7 +51,7 @@ public class RawerMultithreadAggregateTest {
 
     @Disabled
     @Test
-    public void multithreading_should_be_faster_with_count_long () {
+    public void multithreading_should_be_faster_with_count_long () throws RepositoryException, SailException {
         BlazegraphBackend watdivBlazegraph1B = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv1b-blaze/watdiv1B.jnl");
 
         // chao lee is not expected to be sample efficient…

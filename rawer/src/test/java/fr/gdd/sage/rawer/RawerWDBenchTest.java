@@ -18,6 +18,7 @@ import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.Query;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.repository.RepositoryException;
+import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +30,15 @@ import java.nio.charset.StandardCharsets;
 public class RawerWDBenchTest {
 
     private final static Logger log = LoggerFactory.getLogger(RawerWDBenchTest.class);
-    static BlazegraphBackend wdbenchBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/wdbench-blaze/wdbench-blaze.jnl");
+    static BlazegraphBackend wdbenchBlazegraph;
+
+    static {
+        try {
+            wdbenchBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/wdbench-blaze/wdbench-blaze.jnl");
+        } catch (SailException | RepositoryException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @Disabled
     @Test

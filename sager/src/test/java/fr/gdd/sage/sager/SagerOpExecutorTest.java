@@ -10,6 +10,8 @@ import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.openrdf.repository.RepositoryException;
+import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +29,7 @@ public class SagerOpExecutorTest {
         SagerOpExecutor<?,?> executor = new SagerOpExecutor<>(ec);
 
         Op query = Algebra.compile(QueryFactory.create(queryAsString));
-        Iterator<? extends BackendBindings<?, ?>> iterator = executor.optimizeThenExecute(query);
+        Iterator<? extends BackendBindings<?, ?>> iterator = executor.execute(query);
 
         int sum = 0;
         while (iterator.hasNext()) {
@@ -43,7 +45,7 @@ public class SagerOpExecutorTest {
 
     @Disabled
     @Test
-    public void on_watdiv_conjunctive_query_10124 () {
+    public void on_watdiv_conjunctive_query_10124 () throws RepositoryException, SailException {
         BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
         ec.getContext().set(SagerConstants.BACKEND, watdivBlazegraph);
@@ -66,7 +68,7 @@ public class SagerOpExecutorTest {
 
     @Disabled
     @Test
-    public void sandbox_of_test () {
+    public void sandbox_of_test () throws RepositoryException, SailException {
         BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
         ec.getContext().set(SagerConstants.BACKEND, watdivBlazegraph);

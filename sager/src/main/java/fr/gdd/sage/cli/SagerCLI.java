@@ -3,6 +3,8 @@ package fr.gdd.sage.cli;
 import fr.gdd.sage.blazegraph.BlazegraphBackend;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.sager.SagerOpExecutor;
+import org.openrdf.repository.RepositoryException;
+import org.openrdf.sail.SailException;
 import picocli.CommandLine;
 
 import java.io.IOException;
@@ -128,7 +130,12 @@ public class SagerCLI {
         }
 
         // TODO database can be blazegraph or jena
-        BlazegraphBackend backend = new BlazegraphBackend(serverOptions.database);
+        BlazegraphBackend backend = null;
+        try {
+            backend = new BlazegraphBackend(serverOptions.database);
+        } catch (SailException | RepositoryException e) {
+            throw new RuntimeException(e);
+        }
 
         if (serverOptions.report) {
             System.out.printf("%sPath to database:%s %s%n", PURPLE_BOLD, RESET, serverOptions.database);

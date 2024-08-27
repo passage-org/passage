@@ -3,6 +3,8 @@ package fr.gdd.sage.rawer;
 import fr.gdd.sage.blazegraph.BlazegraphBackend;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.openrdf.repository.RepositoryException;
+import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,11 +18,11 @@ import org.slf4j.LoggerFactory;
 public class RawerWatdivCountTest {
 
     private final static Logger log = LoggerFactory.getLogger(RawerWatdivCountTest.class);
-    static BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl");
 
     @Disabled
     @Test
-    public void count_star_on_spo () {
+    public void count_star_on_spo () throws RepositoryException, SailException {
+        final BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl");
         String queryAsString = "SELECT (COUNT(*) AS ?count) WHERE { ?s ?p ?o }";
         RawerOpExecutorTest.execute(queryAsString, watdivBlazegraph, 1L); // 10,916,457 triples
         // the count is exact with blazegraph, do not need anything but getting a cardinality
@@ -29,7 +31,8 @@ public class RawerWatdivCountTest {
 
     @Disabled
     @Test
-    public void count_s_on_spo () {
+    public void count_s_on_spo () throws RepositoryException, SailException {
+        final BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl");
         // TODO TODO TODO variable bound in COUNT
         // TODO same for p, and o
         String queryAsString = "SELECT (COUNT(?s) AS ?count) WHERE { ?s ?p ?o }";
@@ -38,7 +41,8 @@ public class RawerWatdivCountTest {
 
     @Disabled
     @Test
-    public void count_distinct_on_2_tps () {
+    public void count_distinct_on_2_tps () throws RepositoryException, SailException {
+        final BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl");
         String twoTPsQuery = """
                 SELECT (COUNT(*) AS ?count) WHERE {
                     ?v0 <http://db.uwaterloo.ca/~galuc/wsdbm/gender> <http://db.uwaterloo.ca/~galuc/wsdbm/Gender1> .

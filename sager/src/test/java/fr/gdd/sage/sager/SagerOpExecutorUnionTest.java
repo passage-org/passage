@@ -8,6 +8,7 @@ import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,10 +19,10 @@ public class SagerOpExecutorUnionTest {
 
     static final Logger log = LoggerFactory.getLogger(SagerOpExecutorUnionTest.class);
     static final JenaBackend jena = new JenaBackend(IM4Jena.triple9());
-    static final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
 
     @Test
-    public void execute_a_simple_union () {
+    public void execute_a_simple_union () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = """
                SELECT * WHERE {
                 {?p  <http://own>  ?a}
@@ -36,7 +37,8 @@ public class SagerOpExecutorUnionTest {
     }
 
     @Test
-    public void execute_a_union_inside_a_triple_pattern () {
+    public void execute_a_union_inside_a_triple_pattern () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = """
                SELECT * WHERE {
                 ?p  <http://own>  ?a .

@@ -6,6 +6,8 @@ import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.iterators.SagerScan;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.openrdf.repository.RepositoryException;
+import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,10 +24,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class Pause2SPARQLBGPTimeoutTest {
 
     private static final Logger log = LoggerFactory.getLogger(Pause2SPARQLBGPTimeoutTest.class);
-    final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
 
     @Test
-    public void create_a_simple_query_and_pause_at_each_scan () {
+    public void create_a_simple_query_and_pause_at_each_scan () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c}";
 
         SagerScan.stopping = Save2SPARQLTest.stopAtEveryScan;
@@ -42,7 +44,8 @@ public class Pause2SPARQLBGPTimeoutTest {
     }
 
     @Test
-    public void create_a_bgp_query_and_pause_at_each_scan () {
+    public void create_a_bgp_query_and_pause_at_each_scan () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = """
                SELECT * WHERE {
                 ?p <http://address> <http://nantes> .
@@ -63,7 +66,8 @@ public class Pause2SPARQLBGPTimeoutTest {
     }
 
     @Test
-    public void create_a_3tps_bgp_query_and_pause_at_each_and_every_scan () {
+    public void create_a_3tps_bgp_query_and_pause_at_each_and_every_scan () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = """
                SELECT * WHERE {
                 ?p <http://own> ?a .
@@ -85,7 +89,7 @@ public class Pause2SPARQLBGPTimeoutTest {
 
     @Disabled
     @Test
-    public void on_watdiv_conjunctive_query_0_every_scan () {
+    public void on_watdiv_conjunctive_query_0_every_scan () throws RepositoryException, SailException {
         BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
         SagerScan.stopping = Save2SPARQLTest.stopAtEveryScan;
 
@@ -111,7 +115,7 @@ public class Pause2SPARQLBGPTimeoutTest {
 
     @Disabled
     @Test
-    public void on_watdiv_conjunctive_query_10124_every_scan () { // /!\ it takes time (19minutes)
+    public void on_watdiv_conjunctive_query_10124_every_scan () throws RepositoryException, SailException { // /!\ it takes time (19minutes)
         BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
         SagerScan.stopping = Save2SPARQLTest.stopAtEveryScan;
 
@@ -141,7 +145,7 @@ public class Pause2SPARQLBGPTimeoutTest {
 
     @Disabled
     @Test
-    public void on_watdiv_conjunctive_query_10124_every_1k_scans () { // way faster, matter of seconds
+    public void on_watdiv_conjunctive_query_10124_every_1k_scans () throws RepositoryException, SailException { // way faster, matter of seconds
         BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
         SagerScan.stopping = (ec) -> {
             return ec.getContext().getLong(SagerConstants.SCANS, 0L) >= 1000; // stop every 1000 scans

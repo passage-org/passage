@@ -16,6 +16,7 @@ import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.impl.MapBindingSet;
 import org.openrdf.repository.RepositoryException;
+import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +30,7 @@ class BlazegraphBackendTest {
     private final static Logger log = LoggerFactory.getLogger(BlazegraphBackendTest.class);
 
     @Test
-     public void create_values_with_string_repr () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
+     public void create_values_with_string_repr () throws RepositoryException {
         BlazegraphBackend bb = new BlazegraphBackend(IM4Blazegraph.triples9());
         var meow = bb.getValue("12");
         log.debug("{}", meow);
@@ -73,7 +74,7 @@ class BlazegraphBackendTest {
     }
 
     @Test
-    public void creating_simple_random () {
+    public void creating_simple_random () throws RepositoryException {
         BlazegraphBackend bb = new BlazegraphBackend(IM4Blazegraph.triples9());
         IV address = bb.getId("http://address", SPOC.PREDICATE);
         LazyIterator<IV, BigdataValue, Long> li = (LazyIterator<IV, BigdataValue, Long>) bb.search(bb.any(), address, bb.any());
@@ -98,7 +99,7 @@ class BlazegraphBackendTest {
     }
 
     @Test
-    public void testing_some_skipperino () {
+    public void testing_some_skipperino () throws RepositoryException {
         BlazegraphBackend bb = new BlazegraphBackend(IM4Blazegraph.triples9());
         IV address = bb.getId("http://address", SPOC.PREDICATE);
 
@@ -111,7 +112,7 @@ class BlazegraphBackendTest {
 
     @Disabled
     @Test
-    public void on_watdiv_conjunctive_with_blazegraph_engine () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
+    public void on_watdiv_conjunctive_with_blazegraph_engine () throws QueryEvaluationException, MalformedQueryException, RepositoryException, SailException {
         BlazegraphBackend bb = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
         bb.executeQuery("""
                 SELECT * WHERE {
@@ -125,7 +126,7 @@ class BlazegraphBackendTest {
 
     @Disabled
     @Test
-    public void on_watdiv_conjunctive_query_with_compiled_query () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
+    public void on_watdiv_conjunctive_query_with_compiled_query () throws RepositoryException, SailException {
         BlazegraphBackend bb = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
 
         long start = System.currentTimeMillis();
@@ -164,7 +165,7 @@ class BlazegraphBackendTest {
 
     @Disabled
     @Test
-    public void on_watdiv_test_some_cardinalities () {
+    public void on_watdiv_test_some_cardinalities () throws RepositoryException, SailException {
         BlazegraphBackend bb = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
 
         IV eligibleRegion = bb.getId("http://schema.org/eligibleRegion", SPOC.PREDICATE);

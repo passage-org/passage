@@ -6,6 +6,7 @@ import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,10 +16,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class SagerOpExecutorProjectTest {
 
     static final Logger log = LoggerFactory.getLogger(SagerOpExecutorProjectTest.class);
-    static final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
 
     @Test
-    public void bgp_of_1_tp () {
+    public void bgp_of_1_tp () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = "SELECT ?p WHERE {?p <http://address> ?c}";
 
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
@@ -29,7 +30,8 @@ public class SagerOpExecutorProjectTest {
     }
 
     @Test
-    public void bgp_of_2_tp () {
+    public void bgp_of_2_tp () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = """
                SELECT ?p WHERE {
                 ?p <http://address> <http://nantes> .

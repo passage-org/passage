@@ -7,6 +7,8 @@ import fr.gdd.sage.interfaces.BackendIterator;
 import fr.gdd.sage.interfaces.SPOC;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.openrdf.repository.RepositoryException;
+import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +23,7 @@ public class ProfilingScanSpeedTest {
 
     @Disabled
     @Test
-    public void test_concurrent_execution_to_profile_perf() throws InterruptedException {
+    public void test_concurrent_execution_to_profile_perf() throws InterruptedException, RepositoryException, SailException {
         BlazegraphBackend bb = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
 
         int numberOfThreads = 3;

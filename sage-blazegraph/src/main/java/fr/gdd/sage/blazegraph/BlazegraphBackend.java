@@ -1,7 +1,5 @@
 package fr.gdd.sage.blazegraph;
 
-import com.bigdata.bop.PipelineOp;
-import com.bigdata.bop.join.PipelineJoin;
 import com.bigdata.concurrent.TimeoutException;
 import com.bigdata.journal.Options;
 import com.bigdata.rdf.internal.IV;
@@ -48,49 +46,46 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
     BigdataSailRepository repository;
     BigdataSailRepositoryConnection connection;
 
-    public BlazegraphBackend(String path) {
+    public BlazegraphBackend() throws SailException, RepositoryException {
         System.setProperty("com.bigdata.Banner.quiet", "true"); // banner is annoying, sorry blazegraph
         final Properties props = new Properties();
-        props.put(Options.FILE, path);
-        props.put(PipelineOp.Annotations.PIPELINED, "false");
-        props.put(PipelineJoin.Annotations.MAX_PARALLEL, "0");
+        props.put(BigdataSail.Options.CREATE_TEMP_FILE, "true");
+        props.put(BigdataSail.Options.DELETE_ON_CLOSE, "true");
+        props.put(BigdataSail.Options.DELETE_ON_EXIT, "true");
 
         final BigdataSail sail = new BigdataSail(props);
         this.repository = new BigdataSailRepository(sail);
-        try {
-            sail.initialize();
-        } catch (SailException e) {
-            e.printStackTrace();
-        }
-        try {
-            this.connection = repository.getReadOnlyConnection();
-        } catch (RepositoryException e) {
-            throw new RuntimeException(e);
-        }
+        sail.initialize();
+        this.connection = repository.getReadOnlyConnection();
+        store = connection.getTripleStore();
+    }
+
+    public BlazegraphBackend(String path) throws SailException, RepositoryException {
+        System.setProperty("com.bigdata.Banner.quiet", "true"); // banner is annoying, sorry blazegraph
+
+        final Properties props = new Properties();
+        props.put(Options.FILE, path);
+
+        final BigdataSail sail = new BigdataSail(props);
+        this.repository = new BigdataSailRepository(sail);
+        sail.initialize();
+        this.connection = repository.getReadOnlyConnection();
         store = connection.getTripleStore();
     }
 
     /**
      * @param sail An already initialized sail (blazegraph) repository.
      */
-    public BlazegraphBackend(BigdataSail sail) {
+    public BlazegraphBackend(BigdataSail sail) throws RepositoryException {
         System.setProperty("com.bigdata.Banner.quiet", "true"); // banner is annoying, sorry blazegraph
         this.repository = new BigdataSailRepository(sail);
-        try {
-            this.connection = repository.getReadOnlyConnection();
-        } catch (RepositoryException e) {
-            throw new RuntimeException(e);
-        }
+        this.connection = repository.getReadOnlyConnection();
         store = connection.getTripleStore();
     }
 
-    public void close() {
-        try {
-            connection.close();
-            store = null;
-        } catch (RepositoryException e) {
-            throw new RuntimeException(e);
-        }
+    public void close() throws RepositoryException {
+        connection.close();
+        store = null;
     }
 
     @Override

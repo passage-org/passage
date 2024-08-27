@@ -31,10 +31,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class Pause2SPARQLAggTimeoutTest {
 
     private static final Logger log = LoggerFactory.getLogger(Pause2SPARQLBGPTimeoutTest.class);
-    final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
 
     @Test
-    public void count_of_tp_but_stops_inside_the_operator () {
+    public void count_of_tp_but_stops_inside_the_operator () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = "SELECT (COUNT(*) AS ?count) { ?p <http://address> ?c }";
 
         SagerScan.stopping = Save2SPARQLTest.stopAtEveryScan;
@@ -54,7 +54,8 @@ public class Pause2SPARQLAggTimeoutTest {
     }
 
     @Test
-    public void count_of_tp_but_stops_inside_the_operator_focusing_on_last_step () {
+    public void count_of_tp_but_stops_inside_the_operator_focusing_on_last_step () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = """
         SELECT  (( count(*) + 2 ) AS ?count) WHERE {
             SELECT  * WHERE { ?p  <http://address>  ?c } OFFSET  2 }
@@ -79,7 +80,8 @@ public class Pause2SPARQLAggTimeoutTest {
 
     @Disabled
     @Test
-    public void simple_count_on_tp_kindof_groupby_p () {
+    public void simple_count_on_tp_kindof_groupby_p () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         // TODO issue, when preempting the inner tp, it saves the upper
         // TODO binding with ?p=Alice and ?c=Nantes. But the COUNT filters these
         // TODO to only retrieve ?count. Therefore, not only the result is return
@@ -110,7 +112,8 @@ public class Pause2SPARQLAggTimeoutTest {
     }
 
     @Test
-    public void meow() throws QueryEvaluationException, MalformedQueryException, RepositoryException {
+    public void meow() throws RepositoryException, QueryEvaluationException, MalformedQueryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         // TODO obtain identical result to this?
         String queryAsString = """
         SELECT * WHERE {

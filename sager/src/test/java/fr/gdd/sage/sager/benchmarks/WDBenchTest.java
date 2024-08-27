@@ -16,12 +16,12 @@ import org.junit.jupiter.api.Test;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.repository.RepositoryException;
+import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -29,7 +29,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class WDBenchTest {
 
     private final static Logger log = LoggerFactory.getLogger(WDBenchTest.class);
-    static BlazegraphBackend wdbenchBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/mail-about-ingesting-in-blazegraph/blazegraph_wdbench.jnl");
+    static BlazegraphBackend wdbenchBlazegraph;
+
+    static {
+        try {
+            wdbenchBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/mail-about-ingesting-in-blazegraph/blazegraph_wdbench.jnl");
+        } catch (SailException | RepositoryException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     static final Long TIMEOUT = 1000L * 60L * 2L; // 2 minutes
 
     @Disabled

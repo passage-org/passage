@@ -2,8 +2,10 @@ package fr.gdd.sage.sager.pause;
 
 import fr.gdd.sage.blazegraph.BlazegraphBackend;
 import fr.gdd.sage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.sage.interfaces.Backend;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,36 +17,38 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class Pause2SPARQLDistinctTest {
 
     static final Logger log = LoggerFactory.getLogger(Pause2SPARQLDistinctTest.class);
-    static final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
 
     @Test
-    public void tp_distinct_where_every_value_is_distinct_anyway() {
+    public void tp_distinct_where_every_value_is_distinct_anyway() throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = "SELECT DISTINCT * WHERE { ?p <http://address> ?a }";
 
-        int nbResults = executeAll(queryAsString);
+        int nbResults = executeAll(queryAsString, blazegraph);
         assertEquals(3, nbResults); // Alice Bob Carol
     }
 
     @Test
-    public void tp_with_projected_so_duplicates_must_be_removed() {
+    public void tp_with_projected_so_duplicates_must_be_removed() throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = "SELECT DISTINCT ?a WHERE { ?p <http://address> ?a }";
         // without any specific saving, the operator will forget about previously produced
         // ?a -> Nantes, and produce it again, hence failing to provide a correct distinct
 
-        int nbResults = executeAll(queryAsString);
+        int nbResults = executeAll(queryAsString, blazegraph);
         assertEquals(2, nbResults); // Nantes and Paris
     }
 
 
     @Test
-    public void bgp_with_projected_so_duplicates_must_be_removed() {
+    public void bgp_with_projected_so_duplicates_must_be_removed() throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = """
         SELECT DISTINCT ?address WHERE {
             ?person <http://address> ?address .
             ?person <http://own> ?animal
         }""";
 
-        int nbResults = executeAll(queryAsString);
+        int nbResults = executeAll(queryAsString, blazegraph);
         assertEquals(1, nbResults); // Nantes only since only Alice has animals
 
         // Produces:
@@ -69,11 +73,11 @@ public class Pause2SPARQLDistinctTest {
 
     /* ************************************************************* */
 
-    public static int executeAll(String queryAsString) {
+    public static int executeAll(String queryAsString, Backend<?,?,Long> backend) {
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);
-            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            var result = Save2SPARQLTest.executeQuery(queryAsString, backend);
             sum += result.getLeft();
             queryAsString = result.getRight();
         }

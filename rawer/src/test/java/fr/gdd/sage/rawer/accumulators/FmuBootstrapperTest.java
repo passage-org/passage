@@ -14,6 +14,7 @@ import org.apache.jena.sparql.algebra.OpAsQuery;
 import org.apache.jena.sparql.core.Var;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +32,7 @@ class FmuBootstrapperTest {
 
     @Disabled
     @Test
-    public void on_a_single_triple_pattern () {
+    public void on_a_single_triple_pattern () throws RepositoryException {
         final Backend backend = new BlazegraphBackend(blazegraph);
 
         final RawerOpExecutor executor = new RawerOpExecutor().setBackend(backend);
@@ -52,7 +53,7 @@ class FmuBootstrapperTest {
 
     @Disabled
     @Test
-    public void on_a_single_triple_pattern_with_variable_set () {
+    public void on_a_single_triple_pattern_with_variable_set () throws RepositoryException {
         // variable set meaning that its hardbound beforehand. It does not account
         // as a variable when examining the probability.
         final Backend backend = new BlazegraphBackend(blazegraph);
@@ -78,7 +79,7 @@ class FmuBootstrapperTest {
 
     @Disabled
     @Test
-    public void single_tp_with_variable_set_but_different_values_for_it () {
+    public void single_tp_with_variable_set_but_different_values_for_it () throws RepositoryException {
         final Long LIMIT = 10L;
         final Backend backend = new BlazegraphBackend(blazegraph);
 
@@ -111,7 +112,7 @@ class FmuBootstrapperTest {
 
     @Disabled
     @Test
-    public void two_tps_with_variable_set () {
+    public void two_tps_with_variable_set () throws RepositoryException {
         final long LIMIT_SCANS = 50L;
         final Backend backend = new BlazegraphBackend(blazegraph);
 

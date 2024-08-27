@@ -14,6 +14,7 @@ import org.apache.jena.sparql.algebra.OpAsQuery;
 import org.apache.jena.sparql.core.Var;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +32,7 @@ class CountSubqueryBuilderTest {
 
     @Disabled
     @Test
-    public void small_rewriting_test_of_a_query_into_count () {
+    public void small_rewriting_test_of_a_query_into_count () throws RepositoryException {
         String queryAsString = "SELECT * WHERE {?s <http://address> ?c . ?s <http://own> ?a}";
         String expectedAsString = String.format("""
                 SELECT (COUNT(*) AS ?%s) WHERE {

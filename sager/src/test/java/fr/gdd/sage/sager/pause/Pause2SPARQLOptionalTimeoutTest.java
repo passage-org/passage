@@ -5,6 +5,7 @@ import fr.gdd.sage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.sage.sager.iterators.SagerScan;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,10 +22,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class Pause2SPARQLOptionalTimeoutTest {
 
     private static final Logger log = LoggerFactory.getLogger(Pause2SPARQLOptionalTimeoutTest.class);
-    final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
 
     @Test
-    public void create_a_bgp_query_and_pause_at_each_scan () {
+    public void create_a_bgp_query_and_pause_at_each_scan() throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = """
                SELECT * WHERE {
                 ?p <http://address> ?l .
@@ -44,7 +45,8 @@ public class Pause2SPARQLOptionalTimeoutTest {
     }
 
     @Test
-    public void tp_with_optional_tp_reverse_order () {
+    public void tp_with_optional_tp_reverse_order () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = """
                SELECT * WHERE {
                 ?person <http://own> ?animal .
@@ -64,7 +66,8 @@ public class Pause2SPARQLOptionalTimeoutTest {
     }
 
     @Test
-    public void intermediate_query_that_should_return_one_triple () {
+    public void intermediate_query_that_should_return_one_triple () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = """
                 SELECT * WHERE {
                   { SELECT * WHERE { ?person  <http://own>  ?animal } OFFSET 2 }
@@ -84,7 +87,8 @@ public class Pause2SPARQLOptionalTimeoutTest {
     }
 
     @Test
-    public void bgp_of_3_tps_and_optional () {
+    public void bgp_of_3_tps_and_optional () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = """
                SELECT * WHERE {
                  ?person <http://address> ?address .
@@ -107,7 +111,8 @@ public class Pause2SPARQLOptionalTimeoutTest {
     }
 
     @Test
-    public void bgp_of_3_tps_and_optional_of_optional () {
+    public void bgp_of_3_tps_and_optional_of_optional () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = """
                SELECT * WHERE {
                  ?person <http://address> ?address .
@@ -130,7 +135,8 @@ public class Pause2SPARQLOptionalTimeoutTest {
     }
 
     @Test
-    public void intermediate_query () {
+    public void intermediate_query () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = """
                 SELECT * WHERE { {
                     BIND(<http://Alice> AS ?person)

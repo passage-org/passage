@@ -103,6 +103,24 @@ public class CardinalityJoinOrdering<ID,VALUE> extends ReturningArgsOpVisitor<
     }
 
     @Override
+    public Op visit(OpUnion union, Set<Var> alreadySetVars) {
+        Op left = ReturningArgsOpVisitorRouter.visit(this, union.getLeft(), new HashSet<>(alreadySetVars));
+        Op right = ReturningArgsOpVisitorRouter.visit(this, union.getRight(), new HashSet<>(alreadySetVars));
+        return OpCloningUtil.clone(union, left, right);
+    }
+
+    @Override
+    public Op visit(OpSlice slice, Set<Var> alreadySetVars) {
+        return OpCloningUtil.clone(slice,
+                ReturningArgsOpVisitorRouter.visit(this, slice.getSubOp(), alreadySetVars));
+    }
+
+    @Override
+    public Op visit(OpTable table, Set<Var> alreadySetVars) {
+        return table;
+    }
+
+    @Override
     public Op visit(OpTriple triple, Set<Var> alreadySetVars) {
         return triple; // nothing to optimize with a single triple
     }

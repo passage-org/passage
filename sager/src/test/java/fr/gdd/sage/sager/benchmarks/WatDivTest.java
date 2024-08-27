@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.repository.RepositoryException;
+import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,8 +26,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class WatDivTest {
 
     private final static Logger log = LoggerFactory.getLogger(WatDivTest.class);
-    static BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl");
+    static BlazegraphBackend watdivBlazegraph;
 
+    static {
+        try {
+            watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl");
+        } catch (SailException | RepositoryException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @Disabled
     @Test

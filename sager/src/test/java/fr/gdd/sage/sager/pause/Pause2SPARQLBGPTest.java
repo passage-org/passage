@@ -2,10 +2,10 @@ package fr.gdd.sage.sager.pause;
 
 import fr.gdd.sage.blazegraph.BlazegraphBackend;
 import fr.gdd.sage.databases.inmemory.IM4Blazegraph;
-import fr.gdd.sage.databases.inmemory.IM4Jena;
-import fr.gdd.sage.jena.JenaBackend;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.openrdf.repository.RepositoryException;
+import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,11 +17,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class Pause2SPARQLBGPTest {
 
     private static final Logger log = LoggerFactory.getLogger(Pause2SPARQLBGPTest.class);
-    private static final JenaBackend jena = new JenaBackend(IM4Jena.triple9()); // TODO
-    final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
 
     @Test
-    public void create_a_simple_query_and_pause_at_each_result () {
+    public void create_a_simple_query_and_pause_at_each_result () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c}";
 
         int sum = 0;
@@ -35,7 +34,8 @@ public class Pause2SPARQLBGPTest {
     }
 
     @Test
-    public void create_a_bgp_query_and_pause_at_each_result () {
+    public void create_a_bgp_query_and_pause_at_each_result () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = """
                SELECT * WHERE {
                 ?p <http://address> <http://nantes> .
@@ -53,7 +53,8 @@ public class Pause2SPARQLBGPTest {
     }
 
     @Test
-    public void create_a_bgp_query_and_pause_at_each_result_but_different_order () {
+    public void create_a_bgp_query_and_pause_at_each_result_but_different_order () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = """
                SELECT * WHERE {
                 ?p <http://own> ?a .
@@ -71,7 +72,8 @@ public class Pause2SPARQLBGPTest {
     }
 
     @Test
-    public void bgp_with_3_tps_that_preempt () {
+    public void bgp_with_3_tps_that_preempt () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = """
                SELECT * WHERE {
                 ?p <http://own> ?a .
@@ -91,7 +93,7 @@ public class Pause2SPARQLBGPTest {
 
     @Disabled
     @Test
-    public void on_watdiv_conjunctive_query_0 () {
+    public void on_watdiv_conjunctive_query_0 () throws RepositoryException, SailException {
         BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
 
         String query0 = """
@@ -115,7 +117,7 @@ public class Pause2SPARQLBGPTest {
 
     @Disabled
     @Test
-    public void on_watdiv_conjunctive_query_10124 () {
+    public void on_watdiv_conjunctive_query_10124 () throws RepositoryException, SailException {
         BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
 
         String query10124 = """

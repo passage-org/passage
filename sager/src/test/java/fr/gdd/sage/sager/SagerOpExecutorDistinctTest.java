@@ -6,6 +6,7 @@ import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,10 +16,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class SagerOpExecutorDistinctTest {
 
     static final Logger log = LoggerFactory.getLogger(SagerOpExecutorDistinctTest.class);
-    static final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
 
     @Test
-    public void basic_trial_to_create_distinct_without_projected_variable() {
+    public void basic_trial_to_create_distinct_without_projected_variable() throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String query = "SELECT DISTINCT * WHERE { ?p <http://address> ?a }";
 
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
@@ -29,7 +30,8 @@ public class SagerOpExecutorDistinctTest {
     }
 
     @Test
-    public void basic_trial_to_create_distinct_from_other_implemented_operators() {
+    public void basic_trial_to_create_distinct_from_other_implemented_operators() throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String query = "SELECT DISTINCT ?a WHERE { ?p <http://address> ?a }";
 
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
@@ -40,7 +42,8 @@ public class SagerOpExecutorDistinctTest {
     }
 
     @Test
-    public void distinct_of_bgp() {
+    public void distinct_of_bgp() throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String query = """
         SELECT DISTINCT ?address WHERE {
             ?person <http://address> ?address.
@@ -55,7 +58,8 @@ public class SagerOpExecutorDistinctTest {
     }
 
     @Test
-    public void distinct_of_bgp_rewritten() {
+    public void distinct_of_bgp_rewritten() throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String query = """
         SELECT DISTINCT ?address WHERE {
             {SELECT DISTINCT ?address ?person WHERE {

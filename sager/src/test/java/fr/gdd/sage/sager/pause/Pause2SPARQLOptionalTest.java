@@ -18,7 +18,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class Pause2SPARQLOptionalTest {
 
     static final Logger log = LoggerFactory.getLogger(Pause2SPARQLOptionalTest.class);
-    static final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+    static final BlazegraphBackend blazegraph;
+
+    static {
+        try {
+            blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        } catch (RepositoryException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @Test
     public void tp_with_optional_tp () {

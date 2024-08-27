@@ -2,10 +2,9 @@ package fr.gdd.sage.sager.pause;
 
 import fr.gdd.sage.blazegraph.BlazegraphBackend;
 import fr.gdd.sage.databases.inmemory.IM4Blazegraph;
-import fr.gdd.sage.databases.inmemory.IM4Jena;
-import fr.gdd.sage.jena.JenaBackend;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,11 +16,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class Pause2SPARQLUnionTest {
 
     private static final Logger log = LoggerFactory.getLogger(Pause2SPARQLUnionTest.class);
-    private static final JenaBackend jena = new JenaBackend(IM4Jena.triple9());
-    private static final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
 
     @Test
-    public void create_an_simple_union_that_does_not_come_from_preemption() {
+    public void create_an_simple_union_that_does_not_come_from_preemption() throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = """
                SELECT * WHERE {
                 {?p <http://own> ?a } UNION { ?p <http://address> <http://nantes> }
@@ -39,7 +37,8 @@ public class Pause2SPARQLUnionTest {
     }
 
     @Test
-    public void create_an_simple_union_with_bgp_inside() {
+    public void create_an_simple_union_with_bgp_inside() throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = """
                SELECT * WHERE {
                 {?p <http://own> ?a . ?a <http://species> ?s } UNION { ?p <http://address> <http://nantes> }

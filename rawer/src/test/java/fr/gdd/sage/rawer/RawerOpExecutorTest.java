@@ -15,11 +15,6 @@ import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Value;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +32,7 @@ public class RawerOpExecutorTest {
     private static final BigdataSail blazegraph = IM4Blazegraph.triples9();
 
     @Test
-    public void select_all_from_simple_spo () { // as per usual
+    public void select_all_from_simple_spo () throws RepositoryException { // as per usual
         String queryAsString = "SELECT * WHERE {?s ?p ?o}";
         Multiset<String> results = execute(queryAsString, new JenaBackend(dataset), 100L);
         assertEquals(9, results.elementSet().size());
@@ -49,7 +44,7 @@ public class RawerOpExecutorTest {
     }
 
     @Test
-    public void simple_project_on_spo () { // as per usual
+    public void simple_project_on_spo () throws RepositoryException { // as per usual
         String queryAsString = "SELECT ?s WHERE {?s ?p ?o}";
         Multiset<String> results = execute(queryAsString, new JenaBackend(dataset), 100L);
         assertEquals(6, results.elementSet().size()); // Alice repeated 4 times
@@ -61,7 +56,7 @@ public class RawerOpExecutorTest {
     }
 
     @Test
-    public void simple_triple_pattern () {
+    public void simple_triple_pattern () throws RepositoryException {
         String queryAsString = "SELECT * WHERE {?s <http://address> ?o}";
         Multiset<String> results = execute(queryAsString, new JenaBackend(dataset), 100L);
         assertEquals(3, results.elementSet().size());
@@ -74,7 +69,7 @@ public class RawerOpExecutorTest {
     }
 
     @Test
-    public void simple_bgp() {
+    public void simple_bgp() throws RepositoryException {
         String queryAsString = "SELECT * WHERE {?s <http://address> ?c . ?s <http://own> ?a}";
         Multiset<String> results = execute(queryAsString, new JenaBackend(dataset), 100L);
         assertEquals(3, results.elementSet().size());
@@ -87,7 +82,7 @@ public class RawerOpExecutorTest {
     }
 
     @Test
-    public void simple_bgp_of_3_tps() {
+    public void simple_bgp_of_3_tps() throws RepositoryException {
         String queryAsString = "SELECT * WHERE {?s <http://address> ?c . ?s <http://own> ?a . ?a <http://species> ?r}";
         Multiset<String> results = execute(queryAsString, new JenaBackend(dataset), 100L);
         assertEquals(3, results.elementSet().size());
@@ -101,14 +96,14 @@ public class RawerOpExecutorTest {
 
     @Disabled
     @Test
-    public void simple_bind_on_a_triple_pattern () {
+    public void simple_bind_on_a_triple_pattern () throws RepositoryException {
         String queryAsString = "SELECT * WHERE {BIND (<http://Alice> AS ?s) ?s ?p ?o}";
         execute(queryAsString, new BlazegraphBackend(blazegraph), 100L);
     }
 
     @Disabled
     @Test
-    public void count_of_simple_triple_pattern () {
+    public void count_of_simple_triple_pattern () throws RepositoryException {
         String queryAsString = "SELECT (COUNT(*) AS ?c) WHERE {<http://Alice> ?p ?o}";
         execute(queryAsString, new BlazegraphBackend(blazegraph), 10L);
         // should be 4
@@ -116,14 +111,14 @@ public class RawerOpExecutorTest {
 
     @Disabled
     @Test
-    public void count_of_carthesian_product_bgp () {
+    public void count_of_carthesian_product_bgp () throws RepositoryException {
         String queryAsString = "SELECT (COUNT(*) AS ?c) WHERE {<http://Alice> ?p ?o . <http://Alice> <http://own> ?a}";
         execute(queryAsString, new BlazegraphBackend(blazegraph), 1L); // 12 since cartesian product
     }
 
     @Disabled
     @Test
-    public void count_of_bgp () {
+    public void count_of_bgp () throws RepositoryException {
         String queryAsString = "SELECT (COUNT(*) AS ?c) WHERE {?person <http://address> ?location . ?person <http://own> ?animal}";
         // ~3 since only Alice has animals. Choosing a person that has no animal makes the RW fails, hence the approximate
         // value.
@@ -132,7 +127,7 @@ public class RawerOpExecutorTest {
 
     @Disabled
     @Test
-    public void count_with_group_on_simple_tp () {
+    public void count_with_group_on_simple_tp () throws RepositoryException {
         // TODO TODO not good yet
         String queryAsString = "SELECT (COUNT(*) AS ?c) ?p WHERE {?s ?p ?o} GROUP BY ?p";
         execute(queryAsString, new BlazegraphBackend(blazegraph), 1L);
@@ -141,7 +136,7 @@ public class RawerOpExecutorTest {
 
     @Disabled
     @Test
-    public void count_distinct_of_simple_triple_pattern () {
+    public void count_distinct_of_simple_triple_pattern () throws RepositoryException {
         String queryAsString = "SELECT (COUNT(DISTINCT ?s) AS ?c) WHERE {?s ?p ?o}";
         execute(queryAsString, new BlazegraphBackend(blazegraph), 1L);
     }
