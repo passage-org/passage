@@ -39,22 +39,27 @@ public class SagerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
     CacheId<ID,VALUE> cache;
 
     public SagerOpExecutor() {
-        // This creates a brandnew execution context, but it's important
+        // This creates a new execution context, but it's important
         // that `setBackend` is called, or it will throw at runtime.
         this.execCxt = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
         execCxt.getContext().setIfUndef(SagerConstants.SCANS, 0L);
         execCxt.getContext().setIfUndef(SagerConstants.LIMIT, Long.MAX_VALUE);
         execCxt.getContext().setIfUndef(SagerConstants.TIMEOUT, Long.MAX_VALUE);
         execCxt.getContext().setFalse(SagerConstants.PAUSED);
-
     }
 
+    /**
+     * Creates a new SagerOpExecutor from a valid and complete execution context.
+     * @param execCxt The execution context to create an executor from.
+     */
     public SagerOpExecutor(ExecutionContext execCxt) {
         this.execCxt = execCxt;
-        setBackend(this.backend);
+        Backend<ID, VALUE, Long> backend = execCxt.getContext().get(SagerConstants.BACKEND);
+        setBackend(backend);
         execCxt.getContext().setIfUndef(SagerConstants.SCANS, 0L);
         execCxt.getContext().setIfUndef(SagerConstants.LIMIT, Long.MAX_VALUE);
-        execCxt.getContext().setIfUndef(SagerConstants.TIMEOUT, Long.MAX_VALUE);
+        Long timeout = execCxt.getContext().getLong(SagerConstants.TIMEOUT, Long.MAX_VALUE);
+        setTimeout(timeout);
         execCxt.getContext().setFalse(SagerConstants.PAUSED);
     }
 

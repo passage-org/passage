@@ -12,7 +12,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Command Line Interface for running sampling-based SPARQL operators.
@@ -95,8 +94,6 @@ public class SagerCLI {
             description = "Display this help message.")
     boolean usageHelpRequested;
 
-    static AtomicInteger idProvider = new AtomicInteger(1);
-
     /* ****************************************************************** */
 
     public static void main(String[] args) {
@@ -116,7 +113,7 @@ public class SagerCLI {
             try {
                 serverOptions.queryAsString = Files.readString(queryPath);
             } catch (IOException e) {
-                System.out.println("Error: could not read " + queryPath.toString() + ".");
+                System.out.println("Error: could not read " + queryPath + ".");
                 System.exit(CommandLine.ExitCode.SOFTWARE);
             }
         }
