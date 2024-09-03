@@ -17,6 +17,7 @@ public class SagerConstants {
     static public final Symbol LIMIT = allocConstantSymbol("Limit"); // max number of scans
 
     static public final Symbol PAUSED = allocVariableSymbol("Paused"); // is the execution paused/stopped.
+    static public final Symbol PAUSED_STATE = allocVariableSymbol("PausedState"); // The returned SPARQL query of the paused state.
 
     static public final Symbol CACHE = allocVariableSymbol("Cache"); // some kind of cache
 

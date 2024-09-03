@@ -4,6 +4,9 @@ import fr.gdd.sage.blazegraph.BlazegraphBackend;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.SagerOpExecutorFactory;
+import fr.gdd.sage.sager.writers.ExtensibleRowSetWriterJSON;
+import fr.gdd.sage.sager.writers.ModuleOutputRegistry;
+import fr.gdd.sage.sager.writers.OutputWriterJSONSage;
 import org.apache.jena.fuseki.auth.Auth;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.fuseki.mgt.ActionServerStatus;
@@ -13,6 +16,8 @@ import org.apache.jena.fuseki.servlets.ActionService;
 import org.apache.jena.fuseki.servlets.SPARQL_QueryDataset;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
+import org.apache.jena.riot.resultset.ResultSetLang;
+import org.apache.jena.riot.rowset.RowSetWriterRegistry;
 import org.apache.jena.sparql.engine.main.QC;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.sail.SailException;
@@ -119,6 +124,11 @@ public class SagerServerCLI {
         dataset.getContext().set(SagerConstants.BACKEND, backend);
         dataset.getContext().set(SagerConstants.TIMEOUT, timeout);
         QC.setFactory(dataset.getContext(), new SagerOpExecutorFactory());
+
+        // set globally but the dedicated writter of sage only comes into
+        // play when some variables exist in the execution context.
+        RowSetWriterRegistry.register(ResultSetLang.RS_JSON, ExtensibleRowSetWriterJSON.factory);
+        ModuleOutputRegistry.register(ResultSetLang.RS_JSON, new OutputWriterJSONSage());
 
         // FusekiModules.add(new SageModule());
 

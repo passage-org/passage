@@ -41,7 +41,7 @@ public class SagerOpExecutorFactory implements OpExecutorFactory {
 
         @Override
         public QueryIterator executeOp(Op op, QueryIterator input) {
-            return new BindingWrapper(sager.execute(op));
+            return new BindingWrapper(sager.execute(op), sager);
         }
 
         @Override
@@ -55,9 +55,11 @@ public class SagerOpExecutorFactory implements OpExecutorFactory {
     public static class BindingWrapper implements QueryIterator {
 
         final Iterator<BackendBindings> wrapped;
+        final SagerOpExecutor executor;
 
-        public BindingWrapper(Iterator<BackendBindings> wrapped) {
+        public BindingWrapper(Iterator<BackendBindings> wrapped, SagerOpExecutor executor) {
             this.wrapped = wrapped;
+            this.executor = executor;
         }
 
         @Override
@@ -78,7 +80,7 @@ public class SagerOpExecutorFactory implements OpExecutorFactory {
 
         @Override
         public void cancel() {
-            // nothing
+            executor.pauseAsString();
         }
 
         @Override
@@ -93,7 +95,7 @@ public class SagerOpExecutorFactory implements OpExecutorFactory {
 
         @Override
         public void close() {
-            // nothing
+            executor.pauseAsString();
         }
 
         @Override

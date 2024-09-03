@@ -6,12 +6,14 @@ import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.generics.CacheId;
 import fr.gdd.sage.interfaces.Backend;
+import fr.gdd.sage.io.SageOutput;
 import fr.gdd.sage.iterators.SagerBind;
 import fr.gdd.sage.sager.iterators.*;
 import fr.gdd.sage.sager.optimizers.Progress;
 import fr.gdd.sage.sager.optimizers.SagerOptimizer;
 import fr.gdd.sage.sager.pause.Pause2SPARQL;
 import fr.gdd.sage.sager.resume.IsSkippable;
+import fr.gdd.sage.sager.writers.SagerSavedState;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.QueryFactory;
@@ -61,6 +63,7 @@ public class SagerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         Long timeout = execCxt.getContext().getLong(SagerConstants.TIMEOUT, Long.MAX_VALUE);
         setTimeout(timeout);
         execCxt.getContext().setFalse(SagerConstants.PAUSED);
+        execCxt.getContext().set(SagerConstants.PAUSED_STATE, new SagerSavedState() );
     }
 
     public Backend<ID, VALUE, Long> getBackend() {
@@ -114,15 +117,21 @@ public class SagerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
                 ReturningArgsOpVisitorRouter.visit(this, root, Iter.of(new BackendBindings<>())));
     }
 
-    public String pauseAsString () {
+    public String pauseAsString() {
         Op paused = pause();
-        return Objects.isNull(paused) ? null : OpAsQuery.asQuery(paused).toString();
+        String savedString = Objects.isNull(paused) ? null : OpAsQuery.asQuery(paused).toString();
+
+        SagerSavedState sss = execCxt.getContext().get(SagerConstants.PAUSED_STATE);
+        sss.setState(savedString);
+        return savedString;
     }
 
     public Op pause() {
         execCxt.getContext().setTrue(SagerConstants.PAUSED);
         Pause2SPARQL<ID, VALUE> saver = execCxt.getContext().get(SagerConstants.SAVER);
-        return saver.save();
+        Op savedOp = saver.save();
+        // execCxt.getContext().set(SagerConstants.PAUSED_STATE, savedOp);
+        return savedOp;
     }
 
     public double progress() {
