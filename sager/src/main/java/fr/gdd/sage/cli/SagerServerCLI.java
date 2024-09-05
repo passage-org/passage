@@ -4,6 +4,7 @@ import fr.gdd.sage.blazegraph.BlazegraphBackend;
 import fr.gdd.sage.interfaces.Backend;
 import fr.gdd.sage.sager.SagerConstants;
 import fr.gdd.sage.sager.SagerOpExecutorFactory;
+import fr.gdd.sage.sager.SagerQueryEngine;
 import fr.gdd.sage.sager.writers.ExtensibleRowSetWriterJSON;
 import fr.gdd.sage.sager.writers.ModuleOutputRegistry;
 import fr.gdd.sage.sager.writers.OutputWriterJSONSage;
@@ -14,11 +15,15 @@ import org.apache.jena.fuseki.server.Operation;
 import org.apache.jena.fuseki.server.ServerConst;
 import org.apache.jena.fuseki.servlets.ActionService;
 import org.apache.jena.fuseki.servlets.SPARQL_QueryDataset;
+import org.apache.jena.query.ARQ;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.riot.resultset.ResultSetLang;
 import org.apache.jena.riot.rowset.RowSetWriterRegistry;
+import org.apache.jena.sparql.engine.QueryEngineRegistry;
 import org.apache.jena.sparql.engine.main.QC;
+import org.apache.jena.sparql.engine.main.StageBuilder;
+import org.apache.jena.sparql.mgt.Explain;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.sail.SailException;
 import picocli.CommandLine;
@@ -119,11 +124,15 @@ public class SagerServerCLI {
                                     Long timeout,
                                     Integer port,
                                     String ui) {
+        // ARQ.setExecutionLogging(Explain.InfoLevel.ALL);
         // wraps our database inside a standard but empty dataset.
+        ARQ.enableOptimizer(false); // just in case
+
         Dataset dataset = DatasetFactory.create(); // TODO double check if it's alright
         dataset.getContext().set(SagerConstants.BACKEND, backend);
         dataset.getContext().set(SagerConstants.TIMEOUT, timeout);
         QC.setFactory(dataset.getContext(), new SagerOpExecutorFactory());
+        QueryEngineRegistry.addFactory(SagerQueryEngine.factory);
 
         // set globally but the dedicated writter of sage only comes into
         // play when some variables exist in the execution context.

@@ -38,6 +38,24 @@ public class WatDivTest {
 
     @Disabled
     @Test
+    public void watdiv_spo () throws IOException {
+        String query = "SELECT * WHERE {?s ?p ?o } OFFSET 20";
+        int nbResults = 0;
+        int nbPreempt = -1;
+        long start = System.currentTimeMillis();
+        while (Objects.nonNull(query)) {
+            log.debug(query);
+            var result = Save2SPARQLTest.executeQueryWithTimeout(query, watdivBlazegraph, 100L);
+            // var result = Save2SPARQLTest.executeQueryWithTimeout(query, watdivBlazegraph, 60000L); // 1s timeout
+            nbResults += result.getLeft();
+            query = result.getRight();
+            nbPreempt += 1;
+        }
+        long elapsed = System.currentTimeMillis() - start;
+    }
+
+    @Disabled
+    @Test
     public void watdiv_with_1s_timeout () throws IOException {
         Map<String, Long> groundTruth = readGroundTruth("/Users/nedelec-b-2/Desktop/Projects/sage-jena/results/baseline.csv", 2);
         List<Pair<String, String>> queries = Watdiv10M.getQueries("/Users/nedelec-b-2/Desktop/Projects/" + Watdiv10M.QUERIES_PATH, Watdiv10M.blacklist);

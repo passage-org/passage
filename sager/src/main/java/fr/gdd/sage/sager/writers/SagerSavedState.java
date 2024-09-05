@@ -8,8 +8,7 @@ public class SagerSavedState {
 
     String state;
 
-    public SagerSavedState() {
-    }
+    public SagerSavedState() {}
 
     public void setState (String state) {
         this.state = state;

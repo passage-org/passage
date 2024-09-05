@@ -6,7 +6,6 @@ import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.sage.generics.BackendBindings;
 import fr.gdd.sage.generics.CacheId;
 import fr.gdd.sage.interfaces.Backend;
-import fr.gdd.sage.io.SageOutput;
 import fr.gdd.sage.iterators.SagerBind;
 import fr.gdd.sage.sager.iterators.*;
 import fr.gdd.sage.sager.optimizers.Progress;

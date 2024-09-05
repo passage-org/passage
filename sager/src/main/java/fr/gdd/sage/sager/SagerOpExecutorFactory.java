@@ -4,7 +4,6 @@ import fr.gdd.sage.generics.BackendBindings;
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.algebra.OpAsQuery;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.engine.QueryIterator;
@@ -50,6 +49,7 @@ public class SagerOpExecutorFactory implements OpExecutorFactory {
             // This one is actually called… not the public one.
             return this.executeOp(op, input);
         }
+
     }
 
     public static class BindingWrapper implements QueryIterator {

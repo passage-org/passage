@@ -30,9 +30,12 @@ public class OutputWriterJSONSage implements ModuleOutputWriter {
         }
         // otherwise, we add a field to the response.
         writer.print(" ,");
+        writer.print(JSWriter.outputQuotedString("metadata"));
+        writer.print(" : {");
         writer.print(JSWriter.outputQuotedString("next"));
         writer.println(" : ");
         writer.println(JSWriter.outputQuotedString(savedString.getState()));
+        writer.print("}"); // end metadata
     }
 
 }
