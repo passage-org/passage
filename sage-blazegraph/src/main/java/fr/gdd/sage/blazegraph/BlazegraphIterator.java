@@ -111,7 +111,7 @@ public class BlazegraphIterator extends BackendIterator<IV, BigdataValue, Long> 
         long startFrom = Objects.isNull(min) ? 0L: iindex.rangeCount(null, min);
         if (to > 0) {
             byte[] keyAt = ((AbstractBTree) iindex).keyAt(startFrom + to);
-            if (BytesUtil.compareBytes(keyAt, max) < 0) {
+            if (Objects.isNull(max) || BytesUtil.compareBytes(keyAt, max) < 0) {
                 this.tupleIterator = iindex.rangeIterator(keyAt, max);
             } else {
                 this.tupleIterator = EmptyTupleIterator.INSTANCE;
