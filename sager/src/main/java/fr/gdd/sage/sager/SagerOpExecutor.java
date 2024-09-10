@@ -47,6 +47,7 @@ public class SagerOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         execCxt.getContext().setIfUndef(SagerConstants.LIMIT, Long.MAX_VALUE);
         execCxt.getContext().setIfUndef(SagerConstants.TIMEOUT, Long.MAX_VALUE);
         execCxt.getContext().setFalse(SagerConstants.PAUSED);
+        execCxt.getContext().set(SagerConstants.PAUSED_STATE, new SagerSavedState() );
     }
 
     /**
