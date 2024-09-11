@@ -191,9 +191,9 @@ public class SagerCLI {
 
             if (serverOptions.report && serverOptions.loop) {
                 System.err.println();
+                System.err.printf("%sTOTAL number of pause/resume: %s %s%n", PURPLE_BOLD, RESET, totalPreempt);
                 System.err.printf("%sTOTAL execution time: %s %s ms%n", PURPLE_BOLD, RESET, totalElapsed);
                 System.err.printf("%sTOTAL number of results: %s %s%n", PURPLE_BOLD, RESET, totalNbResults);
-                System.err.printf("%sTOTAL number of pause/resume: %s %s%n", PURPLE_BOLD, RESET, totalPreempt);
             }
             System.gc(); // no guarantee but still
         }
