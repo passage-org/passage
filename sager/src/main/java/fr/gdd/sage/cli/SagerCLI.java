@@ -142,8 +142,8 @@ public class SagerCLI {
         }
 
         if (serverOptions.report) {
-            System.out.printf("%sPath to database:%s %s%n", PURPLE_BOLD, RESET, serverOptions.database);
-            System.out.printf("%sSPARQL query:%s %s%n", PURPLE_BOLD, RESET, serverOptions.queryAsString);
+            System.err.printf("%sPath to database:%s %s%n", PURPLE_BOLD, RESET, serverOptions.database);
+            System.err.printf("%sSPARQL query:%s %s%n", PURPLE_BOLD, RESET, serverOptions.queryAsString);
         }
 
         for (int i = 0; i < serverOptions.numberOfExecutions; ++i) {
