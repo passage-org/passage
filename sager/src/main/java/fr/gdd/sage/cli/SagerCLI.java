@@ -69,6 +69,13 @@ public class SagerCLI {
     Long limit = Long.MAX_VALUE;
 
     @CommandLine.Option(
+            order = 4,
+            names = {"--loop"},
+            description = "Continue executing the query until completion.")
+    Boolean loop = false;
+
+
+    @CommandLine.Option(
             order = 11,
             names = {"-r", "--report"},
             description = "Provides a concise report on query execution.")
@@ -140,28 +147,53 @@ public class SagerCLI {
         }
 
         for (int i = 0; i < serverOptions.numberOfExecutions; ++i) {
-            SagerOpExecutor executor = new SagerOpExecutor();
-            executor.setBackend(backend)
-                    .setLimit(serverOptions.limit)
-                    .setTimeout(serverOptions.timeout);
+            String queryToRun = serverOptions.queryAsString;
+            long totalElapsed = 0L;
+            long totalNbResults = 0L;
+            long totalPreempt = -1L; // start -1 because the first execution is not considered
+            do {
+                SagerOpExecutor executor = new SagerOpExecutor();
+                executor.setBackend(backend)
+                        .setLimit(serverOptions.limit)
+                        .setTimeout(serverOptions.timeout);
 
-            if (serverOptions.forceOrder) {
-                executor.forceOrder();
-            }
+                if (serverOptions.forceOrder) {
+                    executor.forceOrder();
+                }
 
-            long start = System.currentTimeMillis();
-            Iterator<BackendBindings> iterator = executor.execute(serverOptions.queryAsString);
-            long nbResults = 0;
-            while (iterator.hasNext()) { // TODO try catch
-                System.out.println(iterator.next());
-                nbResults += 1;
-            }
-
-            if (serverOptions.report) {
+                long start = System.currentTimeMillis();
+                Iterator<BackendBindings> iterator = executor.execute(queryToRun);
+                long nbResults = 0;
+                while (iterator.hasNext()) { // TODO try catch
+                    System.out.println(iterator.next());
+                    nbResults += 1;
+                }
                 long elapsed = System.currentTimeMillis() - start;
-                System.out.printf("%sExecution time: %s %s ms%n", PURPLE_BOLD, RESET, elapsed);
-                System.out.printf("%sNumber of Results: %s %s%n", PURPLE_BOLD, RESET, nbResults);
-                System.out.printf("%sTo continue query execution, use the following query:%s%n%s%s%s%n", GREEN_UNDERLINED, RESET, ANSI_GREEN, executor.pauseAsString(), RESET);
+
+                totalElapsed += elapsed;
+                totalNbResults += nbResults;
+                totalPreempt += 1;
+
+                queryToRun = executor.pauseAsString();
+
+                if (serverOptions.report) {
+                    System.err.printf("%sNumber of pause/resume: %s %s%n", PURPLE_BOLD, RESET, totalPreempt);
+                    System.err.printf("%sExecution time: %s %s ms%n", PURPLE_BOLD, RESET, elapsed);
+                    System.err.printf("%sNumber of results: %s %s%n", PURPLE_BOLD, RESET, nbResults);
+                    if (Objects.nonNull(queryToRun)) {
+                        System.err.printf("%sTo continue query execution, use the following query:%s%n%s%s%s%n", GREEN_UNDERLINED, RESET, ANSI_GREEN, queryToRun, RESET);
+                    } else {
+                        System.err.printf("%sThe query execution is complete.%s%n", GREEN_UNDERLINED, RESET);
+                    }
+                }
+
+            } while (Objects.nonNull(queryToRun) && serverOptions.loop);
+
+            if (serverOptions.report && serverOptions.loop) {
+                System.err.println();
+                System.err.printf("%sTOTAL execution time: %s %s ms%n", PURPLE_BOLD, RESET, totalElapsed);
+                System.err.printf("%sTOTAL number of results: %s %s%n", PURPLE_BOLD, RESET, totalNbResults);
+                System.err.printf("%sTOTAL number of pause/resume: %s %s%n", PURPLE_BOLD, RESET, totalPreempt);
             }
             System.gc(); // no guarantee but still
         }
