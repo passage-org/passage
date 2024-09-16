@@ -101,6 +101,7 @@
                             <goal>single</goal>
                         </goals>
                         <configuration>
+                            <appendAssemblyId>false</appendAssemblyId>
                             <archive>
                                 <manifest>
                                     <mainClass>fr.gdd.sage.cli.SagerCLI</mainClass>
@@ -119,6 +120,7 @@
                             <goal>single</goal>
                         </goals>
                         <configuration>
+                            <appendAssemblyId>false</appendAssemblyId>
                             <archive>
                                 <manifest>
                                     <mainClass>fr.gdd.sage.cli.SagerServerCLI</mainClass>
