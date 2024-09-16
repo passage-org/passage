@@ -5,10 +5,10 @@
 		             http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>fr.gdd.sage</groupId>
-  <artifactId>sage-jena</artifactId>
+  <groupId>fr.gdd</groupId>
+  <artifactId>passage</artifactId>
   <packaging>pom</packaging>
-  <version>0.0.4</version>
+  <version>0.0.1</version>
 
 
   <distributionManagement>
@@ -25,14 +25,12 @@
 
   <modules>
     <module>jena-utils</module>
-    <module>sage-commons</module>
-    <module>sage-databases</module>
-    <module>sage-jena-tdb2</module>
-    <module>sage-blazegraph</module>
-    <!--<module>sage-jena-volcano</module>--> <!-- deprecated in favor of sage-volcano -->
-    <!--<module>sage-jena-module</module> -->
-    <module>rawer</module>
-    <module>sager</module>
+    <module>passage-commons</module>
+    <module>passage-databases</module>
+    <module>passage-blazegraph</module>
+    <module>passage-volcano</module>
+    <module>raw</module>
+
   </modules>
 
   <properties>
@@ -65,43 +63,33 @@
     <dependencies>
       <!-- module versions -->
       <dependency>
-        <groupId>fr.gdd.sage</groupId>
+        <groupId>fr.gdd</groupId>
         <artifactId>jena-utils</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>fr.gdd.sage</groupId>
-        <artifactId>sage-commons</artifactId>
+        <groupId>fr.gdd</groupId>
+        <artifactId>passage-commons</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>fr.gdd.sage</groupId>
-        <artifactId>sage-databases</artifactId>
+        <groupId>fr.gdd</groupId>
+        <artifactId>passage-databases</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>fr.gdd.sage</groupId>
-        <artifactId>sage-jena-tdb2</artifactId>
+        <groupId>fr.gdd</groupId>
+        <artifactId>passage-blazegraph</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>fr.gdd.sage</groupId>
-        <artifactId>sage-blazegraph</artifactId>
+        <groupId>fr.gdd</groupId>
+        <artifactId>passage-volcano</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>fr.gdd.sage</groupId>
-        <artifactId>sage-jena-module</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>fr.gdd.sage</groupId>
-        <artifactId>sager</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>fr.gdd.sage</groupId>
-        <artifactId>rawer</artifactId>
+        <groupId>fr.gdd</groupId>
+        <artifactId>raw</artifactId>
         <version>${project.version}</version>
       </dependency>
 
