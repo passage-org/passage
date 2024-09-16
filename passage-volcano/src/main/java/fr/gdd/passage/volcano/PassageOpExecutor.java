@@ -11,7 +11,7 @@ import fr.gdd.passage.volcano.iterators.*;
 import fr.gdd.passage.volcano.optimizers.PassageOptimizer;
 import fr.gdd.passage.volcano.optimizers.Progress;
 import fr.gdd.passage.volcano.pause.PassageSavedState;
-import fr.gdd.passage.volcano.pause.Pause2SPARQL;
+import fr.gdd.passage.volcano.pause.Pause2Next;
 import fr.gdd.passage.volcano.resume.IsSkippable;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.query.DatasetFactory;
@@ -111,7 +111,7 @@ public class PassageOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
     public Iterator<BackendBindings<ID, VALUE>> execute(Op root) {
         PassageOptimizer<ID,VALUE> optimizer = execCxt.getContext().get(PassageConstants.LOADER);
         root = optimizer.optimize(root);
-        execCxt.getContext().set(PassageConstants.SAVER, new Pause2SPARQL<ID,VALUE>(root, execCxt));
+        execCxt.getContext().set(PassageConstants.SAVER, new Pause2Next<ID,VALUE>(root, execCxt));
 
         return new PassageRoot<>(execCxt,
                 ReturningArgsOpVisitorRouter.visit(this, root, Iter.of(new BackendBindings<>())));
@@ -128,7 +128,7 @@ public class PassageOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
 
     public Op pause() {
         execCxt.getContext().setTrue(PassageConstants.PAUSED);
-        Pause2SPARQL<ID, VALUE> saver = execCxt.getContext().get(PassageConstants.SAVER);
+        Pause2Next<ID, VALUE> saver = execCxt.getContext().get(PassageConstants.SAVER);
         Op savedOp = saver.save();
         // execCxt.getContext().set(SagerConstants.PAUSED_STATE, savedOp);
         return savedOp;
@@ -182,7 +182,7 @@ public class PassageOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
     @Override
     public Iterator<BackendBindings<ID,VALUE>> visit(OpUnion union, Iterator<BackendBindings<ID,VALUE>> input) {
         // TODO What about some parallelism here? :)
-        Pause2SPARQL<ID,VALUE> saver = execCxt.getContext().get(PassageConstants.SAVER);
+        Pause2Next<ID,VALUE> saver = execCxt.getContext().get(PassageConstants.SAVER);
         PassageUnion<ID,VALUE> iterator = new PassageUnion<>(this, input, union.getLeft(), union.getRight());
         saver.register(union, iterator);
         return iterator;

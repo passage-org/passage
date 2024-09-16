@@ -9,7 +9,7 @@ import fr.gdd.passage.commons.generics.CacheId;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.iterators.PassageScanFactory;
-import fr.gdd.passage.volcano.pause.Pause2SPARQL;
+import fr.gdd.passage.volcano.pause.Pause2Next;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.atlas.iterator.Iter;
@@ -47,7 +47,7 @@ public class CardinalityJoinOrdering<ID,VALUE> extends ReturningArgsOpVisitor<
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
         ec.getContext().set(PassageConstants.BACKEND, backend);
         ec.getContext().set(PassageConstants.CACHE, new CacheId<>(backend));
-        ec.getContext().set(PassageConstants.SAVER, new Pause2SPARQL<>(null, ec));
+        ec.getContext().set(PassageConstants.SAVER, new Pause2Next<>(null, ec));
         this.fakeContext = ec;
     }
 
@@ -55,7 +55,7 @@ public class CardinalityJoinOrdering<ID,VALUE> extends ReturningArgsOpVisitor<
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
         ec.getContext().set(PassageConstants.BACKEND, backend);
         ec.getContext().set(PassageConstants.CACHE, cache);
-        ec.getContext().set(PassageConstants.SAVER, new Pause2SPARQL<>(null, ec));
+        ec.getContext().set(PassageConstants.SAVER, new Pause2Next<>(null, ec));
         this.fakeContext = ec;
     }
 

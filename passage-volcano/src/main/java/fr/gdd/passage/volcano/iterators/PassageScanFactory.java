@@ -5,7 +5,7 @@ import fr.gdd.passage.commons.generics.CacheId;
 import fr.gdd.passage.commons.generics.Substitutor;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.PassageConstants;
-import fr.gdd.passage.volcano.pause.Pause2SPARQL;
+import fr.gdd.passage.volcano.pause.Pause2Next;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.atlas.lib.tuple.Tuple3;
 import org.apache.jena.sparql.algebra.Op;
@@ -37,7 +37,7 @@ public class PassageScanFactory<ID, VALUE> implements Iterator<BackendBindings<I
         backend = context.getContext().get(PassageConstants.BACKEND);
         this.context = context;
         this.skip = 0L;
-        Pause2SPARQL<ID, VALUE> saver = context.getContext().get(PassageConstants.SAVER);
+        Pause2Next<ID, VALUE> saver = context.getContext().get(PassageConstants.SAVER);
         saver.register(triple, this);
         this.cache = context.getContext().get(PassageConstants.CACHE);
     }
@@ -48,7 +48,7 @@ public class PassageScanFactory<ID, VALUE> implements Iterator<BackendBindings<I
         backend = context.getContext().get(PassageConstants.BACKEND);
         this.context = context;
         this.skip = skip;
-        Pause2SPARQL<ID, VALUE> saver = context.getContext().get(PassageConstants.SAVER);
+        Pause2Next<ID, VALUE> saver = context.getContext().get(PassageConstants.SAVER);
         saver.register(triple, this);
         this.cache = context.getContext().get(PassageConstants.CACHE);
     }

@@ -5,7 +5,7 @@ import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
 import fr.gdd.passage.volcano.PassageConstants;
-import fr.gdd.passage.volcano.pause.Pause2SPARQL;
+import fr.gdd.passage.volcano.pause.Pause2Next;
 import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.atlas.lib.tuple.Tuple3;
 import org.apache.jena.atlas.lib.tuple.TupleFactory;
@@ -29,7 +29,7 @@ public class PassageScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALU
 
     final Long deadline;
     final OpTriple op;
-    final Pause2SPARQL<ID, VALUE> saver;
+    final Pause2Next<ID, VALUE> saver;
     final Backend<ID, VALUE, Long> backend;
     final BackendIterator<ID, VALUE, Long> wrapped;
     final Tuple3<Var> vars; // needed to create bindings

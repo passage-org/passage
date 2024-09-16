@@ -41,4 +41,9 @@ public class BackendSaver<ID,VALUE,OFFSET extends Serializable> extends Returnin
 
     public Op getRoot() {return root;}
     public Iterator<BackendBindings<ID, VALUE>> getIterator(Op op) {return op2it.get(op);}
+
+    /**
+     * @return A SPARQL query that represents the state of the engine.
+     */
+    public Op save() {throw new UnsupportedOperationException("save");};
 }

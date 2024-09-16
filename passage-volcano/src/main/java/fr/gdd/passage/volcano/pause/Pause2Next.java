@@ -21,12 +21,13 @@ import java.util.Objects;
  * Generate a SPARQL query from the current paused state. By executing
  * the generated SPARQL query, the query execution becomes complete.
  */
-public class Pause2SPARQL<ID, VALUE> extends BackendSaver<ID,VALUE,Long> {
+public class Pause2Next<ID, VALUE> extends BackendSaver<ID,VALUE,Long> {
 
-    public Pause2SPARQL(Op root, ExecutionContext context) {
+    public Pause2Next(Op root, ExecutionContext context) {
         super(context.getContext().get(PassageConstants.SAVER), root);
     }
 
+    @Override
     public Op save() {
         Op saved = ReturningOpVisitorRouter.visit(this, getRoot());
         saved = Objects.isNull(saved) ? saved : ReturningOpVisitorRouter.visit(new Triples2BGP(), saved);

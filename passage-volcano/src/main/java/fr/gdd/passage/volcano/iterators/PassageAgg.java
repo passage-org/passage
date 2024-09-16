@@ -7,7 +7,7 @@ import fr.gdd.passage.volcano.accumulators.PassageAccumulator;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.PassageOpExecutor;
-import fr.gdd.passage.volcano.pause.Pause2SPARQL;
+import fr.gdd.passage.volcano.pause.Pause2Next;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.atlas.iterator.Iter;
@@ -47,7 +47,7 @@ public class PassageAgg<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>>
             var2accumulator = new ImmutablePair<>(v, sagerX);
         }
 
-        Pause2SPARQL<ID,VALUE> saver = executor.getExecutionContext().getContext().get(PassageConstants.SAVER);
+        Pause2Next<ID,VALUE> saver = executor.getExecutionContext().getContext().get(PassageConstants.SAVER);
         saver.register(op, this);
 
     }

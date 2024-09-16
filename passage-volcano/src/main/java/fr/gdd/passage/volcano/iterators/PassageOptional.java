@@ -4,7 +4,7 @@ import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.PassageOpExecutor;
-import fr.gdd.passage.volcano.pause.Pause2SPARQL;
+import fr.gdd.passage.volcano.pause.Pause2Next;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpVars;
@@ -42,7 +42,7 @@ public class PassageOptional<ID,VALUE>  implements Iterator<BackendBindings<ID, 
         this.context = executor.getExecutionContext();
         this.executor = executor;
 
-        Pause2SPARQL<ID,VALUE> saver = context.getContext().get(PassageConstants.SAVER);
+        Pause2Next<ID,VALUE> saver = context.getContext().get(PassageConstants.SAVER);
         saver.register(op, this);
     }
 

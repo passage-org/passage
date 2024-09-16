@@ -3,7 +3,7 @@ package fr.gdd.passage.volcano.optimizers;
 import fr.gdd.jena.visitors.ReturningOpVisitor;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.passage.volcano.iterators.PassageScanFactory;
-import fr.gdd.passage.volcano.pause.Pause2SPARQL;
+import fr.gdd.passage.volcano.pause.Pause2Next;
 import fr.gdd.passage.volcano.resume.IsSkippable;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -23,10 +23,10 @@ public class Progress extends ReturningOpVisitor<
         Pair<Double, // progress
                 Double>> { // cardinality
 
-    final Pause2SPARQL<?,?> saver;
+    final Pause2Next<?,?> saver;
     private final static double DONE = 1.;
 
-    public Progress(Pause2SPARQL<?,?> saver) {
+    public Progress(Pause2Next<?,?> saver) {
         this.saver = saver;
     }
 

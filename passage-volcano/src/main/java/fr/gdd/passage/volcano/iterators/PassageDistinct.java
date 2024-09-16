@@ -2,7 +2,7 @@ package fr.gdd.passage.volcano.iterators;
 
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.PassageConstants;
-import fr.gdd.passage.volcano.pause.Pause2SPARQL;
+import fr.gdd.passage.volcano.pause.Pause2Next;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpDistinct;
 import org.apache.jena.sparql.algebra.op.OpFilter;
@@ -25,7 +25,7 @@ public class PassageDistinct<ID,VALUE> implements Iterator<BackendBindings<ID,VA
     final ExecutionContext context;
     final OpDistinct op;
     final Iterator<BackendBindings<ID,VALUE>> wrapped;
-    final Pause2SPARQL<ID,VALUE> saver;
+    final Pause2Next<ID,VALUE> saver;
 
     BackendBindings<ID,VALUE> lastBinding = new BackendBindings<>();
     BackendBindings<ID,VALUE> newBinding;

@@ -15,6 +15,8 @@ import java.util.Iterator;
 /**
  * Executor dedicated to sub-queries that are preempted. For now, these are as simple
  * as a triple pattern, with "BIND … AS …" to create its context.
+ * It does nothing extraordinary, but it checks if the subquery is
+ * using an operator that is not be supported.
  */
 public class PassageSubOpExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
         Iterator<BackendBindings<ID, VALUE>>, // input
