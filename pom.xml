@@ -29,8 +29,9 @@
     <module>passage-databases</module>
     <module>passage-blazegraph</module>
     <module>passage-volcano</module>
+    <module>passage-cli</module>
     <module>raw</module>
-
+    <module>raw-cli</module>
   </modules>
 
   <properties>
@@ -89,7 +90,17 @@
       </dependency>
       <dependency>
         <groupId>fr.gdd</groupId>
+        <artifactId>passage-cli</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>fr.gdd</groupId>
         <artifactId>raw</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>fr.gdd</groupId>
+        <artifactId>raw-cli</artifactId>
         <version>${project.version}</version>
       </dependency>
 

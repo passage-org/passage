@@ -1,13 +1,14 @@
-package fr.gdd.passage.volcano.volcano.cli;
+package fr.gdd.passage.cli;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
+import fr.gdd.passage.cli.server.PassageOperation;
+import fr.gdd.passage.cli.writers.ExtensibleRowSetWriterJSON;
+import fr.gdd.passage.cli.writers.ModuleOutputRegistry;
+import fr.gdd.passage.cli.writers.OutputWriterJSONSage;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.PassageConstants;
-import fr.gdd.passage.volcano.PassageOpExecutorFactory;
-import fr.gdd.passage.volcano.PassageQueryEngine;
-import fr.gdd.passage.volcano.writers.ExtensibleRowSetWriterJSON;
-import fr.gdd.passage.volcano.writers.ModuleOutputRegistry;
-import fr.gdd.passage.volcano.writers.OutputWriterJSONSage;
+import fr.gdd.passage.cli.server.PassageOpExecutorFactory;
+import fr.gdd.passage.cli.server.PassageQueryEngine;
 import org.apache.jena.fuseki.auth.Auth;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.fuseki.mgt.ActionServerStatus;
@@ -150,9 +151,9 @@ public class PassageServerCLI {
                 .serverAuthPolicy(Auth.ANY_ANON) // Anyone can access the server
                 .addProcessor("/$/server", new ActionServerStatus())
                 //.addProcessor("/$/datasets/*", new ActionDatasets())
-                .registerOperation(PassageOperation.Sage, new SPARQL_QueryDataset())
+                .registerOperation(PassageOperation.Passage, new SPARQL_QueryDataset())
                 .addDataset(name, dataset.asDatasetGraph()) // register the dataset
-                .addEndpoint(name, "passage", PassageOperation.Sage)
+                .addEndpoint(name, "passage", PassageOperation.Passage)
                 // .auth(AuthScheme.BASIC)
                 // .addEndpoint(name, name+"/meow", SageOperation.Sage, Auth.ANY_ANON)
         ;

@@ -1,6 +1,7 @@
-package fr.gdd.passage.volcano.writers;
+package fr.gdd.passage.cli.writers;
 
 import fr.gdd.passage.volcano.PassageConstants;
+import fr.gdd.passage.volcano.pause.PassageSavedState;
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.atlas.json.io.JSWriter;
 import org.apache.jena.sparql.util.Context;

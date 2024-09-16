@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.volcano.cli;
+package fr.gdd.passage.cli;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;

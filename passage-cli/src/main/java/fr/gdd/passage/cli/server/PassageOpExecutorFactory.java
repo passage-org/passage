@@ -1,6 +1,7 @@
-package fr.gdd.passage.volcano;
+package fr.gdd.passage.cli.server;
 
 import fr.gdd.passage.commons.generics.BackendBindings;
+import fr.gdd.passage.volcano.PassageOpExecutor;
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.algebra.Op;

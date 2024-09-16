@@ -1,5 +1,6 @@
-package fr.gdd.passage.volcano;
+package fr.gdd.passage.cli.server;
 
+import fr.gdd.passage.volcano.PassageOpExecutor;
 import org.apache.jena.query.Query;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.core.DatasetGraph;

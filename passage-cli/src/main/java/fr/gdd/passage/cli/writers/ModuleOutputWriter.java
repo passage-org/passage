@@ -1,9 +1,7 @@
-package fr.gdd.passage.volcano.writers;
+package fr.gdd.passage.cli.writers;
 
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.sparql.util.Context;
-
-import java.io.Serializable;
 
 /**
  * Write the output of registered modules.

@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.writers;
+package fr.gdd.passage.cli.writers;
 
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.io.IndentedWriter;

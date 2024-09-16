@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.writers;
+package fr.gdd.passage.volcano.pause;
 
 /**
  * It's important that this is a pointer so when the context is saved,

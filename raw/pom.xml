@@ -25,27 +25,12 @@
             <groupId>fr.gdd</groupId>
             <artifactId>passage-blazegraph</artifactId>
         </dependency>
+
         <dependency>
             <groupId>fr.gdd</groupId>
             <artifactId>passage-databases</artifactId>
             <scope>test</scope>
         </dependency>
-
-        <dependency>
-            <groupId>org.apache.jena</groupId>
-            <artifactId>jena-arq</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>info.picocli</groupId>
-            <artifactId>picocli</artifactId>
-        </dependency>
-
-        <dependency> <!-- otherwise, CLI triggers an error: javax.xml.stream.FactoryConfigurationError: Provider com.bea.xml.stream.MXParserFactory not found" -->
-            <groupId>stax</groupId>
-            <artifactId>stax</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
@@ -57,37 +42,5 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.4.1</version>
-                <executions>
-                    <execution>
-                        <id>make-assembly-rawer</id> <!-- rawer -->
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <configuration>
-                            <appendAssemblyId>false</appendAssemblyId>
-                            <archive>
-                                <manifest>
-                                    <mainClass>fr.gdd.raw.RawerCLI</mainClass>
-                                </manifest>
-                            </archive>
-                            <finalName>rawer</finalName>
-                            <descriptorRefs>
-                                <descriptorRef>jar-with-dependencies</descriptorRef>
-                            </descriptorRefs>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 
 </project>

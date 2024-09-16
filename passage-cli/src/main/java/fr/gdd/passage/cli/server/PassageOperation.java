@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.volcano.cli;
+package fr.gdd.passage.cli.server;
 
 import org.apache.jena.fuseki.FusekiException;
 import org.apache.jena.fuseki.server.FusekiVocab;
@@ -19,7 +19,7 @@ public class PassageOperation {
     private static Model model = ModelFactory.createDefaultModel();
     public static final Resource opPassage = resource("passage");
 
-    public static final Operation Sage = Operation.alloc(opPassage.asNode(), "passage", "Sage SPARQL Query");
+    public static final Operation Passage = Operation.alloc(opPassage.asNode(), "passage", "Passage SPARQL Query");
 
     /* ********************************************************************************* */
 
