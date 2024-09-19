@@ -63,4 +63,9 @@ public class IsSkippable extends ReturningOpVisitor<Boolean> {
     public Boolean visit(OpSlice slice) {
         return ReturningOpVisitorRouter.visit(this, slice.getSubOp());
     }
+
+    @Override
+    public Boolean visit(OpProject project) {
+        return ReturningOpVisitorRouter.visit(this, project.getSubOp());
+    }
 }

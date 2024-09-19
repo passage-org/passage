@@ -36,7 +36,7 @@ public class Pause2Previous<ID,VALUE> extends BackendSaver<ID,VALUE,Long> {
 
     @Override
     public Op visit(OpTriple triple) {
-        // TODO TODO TODO 
+        // TODO TODO TODO
         return super.visit(triple);
     }
 }

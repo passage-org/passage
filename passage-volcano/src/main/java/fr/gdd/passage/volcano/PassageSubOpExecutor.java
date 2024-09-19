@@ -64,4 +64,9 @@ public class PassageSubOpExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public Iterator<BackendBindings<ID, VALUE>> visit(OpProject project, Iterator<BackendBindings<ID, VALUE>> input) {
+        // TODO double check projected variables.
+        return ReturningArgsOpVisitorRouter.visit(this, project.getSubOp(), input);
+    }
 }
