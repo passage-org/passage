@@ -28,6 +28,7 @@
     <module>passage-commons</module>
     <module>passage-databases</module>
     <module>passage-blazegraph</module>
+    <!-- <module>passage-hdt</module> --> <!-- uncomment when issue_#7 is solved --> 
     <module>passage-volcano</module>
     <module>passage-cli</module>
     <module>raw</module>
@@ -41,6 +42,7 @@
      look for sage-jena:pom:${revision} instead of sage-jena:pom:0.0.1 Thus
      fails. Hardcoded version of parent works… -->
     <!-- <revision>0.0.1</revision> -->
+    <hdt.version>3.0.10</hdt.version>
     <junit.version>5.10.2</junit.version>
     <jena.version>5.0.0</jena.version>
     <slf4j.version>2.0.6</slf4j.version>
@@ -156,6 +158,11 @@
         <version>${slf4j.version}</version>
       </dependency>
 
+      <dependency>
+        <groupId>org.rdfhdt</groupId>
+        <artifactId>hdt-java-core</artifactId>
+        <version>${hdt.version}</version>
+      </dependency>
       <dependency>
         <groupId>com.blazegraph</groupId>
         <artifactId>bigdata-core</artifactId>
