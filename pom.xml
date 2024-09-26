@@ -44,7 +44,7 @@
     <!-- <revision>0.0.1</revision> -->
     <hdt.version>3.0.10</hdt.version>
     <junit.version>5.10.2</junit.version>
-    <jena.version>5.0.0</jena.version>
+    <jena.version>5.1.0</jena.version>
     <slf4j.version>2.0.6</slf4j.version>
     <args4j.version>2.33</args4j.version>
     <common.compress.version>1.23.0</common.compress.version>
@@ -144,6 +144,11 @@
       <dependency>
         <groupId>org.apache.jena</groupId>
         <artifactId>jena-arq</artifactId>
+        <version>${jena.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.jena</groupId>
+        <artifactId>jena-base</artifactId>
         <version>${jena.version}</version>
       </dependency>
 
