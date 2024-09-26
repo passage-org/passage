@@ -28,7 +28,7 @@
     <module>passage-commons</module>
     <module>passage-databases</module>
     <module>passage-blazegraph</module>
-    <module>passage-hdt</module>
+    <!-- <module>passage-hdt</module> --> <!-- uncomment when issue_#7 is solved --> 
     <module>passage-volcano</module>
     <module>passage-cli</module>
     <module>raw</module>
