@@ -19,7 +19,7 @@ import java.util.Objects;
 @CommandLine.Command(
         name = "passage",
         version = "0.0.1",
-        description = "Preemptive SPARQL query processing. Yes, you can pause and resume your query execution!",
+        description = "SPARQL continuation query processing. Looping until done!",
         usageHelpAutoWidth = true, // adapt to the screen size instead of new line on 80 chars
         sortOptions = false,
         sortSynopsis = false
@@ -104,60 +104,66 @@ public class PassageCLI {
     /* ****************************************************************** */
 
     public static void main(String[] args) {
-        PassageCLI serverOptions = new PassageCLI();
-        new CommandLine(serverOptions).parseArgs(args);
+        PassageCLI passageOptions = new PassageCLI();
 
-        if (serverOptions.usageHelpRequested ||
-                Objects.isNull(serverOptions.database) ||
-                (Objects.isNull(serverOptions.queryAsString) && Objects.isNull(serverOptions.queryFile)) ||
-                (Objects.isNull(serverOptions.timeout) && Objects.isNull(serverOptions.limit))) {
-            CommandLine.usage(serverOptions, System.out);
+        try {
+            new CommandLine(passageOptions).parseArgs(args);
+        } catch (Exception e) {
+            CommandLine.usage(passageOptions, System.out);
             System.exit(CommandLine.ExitCode.USAGE);
         }
 
-        if (Objects.nonNull(serverOptions.queryFile)) {
-            Path queryPath = Path.of(serverOptions.queryFile);
+        if (passageOptions.usageHelpRequested ||
+                Objects.isNull(passageOptions.database) ||
+                (Objects.isNull(passageOptions.queryAsString) && Objects.isNull(passageOptions.queryFile)) ||
+                (Objects.isNull(passageOptions.timeout) && Objects.isNull(passageOptions.limit))) {
+            CommandLine.usage(passageOptions, System.out);
+            System.exit(CommandLine.ExitCode.USAGE);
+        }
+
+        if (Objects.nonNull(passageOptions.queryFile)) {
+            Path queryPath = Path.of(passageOptions.queryFile);
             try {
-                serverOptions.queryAsString = Files.readString(queryPath);
+                passageOptions.queryAsString = Files.readString(queryPath);
             } catch (IOException e) {
                 System.out.println("Error: could not read " + queryPath + ".");
                 System.exit(CommandLine.ExitCode.SOFTWARE);
             }
         }
 
-        if (Objects.isNull(serverOptions.numberOfExecutions)) {
-            serverOptions.numberOfExecutions = 1;
+        if (Objects.isNull(passageOptions.numberOfExecutions)) {
+            passageOptions.numberOfExecutions = 1;
         }
 
-        if (Objects.isNull(serverOptions.timeout)) {
-            serverOptions.timeout = Long.MAX_VALUE;
+        if (Objects.isNull(passageOptions.timeout)) {
+            passageOptions.timeout = Long.MAX_VALUE;
         }
 
         // TODO database can be blazegraph or jena
         BlazegraphBackend backend = null;
         try {
-            backend = new BlazegraphBackend(serverOptions.database);
+            backend = new BlazegraphBackend(passageOptions.database);
         } catch (SailException | RepositoryException e) {
             throw new RuntimeException(e);
         }
 
-        if (serverOptions.report) {
-            System.err.printf("%sPath to database:%s %s%n", PURPLE_BOLD, RESET, serverOptions.database);
-            System.err.printf("%sSPARQL query:%s %s%n", PURPLE_BOLD, RESET, serverOptions.queryAsString);
+        if (passageOptions.report) {
+            System.err.printf("%sPath to database:%s %s%n", PURPLE_BOLD, RESET, passageOptions.database);
+            System.err.printf("%sSPARQL query:%s %s%n", PURPLE_BOLD, RESET, passageOptions.queryAsString);
         }
 
-        for (int i = 0; i < serverOptions.numberOfExecutions; ++i) {
-            String queryToRun = serverOptions.queryAsString;
+        for (int i = 0; i < passageOptions.numberOfExecutions; ++i) {
+            String queryToRun = passageOptions.queryAsString;
             long totalElapsed = 0L;
             long totalNbResults = 0L;
             long totalPreempt = -1L; // start -1 because the first execution is not considered
             do {
                 PassageOpExecutor executor = new PassageOpExecutor();
                 executor.setBackend(backend)
-                        .setLimit(serverOptions.limit)
-                        .setTimeout(serverOptions.timeout);
+                        .setLimit(passageOptions.limit)
+                        .setTimeout(passageOptions.timeout);
 
-                if (serverOptions.forceOrder) {
+                if (passageOptions.forceOrder) {
                     executor.forceOrder();
                 }
 
@@ -176,7 +182,7 @@ public class PassageCLI {
 
                 queryToRun = executor.pauseAsString();
 
-                if (serverOptions.report) {
+                if (passageOptions.report) {
                     System.err.printf("%sNumber of pause/resume: %s %s%n", PURPLE_BOLD, RESET, totalPreempt);
                     System.err.printf("%sExecution time: %s %s ms%n", PURPLE_BOLD, RESET, elapsed);
                     System.err.printf("%sNumber of results: %s %s%n", PURPLE_BOLD, RESET, nbResults);
@@ -187,9 +193,9 @@ public class PassageCLI {
                     }
                 }
 
-            } while (Objects.nonNull(queryToRun) && serverOptions.loop);
+            } while (Objects.nonNull(queryToRun) && passageOptions.loop);
 
-            if (serverOptions.report && serverOptions.loop) {
+            if (passageOptions.report && passageOptions.loop) {
                 System.err.println();
                 System.err.printf("%sTOTAL number of pause/resume: %s %s%n", PURPLE_BOLD, RESET, totalPreempt);
                 System.err.printf("%sTOTAL execution time: %s %s ms%n", PURPLE_BOLD, RESET, totalElapsed);

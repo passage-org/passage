@@ -1,49 +1,37 @@
-# Sage ⨯ Jena
+# Passage
 
-[![Tests](https://github.com/Chat-Wane/sage-jena/actions/workflows/report-testing.yaml/badge.svg)](https://github.com/Chat-Wane/sage-jena/actions/workflows/report-testing.yaml)
-
-[Jena](https://jena.apache.org/) is `A free and open source Java
-framework for building Semantic Web and Linked Data applications.`
-This incredible piece of work includes all components to build an
-end-to-end software to evaluate SPARQL Query over RDF graphs. 
-[Sage](http://sage.univ-nantes.fr/) [1] is an approach that enables
-pausing/resuming query execution as long as the data storage system
-allows it.
-This project provides the additional components that enable **Sage
-on top of Jena**. 
-
-- [X] Jena provides a default data storage called **TDB2** that uses
-  balanced plus trees that enables range queries. This project
-  enhances it with the possibility to skip a range of values.
-
-- [X] Jena's query engine follows the volcano (or iterator) model.
-  This project provides a **Sage query engine** built on top of Jena's
-  default one.
-
-- [X] Jena's server is easily extensible through the use of modules.
-  This project introduces Sage **Fuseki module** that intercepts the
-  endpoint `query` operations to execute using enhanced operations,
-  returning the results plus additional metadata that could be used to
-  continue the execution later on.
-
-- [ ] Sage provides additional features at the cost of additional
-  computation. [**Benchmarks**](https://github.com/Chat-Wane/sage-jena-benchmarks)
-  highlight the marginal cost of these great features.
-
+Passage provides correct and complete results for SPARQL queries, despite 
+time quotas enforced by public SPARQL endpoints. Contrarily to state-of-the-art
+approaches [1, 2], Passage works solely within SPARQL boundaries: a query execution
+returns correct (possibly partial) results along with a SPARQL continuation query; 
+executing the continuation query provides missing results, itself with another SPARQL 
+continuation query; until termination.
 
 ## Installation
 
-```sh
-# Get the latest version or choose a particular release
-git clone https://github.com/Chat-Wane/sage-jena.git
-cd sage-jena
+```shell
+git clone https://github.com/Chat-Wane/passage.git
+cd passage
 
-# Install it in your local maven repository
-mvn clean install -Dmaven.test.skip=true
+mvn clean package
 ```
+
+## Usage
+
+- [X] `passage.jar`[`--help`](./passage-cli) provides a one time execution without server.
+- [X] `passage-server.jar`[`--help`](./passage-cli) provides a server running passage as a SPARQL endpoint.
+- [X] `passage-comunica`[`--help`](https://github.com/Chat-Wane/passage-comunica) provides a client to automate the continuation loop.
+
+
+- [X] `raw.jar`[`--help`](./raw-cli) provides a one time execution of a sample-based query.
+
 
 ## References
 
-\[1] T. Minier, H. Skaf-Molli and P. Molli. __SaGe: Web
-Preemption for Public SPARQL Query services__. In Proceedings of the
-2019 World Wide Web Conference (2019).
+[1] T. Minier, H. Skaf-Molli and P. Molli. __SaGe: Web
+ Preemption for Public SPARQL Query services__. In Proceedings of the
+ World Wide Web Conference (2019).
+
+[2] R. Verborgh, M. Vander Sande, O. Hartig, J. Van Herwegen, L. De Vocht, B. De Meester,
+ G. Haesendonck and P. Colpaert. __Triple Pattern Fragments: A Low-Cost Knowledge Graph
+ Interface for the Web__. In Journal of Web Semantics (2016).

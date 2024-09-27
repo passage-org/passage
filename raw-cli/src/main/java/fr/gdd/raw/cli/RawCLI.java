@@ -143,7 +143,12 @@ public class RawCLI {
 
     public static void main(String[] args) {
         RawCLI serverOptions = new RawCLI();
-        new CommandLine(serverOptions).parseArgs(args);
+        try {
+            new CommandLine(serverOptions).parseArgs(args);
+        } catch (Exception e) {
+            CommandLine.usage(serverOptions, System.out);
+            System.exit(CommandLine.ExitCode.USAGE);
+        }
 
         if (serverOptions.usageHelpRequested ||
                 Objects.isNull(serverOptions.database) ||

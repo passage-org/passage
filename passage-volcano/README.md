@@ -1,25 +1,25 @@
-# Sager
+# Passage's iterator model
 
-Goofy name for a better, well-defined, version of
-`sage-jena-volcano`. Eventually, it should replace the latter. As a
-small overview:
+Iterator model (also called Volcano) of Passage. It is in charge of
+reading a logical plan to build a physical plan. Once the execution
+timeout is reached, Passage is able to save the physical plan into
+a new logical plan to continue the execution later on, if needed.
 
-- [ ] All operators that are handled are **explicitly** implemented,
-      the rest throws an error. _So what about unimplemented
-      operators?  Are some queries simply not executable?_ Yes and no:
-      another SPARQL query engine built on top of Sage should handle
-      it, detecting the parts that are preemptive of those that
-      aren't.
+- [X] All operators that are handled are **explicitly** implemented,
+      the rest throws an error.
 
-- [ ] What happens in SPARQL stays in SPARQL. Sager exports its
-      preempted state as a SPARQL query. Upon receiving it again, the
-      engine interprets it as normal SPARQL where preempted parts
-      merely activate some optimizations. For instance, a subquery
-      such as `SELECT * WHERE { ?s ?p ?o } OFFSET 1 ORDER BY ?s ?p ?o`
-      actually states that the iterator should skip its first triple
-      (logarithmic time complexity) and use the index `spo`.
+- [X] What happens in SPARQL stays in SPARQL.
 
-- [ ] Not bound to align with Jena's TDB engine. We allow ourselves
-      all optimizations such as cardinality-based join ordering,
-      jump-skipping. Preempted SPARQL queries could generate a lot of
-      `UNION`, which could/should be parallelized.
+## Supported operators
+
+- [X] Triple patterns
+- [X] Basic graph patterns (BGPs)
+- [X] Joins
+- [X] Unions
+- [X] Binds (simple one without expressions)
+- [X] Filters
+- [X] Optionals
+
+
+
+- [X] Count (simple ones)

@@ -2,11 +2,11 @@ package fr.gdd.passage.volcano.iterators;
 
 import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
-import fr.gdd.passage.volcano.accumulators.PassageAccCount;
-import fr.gdd.passage.volcano.accumulators.PassageAccumulator;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.PassageOpExecutor;
+import fr.gdd.passage.volcano.accumulators.PassageAccCount;
+import fr.gdd.passage.volcano.accumulators.PassageAccumulator;
 import fr.gdd.passage.volcano.pause.Pause2Next;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
