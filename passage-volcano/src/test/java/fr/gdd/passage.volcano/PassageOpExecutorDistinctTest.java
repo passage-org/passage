@@ -2,8 +2,10 @@ package fr.gdd.passage.volcano;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.sparql.engine.ExecutionContext;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
@@ -17,6 +19,9 @@ public class PassageOpExecutorDistinctTest {
 
     static final Logger log = LoggerFactory.getLogger(PassageOpExecutorDistinctTest.class);
 
+    @BeforeEach
+    public void make_sure_we_dont_stop () { PassageScan.stopping = (e) -> false; }
+
     @Test
     public void basic_trial_to_create_distinct_without_projected_variable() throws RepositoryException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
@@ -25,8 +30,8 @@ public class PassageOpExecutorDistinctTest {
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
         ec.getContext().set(PassageConstants.BACKEND, blazegraph);
 
-        int nbResults = PassageOpExecutorTest.executeWithSager(query, ec);
-        assertEquals(3, nbResults); // Alice, Carol, and Bob
+        var results = PassageOpExecutorTest.executeWithPassage(query, ec);
+        assertEquals(3, results.size()); // Alice, Carol, and Bob
     }
 
     @Test
@@ -37,8 +42,8 @@ public class PassageOpExecutorDistinctTest {
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
         ec.getContext().set(PassageConstants.BACKEND, blazegraph);
 
-        int nbResults = PassageOpExecutorTest.executeWithSager(query, ec);
-        assertEquals(2, nbResults); // Nantes and Paris
+        var results = PassageOpExecutorTest.executeWithPassage(query, ec);
+        assertEquals(2, results.size()); // Nantes and Paris
     }
 
     @Test
@@ -53,8 +58,8 @@ public class PassageOpExecutorDistinctTest {
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
         ec.getContext().set(PassageConstants.BACKEND, blazegraph);
 
-        int nbResults = PassageOpExecutorTest.executeWithSager(query, ec);
-        assertEquals(1, nbResults); // Nantes only, since only Alice has animals
+        var results = PassageOpExecutorTest.executeWithPassage(query, ec);
+        assertEquals(1, results.size()); // Nantes only, since only Alice has animals
     }
 
     @Test
@@ -73,8 +78,8 @@ public class PassageOpExecutorDistinctTest {
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
         ec.getContext().set(PassageConstants.BACKEND, blazegraph);
 
-        int nbResults = PassageOpExecutorTest.executeWithSager(query, ec);
-        assertEquals(1, nbResults); // Nantes only, since only Alice has animals
+        var results = PassageOpExecutorTest.executeWithPassage(query, ec);
+        assertEquals(1, results.size()); // Nantes only, since only Alice has animals
     }
 
 }

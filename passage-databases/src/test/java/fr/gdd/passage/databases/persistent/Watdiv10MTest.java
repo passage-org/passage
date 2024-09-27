@@ -1,6 +1,5 @@
 package fr.gdd.passage.databases.persistent;
 
-import fr.gdd.passage.databases.persistent.Watdiv10M;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;

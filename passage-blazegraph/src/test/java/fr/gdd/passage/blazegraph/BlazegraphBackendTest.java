@@ -1,6 +1,8 @@
 package fr.gdd.passage.blazegraph;
 
 import com.bigdata.rdf.internal.IV;
+import com.bigdata.rdf.model.BigdataLiteral;
+import com.bigdata.rdf.model.BigdataURI;
 import com.bigdata.rdf.model.BigdataValue;
 import com.bigdata.rdf.spo.ISPO;
 import com.google.common.collect.HashMultiset;
@@ -22,7 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class BlazegraphBackendTest {
 
@@ -31,8 +33,13 @@ public class BlazegraphBackendTest {
     @Test
     public void create_values_with_string_repr () throws RepositoryException {
         BlazegraphBackend bb = new BlazegraphBackend(IM4Blazegraph.triples9());
-        var meow = bb.getValue("12");
-        log.debug("{}", meow);
+        BigdataValue twelve = bb.getValue("12");
+        assertInstanceOf(BigdataLiteral.class, twelve);
+        assertEquals("\"12\"", twelve.toString());
+        BigdataValue uri = bb.getValue("<https://uri>");
+        assertInstanceOf(BigdataURI.class, uri);
+        assertEquals("<https://uri>", uri.toString());
+        bb.close();
     }
 
     @Test
@@ -55,20 +62,19 @@ public class BlazegraphBackendTest {
         bb.close();
     }
 
-    @Disabled
     @Test
-    public void creating_simple_iterators () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
+    public void creating_simple_iterators () throws RepositoryException {
         BlazegraphBackend bb = new BlazegraphBackend(IM4Blazegraph.triples9());
 
-        IV address = bb.getId("http://address", SPOC.PREDICATE);
-        IV own = bb.getId("http://own", SPOC.PREDICATE);
-        IV species = bb.getId("http://species", SPOC.PREDICATE);
-        IV nantes = bb.getId("http://nantes", SPOC.OBJECT);
+        IV address = bb.getId("<http://address>", SPOC.PREDICATE);
+        IV own = bb.getId("<http://own>", SPOC.PREDICATE);
+        IV species = bb.getId("<http://species>", SPOC.PREDICATE);
+        IV nantes = bb.getId("<http://nantes>", SPOC.OBJECT);
 
-        Multiset<BindingSet> results = executeSimpleTP(bb, bb.any(), address, bb.any(), 3);
-        results = executeSimpleTP(bb, bb.any(), own, bb.any(), 3);
-        results = executeSimpleTP(bb, bb.any(), species, bb.any(), 3);
-        results = executeSimpleTP(bb, bb.any(), bb.any(), nantes, 2);
+        executeSimpleTP(bb, bb.any(), address, bb.any(), 3);
+        executeSimpleTP(bb, bb.any(), own, bb.any(), 3);
+        executeSimpleTP(bb, bb.any(), species, bb.any(), 3);
+        executeSimpleTP(bb, bb.any(), bb.any(), nantes, 2);
 
         bb.close();
     }
@@ -76,11 +82,11 @@ public class BlazegraphBackendTest {
     @Test
     public void creating_simple_random () throws RepositoryException {
         BlazegraphBackend bb = new BlazegraphBackend(IM4Blazegraph.triples9());
-        IV address = bb.getId("http://address", SPOC.PREDICATE);
+        IV address = bb.getId("<http://address>", SPOC.PREDICATE);
         LazyIterator<IV, BigdataValue, Long> li = (LazyIterator<IV, BigdataValue, Long>) bb.search(bb.any(), address, bb.any());
 
         Multiset<BindingSet> results = HashMultiset.create();
-        for (int i = 0; i < 10000; ++i) {
+        for (int i = 0; i < 10_000; ++i) {
             ISPO spo = ((BlazegraphIterator) li.getWrapped()).getUniformRandomSPO();
             MapBindingSet bs = new MapBindingSet();
             bs.addBinding("s", spo.s());
@@ -96,18 +102,34 @@ public class BlazegraphBackendTest {
         for (var entry : uniques) {
             assertEquals(address, entry.getElement().getValue("p"));
         }
+        log.debug(uniques.toString());
+        bb.close();
     }
 
     @Test
-    public void testing_some_skipperino () throws RepositoryException {
+    public void skipping_some_elements_from_triple_patterns () throws RepositoryException {
         BlazegraphBackend bb = new BlazegraphBackend(IM4Blazegraph.triples9());
-        IV address = bb.getId("http://address", SPOC.PREDICATE);
+        IV address = bb.getId("<http://address>", SPOC.PREDICATE);
 
         executeSimpleTPWithSkip(bb, bb.any(), address, bb.any(), 0, 3);
         executeSimpleTPWithSkip(bb, bb.any(), address, bb.any(), 1, 2);
         executeSimpleTPWithSkip(bb, bb.any(), address, bb.any(), 2, 1);
         executeSimpleTPWithSkip(bb, bb.any(), address, bb.any(), 3, 0);
         executeSimpleTPWithSkip(bb, bb.any(), address, bb.any(), 18, 0);
+    }
+
+    @Test
+    public void getting_cardinalities_from_triple_patterns () throws RepositoryException {
+        BlazegraphBackend bb = new BlazegraphBackend(IM4Blazegraph.triples9());
+        IV address = bb.getId("<http://address>", SPOC.PREDICATE);
+        IV own = bb.getId("<http://own>", SPOC.PREDICATE);
+        IV species = bb.getId("<http://species>", SPOC.PREDICATE);
+        IV nantes = bb.getId("<http://nantes>", SPOC.OBJECT);
+
+        assertEquals(3, getCardinality(bb, bb.any(), address, bb.any()));
+        assertEquals(3, getCardinality(bb, bb.any(), own, bb.any()));
+        assertEquals(3, getCardinality(bb, bb.any(), species, bb.any()));
+        assertEquals(2, getCardinality(bb, bb.any(), bb.any(), nantes));
     }
 
     @Disabled
@@ -235,6 +257,11 @@ public class BlazegraphBackendTest {
         assertEquals(expectedNb, results.size());
         assertEquals(expectedNb, Math.max(0, ((LazyIterator<?,?,?>) it).cardinality() - skip));
         return results;
+    }
+
+    public long getCardinality(BlazegraphBackend bb, IV s, IV p, IV o) {
+        BackendIterator<IV, BigdataValue, Long> it = bb.search(s, p, o);
+        return (long) it.cardinality();
     }
 
 }

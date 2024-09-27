@@ -2,8 +2,10 @@ package fr.gdd.passage.volcano;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.sparql.engine.ExecutionContext;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
@@ -12,10 +14,12 @@ import org.slf4j.LoggerFactory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Disabled
 public class PassageOpExecutorBGPTest {
 
     static final Logger log = LoggerFactory.getLogger(PassageOpExecutorBGPTest.class);
+
+    @BeforeEach
+    public void make_sure_we_dont_stop () { PassageScan.stopping = (e) -> false; }
 
     @Test
     public void bgp_of_1_tp () throws RepositoryException {
@@ -25,8 +29,8 @@ public class PassageOpExecutorBGPTest {
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
         ec.getContext().set(PassageConstants.BACKEND, blazegraph);
 
-        int nbResults = PassageOpExecutorTest.executeWithSager(queryAsString, ec);
-        assertEquals(3, nbResults); // Bob, Alice, and Carol.
+        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, ec);
+        assertEquals(3, results.size()); // Bob, Alice, and Carol.
     }
 
     @Test
@@ -40,8 +44,8 @@ public class PassageOpExecutorBGPTest {
 
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
         ec.getContext().set(PassageConstants.BACKEND, blazegraph);
-        int nbResults = PassageOpExecutorTest.executeWithSager(queryAsString, ec);
-        assertEquals(3, nbResults); // Alice, Alice, and Alice.
+        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, ec);
+        assertEquals(3, results.size()); // Alice, Alice, and Alice.
     }
 
     @Test
@@ -56,8 +60,8 @@ public class PassageOpExecutorBGPTest {
 
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
         ec.getContext().set(PassageConstants.BACKEND, blazegraph);
-        int nbResults = PassageOpExecutorTest.executeWithSager(queryAsString, ec);
-        assertEquals(3, nbResults); // Alice->own->cat,dog,snake
+        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, ec);
+        assertEquals(3, results.size()); // Alice->own->cat,dog,snake
     }
 
 }

@@ -25,16 +25,19 @@
       <groupId>org.rdfhdt</groupId>
       <artifactId>hdt-java-core</artifactId>
     </dependency>
-
     <dependency>
       <groupId>com.blazegraph</groupId>
       <artifactId>bigdata-core</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.apache.jena</groupId>
       <artifactId>apache-jena-libs</artifactId>
       <type>pom</type>
+    </dependency>
+
+    <dependency> <!-- to get Pair -->
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
     </dependency>
 
     <dependency> <!-- logger of jena -->

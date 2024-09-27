@@ -27,7 +27,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * inside the operator. Therefore, it should not return any result before
  * having processing 1 fully.
  */
-@Disabled
 public class Pause2SPARQLAggTimeoutTest {
 
     private static final Logger log = LoggerFactory.getLogger(Pause2SPARQLBGPTimeoutTest.class);
@@ -111,6 +110,7 @@ public class Pause2SPARQLAggTimeoutTest {
         assertEquals(3, sum); // ?count = 3 for Alice; Bob and Carol have ?count = 0
     }
 
+    @Disabled
     @Test
     public void meow() throws RepositoryException, QueryEvaluationException, MalformedQueryException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());

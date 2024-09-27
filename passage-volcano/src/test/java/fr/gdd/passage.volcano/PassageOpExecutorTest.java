@@ -1,7 +1,12 @@
 package fr.gdd.passage.volcano;
 
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multiset;
+import com.google.common.collect.Multisets;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;
+import org.apache.commons.collections4.MultiSet;
 import org.apache.jena.query.ARQ;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.QueryFactory;
@@ -24,21 +29,21 @@ public class PassageOpExecutorTest {
 
     private static final Logger log = LoggerFactory.getLogger(PassageOpExecutorTest.class);
 
-    public static int executeWithSager(String queryAsString, ExecutionContext ec) {
-        ARQ.enableOptimizer(false); // to make sure jena does not do anything
+    public static Multiset<BackendBindings<?,?>> executeWithPassage(String queryAsString, ExecutionContext ec) {
         PassageOpExecutor<?,?> executor = new PassageOpExecutor<>(ec);
 
         Op query = Algebra.compile(QueryFactory.create(queryAsString));
         Iterator<? extends BackendBindings<?, ?>> iterator = executor.execute(query);
 
         int sum = 0;
+        Multiset<BackendBindings<?,?>> bindings = HashMultiset.create();
         while (iterator.hasNext()) {
             BackendBindings<?,?> binding = iterator.next();
+            bindings.add(binding);
             log.debug("{}: {}", sum, binding.toString());
             sum += 1;
         }
-
-        return sum;
+        return bindings;
     }
 
     /* ****************************************************************** */
@@ -61,7 +66,7 @@ public class PassageOpExecutorTest {
                 }
                 """;
 
-        int sum = executeWithSager(query0, ec);
+        int sum = executeWithPassage(query0, ec).size();
 
         assertEquals(117, sum);
     }
@@ -85,7 +90,7 @@ public class PassageOpExecutorTest {
                 }
                 """;
 
-        int sum = executeWithSager(query, ec);
+        int sum = executeWithPassage(query, ec).size();
         log.info("{}", sum);
 
     }

@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Therefore, the execution can stop in the middle of the execution physical plan. Yet,
  * we must be able to resume execution from where it stopped.
  */
-@Disabled
 public class Pause2SPARQLBGPTimeoutTest {
 
     private static final Logger log = LoggerFactory.getLogger(Pause2SPARQLBGPTimeoutTest.class);

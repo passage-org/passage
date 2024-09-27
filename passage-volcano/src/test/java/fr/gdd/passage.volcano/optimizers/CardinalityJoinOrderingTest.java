@@ -2,9 +2,11 @@ package fr.gdd.passage.volcano.optimizers;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
@@ -14,10 +16,12 @@ import org.slf4j.LoggerFactory;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@Disabled
 public class CardinalityJoinOrderingTest {
 
     private static final Logger log = LoggerFactory.getLogger(CardinalityJoinOrderingTest.class);
+
+    @BeforeEach
+    public void make_sure_we_dont_stop () { PassageScan.stopping = (e) -> false; }
 
     @Test
     public void a_single_triple_pattern_stays_this_way_ofc () throws RepositoryException {

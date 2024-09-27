@@ -35,6 +35,7 @@ public class IM4Blazegraph {
     }
 
     public static BigdataSail getDataset(List<String> statements) {
+        System.setProperty("com.bigdata.Banner.quiet", "true"); // shhhhh banner shhh
         final BigdataSail sail = new BigdataSail(getDefaultProps());
         try {
             sail.initialize();

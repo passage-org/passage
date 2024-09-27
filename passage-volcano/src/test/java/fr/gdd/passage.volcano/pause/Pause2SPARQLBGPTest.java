@@ -13,7 +13,6 @@ import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Disabled
 public class Pause2SPARQLBGPTest {
 
     private static final Logger log = LoggerFactory.getLogger(Pause2SPARQLBGPTest.class);

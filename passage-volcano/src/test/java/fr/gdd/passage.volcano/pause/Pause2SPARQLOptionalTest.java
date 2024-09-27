@@ -14,7 +14,6 @@ import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Disabled
 public class Pause2SPARQLOptionalTest {
 
     static final Logger log = LoggerFactory.getLogger(Pause2SPARQLOptionalTest.class);
