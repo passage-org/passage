@@ -12,12 +12,10 @@ import org.slf4j.LoggerFactory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Disabled
 public class PassageOpExecutorAggTest {
 
     static final Logger log = LoggerFactory.getLogger(PassageOpExecutorAggTest.class);
 
-    @Disabled
     @Test
     public void simple_count_on_a_single_triple_pattern() throws RepositoryException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());

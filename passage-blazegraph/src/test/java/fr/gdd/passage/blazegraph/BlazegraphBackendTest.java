@@ -24,13 +24,12 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Disabled
-class BlazegraphBackendTest {
+public class BlazegraphBackendTest {
 
     private final static Logger log = LoggerFactory.getLogger(BlazegraphBackendTest.class);
 
     @Test
-     public void create_values_with_string_repr () throws RepositoryException {
+    public void create_values_with_string_repr () throws RepositoryException {
         BlazegraphBackend bb = new BlazegraphBackend(IM4Blazegraph.triples9());
         var meow = bb.getValue("12");
         log.debug("{}", meow);
@@ -56,6 +55,7 @@ class BlazegraphBackendTest {
         bb.close();
     }
 
+    @Disabled
     @Test
     public void creating_simple_iterators () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
         BlazegraphBackend bb = new BlazegraphBackend(IM4Blazegraph.triples9());

@@ -16,11 +16,6 @@
       <id>${project.artifactId}-site</id>
       <url>${project.baseUri}</url>
     </site>
-    <repository>
-      <id>github</id>
-      <name>GitHub Packages</name>
-      <url>https://maven.pkg.github.com/Chat-Wane/sage-jena</url>
-    </repository>
   </distributionManagement>
 
   <modules>
@@ -43,18 +38,18 @@
      fails. Hardcoded version of parent works… -->
     <!-- <revision>0.0.1</revision> -->
     <hdt.version>3.0.10</hdt.version>
-    <junit.version>5.10.2</junit.version>
-    <jena.version>5.1.0</jena.version>
+    <junit.version>5.11.1</junit.version>
+    <jena.version>5.0.0</jena.version> <!-- for some reason, 5.1.0 makes tests not discoverable to intellij... -->
     <slf4j.version>2.0.6</slf4j.version>
     <args4j.version>2.33</args4j.version>
     <common.compress.version>1.23.0</common.compress.version>
     <blazegraph.version>2.1.4</blazegraph.version>
     <guava.version>33.1.0-jre</guava.version>
-    <apache.lang3.version>3.14.0</apache.lang3.version>
+    <apache.lang3.version>3.17.0</apache.lang3.version>
     <picocli.version>4.7.6</picocli.version>
     <stax.version>1.2.0</stax.version>
 
-    <maven.surefire.version>3.0.0</maven.surefire.version>
+    <maven.surefire.version>3.5.0</maven.surefire.version>
     <maven.compiler.version>3.10.1</maven.compiler.version>
     <maven.compiler.release>21</maven.compiler.release>
     <maven.compiler.source>21</maven.compiler.source>
