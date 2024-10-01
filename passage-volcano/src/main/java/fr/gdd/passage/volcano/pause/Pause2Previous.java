@@ -39,7 +39,7 @@ public class Pause2Previous<ID,VALUE> extends BackendSaver<ID,VALUE,Long> {
     public Op visit(OpTriple triple) {
         PassageScanFactory<ID, VALUE> it = (PassageScanFactory<ID, VALUE>) getIterator(triple);
         if (Objects.isNull(it)) {return null;}
-        Op preempted = it.preempt();
+        Op preempted = it.pause();
 
         if (Objects.isNull(preempted)) {
             return triple; // it has been fully executed, so we return it total

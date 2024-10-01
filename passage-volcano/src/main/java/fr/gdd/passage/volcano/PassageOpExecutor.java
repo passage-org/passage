@@ -198,7 +198,10 @@ public class PassageOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
     public Iterator<BackendBindings<ID,VALUE>> visit(OpTable table, Iterator<BackendBindings<ID,VALUE>> input) {
         if (table.isJoinIdentity())
             return input;
-        throw new UnsupportedOperationException("TODO: VALUES Should be considered as a Scan iterator…"); // TODO
+        Pause2Next<ID,VALUE> saver = execCxt.getContext().get(PassageConstants.SAVER);
+        Iterator<BackendBindings<ID,VALUE>> values = new PassageValues<>(input, table, backend, cache, execCxt);
+        saver.register(table, values);
+        return values;
     }
 
     /**

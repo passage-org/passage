@@ -6,12 +6,14 @@ import com.google.common.collect.Multiset;
 import com.google.common.collect.Multisets;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;
+import fr.gdd.passage.commons.interfaces.Backend;
 import org.apache.commons.collections4.MultiSet;
 import org.apache.jena.query.ARQ;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
+import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -21,13 +23,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Disabled
 public class PassageOpExecutorTest {
 
     private static final Logger log = LoggerFactory.getLogger(PassageOpExecutorTest.class);
+
+    public static Multiset<BackendBindings<?,?>> executeWithPassage(String queryAsString, Backend<?,?,?> backend) {
+        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
+        ec.getContext().set(PassageConstants.BACKEND, backend);
+        return executeWithPassage(queryAsString, ec);
+    }
 
     public static Multiset<BackendBindings<?,?>> executeWithPassage(String queryAsString, ExecutionContext ec) {
         PassageOpExecutor<?,?> executor = new PassageOpExecutor<>(ec);
@@ -44,6 +54,25 @@ public class PassageOpExecutorTest {
             sum += 1;
         }
         return bindings;
+    }
+
+    /**
+     * Checks if the set of results contains the values associated to the variables.
+     * @param results
+     * @param vars
+     * @param values
+     * @return
+     */
+    public static boolean containsResult(Multiset<BackendBindings<?,?>> results, List<String> vars, List<String> values) {
+        return results.stream().anyMatch(
+                result -> {
+                    for (int i = 0; i < vars.size(); ++i) {
+                        if (!result.get(Var.alloc(vars.get(i))).getString().contains(values.get(i))) {
+                            return false;
+                        }
+                    }
+                    return true;
+                });
     }
 
     /* ****************************************************************** */

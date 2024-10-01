@@ -84,7 +84,7 @@ public class Pause2Next<ID, VALUE> extends BackendSaver<ID,VALUE,Long> {
         // done, finished. Otherwise, they would pollute the preempted plan forever.
         // It creates a subquery including bindings with `BIND AS`, then the triple
         // pattern. Then wraps it all with `OFFSET`.
-        return it.preempt();
+        return it.pause();
     }
 
     @Override
@@ -154,10 +154,15 @@ public class Pause2Next<ID, VALUE> extends BackendSaver<ID,VALUE,Long> {
 
     @Override
     public Op visit(OpTable table) {
-        if (!table.isJoinIdentity()){
-            throw new UnsupportedOperationException("OpTable not implemented when not join identity…");
+        if (table.isJoinIdentity()) {
+            return null;
         }
-        return null; // TODO preempted singleton is none.
+        // preempt a VALUES: only copy the rest
+        PassageValues<ID,VALUE> values = (PassageValues<ID, VALUE>) getIterator(table);
+        if (Objects.isNull(values)) {
+            return null;
+        }
+        return values.pause();
     }
 
     @Override
@@ -203,7 +208,7 @@ public class Pause2Next<ID, VALUE> extends BackendSaver<ID,VALUE,Long> {
 
         if (Objects.isNull(left)) {
             return FlattenUnflatten.unflattenUnion(Arrays.asList(
-                    optional.preempt(right) // the right needs mandatory bindings
+                    optional.pause(right) // the right needs mandatory bindings
             ));
         }
 
@@ -212,7 +217,7 @@ public class Pause2Next<ID, VALUE> extends BackendSaver<ID,VALUE,Long> {
         if (Objects.isNull(right)) {return rest;}
 
         return FlattenUnflatten.unflattenUnion(Arrays.asList(
-            optional.preempt(right), // the right needs mandatory bindings
+            optional.pause(right), // the right needs mandatory bindings
             rest
         ));
     }

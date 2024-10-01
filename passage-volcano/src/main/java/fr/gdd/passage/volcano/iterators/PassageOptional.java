@@ -119,7 +119,7 @@ public class PassageOptional<ID,VALUE>  implements Iterator<BackendBindings<ID, 
         }
     }
 
-    public Op preempt(Op preemptedRight) {
+    public Op pause(Op preemptedRight) {
         if (Objects.isNull(mandatoryBinding) && (Objects.isNull(optionalBinding) || !optional.hasNext())) return null; // TODO probably something to do with this condition
 
         Set<Var> mandatoryVars = mandatoryBinding.vars();

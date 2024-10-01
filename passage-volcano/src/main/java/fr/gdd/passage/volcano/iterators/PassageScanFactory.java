@@ -96,7 +96,7 @@ public class PassageScanFactory<ID, VALUE> implements Iterator<BackendBindings<I
      * itself unmoved, plus a slice operator that defines an offset.
      * It returns `null` when the wrapped scan iterator does not have a next binding.
      */
-    public Op preempt() {
+    public Op pause() {
         if (!instantiated.hasNext()) {
             return null;
         }
