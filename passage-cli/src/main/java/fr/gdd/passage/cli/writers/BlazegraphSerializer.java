@@ -8,10 +8,11 @@ import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.exec.RowSet;
 import org.apache.jena.sparql.resultset.ResultSetException;
 import org.apache.jena.sparql.util.Context;
-import org.eclipse.rdf4j.query.BindingSet;
-import org.eclipse.rdf4j.query.QueryEvaluationException;
-import org.eclipse.rdf4j.query.TupleQueryResultHandlerException;
-import org.eclipse.rdf4j.query.resultio.sparqljson.SPARQLResultsJSONWriter;
+import org.openrdf.query.BindingSet;
+import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.TupleQueryResult;
+import org.openrdf.query.TupleQueryResultHandlerException;
+import org.openrdf.query.resultio.sparqljson.SPARQLResultsJSONWriter;
 
 import java.io.OutputStream;
 import java.io.Writer;
@@ -31,29 +32,29 @@ public class BlazegraphSerializer implements RowSetWriter {
     public void write(OutputStream out, RowSet rowSet, Context context) {
         SPARQLResultsJSONWriter writer = new SPARQLResultsJSONWriter(out);
 
-        org.eclipse.rdf4j.query.TupleQueryResult tqr = new org.eclipse.rdf4j.query.TupleQueryResult () {
+        TupleQueryResult tqr = new TupleQueryResult () {
             @Override
-            public List<String> getBindingNames() throws org.eclipse.rdf4j.query.QueryEvaluationException {
+            public List<String> getBindingNames() throws QueryEvaluationException {
                 return rowSet.getResultVars().stream().map(Var::getVarName).collect(Collectors.toList());
             }
 
             @Override
-            public void close() throws org.eclipse.rdf4j.query.QueryEvaluationException {
+            public void close() throws QueryEvaluationException {
                 // nothing
             }
 
             @Override
-            public boolean hasNext() throws org.eclipse.rdf4j.query.QueryEvaluationException {
+            public boolean hasNext() throws QueryEvaluationException {
                 return rowSet.hasNext();
             }
 
             @Override
-            public org.eclipse.rdf4j.query.BindingSet next() throws org.eclipse.rdf4j.query.QueryEvaluationException {
+            public BindingSet next() throws QueryEvaluationException {
                 return ((BindingWrapper) rowSet.next()).getWrapped();
             }
 
             @Override
-            public void remove() throws org.eclipse.rdf4j.query.QueryEvaluationException {
+            public void remove() throws QueryEvaluationException {
                 throw new UnsupportedOperationException("Not implemented");
             }
         };

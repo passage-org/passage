@@ -2,8 +2,9 @@ package fr.gdd.passage.commons.generics;
 
 import fr.gdd.passage.commons.interfaces.Backend;
 import org.apache.jena.sparql.core.Var;
-import org.eclipse.rdf4j.query.BindingSet;
 import org.openrdf.model.Value;
+import org.openrdf.query.Binding;
+import org.openrdf.query.BindingSet;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,7 +25,7 @@ import java.util.stream.Collectors;
  */
 public class BackendBindings<ID, VALUE> implements BindingSet {
 
-    public static class BackendBinding<ID,VALUE> implements org.eclipse.rdf4j.query.Binding {
+    public static class BackendBinding<ID,VALUE> implements Binding {
 
         final IdValueBackend<ID,VALUE> wrapped;
         final String name;
@@ -40,26 +41,10 @@ public class BackendBindings<ID, VALUE> implements BindingSet {
         }
 
         @Override
-        public org.eclipse.rdf4j.model.Value getValue() { // in another class otherwise it clashes with IdValueBackend
+        public Value getValue() { // in another class otherwise it clashes with IdValueBackend
             // TODO should be IdValueBackend instead of wrapped
             // TODO this should be a prerequisite of <VALUE>
-            return new org.eclipse.rdf4j.model.Value() {
-
-                @Override
-                public boolean isIRI() {
-                    return true;
-                }
-
-                @Override
-                public String stringValue() {
-                    return ((Value) wrapped.getValue()).stringValue();
-                }
-
-                @Override
-                public String toString() {
-                    return stringValue();
-                }
-            };
+            return (Value) wrapped.getValue();
         }
     }
 
@@ -215,7 +200,7 @@ public class BackendBindings<ID, VALUE> implements BindingSet {
     /**************************  BindingSet interface *****************************/
 
     @Override
-    public Iterator<org.eclipse.rdf4j.query.Binding> iterator() {
+    public Iterator<Binding> iterator() {
         return this.vars().stream().map(v -> this.getBinding(v.getVarName())).iterator();
     }
 
@@ -225,7 +210,7 @@ public class BackendBindings<ID, VALUE> implements BindingSet {
     }
 
     @Override
-    public org.eclipse.rdf4j.query.Binding getBinding(String bindingName) {
+    public Binding getBinding(String bindingName) {
         return new BackendBinding<>(bindingName, this.get(Var.alloc(bindingName)));
     }
 
@@ -235,7 +220,7 @@ public class BackendBindings<ID, VALUE> implements BindingSet {
     }
 
     @Override
-    public org.eclipse.rdf4j.model.Value getValue(String bindingName) {
+    public Value getValue(String bindingName) {
         return new BackendBinding<>(bindingName, this.get(Var.alloc(bindingName))).getValue();
     }
 
