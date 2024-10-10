@@ -2,8 +2,11 @@ package fr.gdd.passage.commons.generics;
 
 import fr.gdd.passage.commons.interfaces.Backend;
 import org.apache.jena.sparql.core.Var;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.openrdf.model.Value;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Closely related to Jena's `Binding` implementations, or `BindingSet`, etc.
@@ -19,7 +22,46 @@ import java.util.*;
  * children refer to parents instead of copying the parent; (ii) caching so
  * ids or values are retrieved once.
  */
-public class BackendBindings<ID, VALUE> {
+public class BackendBindings<ID, VALUE> implements BindingSet {
+
+    public static class BackendBinding<ID,VALUE> implements org.eclipse.rdf4j.query.Binding {
+
+        final IdValueBackend<ID,VALUE> wrapped;
+        final String name;
+
+        public BackendBinding (String name, IdValueBackend<ID,VALUE> wrapped) {
+            this.wrapped = wrapped;
+            this.name = name;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public org.eclipse.rdf4j.model.Value getValue() { // in another class otherwise it clashes with IdValueBackend
+            // TODO should be IdValueBackend instead of wrapped
+            // TODO this should be a prerequisite of <VALUE>
+            return new org.eclipse.rdf4j.model.Value() {
+
+                @Override
+                public boolean isIRI() {
+                    return true;
+                }
+
+                @Override
+                public String stringValue() {
+                    return ((Value) wrapped.getValue()).stringValue();
+                }
+
+                @Override
+                public String toString() {
+                    return stringValue();
+                }
+            };
+        }
+    }
 
     /**
      * Contains everything to lazily get a value, or an id
@@ -75,6 +117,14 @@ public class BackendBindings<ID, VALUE> {
         }
 
         public String getString() {
+            /* // TODO everything should go through VALUE or ID, but
+            // for now it's too short in time to make such critical change
+            if (Objects.isNull(asString)) {
+                return getValue().toString();
+            }
+            return asString;
+             */
+
             if (Objects.isNull(asString)) {
                 if (Objects.isNull(value)) {
                     asString = Objects.isNull(code) ? backend.getString(id) : backend.getString(id, code);
@@ -160,6 +210,38 @@ public class BackendBindings<ID, VALUE> {
         }
         builder.append("}");
         return builder.toString();
+    }
+
+    /**************************  BindingSet interface *****************************/
+
+    @Override
+    public Iterator<org.eclipse.rdf4j.query.Binding> iterator() {
+        return this.vars().stream().map(v -> this.getBinding(v.getVarName())).iterator();
+    }
+
+    @Override
+    public Set<String> getBindingNames() {
+        return this.vars().stream().map(Var::getVarName).collect(Collectors.toSet());
+    }
+
+    @Override
+    public org.eclipse.rdf4j.query.Binding getBinding(String bindingName) {
+        return new BackendBinding<>(bindingName, this.get(Var.alloc(bindingName)));
+    }
+
+    @Override
+    public boolean hasBinding(String bindingName) {
+        return this.contains(Var.alloc(bindingName));
+    }
+
+    @Override
+    public org.eclipse.rdf4j.model.Value getValue(String bindingName) {
+        return new BackendBinding<>(bindingName, this.get(Var.alloc(bindingName))).getValue();
+    }
+
+    @Override
+    public int size() {
+        return this.vars().size();
     }
 
     @Override

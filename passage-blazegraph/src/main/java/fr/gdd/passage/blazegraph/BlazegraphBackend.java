@@ -211,8 +211,8 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
     }
 
     @Override
-    public BigdataValue getValue(IV iv, int... type) {
-        throw new UnsupportedOperationException("TODO"); // TODO
+    public BigdataValue getValue(IV id, int... type) {
+        return store.getLexiconRelation().getTerm(id); // TODO unit test it
     }
 
     @Override
