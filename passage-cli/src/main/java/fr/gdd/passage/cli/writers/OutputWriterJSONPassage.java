@@ -11,7 +11,7 @@ import java.util.Objects;
 /**
  * Write a SageOutput to an out-stream.
  */
-public class OutputWriterJSONSage implements ModuleOutputWriter {
+public class OutputWriterJSONPassage implements ModuleOutputWriter {
 
     @Override
     public void write(IndentedWriter writer, Context context) {
