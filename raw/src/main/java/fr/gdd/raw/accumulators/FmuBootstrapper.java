@@ -3,7 +3,7 @@ package fr.gdd.raw.accumulators;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.passage.commons.generics.BackendBindings;
-import fr.gdd.passage.commons.generics.CacheId;
+import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.generics.Substitutor;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.raw.executor.RawConstants;
@@ -39,17 +39,17 @@ import java.util.Set;
 public class FmuBootstrapper<ID,VALUE> extends ReturningArgsOpVisitor<Double, Set<Var>> {
 
     final Backend<ID,VALUE,?> backend;
-    final CacheId<ID,VALUE> cache;
+    final BackendCache<ID,VALUE> cache;
     final BackendBindings<ID,VALUE> bindings;
 
-    CacheId<ID,VALUE> dedicatedCache;
+    BackendCache<ID,VALUE> dedicatedCache;
 
-    public FmuBootstrapper(Backend<ID,VALUE,?> backend, CacheId<ID,VALUE> cache, BackendBindings<ID,VALUE> bindings) {
+    public FmuBootstrapper(Backend<ID,VALUE,?> backend, BackendCache<ID,VALUE> cache, BackendBindings<ID,VALUE> bindings) {
         this.backend = backend;
         this.cache = cache;
         this.bindings = bindings;
 
-        this.dedicatedCache = new CacheId<>(backend).copy(this.cache);
+        this.dedicatedCache = new BackendCache<>(backend).copy(this.cache);
         for (Var toBind : bindings.vars()) { // all mappings are cached
             // take a look at CountSubqueryBuilder comment to understand why we do this.
             // (tldr: to work on ID, not on String)

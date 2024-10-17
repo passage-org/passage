@@ -1,7 +1,7 @@
 package fr.gdd.raw.iterators;
 
 import fr.gdd.passage.commons.generics.BackendBindings;
-import fr.gdd.passage.commons.generics.CacheId;
+import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.generics.Substitutor;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.raw.executor.RawConstants;
@@ -18,7 +18,7 @@ public class RandomScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID
     final Iterator<BackendBindings<ID, VALUE>> input;
     final ExecutionContext context;
     final OpTriple triple;
-    final CacheId<ID,VALUE> cache;
+    final BackendCache<ID,VALUE> cache;
 
     BackendBindings<ID, VALUE> inputBinding;
     Iterator<BackendBindings<ID, VALUE>> instantiated = Iter.empty();

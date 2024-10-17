@@ -7,13 +7,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class CacheId<ID,VALUE> {
+/**
+ * Caches the values that are commonly used in the whole query. Since
+ * the query is parsed using Jena, the base value is a `Node` that
+ * comes from the logical parsed plan.
+ */
+public class BackendCache<ID,VALUE> {
 
     final Backend<ID,VALUE,?> backend;
 
     Map<Node, ID> node2id = new HashMap<>();
 
-    public CacheId(Backend<ID,VALUE,?> backend) {
+    public BackendCache(Backend<ID,VALUE,?> backend) {
         this.backend = backend;
     }
 
@@ -42,7 +47,7 @@ public class CacheId<ID,VALUE> {
      * have been added.
      * @return this, for convenience.
      */
-    public CacheId<ID,VALUE> register(Node node, ID id) {
+    public BackendCache<ID,VALUE> register(Node node, ID id) {
         node2id.put(node, id); // we don't check anything
         return this;
     }
@@ -52,7 +57,7 @@ public class CacheId<ID,VALUE> {
      * @param otherCache The cache to copy.
      * @return this, for convenience.
      */
-    public CacheId<ID,VALUE> copy(CacheId<ID,VALUE> otherCache) {
+    public BackendCache<ID,VALUE> copy(BackendCache<ID,VALUE> otherCache) {
         this.node2id.putAll(otherCache.node2id);
         return this;
     }

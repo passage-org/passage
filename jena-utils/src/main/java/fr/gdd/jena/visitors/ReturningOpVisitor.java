@@ -1,5 +1,6 @@
 package fr.gdd.jena.visitors;
 
+import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
 
 /**
@@ -10,6 +11,7 @@ import org.apache.jena.sparql.algebra.op.*;
  * @param <T> The type of the object returned.
  */
 public class ReturningOpVisitor<T> {
+    public T visit(Op op) {return ReturningOpVisitorRouter.visit(this, op);}
     public T visit(OpService req) {throw new UnsupportedOperationException("Req");}
 
     public T visit(OpTriple triple) {throw new UnsupportedOperationException("OpTriple");}

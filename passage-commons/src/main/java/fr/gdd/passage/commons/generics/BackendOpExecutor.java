@@ -1,0 +1,116 @@
+package fr.gdd.passage.commons.generics;
+
+import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
+import fr.gdd.passage.commons.factories.*;
+import org.apache.jena.atlas.iterator.Iter;
+import org.apache.jena.query.QueryFactory;
+import org.apache.jena.sparql.algebra.Algebra;
+import org.apache.jena.sparql.algebra.Op;
+import org.apache.jena.sparql.algebra.op.*;
+import org.apache.jena.sparql.engine.ExecutionContext;
+
+import java.util.Iterator;
+
+/**
+ * Base executor of operators that compose the logical plan.
+ * Mostly exist to ease the creation of executor configurations.
+ */
+public class BackendOpExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
+        Iterator<BackendBindings<ID, VALUE>>, // input
+        Iterator<BackendBindings<ID, VALUE>>> { // output
+
+    public final ExecutionContext context;
+    private final IBackendProjectsFactory<ID,VALUE> projects;
+    private final IBackendTriplesFactory<ID,VALUE> triples;
+    private final IBackendJoinsFactory<ID,VALUE> joins;
+    private final IBackendUnionsFactory<ID,VALUE> unions;
+    private final IBackendValuesFactory<ID,VALUE> values;
+    private final IBackendBindsFactory<ID,VALUE> binds;
+    private final IBackendFiltersFactory<ID,VALUE> filters;
+    private final IBackendDistinctsFactory<ID,VALUE> distincts;
+    private final IBackendLimitOffsetFactory<ID,VALUE> slices;
+    private final IBackendOptionalsFactory<ID,VALUE> optionals;
+
+
+    public BackendOpExecutor(ExecutionContext context,
+                             IBackendProjectsFactory<ID,VALUE> projects,
+                             IBackendTriplesFactory<ID,VALUE> triples,
+                             IBackendJoinsFactory<ID,VALUE> joins,
+                             IBackendUnionsFactory<ID,VALUE> unions,
+                             IBackendValuesFactory<ID,VALUE> values,
+                             IBackendBindsFactory<ID,VALUE> binds,
+                             IBackendFiltersFactory<ID,VALUE> filters,
+                             IBackendDistinctsFactory<ID,VALUE> distincts,
+                             IBackendLimitOffsetFactory<ID,VALUE> slices,
+                             IBackendOptionalsFactory<ID,VALUE> optionals) {
+        this.context = context;
+        this.triples = triples;
+        this.projects = projects;
+        this.joins = joins;
+        this.unions = unions;
+        this.values = values;
+        this.binds = binds;
+        this.filters = filters;
+        this.distincts = distincts;
+        this.slices = slices;
+        this.optionals = optionals;
+    }
+
+    public Iterator<BackendBindings<ID,VALUE>> execute(String opAsString) {
+        return this.execute(Algebra.compile(QueryFactory.create(opAsString)));
+    }
+
+    public Iterator<BackendBindings<ID,VALUE>> execute(Op op) {
+        return this.visit(op, Iter.of(new BackendBindings<>()));
+    }
+
+    @Override
+    public Iterator<BackendBindings<ID, VALUE>> visit(OpTriple triple, Iterator<BackendBindings<ID, VALUE>> input) {
+        return triples.get(context, input, triple);
+    }
+
+    @Override
+    public Iterator<BackendBindings<ID, VALUE>> visit(OpProject project, Iterator<BackendBindings<ID, VALUE>> input) {
+        return projects.get(context, input, project);
+    }
+
+    @Override
+    public Iterator<BackendBindings<ID, VALUE>> visit(OpJoin join, Iterator<BackendBindings<ID, VALUE>> input) {
+        return joins.get(context, input, join);
+    }
+
+    @Override
+    public Iterator<BackendBindings<ID, VALUE>> visit(OpTable table, Iterator<BackendBindings<ID, VALUE>> input) {
+        return values.get(context, input, table);
+    }
+
+    @Override
+    public Iterator<BackendBindings<ID, VALUE>> visit(OpUnion union, Iterator<BackendBindings<ID, VALUE>> input) {
+        return unions.get(context, input, union);
+    }
+
+    @Override
+    public Iterator<BackendBindings<ID, VALUE>> visit(OpFilter filter, Iterator<BackendBindings<ID, VALUE>> input) {
+        return filters.get(context, input, filter);
+    }
+
+    @Override
+    public Iterator<BackendBindings<ID, VALUE>> visit(OpDistinct distinct, Iterator<BackendBindings<ID, VALUE>> input) {
+        return distincts.get(context, input, distinct);
+    }
+
+    @Override
+    public Iterator<BackendBindings<ID, VALUE>> visit(OpExtend extend, Iterator<BackendBindings<ID, VALUE>> input) {
+        return binds.get(context, input, extend);
+    }
+
+    @Override
+    public Iterator<BackendBindings<ID, VALUE>> visit(OpSlice slice, Iterator<BackendBindings<ID, VALUE>> input) {
+        return slices.get(context, input, slice);
+    }
+
+    @Override
+    public Iterator<BackendBindings<ID, VALUE>> visit(OpConditional cond, Iterator<BackendBindings<ID, VALUE>> input) {
+        return optionals.get(context, input, cond);
+    }
+}

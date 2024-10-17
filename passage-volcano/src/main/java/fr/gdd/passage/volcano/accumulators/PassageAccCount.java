@@ -1,8 +1,8 @@
 package fr.gdd.passage.volcano.accumulators;
 
 import fr.gdd.passage.commons.generics.BackendBindings;
+import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.interfaces.Backend;
-import fr.gdd.passage.volcano.PassageConstants;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.function.FunctionEnv;
@@ -27,7 +27,7 @@ public class PassageAccCount<ID,VALUE> implements PassageAccumulator<ID,VALUE> {
 
     @Override
     public VALUE getValue() {
-        Backend<ID,VALUE,?> backend = context.getContext().get(PassageConstants.BACKEND);
+        Backend<ID,VALUE,?> backend = context.getContext().get(BackendConstants.BACKEND);
         return backend.getValue(String.format("\"%s\"^^xsd:integer", value));
     }
 }

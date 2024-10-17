@@ -1,6 +1,7 @@
 package fr.gdd.passage.volcano;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
+import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.apache.jena.query.DatasetFactory;
@@ -32,7 +33,7 @@ public class PassageOpExecutorUnionTest {
                }""";
 
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(PassageConstants.BACKEND, blazegraph);
+        ec.getContext().set(BackendConstants.BACKEND, blazegraph);
         var results = PassageOpExecutorTest.executeWithPassage(queryAsString, ec);
         assertEquals(6, results.size()); // 3 triples + 3 triples
     }
@@ -47,7 +48,7 @@ public class PassageOpExecutorUnionTest {
                }""";
 
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(PassageConstants.BACKEND, blazegraph);
+        ec.getContext().set(BackendConstants.BACKEND, blazegraph);
         var results = PassageOpExecutorTest.executeWithPassage(queryAsString, ec);
         assertEquals(6, results.size()); // (cat + dog + snake)*2
     }

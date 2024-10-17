@@ -1,7 +1,11 @@
 package fr.gdd.passage.commons.iterators;
 
+import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
+import fr.gdd.passage.commons.factories.IBackendBindsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
-import fr.gdd.passage.commons.generics.CacheId;
+import fr.gdd.passage.commons.generics.BackendConstants;
+import fr.gdd.passage.commons.generics.BackendOpExecutor;
+import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.interfaces.Backend;
 import org.apache.jena.sparql.algebra.op.OpExtend;
 import org.apache.jena.sparql.core.Var;
@@ -16,18 +20,28 @@ import org.apache.jena.sparql.util.ExprUtils;
 import java.util.Iterator;
 
 /**
- * We focus on BIND(<http://that_exists_in_db> AS ?variable). Expressions are as simple as that.
+ * We focus on BIND(<https://that_exists_in_db> AS ?variable). Expressions are as simple as that.
  */
 public class BackendBind<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
+
+    public static <ID,VALUE> IBackendBindsFactory<ID,VALUE> factory() {
+        return (context, input, extend) -> {
+            Backend<ID,VALUE,?> backend = context.getContext().get(BackendConstants.BACKEND);
+            BackendCache<ID,VALUE> cache = context.getContext().get(BackendConstants.CACHE);
+            BackendOpExecutor<ID,VALUE> executor = context.getContext().get(BackendConstants.EXECUTOR);
+            Iterator<BackendBindings<ID,VALUE>> newInput = ReturningArgsOpVisitorRouter.visit(executor, extend.getSubOp(), input);
+            return new BackendBind<>(newInput, extend, backend, cache, context);
+        };
+    }
 
     final Iterator<BackendBindings<ID,VALUE>> input;
     final ExecutionContext context;
     final VarExprList exprs;
     final Backend<ID,VALUE,?> backend;
-    final CacheId<ID,VALUE> cache;
+    final BackendCache<ID,VALUE> cache;
 
     public BackendBind(Iterator<BackendBindings<ID,VALUE>> input, OpExtend op,
-                       Backend<ID,VALUE,?> backend, CacheId<ID, VALUE> cache, ExecutionContext context) {
+                       Backend<ID,VALUE,?> backend, BackendCache<ID, VALUE> cache, ExecutionContext context) {
         this.exprs =  op.getVarExprList();
         this.context = context;
         this.input = input;

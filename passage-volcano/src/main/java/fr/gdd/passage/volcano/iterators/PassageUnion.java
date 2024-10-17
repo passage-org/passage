@@ -1,26 +1,43 @@
 package fr.gdd.passage.volcano.iterators;
 
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
+import fr.gdd.passage.commons.factories.IBackendUnionsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
-import fr.gdd.passage.volcano.PassageOpExecutor;
+import fr.gdd.passage.commons.generics.BackendConstants;
+import fr.gdd.passage.commons.generics.BackendOpExecutor;
+import fr.gdd.passage.volcano.PassageConstants;
+import fr.gdd.passage.volcano.pause.Pause2Next;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.sparql.algebra.Op;
 
 import java.util.Iterator;
 import java.util.Objects;
 
+/**
+ * Basic union iterator that keeps track of the branch it executes.
+ */
 public class PassageUnion<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE>> {
+
+    public static <ID,VALUE> IBackendUnionsFactory<ID,VALUE> factory() {
+        return (context, input, union) -> {
+            Pause2Next<ID,VALUE> saver = context.getContext().get(PassageConstants.SAVER);
+            BackendOpExecutor<ID,VALUE> executor = context.getContext().get(BackendConstants.BACKEND);
+            Iterator<BackendBindings<ID,VALUE>> iterator = new PassageUnion<>(executor, input, union.getLeft(), union.getRight());
+            saver.register(union, iterator);
+            return iterator;
+        };
+    }
 
     final Iterator<BackendBindings<ID, VALUE>> input;
     final Op left;
     final Op right;
-    final PassageOpExecutor<ID, VALUE> executor;
+    final BackendOpExecutor<ID, VALUE> executor;
 
     BackendBindings<ID, VALUE> current = null;
     Integer currentOp = -1; // -1 not init, 0 left, 1 right
     Iterator<BackendBindings<ID, VALUE>> currentIt;
 
-    public PassageUnion(PassageOpExecutor<ID, VALUE> executor, Iterator<BackendBindings<ID, VALUE>> input, Op left, Op right) {
+    public PassageUnion(BackendOpExecutor<ID, VALUE> executor, Iterator<BackendBindings<ID, VALUE>> input, Op left, Op right) {
         this.left = left;
         this.right = right;
         this.input = input;

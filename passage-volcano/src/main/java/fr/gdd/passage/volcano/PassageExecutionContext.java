@@ -1,13 +1,12 @@
 package fr.gdd.passage.volcano;
 
-import fr.gdd.passage.commons.generics.CacheId;
+import fr.gdd.passage.commons.generics.BackendCache;
+import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.optimizers.PassageOptimizer;
 import fr.gdd.passage.volcano.pause.PassageSavedState;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.sparql.engine.ExecutionContext;
-
-import java.io.Serializable;
 
 /**
  * Quick access to mandatory things of passage to execute properly.
@@ -15,7 +14,13 @@ import java.io.Serializable;
 public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
 
     Backend<ID,VALUE,Long> backend;
-    CacheId<ID,VALUE> cache;
+    BackendCache<ID,VALUE> cache;
+
+    public PassageExecutionContext(ExecutionContext context) {
+        super(context);
+    }
+
+    // TODO setup an execution context to make it run.
 
     public PassageExecutionContext(Backend<ID,VALUE,Long> backend) {
         super(new ExecutionContext(DatasetFactory.empty().asDatasetGraph()));
@@ -23,7 +28,7 @@ public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
         this.getContext().setIfUndef(PassageConstants.LIMIT, Long.MAX_VALUE);
         this.getContext().setIfUndef(PassageConstants.TIMEOUT, Long.MAX_VALUE);
         this.getContext().setFalse(PassageConstants.PAUSED);
-        this.getContext().set(PassageConstants.PAUSED_STATE, new PassageSavedState() );
+        this.getContext().set(PassageConstants.PAUSED_STATE, new PassageSavedState());
         this.setBackend(backend);
     }
 
@@ -40,17 +45,22 @@ public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
     }
 
     public PassageExecutionContext<ID,VALUE> setBackend(Backend<ID,VALUE,Long> backend) {
-        this.getContext().set(PassageConstants.BACKEND, backend);
+        this.getContext().set(BackendConstants.BACKEND, backend);
         this.backend = backend;
-        this.cache = new CacheId<>(backend);
-        this.getContext().setIfUndef(PassageConstants.CACHE, this.cache);
+        this.cache = new BackendCache<>(backend);
+        this.getContext().setIfUndef(BackendConstants.CACHE, this.cache);
         // as setifundef so outsiders can configure their own list of optimizers
         this.getContext().setIfUndef(PassageConstants.LOADER, new PassageOptimizer<>(backend, cache));
         return this;
     }
 
+    public PassageExecutionContext<ID,VALUE> forceOrder() {
+        PassageOptimizer<ID,VALUE> optimizer = this.getContext().get(PassageConstants.LOADER);
+        optimizer.forceOrder();
+        return this;
+    }
 
-    public CacheId<ID, VALUE> getCache() {
+    public BackendCache<ID, VALUE> getCache() {
         return cache;
     }
 

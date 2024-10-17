@@ -1,8 +1,11 @@
 package fr.gdd.passage.volcano.iterators;
 
+import fr.gdd.passage.commons.factories.IBackendDistinctsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
+import fr.gdd.passage.commons.generics.BackendConstants;
+import fr.gdd.passage.commons.generics.BackendOpExecutor;
+import fr.gdd.passage.commons.generics.BackendSaver;
 import fr.gdd.passage.volcano.PassageConstants;
-import fr.gdd.passage.volcano.pause.Pause2Next;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpDistinct;
 import org.apache.jena.sparql.algebra.op.OpFilter;
@@ -22,10 +25,20 @@ import java.util.stream.Collectors;
  */
 public class PassageDistinct<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
 
+    public static <ID,VALUE> IBackendDistinctsFactory<ID,VALUE> factory() {
+        return (context, input, distinct) -> {
+            BackendSaver<ID,VALUE,?> saver = context.getContext().get(PassageConstants.SAVER);
+            BackendOpExecutor<ID,VALUE> executor = context.getContext().get(BackendConstants.BACKEND);
+            Iterator<BackendBindings<ID,VALUE>> wrapped = executor.visit(distinct.getSubOp(), input);
+            Iterator<BackendBindings<ID,VALUE>> distincts = new PassageDistinct<>(distinct, context, wrapped);
+            saver.register(distinct, distincts);
+            return distincts;
+        };
+    }
+
     final ExecutionContext context;
     final OpDistinct op;
     final Iterator<BackendBindings<ID,VALUE>> wrapped;
-    final Pause2Next<ID,VALUE> saver;
 
     BackendBindings<ID,VALUE> lastBinding = new BackendBindings<>();
     BackendBindings<ID,VALUE> newBinding;
@@ -34,8 +47,6 @@ public class PassageDistinct<ID,VALUE> implements Iterator<BackendBindings<ID,VA
         this.context = context;
         this.op = op;
         this.wrapped = wrapped;
-        this.saver = context.getContext().get(PassageConstants.SAVER);
-        this.saver.register(op, this);
     }
 
     @Override

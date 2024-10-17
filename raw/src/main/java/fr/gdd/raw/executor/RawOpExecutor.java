@@ -5,7 +5,7 @@ import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendSaver;
-import fr.gdd.passage.commons.generics.CacheId;
+import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.iterators.BackendBind;
 import fr.gdd.passage.volcano.optimizers.CardinalityJoinOrdering;
@@ -39,7 +39,7 @@ public class RawOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
 
     final ExecutionContext execCxt;
     Backend<ID, VALUE, ?> backend;
-    CacheId<ID, VALUE> cache;
+    BackendCache<ID, VALUE> cache;
 
     public RawOpExecutor() {
         // This creates a brandnew execution context, but it's important
@@ -60,7 +60,7 @@ public class RawOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         execCxt.getContext().setIfUndef(RawConstants.SCANS, 0L);
         execCxt.getContext().setIfUndef(RawConstants.LIMIT, Long.MAX_VALUE);
         execCxt.getContext().setIfUndef(RawConstants.TIMEOUT, Long.MAX_VALUE);
-        this.cache = new CacheId<>(this.backend);
+        this.cache = new BackendCache<>(this.backend);
         execCxt.getContext().setIfUndef(RawConstants.CACHE, cache);
         execCxt.getContext().setIfUndef(RawConstants.BUDGETING, new NaiveBudgeting(
                 execCxt.getContext().get(RawConstants.TIMEOUT),
@@ -79,7 +79,7 @@ public class RawOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         return this;
     }
 
-    public RawOpExecutor<ID, VALUE> setCache(CacheId<ID,VALUE> cache) {
+    public RawOpExecutor<ID, VALUE> setCache(BackendCache<ID,VALUE> cache) {
         execCxt.getContext().set(RawConstants.CACHE, cache);
         this.cache = cache;
         return this;
@@ -88,7 +88,7 @@ public class RawOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
     public RawOpExecutor<ID,VALUE> setBackend(Backend<ID,VALUE,?> backend) {
         this.backend = backend;
         execCxt.getContext().set(RawConstants.BACKEND, backend);
-        execCxt.getContext().setIfUndef(RawConstants.CACHE, new CacheId<>(this.backend));
+        execCxt.getContext().setIfUndef(RawConstants.CACHE, new BackendCache<>(this.backend));
         this.cache = execCxt.getContext().get(RawConstants.CACHE);
         return this;
     }
@@ -120,7 +120,7 @@ public class RawOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
     public ExecutionContext getExecutionContext() {
         return execCxt;
     }
-    public CacheId<ID, VALUE> getCache() { return cache;}
+    public BackendCache<ID, VALUE> getCache() { return cache;}
 
     /* ************************************************************************ */
 
@@ -154,7 +154,7 @@ public class RawOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
     @Override
     public Iterator<BackendBindings<ID, VALUE>> visit(OpExtend extend, Iterator<BackendBindings<ID, VALUE>> input) {
         // TODO throw when the expressions inside the OpExtend are not supported
-        CacheId<ID,VALUE> cache = execCxt.getContext().get(RawConstants.CACHE);
+        BackendCache<ID,VALUE> cache = execCxt.getContext().get(RawConstants.CACHE);
         Iterator<BackendBindings<ID, VALUE>> wrapped = ReturningArgsOpVisitorRouter.visit(this, extend.getSubOp(), input);
         return new BackendBind<>(wrapped, extend, backend, cache, execCxt);
     }

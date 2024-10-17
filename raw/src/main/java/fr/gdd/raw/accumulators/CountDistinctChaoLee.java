@@ -3,7 +3,7 @@ package fr.gdd.raw.accumulators;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendSaver;
-import fr.gdd.passage.commons.generics.CacheId;
+import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendAccumulator;
 import fr.gdd.passage.volcano.optimizers.CardinalityJoinOrdering;
@@ -37,7 +37,7 @@ public class CountDistinctChaoLee<ID,VALUE> implements BackendAccumulator<ID, VA
     final ExecutionContext context;
     final Backend<ID,VALUE,?> backend;
     final OpGroup group;
-    final CacheId<ID,VALUE> cache;
+    final BackendCache<ID,VALUE> cache;
 
     final CountWanderJoin<ID,VALUE> bigN;
     final WanderJoin<ID,VALUE> wj;

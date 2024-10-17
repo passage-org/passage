@@ -1,6 +1,7 @@
 package fr.gdd.passage.volcano.pause;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
+import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.iterators.PassageScan;
@@ -132,7 +133,7 @@ public class Pause2SPARQLAggTimeoutTest {
         Op meow = Algebra.compile(QueryFactory.create(queryAsString));
 
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(PassageConstants.BACKEND, blazegraph);
+        ec.getContext().set(BackendConstants.BACKEND, blazegraph);
 
         var results = blazegraph.executeQuery(queryAsString);
         log.debug(results.toString());

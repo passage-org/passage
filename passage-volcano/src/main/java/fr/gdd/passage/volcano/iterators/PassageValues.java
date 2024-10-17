@@ -1,9 +1,13 @@
 package fr.gdd.passage.volcano.iterators;
 
 import com.google.common.collect.Lists;
+import fr.gdd.passage.commons.factories.IBackendValuesFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
-import fr.gdd.passage.commons.generics.CacheId;
+import fr.gdd.passage.commons.generics.BackendCache;
+import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.interfaces.Backend;
+import fr.gdd.passage.volcano.PassageConstants;
+import fr.gdd.passage.volcano.pause.Pause2Next;
 import org.apache.jena.graph.Node;
 import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.sparql.algebra.Table;
@@ -12,7 +16,6 @@ import org.apache.jena.sparql.algebra.op.OpTable;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.engine.binding.Binding;
-import org.apache.jena.sparql.util.NodeUtils;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -26,10 +29,25 @@ import java.util.Objects;
  */
 public class PassageValues<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
 
+    public static <ID,VALUE> IBackendValuesFactory<ID,VALUE> factory() {
+        return (context, input, table) -> {
+            if (table.isJoinIdentity())
+                return input; // nothing to do
+
+            Pause2Next<ID,VALUE> saver = context.getContext().get(PassageConstants.SAVER);
+            Backend<ID,VALUE,?> backend = context.getContext().get(BackendConstants.BACKEND);
+            BackendCache<ID,VALUE> cache = context.getContext().get(BackendConstants.CACHE);
+            Iterator<BackendBindings<ID,VALUE>> values = new PassageValues<>(input, table, backend, cache, context);
+            saver.register(table, values);
+            return values;
+        };
+    }
+
+
     final Iterator<BackendBindings<ID,VALUE>> input;
     final ExecutionContext context;
     final Backend<ID,VALUE,?> backend;
-    final CacheId<ID,VALUE> cache;
+    final BackendCache<ID,VALUE> cache;
     final List<BackendBindings<ID,VALUE>> values;
     BackendBindings<ID,VALUE> current;
     final List<Var> vars;
@@ -38,7 +56,7 @@ public class PassageValues<ID,VALUE> implements Iterator<BackendBindings<ID,VALU
     int index = 0; // current position in the table
 
     public PassageValues(Iterator<BackendBindings<ID,VALUE>> input, OpTable op,
-                         Backend<ID,VALUE,?> backend, CacheId<ID,VALUE> cache,
+                         Backend<ID,VALUE,?> backend, BackendCache<ID,VALUE> cache,
                          ExecutionContext context) {
         this.vars = op.getTable().getVars();
         this.table = Lists.newArrayList(op.getTable().rows());

@@ -138,16 +138,16 @@ public class Pause2Next<ID, VALUE> extends BackendSaver<ID,VALUE,Long> {
     public Op visit(OpExtend extend) { // cloned
         Op subop = ReturningOpVisitorRouter.visit(this, extend.getSubOp());
 
-        if (Objects.nonNull(subop) && subop instanceof OpGroup groupBy) {
-            // performed here because the value is saved in extend
-            PassageAgg<ID,VALUE> agg = (PassageAgg<ID, VALUE>) getIterator(groupBy);
-
-            Op subopGB = ReturningOpVisitorRouter.visit(this, groupBy.getSubOp());
-
-            if (Objects.isNull(subopGB)) {return null;}
-
-            return agg.save(extend, subopGB);
-        }
+//        if (Objects.nonNull(subop) && subop instanceof OpGroup groupBy) {
+//            // performed here because the value is saved in extend
+//            PassageAgg<ID,VALUE> agg = (PassageAgg<ID, VALUE>) getIterator(groupBy);
+//
+//            Op subopGB = ReturningOpVisitorRouter.visit(this, groupBy.getSubOp());
+//
+//            if (Objects.isNull(subopGB)) {return null;}
+//
+//            return agg.save(extend, subopGB);
+//        }
 
         return Objects.isNull(subop) ? null : OpCloningUtil.clone(extend, subop);
     }
@@ -222,11 +222,11 @@ public class Pause2Next<ID, VALUE> extends BackendSaver<ID,VALUE,Long> {
         ));
     }
 
-    @Override
-    public Op visit(OpGroup groupBy) {
-        PassageAgg<ID,VALUE> it = (PassageAgg<ID, VALUE>) getIterator(groupBy);
-        if (Objects.isNull(it)) return null;
-
-        return groupBy;
-    }
+//    @Override
+//    public Op visit(OpGroup groupBy) {
+//        PassageAgg<ID,VALUE> it = (PassageAgg<ID, VALUE>) getIterator(groupBy);
+//        if (Objects.isNull(it)) return null;
+//
+//        return groupBy;
+//    }
 }

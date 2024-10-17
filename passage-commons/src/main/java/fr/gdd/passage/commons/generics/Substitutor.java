@@ -14,13 +14,13 @@ import java.util.Objects;
  */
 public class Substitutor {
 
-    public static <ID, VALUE> Tuple3<ID> substitute(Triple triple, BackendBindings<ID, VALUE> binding, CacheId<ID,VALUE> cache) {
+    public static <ID, VALUE> Tuple3<ID> substitute(Triple triple, BackendBindings<ID, VALUE> binding, BackendCache<ID,VALUE> cache) {
         return TupleFactory.create3(substitute(triple.getSubject(), binding, SPOC.SUBJECT, cache),
                 substitute(triple.getPredicate(),binding, SPOC.PREDICATE, cache),
                 substitute(triple.getObject(), binding, SPOC.OBJECT, cache));
     }
 
-    public static <ID, VALUE> ID substitute(Node sOrPOrO, BackendBindings<ID, VALUE> binding, Integer spoc, CacheId<ID,VALUE> cache) {
+    public static <ID, VALUE> ID substitute(Node sOrPOrO, BackendBindings<ID, VALUE> binding, Integer spoc, BackendCache<ID,VALUE> cache) {
         if (sOrPOrO.isVariable()) {
             BackendBindings.IdValueBackend<ID, VALUE> b = binding.get(Var.alloc(sOrPOrO));
             return Objects.isNull(b) ? null : b.getId();

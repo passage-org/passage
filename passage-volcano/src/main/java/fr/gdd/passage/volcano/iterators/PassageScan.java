@@ -1,6 +1,7 @@
 package fr.gdd.passage.volcano.iterators;
 
 import fr.gdd.passage.commons.generics.BackendBindings;
+import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
@@ -29,7 +30,6 @@ public class PassageScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALU
 
     final Long deadline;
     final OpTriple op;
-    final Pause2Next<ID, VALUE> saver;
     final Backend<ID, VALUE, Long> backend;
     final BackendIterator<ID, VALUE, Long> wrapped;
     final Tuple3<Var> vars; // needed to create bindings
@@ -38,11 +38,9 @@ public class PassageScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALU
     public PassageScan(ExecutionContext context, OpTriple triple, Tuple<ID> spo, BackendIterator<ID, VALUE, Long> wrapped) {
         this.context = context;
         this.deadline = context.getContext().getLong(PassageConstants.DEADLINE, Long.MAX_VALUE);
-        this.backend = context.getContext().get(PassageConstants.BACKEND);
+        this.backend = context.getContext().get(BackendConstants.BACKEND);
         this.wrapped = wrapped;
         this.op = triple;
-        this.saver = context.getContext().get(PassageConstants.SAVER);
-        // saver.register(triple, this);
 
         this.vars = TupleFactory.create3(
                 triple.getTriple().getSubject().isVariable() && Objects.isNull(spo.get(0)) ? Var.alloc(triple.getTriple().getSubject()) : null,

@@ -1,6 +1,7 @@
 package fr.gdd.passage.volcano;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
+import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.iterators.PassageScan;
 import fr.gdd.passage.volcano.pause.Save2SPARQLTest;
@@ -28,7 +29,7 @@ public class PassageOpExecutorAggTest {
         String query = "SELECT (COUNT(*) AS ?count) { ?p <http://address> ?c }";
 
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(PassageConstants.BACKEND, blazegraph);
+        ec.getContext().set(BackendConstants.BACKEND, blazegraph);
 
         var results = PassageOpExecutorTest.executeWithPassage(query, ec);
         assertEquals(1, results.size()); // ?count = 3
@@ -45,7 +46,7 @@ public class PassageOpExecutorAggTest {
         """;
 
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(PassageConstants.BACKEND, blazegraph);
+        ec.getContext().set(BackendConstants.BACKEND, blazegraph);
 
         var results = PassageOpExecutorTest.executeWithPassage(query, ec);
         assertEquals(3, results.size()); // ?count = 3 for Alice; Bob and Carol have ?count = 0

@@ -1,11 +1,11 @@
 package fr.gdd.passage.volcano.optimizers;
 
 import fr.gdd.jena.utils.FlattenUnflatten;
-import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.jena.visitors.ReturningOpVisitor;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.passage.commons.generics.BackendBindings;
-import fr.gdd.passage.commons.generics.CacheId;
+import fr.gdd.passage.commons.generics.BackendCache;
+import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.iterators.PassageScanFactory;
@@ -48,8 +48,8 @@ public class PartitionRoot<ID,VALUE> extends ReturningOpVisitor<Op> {
 
         // TODO take into account the original offset of the input opTriple
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(PassageConstants.BACKEND, backend);
-        ec.getContext().set(PassageConstants.CACHE, new CacheId<>(backend));
+        ec.getContext().set(BackendConstants.BACKEND, backend);
+        ec.getContext().set(BackendConstants.CACHE, new BackendCache<>(backend));
         ec.getContext().set(PassageConstants.SAVER, new Pause2Next<>(null, ec));
         PassageScanFactory<ID,VALUE> scan = new PassageScanFactory<>(Iter.of(new BackendBindings<>()), ec, triple);
         scan.hasNext(); // TODO remove this `hasNext`

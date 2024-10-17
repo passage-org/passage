@@ -2,8 +2,10 @@ package fr.gdd.passage.volcano.pause;
 
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.passage.commons.generics.BackendBindings;
+import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.PassageConstants;
+import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageOpExecutor;
 import fr.gdd.passage.volcano.resume.BGP2Triples;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -57,9 +59,9 @@ public class Save2SPARQLTest {
         query = ReturningOpVisitorRouter.visit(new BGP2Triples(), query);
 
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(PassageConstants.BACKEND, backend);
+        ec.getContext().set(BackendConstants.BACKEND, backend);
 
-        PassageOpExecutor<ID, VALUE> executor = new PassageOpExecutor<ID,VALUE>(ec).setLimit(limit);
+        PassageOpExecutor<ID, VALUE> executor = new PassageOpExecutor<ID,VALUE>(new PassageExecutionContext<>(ec)).setLimit(limit);
 
         Iterator<BackendBindings<ID, VALUE>> iterator = executor.execute(query);
         int nbResults = 0;
@@ -83,18 +85,18 @@ public class Save2SPARQLTest {
         query = ReturningOpVisitorRouter.visit(new BGP2Triples(), query);
 
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(PassageConstants.BACKEND, backend);
+        ec.getContext().set(BackendConstants.BACKEND, backend);
         ec.getContext().set(PassageConstants.LIMIT, 1);
 
-        PassageOpExecutor<ID, VALUE> executor = new PassageOpExecutor<>(ec);
+        PassageOpExecutor<ID, VALUE> executor = new PassageOpExecutor<>(new PassageExecutionContext<>(ec));
 
         Iterator<BackendBindings<ID, VALUE>> iterator = executor.execute(query);
         if (!iterator.hasNext()) {
-            return new ImmutableTriple<>(0, executor.pauseAsString(), executor.progress());
+            return new ImmutableTriple<>(0, executor.pauseAsString(), 0.);// executor.progress());
         }
         log.debug("{}", iterator.next());
 
-        return new ImmutableTriple<>(1, executor.pauseAsString(), executor.progress());
+        return new ImmutableTriple<>(1, executor.pauseAsString(), 0.);// executor.progress());
     }
 
     public static <ID, VALUE> Pair<Integer, String> executeQueryWithTimeout(String queryAsString, Backend<ID, VALUE, ?> backend, Long timeout) {
@@ -104,9 +106,9 @@ public class Save2SPARQLTest {
         query = ReturningOpVisitorRouter.visit(new BGP2Triples(), query);
 
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(PassageConstants.BACKEND, backend);
+        ec.getContext().set(BackendConstants.BACKEND, backend);
 
-        PassageOpExecutor<ID, VALUE> executor = new PassageOpExecutor<ID,VALUE>(ec).setTimeout(timeout);
+        PassageOpExecutor<ID, VALUE> executor = new PassageOpExecutor<ID,VALUE>(new PassageExecutionContext<>(ec)).setTimeout(timeout);
 
         Iterator<BackendBindings<ID, VALUE>> iterator = executor.execute(query);
 

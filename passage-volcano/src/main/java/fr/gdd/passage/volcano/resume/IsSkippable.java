@@ -18,7 +18,7 @@ public class IsSkippable extends ReturningOpVisitor<Boolean> {
         return opTriple;
     }
 
-    public static Boolean visit(Op op) {
+    public Boolean visit(Op op) {
         if (op instanceof OpSlice slice) { // The root slice
             return ReturningOpVisitorRouter.visit(new IsSkippable(), slice.getSubOp());
         }

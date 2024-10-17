@@ -1,6 +1,7 @@
 package fr.gdd.passage.volcano;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
+import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.apache.jena.query.DatasetFactory;
@@ -27,7 +28,7 @@ public class PassageOpExecutorBGPTest {
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c}";
 
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(PassageConstants.BACKEND, blazegraph);
+        ec.getContext().set(BackendConstants.BACKEND, blazegraph);
 
         var results = PassageOpExecutorTest.executeWithPassage(queryAsString, ec);
         assertEquals(3, results.size()); // Bob, Alice, and Carol.
@@ -43,7 +44,7 @@ public class PassageOpExecutorBGPTest {
                }""";
 
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(PassageConstants.BACKEND, blazegraph);
+        ec.getContext().set(BackendConstants.BACKEND, blazegraph);
         var results = PassageOpExecutorTest.executeWithPassage(queryAsString, ec);
         assertEquals(3, results.size()); // Alice, Alice, and Alice.
     }
@@ -59,7 +60,7 @@ public class PassageOpExecutorBGPTest {
                }""";
 
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(PassageConstants.BACKEND, blazegraph);
+        ec.getContext().set(BackendConstants.BACKEND, blazegraph);
         var results = PassageOpExecutorTest.executeWithPassage(queryAsString, ec);
         assertEquals(3, results.size()); // Alice->own->cat,dog,snake
     }

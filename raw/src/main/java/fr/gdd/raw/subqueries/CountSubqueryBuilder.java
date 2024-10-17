@@ -3,7 +3,7 @@ package fr.gdd.raw.subqueries;
 import fr.gdd.jena.visitors.ReturningOpBaseVisitor;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.passage.commons.generics.BackendBindings;
-import fr.gdd.passage.commons.generics.CacheId;
+import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.raw.executor.RawConstants;
 import org.apache.jena.graph.Node;
@@ -32,18 +32,18 @@ public class CountSubqueryBuilder<ID,VALUE> extends ReturningOpBaseVisitor {
 
     final BackendBindings<ID,VALUE> bindings;
     final Set<Var> vars;
-    final CacheId<ID,VALUE> cache;
+    final BackendCache<ID,VALUE> cache;
 
     Var resultVar; // to retrieve the result in the COUNT subquery, if need be
 
     public CountSubqueryBuilder (Backend<ID,VALUE,?> backend, BackendBindings<ID, VALUE> bindings, Set<Var> vars) {
         this.bindings = bindings;
         this.vars = vars;
-        this.cache = new CacheId<>(backend);
+        this.cache = new BackendCache<>(backend);
     }
 
     public Var getResultVar() { return resultVar; }
-    public CacheId<ID, VALUE> getCache() { return cache; }
+    public BackendCache<ID, VALUE> getCache() { return cache; }
 
     public Op build (String queryAsString) {return this.build(Algebra.compile(QueryFactory.create(queryAsString)));}
 

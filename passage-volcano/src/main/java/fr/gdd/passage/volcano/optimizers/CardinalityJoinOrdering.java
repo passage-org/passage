@@ -5,7 +5,8 @@ import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.passage.commons.exceptions.NotFoundException;
 import fr.gdd.passage.commons.generics.BackendBindings;
-import fr.gdd.passage.commons.generics.CacheId;
+import fr.gdd.passage.commons.generics.BackendCache;
+import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.iterators.PassageScanFactory;
@@ -45,16 +46,17 @@ public class CardinalityJoinOrdering<ID,VALUE> extends ReturningArgsOpVisitor<
 
     public CardinalityJoinOrdering(Backend<ID,VALUE,?> backend) {
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(PassageConstants.BACKEND, backend);
-        ec.getContext().set(PassageConstants.CACHE, new CacheId<>(backend));
+        ec.getContext().set(BackendConstants.BACKEND, backend);
+        ec.getContext().set(BackendConstants.CACHE, new BackendCache<>(backend));
+        // TODO Remove SAVER, now needed because the ScanFactoryNeedsIt, but we should toss it asap
         ec.getContext().set(PassageConstants.SAVER, new Pause2Next<>(null, ec));
         this.fakeContext = ec;
     }
 
-    public CardinalityJoinOrdering(Backend<ID,VALUE,?> backend, CacheId<ID,VALUE> cache) {
+    public CardinalityJoinOrdering(Backend<ID,VALUE,?> backend, BackendCache<ID,VALUE> cache) {
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(PassageConstants.BACKEND, backend);
-        ec.getContext().set(PassageConstants.CACHE, cache);
+        ec.getContext().set(BackendConstants.BACKEND, backend);
+        ec.getContext().set(BackendConstants.CACHE, cache);
         ec.getContext().set(PassageConstants.SAVER, new Pause2Next<>(null, ec));
         this.fakeContext = ec;
     }

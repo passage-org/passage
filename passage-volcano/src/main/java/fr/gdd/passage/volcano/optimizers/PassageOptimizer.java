@@ -1,7 +1,7 @@
 package fr.gdd.passage.volcano.optimizers;
 
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
-import fr.gdd.passage.commons.generics.CacheId;
+import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.pause.Triples2BGP;
 import fr.gdd.passage.volcano.resume.BGP2Triples;
@@ -14,10 +14,10 @@ import org.apache.jena.sparql.algebra.Op;
 public class PassageOptimizer<ID,VALUE> {
 
     final Backend<ID,VALUE,?> backend;
-    final CacheId<ID,VALUE> cache;
+    final BackendCache<ID,VALUE> cache;
     boolean forceOrder = false;
 
-    public PassageOptimizer(Backend<ID,VALUE,?> backend, CacheId<ID,VALUE> cache) {
+    public PassageOptimizer(Backend<ID,VALUE,?> backend, BackendCache<ID,VALUE> cache) {
         this.backend = backend;
         this.cache = cache;
     }

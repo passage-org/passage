@@ -6,6 +6,7 @@ import com.google.common.collect.Multiset;
 import com.google.common.collect.Multisets;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;
+import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.interfaces.Backend;
 import org.apache.commons.collections4.MultiSet;
 import org.apache.jena.query.ARQ;
@@ -35,12 +36,12 @@ public class PassageOpExecutorTest {
 
     public static Multiset<BackendBindings<?,?>> executeWithPassage(String queryAsString, Backend<?,?,?> backend) {
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(PassageConstants.BACKEND, backend);
+        ec.getContext().set(BackendConstants.BACKEND, backend);
         return executeWithPassage(queryAsString, ec);
     }
 
     public static Multiset<BackendBindings<?,?>> executeWithPassage(String queryAsString, ExecutionContext ec) {
-        PassageOpExecutor<?,?> executor = new PassageOpExecutor<>(ec);
+        PassageOpExecutor<?,?> executor = new PassageOpExecutor<>(new PassageExecutionContext<>(ec));
 
         Op query = Algebra.compile(QueryFactory.create(queryAsString));
         Iterator<? extends BackendBindings<?, ?>> iterator = executor.execute(query);
@@ -82,7 +83,7 @@ public class PassageOpExecutorTest {
     public void on_watdiv_conjunctive_query_10124 () throws RepositoryException, SailException {
         BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(PassageConstants.BACKEND, watdivBlazegraph);
+        ec.getContext().set(BackendConstants.BACKEND, watdivBlazegraph);
 
         String query0 = """
                 SELECT * WHERE {
@@ -105,7 +106,7 @@ public class PassageOpExecutorTest {
     public void sandbox_of_test () throws RepositoryException, SailException {
         BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(PassageConstants.BACKEND, watdivBlazegraph);
+        ec.getContext().set(BackendConstants.BACKEND, watdivBlazegraph);
 
         String query = """        
                 SELECT ?v7 ?v1 ?v5 ?v6 ?v0 ?v3 ?v2 WHERE {

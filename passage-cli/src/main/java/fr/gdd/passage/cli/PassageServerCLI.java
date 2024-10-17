@@ -1,14 +1,15 @@
 package fr.gdd.passage.cli;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
+import fr.gdd.passage.cli.server.PassageOpExecutorFactory;
 import fr.gdd.passage.cli.server.PassageOperation;
+import fr.gdd.passage.cli.server.PassageQueryEngine;
 import fr.gdd.passage.cli.writers.ExtensibleRowSetWriterJSON;
 import fr.gdd.passage.cli.writers.ModuleOutputRegistry;
 import fr.gdd.passage.cli.writers.OutputWriterJSONSage;
+import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.PassageConstants;
-import fr.gdd.passage.cli.server.PassageOpExecutorFactory;
-import fr.gdd.passage.cli.server.PassageQueryEngine;
 import org.apache.jena.fuseki.auth.Auth;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.fuseki.mgt.ActionServerStatus;
@@ -131,7 +132,7 @@ public class PassageServerCLI {
         ARQ.enableOptimizer(false); // just in case
 
         Dataset dataset = DatasetFactory.create(); // TODO double check if it's alright
-        dataset.getContext().set(PassageConstants.BACKEND, backend);
+        dataset.getContext().set(BackendConstants.BACKEND, backend);
         dataset.getContext().set(PassageConstants.TIMEOUT, timeout);
         QC.setFactory(dataset.getContext(), new PassageOpExecutorFactory());
         QueryEngineRegistry.addFactory(PassageQueryEngine.factory);

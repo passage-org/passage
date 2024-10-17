@@ -1,5 +1,6 @@
 package fr.gdd.jena.visitors;
 
+import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
 
 /**
@@ -12,6 +13,8 @@ import org.apache.jena.sparql.algebra.op.*;
  * @param <A> The type of the argument to be passed.
  */
 public class ReturningArgsOpVisitor<R, A> {
+    final public R visit(Op op, A args) {return ReturningArgsOpVisitorRouter.visit(this, op, args);}
+
     public R visit(OpService req, A args) {throw new UnsupportedOperationException("Req");}
 
     public R visit(OpTriple triple, A args) {throw new UnsupportedOperationException("OpTriple");}
