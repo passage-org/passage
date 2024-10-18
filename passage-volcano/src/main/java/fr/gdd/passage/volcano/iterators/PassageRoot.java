@@ -27,7 +27,7 @@ public class PassageRoot<T> implements Iterator<T> {
         this.wrapped = wrapped;
         this.saver = context.getContext().get(PassageConstants.SAVER);
         this.context = context;
-        this.limit = context.getContext().get(PassageConstants.LIMIT);
+        this.limit = context.getContext().get(PassageConstants.MAX_SCANS);
     }
 
     @Override

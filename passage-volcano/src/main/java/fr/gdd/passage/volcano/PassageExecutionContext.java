@@ -2,10 +2,12 @@ package fr.gdd.passage.volcano;
 
 import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.generics.BackendConstants;
+import fr.gdd.passage.commons.generics.BackendSaver;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.optimizers.PassageOptimizer;
 import fr.gdd.passage.volcano.pause.PassageSavedState;
 import org.apache.jena.query.DatasetFactory;
+import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
 /**
@@ -13,58 +15,41 @@ import org.apache.jena.sparql.engine.ExecutionContext;
  */
 public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
 
-    Backend<ID,VALUE,Long> backend;
-    BackendCache<ID,VALUE> cache;
+    public final Backend<ID,VALUE,Long> backend;
+    public final BackendCache<ID,VALUE> cache;
+    public final PassageOptimizer<ID,VALUE> optimizer;
+    public BackendSaver<ID,VALUE,Long> saver;
+    public final PassageSavedState savedState;
+    public Op query;
 
     public PassageExecutionContext(ExecutionContext context) {
         super(context);
-    }
+        this.backend = context.getContext().get(BackendConstants.BACKEND);
+        context.getContext().setIfUndef(PassageConstants.SCANS, 0L);
+        context.getContext().setIfUndef(BackendConstants.CACHE, new BackendCache<>(backend));
+        this.cache = context.getContext().get(BackendConstants.CACHE);
 
-    // TODO setup an execution context to make it run.
-
-    public PassageExecutionContext(Backend<ID,VALUE,Long> backend) {
-        super(new ExecutionContext(DatasetFactory.empty().asDatasetGraph()));
-        this.getContext().setIfUndef(PassageConstants.SCANS, 0L);
-        this.getContext().setIfUndef(PassageConstants.LIMIT, Long.MAX_VALUE);
-        this.getContext().setIfUndef(PassageConstants.TIMEOUT, Long.MAX_VALUE);
+        this.getContext().set(PassageConstants.LOADER, new PassageOptimizer<>(backend, cache));
+        optimizer = this.getContext().get(PassageConstants.LOADER);
+        if (context.getContext().isTrue(PassageConstants.FORCE_ORDER)) {
+            optimizer.forceOrder(); // TODO do this better
+        }
         this.getContext().setFalse(PassageConstants.PAUSED);
         this.getContext().set(PassageConstants.PAUSED_STATE, new PassageSavedState());
-        this.setBackend(backend);
+        this.savedState = this.getContext().get(PassageConstants.PAUSED_STATE);
     }
 
-    public PassageExecutionContext<ID,VALUE> setTimeout(Long timeout) {
-        this.getContext().set(PassageConstants.TIMEOUT, timeout);
-        long deadline = (System.currentTimeMillis() + timeout <= 0) ? Long.MAX_VALUE : System.currentTimeMillis() + timeout;
-        this.getContext().set(PassageConstants.DEADLINE, deadline);
-        return this;
-    }
-
-    public PassageExecutionContext<ID,VALUE> setLimit(Long limit) {
+    public void setLimit(Long limit) {
         this.getContext().set(PassageConstants.LIMIT, limit);
-        return this;
     }
 
-    public PassageExecutionContext<ID,VALUE> setBackend(Backend<ID,VALUE,Long> backend) {
-        this.getContext().set(BackendConstants.BACKEND, backend);
-        this.backend = backend;
-        this.cache = new BackendCache<>(backend);
-        this.getContext().setIfUndef(BackendConstants.CACHE, this.cache);
-        // as setifundef so outsiders can configure their own list of optimizers
-        this.getContext().setIfUndef(PassageConstants.LOADER, new PassageOptimizer<>(backend, cache));
-        return this;
+    public void setOffset(Long offset) {
+        this.getContext().set(PassageConstants.OFFSET, offset);
     }
 
-    public PassageExecutionContext<ID,VALUE> forceOrder() {
-        PassageOptimizer<ID,VALUE> optimizer = this.getContext().get(PassageConstants.LOADER);
-        optimizer.forceOrder();
-        return this;
-    }
-
-    public BackendCache<ID, VALUE> getCache() {
-        return cache;
-    }
-
-    public Backend<ID, VALUE, Long> getBackend() {
-        return backend;
+    public void setQuery(Op query) {
+        this.query = query;
+        getContext().set(PassageConstants.SAVER, new BackendSaver<>(backend, query));
+        this.saver = getContext().get(PassageConstants.SAVER);
     }
 }

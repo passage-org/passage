@@ -86,7 +86,7 @@ public class Save2SPARQLTest {
 
         ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
         ec.getContext().set(BackendConstants.BACKEND, backend);
-        ec.getContext().set(PassageConstants.LIMIT, 1);
+        ec.getContext().set(PassageConstants.MAX_SCANS, 1);
 
         PassageOpExecutor<ID, VALUE> executor = new PassageOpExecutor<>(new PassageExecutionContext<>(ec));
 

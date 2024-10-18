@@ -37,41 +37,16 @@ public class PassageOpExecutor<ID,VALUE> extends BackendOpExecutor<ID,VALUE> {
         this.context = context;
     }
 
-    public PassageOpExecutor<ID, VALUE> setTimeout(Long timeout) {
-        context.setTimeout(timeout);
-        return this;
-    }
-
-    public PassageOpExecutor<ID, VALUE> setLimit(Long limit) {
-        context.setLimit(limit);
-        return this;
-    }
-
-    public PassageOpExecutor<ID, VALUE> setBackend(Backend<ID,VALUE,Long> backend) {
-        context.setBackend(backend);
-        return this;
-    }
-
-    public PassageOpExecutor<ID,VALUE> forceOrder() { // TODO do this through an optimizer provider
-        context.forceOrder();
-        return this;
-    }
-
-    public String pauseAsString() {
+    public String pauseAsString() { // null if done.
         Op paused = pause();
         String savedString = Objects.isNull(paused) ? null : OpAsQuery.asQuery(paused).toString();
-
-        PassageSavedState sss = context.getContext().get(PassageConstants.PAUSED_STATE);
-        sss.setState(savedString);
+        context.savedState.setState(savedString); // to export it
         return savedString;
     }
 
     public Op pause() {
         context.getContext().setTrue(PassageConstants.PAUSED);
-        Pause2Next<ID, VALUE> saver = context.getContext().get(PassageConstants.SAVER);
-        Op savedOp = saver.save();
-        // execCxt.getContext().set(SagerConstants.PAUSED_STATE, savedOp);
-        return savedOp;
+        return context.saver.save();
     }
 
 
