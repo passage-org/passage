@@ -14,7 +14,7 @@ import java.io.Serializable;
  * This limited sub-set of operators allows us to pause/resume the query execution
  * when needed.
  */
-public class PassageSubOpExecutor <ID,VALUE,SKIP extends Serializable> extends BackendOpExecutor<ID,VALUE> {
+public class PassageSubOpExecutor <ID,VALUE> extends BackendOpExecutor<ID,VALUE> {
 
     public PassageSubOpExecutor(ExecutionContext context) {
         super(context, BackendProject.factory(), PassageScanFactory.factoryLimitOffset(),

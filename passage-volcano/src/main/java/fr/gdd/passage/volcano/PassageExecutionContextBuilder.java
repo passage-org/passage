@@ -31,7 +31,7 @@ public class PassageExecutionContextBuilder<ID,VALUE> {
         // prioritize execution context's backend
         ec.getContext().setIfUndef(BackendConstants.BACKEND, backend);
 
-        if (ec.getContext().isUndef(PassageConstants.TIMEOUT)) {
+        if (ec.getContext().isUndef(PassageConstants.DEADLINE)) {
             ec.getContext().set(PassageConstants.TIMEOUT, timeout);
             long deadline = (System.currentTimeMillis() + timeout <= 0) ? Long.MAX_VALUE : System.currentTimeMillis() + timeout;
             ec.getContext().set(PassageConstants.DEADLINE, deadline);
@@ -44,24 +44,37 @@ public class PassageExecutionContextBuilder<ID,VALUE> {
         return new PassageExecutionContext<>(ec);
     }
 
-    public void setBackend(Backend<ID, VALUE, Long> backend) {
+    public PassageExecutionContextBuilder<ID,VALUE> setBackend(Backend<ID, VALUE, Long> backend) {
         this.backend = backend;
+        return this;
     }
 
-    public void setContext(ExecutionContext context) {
-        this.context = context;
+    public PassageExecutionContextBuilder<ID,VALUE> setContext(ExecutionContext context) {
+        if (Objects.nonNull(context)) {
+            this.context = context;
+        }
+        return this;
     }
 
-    public void setForceOrder(Boolean forceOrder) {
-        this.forceOrder = forceOrder;
+    public PassageExecutionContextBuilder<ID,VALUE> setForceOrder(Boolean forceOrder) {
+        if (Objects.nonNull(forceOrder)) {
+            this.forceOrder = forceOrder;
+        }
+        return this;
     }
 
-    public void setMaxScans(Long maxScans) {
-        this.maxScans = maxScans;
+    public PassageExecutionContextBuilder<ID,VALUE> setMaxScans(Long maxScans) {
+        if (Objects.nonNull(maxScans)) {
+            this.maxScans = maxScans;
+        }
+        return this;
     }
 
-    public void setTimeout(Long timeout) {
-        this.timeout = timeout;
+    public PassageExecutionContextBuilder<ID,VALUE> setTimeout(Long timeout) {
+        if (Objects.nonNull(timeout)) {
+            this.timeout = timeout;
+        }
+        return this;
     }
 
 }

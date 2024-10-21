@@ -21,7 +21,7 @@ public class PassageUnion<ID, VALUE> implements Iterator<BackendBindings<ID, VAL
     public static <ID,VALUE> IBackendUnionsFactory<ID,VALUE> factory() {
         return (context, input, union) -> {
             Pause2Next<ID,VALUE> saver = context.getContext().get(PassageConstants.SAVER);
-            BackendOpExecutor<ID,VALUE> executor = context.getContext().get(BackendConstants.BACKEND);
+            BackendOpExecutor<ID,VALUE> executor = context.getContext().get(BackendConstants.EXECUTOR);
             Iterator<BackendBindings<ID,VALUE>> iterator = new PassageUnion<>(executor, input, union.getLeft(), union.getRight());
             saver.register(union, iterator);
             return iterator;

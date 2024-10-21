@@ -27,10 +27,7 @@ public class PassageOpExecutorProjectTest {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = "SELECT ?p WHERE {?p <http://address> ?c}";
 
-        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(BackendConstants.BACKEND, blazegraph);
-
-        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, ec);
+        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size()); // Bob, Alice, and Carol.
     }
 
@@ -43,9 +40,7 @@ public class PassageOpExecutorProjectTest {
                 ?p <http://own> ?a .
                }""";
 
-        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(BackendConstants.BACKEND, blazegraph);
-        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, ec);
+        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size()); // Alice, Alice, and Alice.
 
         queryAsString = """
@@ -54,9 +49,7 @@ public class PassageOpExecutorProjectTest {
                 ?p <http://own> ?a .
                }""";
 
-        ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(BackendConstants.BACKEND, blazegraph);
-        results = PassageOpExecutorTest.executeWithPassage(queryAsString, ec);
+        results = PassageOpExecutorTest.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size()); // dog, snake and cat.
 
         queryAsString = """
@@ -65,9 +58,7 @@ public class PassageOpExecutorProjectTest {
                 ?p <http://own> ?a .
                }""";
 
-        ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(BackendConstants.BACKEND, blazegraph);
-        results = PassageOpExecutorTest.executeWithPassage(queryAsString, ec);
+        results = PassageOpExecutorTest.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size()); // both at once, similar to *
     }
 

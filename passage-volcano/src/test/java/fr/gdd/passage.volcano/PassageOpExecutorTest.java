@@ -1,21 +1,14 @@
 package fr.gdd.passage.volcano;
 
 import com.google.common.collect.HashMultiset;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
-import com.google.common.collect.Multisets;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;
-import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.interfaces.Backend;
-import org.apache.commons.collections4.MultiSet;
-import org.apache.jena.query.ARQ;
-import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.engine.ExecutionContext;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
@@ -27,7 +20,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Disabled
 public class PassageOpExecutorTest {
@@ -35,13 +27,11 @@ public class PassageOpExecutorTest {
     private static final Logger log = LoggerFactory.getLogger(PassageOpExecutorTest.class);
 
     public static Multiset<BackendBindings<?,?>> executeWithPassage(String queryAsString, Backend<?,?,?> backend) {
-        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(BackendConstants.BACKEND, backend);
-        return executeWithPassage(queryAsString, ec);
+        return executeWithPassage(queryAsString, new PassageExecutionContextBuilder().setBackend(backend).build());
     }
 
-    public static Multiset<BackendBindings<?,?>> executeWithPassage(String queryAsString, ExecutionContext ec) {
-        PassageOpExecutor<?,?> executor = new PassageOpExecutor<>(new PassageExecutionContext<>(ec));
+    public static Multiset<BackendBindings<?,?>> executeWithPassage(String queryAsString, PassageExecutionContext ec) {
+        PassageOpExecutor<?,?> executor = new PassageOpExecutor<>(ec);
 
         Op query = Algebra.compile(QueryFactory.create(queryAsString));
         Iterator<? extends BackendBindings<?, ?>> iterator = executor.execute(query);
@@ -82,8 +72,6 @@ public class PassageOpExecutorTest {
     @Test
     public void on_watdiv_conjunctive_query_10124 () throws RepositoryException, SailException {
         BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
-        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(BackendConstants.BACKEND, watdivBlazegraph);
 
         String query0 = """
                 SELECT * WHERE {
@@ -96,7 +84,7 @@ public class PassageOpExecutorTest {
                 }
                 """;
 
-        int sum = executeWithPassage(query0, ec).size();
+        int sum = executeWithPassage(query0, watdivBlazegraph).size();
 
         assertEquals(117, sum);
     }
@@ -105,8 +93,6 @@ public class PassageOpExecutorTest {
     @Test
     public void sandbox_of_test () throws RepositoryException, SailException {
         BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
-        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(BackendConstants.BACKEND, watdivBlazegraph);
 
         String query = """        
                 SELECT ?v7 ?v1 ?v5 ?v6 ?v0 ?v3 ?v2 WHERE {
@@ -120,25 +106,9 @@ public class PassageOpExecutorTest {
                 }
                 """;
 
-        int sum = executeWithPassage(query, ec).size();
+        int sum = executeWithPassage(query, watdivBlazegraph).size();
         log.info("{}", sum);
 
     }
 
-    /* ****************************************************************** */
-
-    @Disabled
-    @Test
-    public void create_a_subquery_to_see_what_it_looks_like () {
-        String queryAsString = """
-            SELECT * WHERE {
-                ?s <http://named> ?o . {
-                    SELECT * WHERE {?o <http://owns> ?a} ORDER BY ?o OFFSET 1 LIMIT 1
-                }}
-            """;
-        // Sub-queries are handled with JOIN of the inner operators of the query
-        // always slice outside, then order, the bgp
-        Op query = Algebra.compile(QueryFactory.create(queryAsString));
-        log.debug("{}", query);
-    }
 }

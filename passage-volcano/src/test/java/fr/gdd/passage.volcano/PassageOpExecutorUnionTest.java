@@ -32,9 +32,7 @@ public class PassageOpExecutorUnionTest {
                 {?p  <http://address> ?a}
                }""";
 
-        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(BackendConstants.BACKEND, blazegraph);
-        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, ec);
+        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, blazegraph);
         assertEquals(6, results.size()); // 3 triples + 3 triples
     }
 
@@ -47,9 +45,7 @@ public class PassageOpExecutorUnionTest {
                 {?a <http://species> ?s} UNION {?a <http://species> ?s}
                }""";
 
-        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(BackendConstants.BACKEND, blazegraph);
-        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, ec);
+        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, blazegraph);
         assertEquals(6, results.size()); // (cat + dog + snake)*2
     }
 

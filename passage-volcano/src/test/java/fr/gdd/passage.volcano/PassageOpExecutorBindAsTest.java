@@ -1,11 +1,8 @@
 package fr.gdd.passage.volcano;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
-import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.iterators.PassageScan;
-import org.apache.jena.query.DatasetFactory;
-import org.apache.jena.sparql.engine.ExecutionContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
@@ -30,9 +27,7 @@ public class PassageOpExecutorBindAsTest {
                 ?p  <http://own>  ?a .
                }""";
 
-        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(BackendConstants.BACKEND, blazegraph);
-        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, ec);
+        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size()); // Alice, Alice, and Alice.
     }
 }

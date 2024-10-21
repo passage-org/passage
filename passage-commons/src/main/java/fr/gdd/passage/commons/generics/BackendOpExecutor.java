@@ -10,6 +10,7 @@ import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
 import java.util.Iterator;
+import java.util.Objects;
 
 /**
  * Base executor of operators that compose the logical plan.
@@ -44,6 +45,7 @@ public class BackendOpExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
                              IBackendLimitOffsetFactory<ID,VALUE> slices,
                              IBackendOptionalsFactory<ID,VALUE> optionals) {
         this.context = context;
+        this.context.getContext().set(BackendConstants.EXECUTOR, this);
         this.triples = triples;
         this.projects = projects;
         this.joins = joins;
@@ -81,6 +83,9 @@ public class BackendOpExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
 
     @Override
     public Iterator<BackendBindings<ID, VALUE>> visit(OpTable table, Iterator<BackendBindings<ID, VALUE>> input) {
+        if (table.isJoinIdentity()) {
+            return input;
+        }
         return values.get(context, input, table);
     }
 
@@ -112,5 +117,13 @@ public class BackendOpExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
     @Override
     public Iterator<BackendBindings<ID, VALUE>> visit(OpConditional cond, Iterator<BackendBindings<ID, VALUE>> input) {
         return optionals.get(context, input, cond);
+    }
+
+    @Override
+    public Iterator<BackendBindings<ID, VALUE>> visit(OpLeftJoin lj, Iterator<BackendBindings<ID, VALUE>> input) {
+        if (Objects.nonNull(lj.getExprs()) && !lj.getExprs().isEmpty()) {
+            throw new UnsupportedOperationException("Expressions are not supported in left joins.");
+        }
+        return optionals.get(context, input, new OpConditional(lj.getLeft(), lj.getRight()));
     }
 }

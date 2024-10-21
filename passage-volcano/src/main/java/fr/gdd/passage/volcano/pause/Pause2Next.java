@@ -3,6 +3,7 @@ package fr.gdd.passage.volcano.pause;
 import fr.gdd.jena.utils.FlattenUnflatten;
 import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
+import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.generics.BackendSaver;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.iterators.*;
@@ -24,7 +25,7 @@ import java.util.Objects;
 public class Pause2Next<ID, VALUE> extends BackendSaver<ID,VALUE,Long> {
 
     public Pause2Next(Op root, ExecutionContext context) {
-        super(context.getContext().get(PassageConstants.SAVER), root);
+        super(context.getContext().get(BackendConstants.BACKEND), root);
     }
 
     @Override

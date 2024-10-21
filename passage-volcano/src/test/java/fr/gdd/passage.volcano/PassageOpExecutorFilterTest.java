@@ -1,11 +1,8 @@
 package fr.gdd.passage.volcano;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
-import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.iterators.PassageScan;
-import org.apache.jena.query.DatasetFactory;
-import org.apache.jena.sparql.engine.ExecutionContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -32,10 +29,7 @@ public class PassageOpExecutorFilterTest {
             FILTER ( ?address != <http://nantes> )
         }""";
 
-        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(BackendConstants.BACKEND, blazegraph);
-
-        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, ec);
+        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, blazegraph);
         assertEquals(1, results.size()); // Bob only
     }
 
@@ -48,10 +42,7 @@ public class PassageOpExecutorFilterTest {
             FILTER ( (?address != <http://nantes>) || (?person != <http://Alice>) )
         }""";
 
-        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(BackendConstants.BACKEND, blazegraph);
-
-        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, ec);
+        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, blazegraph);
         assertEquals(2, results.size()); // Bob and Carol
     }
 

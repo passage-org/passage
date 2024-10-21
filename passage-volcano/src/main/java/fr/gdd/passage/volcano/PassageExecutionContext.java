@@ -2,11 +2,12 @@ package fr.gdd.passage.volcano;
 
 import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.generics.BackendConstants;
+import fr.gdd.passage.commons.generics.BackendOpExecutor;
 import fr.gdd.passage.commons.generics.BackendSaver;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.optimizers.PassageOptimizer;
 import fr.gdd.passage.volcano.pause.PassageSavedState;
-import org.apache.jena.query.DatasetFactory;
+import fr.gdd.passage.volcano.pause.Pause2Next;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
@@ -15,6 +16,7 @@ import org.apache.jena.sparql.engine.ExecutionContext;
  */
 public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
 
+    public BackendOpExecutor<ID,VALUE> executor;
     public final Backend<ID,VALUE,Long> backend;
     public final BackendCache<ID,VALUE> cache;
     public final PassageOptimizer<ID,VALUE> optimizer;
@@ -39,17 +41,34 @@ public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
         this.savedState = this.getContext().get(PassageConstants.PAUSED_STATE);
     }
 
-    public void setLimit(Long limit) {
+    /**
+     * @param limit The maximum number of results for the query usually set with
+     *  a LIMIT clause in the query.
+     * @return itself.
+     */
+    public PassageExecutionContext<ID,VALUE> setLimit(Long limit) {
         this.getContext().set(PassageConstants.LIMIT, limit);
+        return this;
     }
 
-    public void setOffset(Long offset) {
+    public PassageExecutionContext<ID,VALUE> setOffset(Long offset) {
         this.getContext().set(PassageConstants.OFFSET, offset);
+        return this;
     }
 
-    public void setQuery(Op query) {
+    public PassageExecutionContext<ID,VALUE> setQuery(Op query) {
         this.query = query;
-        getContext().set(PassageConstants.SAVER, new BackendSaver<>(backend, query));
+        // The saver is shared globally, i.e., subOpExecutor will use the same as their
+        // parent's
+        getContext().setIfUndef(PassageConstants.SAVER, new Pause2Next<>(query, this));
         this.saver = getContext().get(PassageConstants.SAVER);
+        return this;
+    }
+
+    public PassageExecutionContext<ID,VALUE> clone() {
+        // TODO create new instances of things that cannot be copied.
+        ExecutionContext context =  new ExecutionContext(this.getContext().copy(), this.getActiveGraph(),
+                this.getDataset(), this.getExecutor());
+        return new PassageExecutionContext<>(context);
     }
 }

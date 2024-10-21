@@ -1,18 +1,12 @@
 package fr.gdd.passage.volcano;
 
-import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.passage.commons.factories.BackendJoinFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendOpExecutor;
-import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.iterators.BackendBind;
 import fr.gdd.passage.commons.iterators.BackendFilter;
 import fr.gdd.passage.commons.iterators.BackendProject;
 import fr.gdd.passage.volcano.iterators.*;
-import fr.gdd.passage.volcano.optimizers.PassageOptimizer;
-import fr.gdd.passage.volcano.pause.PassageSavedState;
-import fr.gdd.passage.volcano.pause.Pause2Next;
-import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpAsQuery;
 
@@ -52,12 +46,10 @@ public class PassageOpExecutor<ID,VALUE> extends BackendOpExecutor<ID,VALUE> {
 
     @Override
     public Iterator<BackendBindings<ID, VALUE>> execute(Op root) {
-        PassageOptimizer<ID,VALUE> optimizer = context.getContext().get(PassageConstants.LOADER);
-        root = optimizer.optimize(root);
-        context.getContext().set(PassageConstants.SAVER, new Pause2Next<ID,VALUE>(root, context));
+        root = context.optimizer.optimize(root);
+        context.setQuery(root); // mandatory to be saved later on
         // Only need a root that will catch the timeout exception to state that
         // the iterator does not have next.
-        return new PassageRoot<>(context,
-                ReturningArgsOpVisitorRouter.visit(this, root, Iter.of(new BackendBindings<>())));
+        return new PassageRoot<>(context, super.execute(root)); // super  must be called because it sets Executor in context.
     }
 }

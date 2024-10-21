@@ -1,11 +1,8 @@
 package fr.gdd.passage.volcano;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
-import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.iterators.PassageScan;
-import org.apache.jena.query.DatasetFactory;
-import org.apache.jena.sparql.engine.ExecutionContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -28,10 +25,7 @@ public class PassageOpExecutorDistinctTest {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String query = "SELECT DISTINCT * WHERE { ?p <http://address> ?a }";
 
-        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(BackendConstants.BACKEND, blazegraph);
-
-        var results = PassageOpExecutorTest.executeWithPassage(query, ec);
+        var results = PassageOpExecutorTest.executeWithPassage(query, blazegraph);
         assertEquals(3, results.size()); // Alice, Carol, and Bob
     }
 
@@ -40,10 +34,7 @@ public class PassageOpExecutorDistinctTest {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String query = "SELECT DISTINCT ?a WHERE { ?p <http://address> ?a }";
 
-        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(BackendConstants.BACKEND, blazegraph);
-
-        var results = PassageOpExecutorTest.executeWithPassage(query, ec);
+        var results = PassageOpExecutorTest.executeWithPassage(query, blazegraph);
         assertEquals(2, results.size()); // Nantes and Paris
     }
 
@@ -56,10 +47,7 @@ public class PassageOpExecutorDistinctTest {
             ?person <http://own> ?animal }
         """;
 
-        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(BackendConstants.BACKEND, blazegraph);
-
-        var results = PassageOpExecutorTest.executeWithPassage(query, ec);
+        var results = PassageOpExecutorTest.executeWithPassage(query, blazegraph);
         assertEquals(1, results.size()); // Nantes only, since only Alice has animals
     }
 
@@ -76,10 +64,7 @@ public class PassageOpExecutorDistinctTest {
             }}
         }""";
 
-        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(BackendConstants.BACKEND, blazegraph);
-
-        var results = PassageOpExecutorTest.executeWithPassage(query, ec);
+        var results = PassageOpExecutorTest.executeWithPassage(query, blazegraph);
         assertEquals(1, results.size()); // Nantes only, since only Alice has animals
     }
 

@@ -1,7 +1,6 @@
 package fr.gdd.passage.volcano.iterators;
 
 import fr.gdd.passage.volcano.PassageConstants;
-import fr.gdd.passage.volcano.pause.Pause2Next;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
 import java.util.Iterator;
@@ -13,7 +12,6 @@ import java.util.Iterator;
  */
 public class PassageRoot<T> implements Iterator<T> {
 
-    final Pause2Next saver;
     final Iterator<T> wrapped;
     final ExecutionContext context;
     final Long limit;
@@ -25,7 +23,6 @@ public class PassageRoot<T> implements Iterator<T> {
 
     public PassageRoot(ExecutionContext context, Iterator<T> wrapped) {
         this.wrapped = wrapped;
-        this.saver = context.getContext().get(PassageConstants.SAVER);
         this.context = context;
         this.limit = context.getContext().get(PassageConstants.MAX_SCANS);
     }
