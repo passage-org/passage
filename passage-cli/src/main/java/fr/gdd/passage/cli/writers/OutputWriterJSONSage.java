@@ -1,7 +1,7 @@
 package fr.gdd.passage.cli.writers;
 
 import fr.gdd.passage.volcano.PassageConstants;
-import fr.gdd.passage.volcano.pause.PassageSavedState;
+import fr.gdd.passage.volcano.pause.PassagePaused;
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.atlas.json.io.JSWriter;
 import org.apache.jena.sparql.util.Context;
@@ -24,9 +24,9 @@ public class OutputWriterJSONSage implements ModuleOutputWriter {
 //            throw new RuntimeException("Should be in paused state…");
 //        }
 
-        PassageSavedState savedString = context.get(PassageConstants.PAUSED_STATE);
+        PassagePaused savedString = context.get(PassageConstants.PAUSED_STATE);
 
-        if (Objects.isNull(savedString.getState())) {
+        if (Objects.isNull(savedString.getPausedQueryAsString())) {
             return; // no next, we are done!
         }
         // otherwise, we add a field to the response.
@@ -35,7 +35,7 @@ public class OutputWriterJSONSage implements ModuleOutputWriter {
         writer.print(" : {");
         writer.print(JSWriter.outputQuotedString("next"));
         writer.println(" : ");
-        writer.println(JSWriter.outputQuotedString(savedString.getState()));
+        writer.println(JSWriter.outputQuotedString(savedString.getPausedQueryAsString()));
         writer.print("}"); // end metadata
     }
 

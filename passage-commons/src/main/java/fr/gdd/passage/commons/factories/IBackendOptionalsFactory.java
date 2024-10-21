@@ -1,7 +1,7 @@
 package fr.gdd.passage.commons.factories;
 
 import fr.gdd.passage.commons.generics.BackendBindings;
-import org.apache.jena.sparql.algebra.op.OpConditional;
+import org.apache.jena.sparql.algebra.op.Op2;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
 import java.util.Iterator;
@@ -16,5 +16,5 @@ public interface IBackendOptionalsFactory<ID,VALUE> {
      */
     Iterator<BackendBindings<ID, VALUE>> get(ExecutionContext context,
                                              Iterator<BackendBindings<ID, VALUE>> input,
-                                             OpConditional op);
+                                             Op2 op); // OpLeftJoin or OpConditional
 }

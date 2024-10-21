@@ -2,8 +2,8 @@ package fr.gdd.passage.volcano.iterators;
 
 import fr.gdd.passage.commons.factories.IBackendTriplesFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
-import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.generics.BackendCache;
+import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.generics.Substitutor;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.PassageConstants;
@@ -23,13 +23,13 @@ import java.util.Set;
 public class PassageScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE>> {
 
     public static <ID,VALUE> IBackendTriplesFactory<ID,VALUE> factory () {
-        return (context, input, op) -> new PassageScanFactory<>(input, context, op);
+        return PassageScanFactory::new;
     }
 
     public static <ID,VALUE> IBackendTriplesFactory<ID,VALUE> factoryLimitOffset () {
         return (context, input, op) -> {
             long offset = context.getContext().get(PassageConstants.OFFSET);
-            return new PassageScanFactory<>(input, context, op, offset);
+            return new PassageScanFactory<>(context, input, op, offset);
         };
     }
 
@@ -44,7 +44,7 @@ public class PassageScanFactory<ID, VALUE> implements Iterator<BackendBindings<I
 
     Iterator<BackendBindings<ID, VALUE>> instantiated = Iter.empty();
 
-    public PassageScanFactory(Iterator<BackendBindings<ID, VALUE>> input, ExecutionContext context, OpTriple triple) {
+    public PassageScanFactory(ExecutionContext context, Iterator<BackendBindings<ID, VALUE>> input, OpTriple triple) {
         this.input = input;
         this.triple = triple;
         backend = context.getContext().get(BackendConstants.BACKEND);
@@ -55,7 +55,7 @@ public class PassageScanFactory<ID, VALUE> implements Iterator<BackendBindings<I
         this.cache = context.getContext().get(BackendConstants.CACHE);
     }
 
-    public PassageScanFactory(Iterator<BackendBindings<ID, VALUE>> input, ExecutionContext context, OpTriple triple, Long skip) {
+    public PassageScanFactory(ExecutionContext context, Iterator<BackendBindings<ID, VALUE>> input, OpTriple triple, Long skip) {
         this.input = input;
         this.triple = triple;
         backend = context.getContext().get(BackendConstants.BACKEND);

@@ -29,12 +29,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @Disabled
 public class WDBenchTest {
 
+    public final static String PATH = "/Users/nedelec-b-2/Desktop/Projects/temp/wdbench-blaze/wdbench-blaze.jnl";
     private final static Logger log = LoggerFactory.getLogger(WDBenchTest.class);
     static BlazegraphBackend wdbenchBlazegraph;
 
     static {
         try {
-            wdbenchBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/mail-about-ingesting-in-blazegraph/blazegraph_wdbench.jnl");
+            wdbenchBlazegraph = new BlazegraphBackend(PATH);
         } catch (SailException | RepositoryException e) {
             throw new RuntimeException(e);
         }

@@ -1,6 +1,6 @@
 package fr.gdd.passage.volcano;
 
-import fr.gdd.passage.commons.factories.BackendJoinFactory;
+import fr.gdd.passage.commons.factories.BackendNestedLoopJoinFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendOpExecutor;
 import fr.gdd.passage.commons.iterators.BackendBind;
@@ -8,10 +8,8 @@ import fr.gdd.passage.commons.iterators.BackendFilter;
 import fr.gdd.passage.commons.iterators.BackendProject;
 import fr.gdd.passage.volcano.iterators.*;
 import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.algebra.OpAsQuery;
 
 import java.util.Iterator;
-import java.util.Objects;
 
 /**
  * Execute only operators that can be continued. Operators work
@@ -25,22 +23,21 @@ public class PassageOpExecutor<ID,VALUE> extends BackendOpExecutor<ID,VALUE> {
 
     public PassageOpExecutor(PassageExecutionContext<ID,VALUE> context) {
         super(context, BackendProject.factory(), PassageScanFactory.factory(),
-                new BackendJoinFactory<>(), PassageUnion.factory(), PassageValues.factory(),
+                new BackendNestedLoopJoinFactory<>(), PassageUnion.factory(), PassageValues.factory(),
                 BackendBind.factory(), BackendFilter.factory(), PassageDistinct.factory(),
                 new PassageLimitOffset<>(), PassageOptional.factory());
         this.context = context;
     }
 
     public String pauseAsString() { // null if done.
-        Op paused = pause();
-        String savedString = Objects.isNull(paused) ? null : OpAsQuery.asQuery(paused).toString();
-        context.savedState.setState(savedString); // to export it
-        return savedString;
+        this.pause(); // result in context.paused already
+        return context.paused.getPausedQueryAsString();
     }
 
     public Op pause() {
-        context.getContext().setTrue(PassageConstants.PAUSED);
-        return context.saver.save();
+        context.paused.pause();
+        context.paused.setPausedQuery(context.saver.save());
+        return context.paused.getPausedQuery();
     }
 
 

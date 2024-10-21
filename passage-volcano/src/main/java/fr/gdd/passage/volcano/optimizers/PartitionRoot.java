@@ -8,6 +8,8 @@ import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.PassageConstants;
+import fr.gdd.passage.volcano.PassageExecutionContext;
+import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.iterators.PassageScanFactory;
 import fr.gdd.passage.volcano.pause.Pause2Next;
 import org.apache.jena.atlas.iterator.Iter;
@@ -47,11 +49,12 @@ public class PartitionRoot<ID,VALUE> extends ReturningOpVisitor<Op> {
         if (nbThreads == 1) { return triple; } // no changes
 
         // TODO take into account the original offset of the input opTriple
-        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(BackendConstants.BACKEND, backend);
-        ec.getContext().set(BackendConstants.CACHE, new BackendCache<>(backend));
-        ec.getContext().set(PassageConstants.SAVER, new Pause2Next<>(null, ec));
-        PassageScanFactory<ID,VALUE> scan = new PassageScanFactory<>(Iter.of(new BackendBindings<>()), ec, triple);
+        PassageExecutionContext<ID,VALUE> context = new PassageExecutionContextBuilder<ID,VALUE>()
+                .setBackend(backend)
+                .build()
+                .setQuery(null);
+
+        PassageScanFactory<ID,VALUE> scan = new PassageScanFactory<>(context, Iter.of(new BackendBindings<>()), triple);
         scan.hasNext(); // TODO remove this `hasNext`
         double cardinality = scan.cardinality();
 

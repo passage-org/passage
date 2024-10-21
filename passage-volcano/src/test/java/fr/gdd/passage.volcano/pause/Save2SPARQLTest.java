@@ -46,8 +46,7 @@ public class Save2SPARQLTest {
         PassageOpExecutor<ID, VALUE> executor = new PassageOpExecutor<>(
                 new PassageExecutionContextBuilder<ID,VALUE>()
                         .setBackend(backend)
-                        .setMaxScans(limit)
-                        .build());
+                        .build().setLimit(limit)); // As if it was within the query…
 
         Iterator<BackendBindings<ID, VALUE>> iterator = executor.execute(queryAsString);
         int nbResults = 0;

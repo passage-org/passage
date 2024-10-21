@@ -6,7 +6,7 @@ import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
 import fr.gdd.passage.volcano.PassageConstants;
-import fr.gdd.passage.volcano.pause.Pause2Next;
+import fr.gdd.passage.volcano.PassageExecutionContext;
 import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.atlas.lib.tuple.Tuple3;
 import org.apache.jena.atlas.lib.tuple.TupleFactory;
@@ -33,10 +33,10 @@ public class PassageScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALU
     final Backend<ID, VALUE, Long> backend;
     final BackendIterator<ID, VALUE, Long> wrapped;
     final Tuple3<Var> vars; // needed to create bindings
-    final ExecutionContext context;
+    final PassageExecutionContext<ID,VALUE> context;
 
     public PassageScan(ExecutionContext context, OpTriple triple, Tuple<ID> spo, BackendIterator<ID, VALUE, Long> wrapped) {
-        this.context = context;
+        this.context = (PassageExecutionContext<ID, VALUE>) context;
         this.deadline = context.getContext().getLong(PassageConstants.DEADLINE, Long.MAX_VALUE);
         this.backend = context.getContext().get(BackendConstants.BACKEND);
         this.wrapped = wrapped;
@@ -52,8 +52,8 @@ public class PassageScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALU
     public boolean hasNext() {
         boolean result = wrapped.hasNext();
 
-        if (result && context.getContext().isFalse(PassageConstants.PAUSED) && stopping.apply(context)) {
-            // execution stops immediately, caught by {@link PreemptRootIter}
+        if (result && !context.paused.isPaused() && stopping.apply(context)) {
+            // execution stops immediately, caught by {@link PassageRoot}
             throw new PauseException(op);
         }
 

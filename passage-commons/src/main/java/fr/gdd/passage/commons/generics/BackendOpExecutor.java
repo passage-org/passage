@@ -124,6 +124,6 @@ public class BackendOpExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
         if (Objects.nonNull(lj.getExprs()) && !lj.getExprs().isEmpty()) {
             throw new UnsupportedOperationException("Expressions are not supported in left joins.");
         }
-        return optionals.get(context, input, new OpConditional(lj.getLeft(), lj.getRight()));
+        return optionals.get(context, input, lj);
     }
 }

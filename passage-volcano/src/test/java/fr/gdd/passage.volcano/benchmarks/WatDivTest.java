@@ -25,12 +25,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @Disabled
 public class WatDivTest {
 
+    public static final String PATH = "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl";
     private final static Logger log = LoggerFactory.getLogger(WatDivTest.class);
     static BlazegraphBackend watdivBlazegraph;
 
     static {
         try {
-            watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl");
+            watdivBlazegraph = new BlazegraphBackend(PATH);
         } catch (SailException | RepositoryException e) {
             throw new RuntimeException(e);
         }

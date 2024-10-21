@@ -89,7 +89,7 @@ public class Pause2SPARQLBGPTimeoutTest {
     @Disabled
     @Test
     public void on_watdiv_conjunctive_query_0_every_scan () throws RepositoryException, SailException {
-        BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
+        BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl");
         PassageScan.stopping = Save2SPARQLTest.stopAtEveryScan;
 
         String query0 = """

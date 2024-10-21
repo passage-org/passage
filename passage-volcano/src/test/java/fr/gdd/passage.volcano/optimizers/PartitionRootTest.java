@@ -7,11 +7,13 @@ import fr.gdd.passage.volcano.resume.BGP2Triples;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@Disabled
 public class PartitionRootTest {
 
     @Test

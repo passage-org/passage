@@ -19,7 +19,6 @@ public class PassageConstants {
     static public final Symbol OFFSET = allocConstantSymbol("Offset"); // The offset of the subquery
 
     static public final Symbol PAUSED = allocVariableSymbol("Paused"); // is the execution paused/stopped.
-    static public final Symbol PAUSED_STATE = allocVariableSymbol("PausedState"); // The returned SPARQL query of the paused state.
 
     static public final Symbol FORCE_ORDER = allocConstantSymbol("ForceOrder");
 

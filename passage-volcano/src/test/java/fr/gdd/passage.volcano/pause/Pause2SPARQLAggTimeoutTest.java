@@ -28,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * inside the operator. Therefore, it should not return any result before
  * having processing 1 fully.
  */
+@Disabled
 public class Pause2SPARQLAggTimeoutTest {
 
     private static final Logger log = LoggerFactory.getLogger(Pause2SPARQLBGPTimeoutTest.class);

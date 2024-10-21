@@ -12,7 +12,7 @@ import java.util.Iterator;
 /**
  * Does nothing by itself, only call the iterator in the right order.
  */
-public class BackendJoinFactory<ID,VALUE> implements IBackendJoinsFactory<ID,VALUE> {
+public class BackendNestedLoopJoinFactory<ID,VALUE> implements IBackendJoinsFactory<ID,VALUE> {
 
     @Override
     public Iterator<BackendBindings<ID, VALUE>> get(ExecutionContext context, Iterator<BackendBindings<ID, VALUE>> input, OpJoin join) {

@@ -9,6 +9,8 @@ import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.PassageConstants;
+import fr.gdd.passage.volcano.PassageExecutionContext;
+import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.iterators.PassageScanFactory;
 import fr.gdd.passage.volcano.pause.Pause2Next;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -39,26 +41,17 @@ public class CardinalityJoinOrdering<ID,VALUE> extends ReturningArgsOpVisitor<
         Op, // built operator.
         Set<Var>> { // the variables already set when the operator is visited.
 
-    final ExecutionContext fakeContext; // (to create the iterators)
+    final PassageExecutionContext<ID,VALUE> fakeContext; // (to create the iterators)
     private static final Logger log = LoggerFactory.getLogger(CardinalityJoinOrdering.class);
 
     private boolean hasCartesianProduct = false;
 
-    public CardinalityJoinOrdering(Backend<ID,VALUE,?> backend) {
-        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(BackendConstants.BACKEND, backend);
-        ec.getContext().set(BackendConstants.CACHE, new BackendCache<>(backend));
-        // TODO Remove SAVER, now needed because the ScanFactoryNeedsIt, but we should toss it asap
-        ec.getContext().set(PassageConstants.SAVER, new Pause2Next<>(null, ec));
-        this.fakeContext = ec;
+    public CardinalityJoinOrdering(Backend<ID,VALUE,Long> backend) {
+        this.fakeContext = new PassageExecutionContextBuilder<ID,VALUE>().setBackend(backend).build().setQuery(null);
     }
 
-    public CardinalityJoinOrdering(Backend<ID,VALUE,?> backend, BackendCache<ID,VALUE> cache) {
-        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(BackendConstants.BACKEND, backend);
-        ec.getContext().set(BackendConstants.CACHE, cache);
-        ec.getContext().set(PassageConstants.SAVER, new Pause2Next<>(null, ec));
-        this.fakeContext = ec;
+    public CardinalityJoinOrdering(Backend<ID,VALUE,Long> backend, BackendCache<ID,VALUE> cache) {
+        this.fakeContext = new PassageExecutionContextBuilder<ID,VALUE>().setBackend(backend).build().setCache(cache).setQuery(null);
     }
 
     public Op visit(Op op) {
@@ -133,7 +126,7 @@ public class CardinalityJoinOrdering<ID,VALUE> extends ReturningArgsOpVisitor<
         List<Pair<OpTriple, Double>> triple2card = new ArrayList<>();
         for (Triple t : bgp.getPattern()) {
             OpTriple key = new OpTriple(t);
-            PassageScanFactory<ID,VALUE> scan = new PassageScanFactory<>(Iter.of(new BackendBindings<>()), fakeContext, key);
+            PassageScanFactory<ID,VALUE> scan = new PassageScanFactory<>(fakeContext, Iter.of(new BackendBindings<>()), key);
             try {
                 if (scan.hasNext()) {
                     log.debug("{} => {}", key.getTriple(), scan.cardinality());
