@@ -4,7 +4,6 @@ import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
@@ -12,7 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Disabled
 public class PassageOpExecutorDistinctTest {
 
     static final Logger log = LoggerFactory.getLogger(PassageOpExecutorDistinctTest.class);

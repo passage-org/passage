@@ -6,24 +6,19 @@ import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.passage.commons.exceptions.NotFoundException;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendCache;
-import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.interfaces.Backend;
-import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.iterators.PassageScanFactory;
-import fr.gdd.passage.volcano.pause.Pause2Next;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpVars;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.core.BasicPattern;
 import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.util.VarUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +45,7 @@ public class CardinalityJoinOrdering<ID,VALUE> extends ReturningArgsOpVisitor<
         this.fakeContext = new PassageExecutionContextBuilder<ID,VALUE>().setBackend(backend).build().setQuery(null);
     }
 
-    public CardinalityJoinOrdering(Backend<ID,VALUE,Long> backend, BackendCache<ID,VALUE> cache) {
+    public CardinalityJoinOrdering(Backend<ID,VALUE,?> backend, BackendCache<ID,VALUE> cache) {
         this.fakeContext = new PassageExecutionContextBuilder<ID,VALUE>().setBackend(backend).build().setCache(cache).setQuery(null);
     }
 
@@ -63,6 +58,12 @@ public class CardinalityJoinOrdering<ID,VALUE> extends ReturningArgsOpVisitor<
     }
 
     /* ********************************************************************* */
+
+
+    @Override
+    public Op visit(OpDistinct distinct, Set<Var> alreadySetVars) {
+        return OpCloningUtil.clone(distinct, this.visit(distinct.getSubOp(), alreadySetVars));
+    }
 
     @Override
     public Op visit(OpProject project, Set<Var> alreadySetVars) {

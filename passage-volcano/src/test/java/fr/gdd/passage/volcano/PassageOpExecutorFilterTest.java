@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Disabled
+@Disabled(value = "Filters not supported yet.")
 public class PassageOpExecutorFilterTest {
 
     static final Logger log = LoggerFactory.getLogger(PassageOpExecutorFilterTest.class);

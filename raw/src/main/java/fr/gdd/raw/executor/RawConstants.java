@@ -5,8 +5,8 @@ import org.apache.jena.sparql.util.Symbol;
 
 public class RawConstants {
 
-    public static final String systemVarNS = "https://sage.gdd.fr/Rawer#";
-    public static final String sageSymbolPrefix = "rawer";
+    public static final String systemVarNS = "https://sage.gdd.fr/Raw#";
+    public static final String sageSymbolPrefix = "raw";
 
     static public final Symbol BACKEND = allocConstantSymbol("Backend");
     static public final Symbol TIMEOUT = allocConstantSymbol("Timeout"); // max duration of execution

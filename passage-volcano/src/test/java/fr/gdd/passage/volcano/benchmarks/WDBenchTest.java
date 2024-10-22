@@ -26,7 +26,7 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Disabled
+@Disabled(value = "Need the WDBench dataset to work.")
 public class WDBenchTest {
 
     public final static String PATH = "/Users/nedelec-b-2/Desktop/Projects/temp/wdbench-blaze/wdbench-blaze.jnl";

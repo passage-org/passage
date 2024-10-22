@@ -5,6 +5,7 @@ import com.google.common.collect.Multiset;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.interfaces.Backend;
+import fr.gdd.passage.volcano.benchmarks.WatDivTest;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
@@ -68,10 +69,10 @@ public class PassageOpExecutorTest {
 
     /* ****************************************************************** */
 
-    @Disabled
+    @Disabled(value = "Need the WatDiv dataset to work.")
     @Test
     public void on_watdiv_conjunctive_query_10124 () throws RepositoryException, SailException {
-        BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
+        BlazegraphBackend watdivBlazegraph = new BlazegraphBackend(WatDivTest.PATH);
 
         String query0 = """
                 SELECT * WHERE {
@@ -89,10 +90,10 @@ public class PassageOpExecutorTest {
         assertEquals(117, sum);
     }
 
-    @Disabled
+    @Disabled(value = "Need the WatDiv dataset to work.")
     @Test
     public void sandbox_of_test () throws RepositoryException, SailException {
-        BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
+        BlazegraphBackend watdivBlazegraph = new BlazegraphBackend(WatDivTest.PATH);
 
         String query = """        
                 SELECT ?v7 ?v1 ?v5 ?v6 ?v0 ?v3 ?v2 WHERE {

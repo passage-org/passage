@@ -2,6 +2,8 @@ package fr.gdd.passage.cli;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;
+import fr.gdd.passage.volcano.PassageExecutionContext;
+import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.PassageOpExecutor;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.sail.SailException;
@@ -158,14 +160,14 @@ public class PassageCLI {
             long totalNbResults = 0L;
             long totalPreempt = -1L; // start -1 because the first execution is not considered
             do {
-                PassageOpExecutor executor = new PassageOpExecutor();
-                executor.setBackend(backend)
-                        .setLimit(passageOptions.limit)
-                        .setTimeout(passageOptions.timeout);
+                PassageExecutionContext context = new PassageExecutionContextBuilder()
+                        .setBackend(backend)
+                        .setMaxScans(passageOptions.limit)
+                        .setTimeout(passageOptions.timeout)
+                        .setForceOrder(passageOptions.forceOrder)
+                        .build();
 
-                if (passageOptions.forceOrder) {
-                    executor.forceOrder();
-                }
+                PassageOpExecutor executor = new PassageOpExecutor(context);
 
                 long start = System.currentTimeMillis();
                 Iterator<BackendBindings> iterator = executor.execute(queryToRun);

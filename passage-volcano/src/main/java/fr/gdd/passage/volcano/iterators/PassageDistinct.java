@@ -28,7 +28,7 @@ public class PassageDistinct<ID,VALUE> implements Iterator<BackendBindings<ID,VA
     public static <ID,VALUE> IBackendDistinctsFactory<ID,VALUE> factory() {
         return (context, input, distinct) -> {
             BackendSaver<ID,VALUE,?> saver = context.getContext().get(PassageConstants.SAVER);
-            BackendOpExecutor<ID,VALUE> executor = context.getContext().get(BackendConstants.BACKEND);
+            BackendOpExecutor<ID,VALUE> executor = context.getContext().get(BackendConstants.EXECUTOR);
             Iterator<BackendBindings<ID,VALUE>> wrapped = executor.visit(distinct.getSubOp(), input);
             Iterator<BackendBindings<ID,VALUE>> distincts = new PassageDistinct<>(distinct, context, wrapped);
             saver.register(distinct, distincts);

@@ -12,7 +12,6 @@ import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpAsQuery;
 import org.apache.jena.sparql.core.Var;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
@@ -24,13 +23,11 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@Disabled
 class CountSubqueryBuilderTest {
 
     private static final Logger log = LoggerFactory.getLogger(CountSubqueryBuilderTest.class);
     private static final BigdataSail blazegraph = IM4Blazegraph.triples9();
 
-    @Disabled
     @Test
     public void small_rewriting_test_of_a_query_into_count () throws RepositoryException {
         String queryAsString = "SELECT * WHERE {?s <http://address> ?c . ?s <http://own> ?a}";

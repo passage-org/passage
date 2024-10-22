@@ -13,7 +13,7 @@ import org.openrdf.repository.RepositoryException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Disabled
+@Disabled(value = "WiP.")
 public class PartitionRootTest {
 
     @Test

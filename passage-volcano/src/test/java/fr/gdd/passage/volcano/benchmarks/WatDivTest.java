@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Disabled
+@Disabled(value = "Need the WatDiv dataset to work.")
 public class WatDivTest {
 
     public static final String PATH = "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl";
