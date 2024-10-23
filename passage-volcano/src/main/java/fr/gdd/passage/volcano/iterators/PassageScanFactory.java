@@ -71,6 +71,8 @@ public class PassageScanFactory<ID, VALUE> implements Iterator<BackendBindings<I
                 }
             }catch (NotFoundException e){
                 return false;
+            }catch (IllegalArgumentException e){
+                return false;
             }
         }
 
