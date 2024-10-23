@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
+import java.util.Objects;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -33,6 +34,15 @@ public class BlazegraphBackendTest {
 
     private final static Logger log = LoggerFactory.getLogger(BlazegraphBackendTest.class);
     public static final String WATDIV = "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl";
+    public static final BlazegraphBackend watdiv;
+
+    static {
+        try {
+            watdiv = Path.of(WATDIV).toFile().exists() ? new BlazegraphBackend(WATDIV) : null;
+        } catch (SailException | RepositoryException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @Test
     public void create_values_with_string_repr () throws RepositoryException {
@@ -152,30 +162,29 @@ public class BlazegraphBackendTest {
 
     @Test
     public void on_watdiv_conjunctive_query_with_compiled_query () throws RepositoryException, SailException {
-        Assumptions.assumeTrue(Path.of(WATDIV).toFile().exists());
-        BlazegraphBackend bb = new BlazegraphBackend(WATDIV);
+        Assumptions.assumeTrue(Objects.nonNull(watdiv));
 
         long start = System.currentTimeMillis();
-        final var any = bb.any();
-        final var p_1 = bb.getId("<http://xmlns.com/foaf/age>", SPOC.PREDICATE);
-        final var o_1 = bb.getId("<http://db.uwaterloo.ca/~galuc/wsdbm/AgeGroup2>", SPOC.OBJECT);
-        final var p_2 = bb.getId("<http://schema.org/nationality>", SPOC.PREDICATE);
-        final var p_3 = bb.getId("<http://schema.org/eligibleRegion>", SPOC.PREDICATE);
-        final var p_4 = bb.getId("<http://purl.org/goodrelations/includes>", SPOC.PREDICATE);
+        final var any = watdiv.any();
+        final var p_1 = watdiv.getId("<http://xmlns.com/foaf/age>", SPOC.PREDICATE);
+        final var o_1 = watdiv.getId("<http://db.uwaterloo.ca/~galuc/wsdbm/AgeGroup2>", SPOC.OBJECT);
+        final var p_2 = watdiv.getId("<http://schema.org/nationality>", SPOC.PREDICATE);
+        final var p_3 = watdiv.getId("<http://schema.org/eligibleRegion>", SPOC.PREDICATE);
+        final var p_4 = watdiv.getId("<http://purl.org/goodrelations/includes>", SPOC.PREDICATE);
 
-        BackendIterator<IV, BigdataValue, Long> i_1 = bb.search(any, p_1, o_1);
+        BackendIterator<IV, BigdataValue, Long> i_1 = watdiv.search(any, p_1, o_1);
 
         long nbElements = 0;
 
         while (i_1.hasNext()) {
             i_1.next();
-            BackendIterator<IV, BigdataValue, Long> i_2 = bb.search(i_1.getId(SPOC.SUBJECT), p_2, any);
+            BackendIterator<IV, BigdataValue, Long> i_2 = watdiv.search(i_1.getId(SPOC.SUBJECT), p_2, any);
             while (i_2.hasNext()) {
                 i_2.next();
-                BackendIterator<IV, BigdataValue, Long> i_3 = bb.search(any, p_3, i_2.getId(SPOC.OBJECT));
+                BackendIterator<IV, BigdataValue, Long> i_3 = watdiv.search(any, p_3, i_2.getId(SPOC.OBJECT));
                 while (i_3.hasNext()) {
                     i_3.next();
-                    BackendIterator<IV, BigdataValue, Long> i_4 = bb.search(i_3.getId(SPOC.SUBJECT), p_4, any);
+                    BackendIterator<IV, BigdataValue, Long> i_4 = watdiv.search(i_3.getId(SPOC.SUBJECT), p_4, any);
                     while (i_4.hasNext()) {
                         i_4.next();
                         nbElements += 1;
@@ -192,31 +201,28 @@ public class BlazegraphBackendTest {
 
     @Test
     public void on_watdiv_test_some_cardinalities () throws RepositoryException, SailException {
-        Assumptions.assumeTrue(Path.of(WATDIV).toFile().exists());
-        BlazegraphBackend bb = new BlazegraphBackend(WATDIV);
+        Assumptions.assumeTrue(Objects.nonNull(watdiv));
 
-        IV eligibleRegion = bb.getId("<http://schema.org/eligibleRegion>", SPOC.PREDICATE);
-        IV country21 = bb.getId("<http://db.uwaterloo.ca/~galuc/wsdbm/Country21>", SPOC.OBJECT);
-        IV validThrough = bb.getId("<http://purl.org/goodrelations/validThrough>", SPOC.PREDICATE);
-        IV includes = bb.getId("<http://purl.org/goodrelations/includes>", SPOC.PREDICATE);
-        IV text = bb.getId("<http://schema.org/text>", SPOC.PREDICATE);
-        IV eligibleQuantity = bb.getId("<http://schema.org/eligibleQuantity>", SPOC.PREDICATE);
-        IV price = bb.getId("<http://purl.org/goodrelations/price>", SPOC.PREDICATE);
+        IV eligibleRegion = watdiv.getId("<http://schema.org/eligibleRegion>", SPOC.PREDICATE);
+        IV country21 = watdiv.getId("<http://db.uwaterloo.ca/~galuc/wsdbm/Country21>", SPOC.OBJECT);
+        IV validThrough = watdiv.getId("<http://purl.org/goodrelations/validThrough>", SPOC.PREDICATE);
+        IV includes = watdiv.getId("<http://purl.org/goodrelations/includes>", SPOC.PREDICATE);
+        IV text = watdiv.getId("<http://schema.org/text>", SPOC.PREDICATE);
+        IV eligibleQuantity = watdiv.getId("<http://schema.org/eligibleQuantity>", SPOC.PREDICATE);
+        IV price = watdiv.getId("<http://purl.org/goodrelations/price>", SPOC.PREDICATE);
 
-        LazyIterator lit = (LazyIterator) bb.search(bb.any(), eligibleRegion, country21);
+        LazyIterator lit = (LazyIterator) watdiv.search(watdiv.any(), eligibleRegion, country21);
         assertEquals(2613L, lit.cardinality());
-        lit = (LazyIterator) bb.search(bb.any(), validThrough, bb.any());
+        lit = (LazyIterator) watdiv.search(watdiv.any(), validThrough, watdiv.any());
         assertEquals(36346L, lit.cardinality());
-        lit = (LazyIterator) bb.search(bb.any(), includes, bb.any());
+        lit = (LazyIterator) watdiv.search(watdiv.any(), includes, watdiv.any());
         assertEquals(90000L, lit.cardinality());
-        lit = (LazyIterator) bb.search(bb.any(), text, bb.any());
+        lit = (LazyIterator) watdiv.search(watdiv.any(), text, watdiv.any());
         assertEquals(7476L, lit.cardinality());
-        lit = (LazyIterator) bb.search(bb.any(), eligibleQuantity, bb.any());
+        lit = (LazyIterator) watdiv.search(watdiv.any(), eligibleQuantity, watdiv.any());
         assertEquals(90000L, lit.cardinality());
-        lit = (LazyIterator) bb.search(bb.any(), price, bb.any());
+        lit = (LazyIterator) watdiv.search(watdiv.any(), price, watdiv.any());
         assertEquals(240000L, lit.cardinality());
-
-        bb.close();
     }
 
     /* ***************************************************************** */

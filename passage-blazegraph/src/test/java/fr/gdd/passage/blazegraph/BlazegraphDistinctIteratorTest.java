@@ -15,11 +15,7 @@ import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -190,9 +186,9 @@ public class BlazegraphDistinctIteratorTest {
     /* ******************************** ON BIG DATASETS *************************************** */
 
     @Test
-    public void get_distinct_s_over_a_triple_pattern_with_lot_of_values () throws RepositoryException, SailException, QueryEvaluationException, MalformedQueryException {
-        Assumptions.assumeTrue(Path.of(BlazegraphBackendTest.WATDIV).toFile().exists());
-        BlazegraphBackend bb = new BlazegraphBackend(BlazegraphBackendTest.WATDIV);
+    public void get_distinct_s_over_a_triple_pattern_with_lot_of_values () throws RepositoryException, QueryEvaluationException, MalformedQueryException {
+        Assumptions.assumeTrue(Objects.nonNull(BlazegraphBackendTest.watdiv));
+        BlazegraphBackend bb = BlazegraphBackendTest.watdiv;
 
         long startBaseline = System.currentTimeMillis();
         Multiset<BindingSet> results = bb.executeQuery("SELECT DISTINCT ?s WHERE {?s <http://schema.org/eligibleRegion> ?o}");
@@ -218,15 +214,13 @@ public class BlazegraphDistinctIteratorTest {
         log.debug("Ours: Took {}ms to get {} distinct results", elapsed, nbResults);
 
         assertEquals(results.size(), nbResults);
-
-        bb.close();
     }
 
 
     @Test
     public void get_distinct_o_over_a_triple_pattern_with_lot_of_values () throws RepositoryException, SailException, QueryEvaluationException, MalformedQueryException {
-        Assumptions.assumeTrue(Path.of(BlazegraphBackendTest.WATDIV).toFile().exists());
-        BlazegraphBackend bb = new BlazegraphBackend(BlazegraphBackendTest.WATDIV);
+        Assumptions.assumeTrue(Objects.nonNull(BlazegraphBackendTest.watdiv));
+        BlazegraphBackend bb = BlazegraphBackendTest.watdiv;
 
         long startBaseline = System.currentTimeMillis();
         Multiset<BindingSet> results = bb.executeQuery("SELECT DISTINCT ?o WHERE {?s <http://schema.org/eligibleRegion> ?o}");
@@ -252,8 +246,6 @@ public class BlazegraphDistinctIteratorTest {
         log.debug("Ours: Took {}ms to get {} distinct results", elapsed, nbResults);
 
         assertEquals(results.size(), nbResults);
-
-        bb.close();
     }
 
 
