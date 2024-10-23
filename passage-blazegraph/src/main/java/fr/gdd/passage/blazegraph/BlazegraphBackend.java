@@ -37,6 +37,10 @@ import java.util.Properties;
 /**
  * Backend for Blazegraph providing easy access to the most important
  * feature: the scan iterator.
+ * Using an underlying augmented balanced tree
+ * for its indexes, Blazegraph allows us to create flexible iterators over
+ * triple patterns: iterators that can skip ranges of triples efficiently, or
+ * return random triples uniformly at random.
  */
 public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
 
@@ -231,6 +235,8 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
 
     /**
      * For debug purposes, this executes the query using blazegraph's engine.
+     * However, be aware that it stores values in a multiset which can be
+     * inefficient in terms of execution time and memory usage.
      * @param queryString The SPARQL query to execute as a string.
      * @throws RepositoryException
      * @throws MalformedQueryException

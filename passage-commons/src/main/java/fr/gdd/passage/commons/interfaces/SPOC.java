@@ -1,5 +1,7 @@
 package fr.gdd.passage.commons.interfaces;
 
+import fr.gdd.passage.commons.exceptions.UndefinedCode;
+
 /**
  * Code used by iterators for basic term types.
  */
@@ -9,4 +11,14 @@ public final class SPOC {
     public static final int OBJECT    = 2;
     public static final int CONTEXT   = 3;
     public static final int GRAPH     = 3; // alias
+
+    public static String getChar(int code) {
+        return switch (code) {
+            case SUBJECT ->   "S";
+            case PREDICATE -> "P";
+            case OBJECT ->    "O";
+            case GRAPH ->     "G";
+            default -> throw new UndefinedCode(code);
+        };
+    }
 }

@@ -5,6 +5,7 @@ import com.bigdata.rdf.spo.ISPO;
 import fr.gdd.passage.commons.generics.LazyIterator;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
@@ -12,19 +13,20 @@ import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.file.Path;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Disabled
+@Disabled("Only a performance check to assess the potential of multithreading.")
 public class ProfilingScanSpeedTest {
 
-    private static Logger log = LoggerFactory.getLogger(ProfilingScanSpeedTest.class);
+    private static final Logger log = LoggerFactory.getLogger(ProfilingScanSpeedTest.class);
 
-    @Disabled
     @Test
     public void test_concurrent_execution_to_profile_perf() throws InterruptedException, RepositoryException, SailException {
-        BlazegraphBackend bb = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
+        Assumptions.assumeTrue(Path.of(BlazegraphBackendTest.WATDIV).toFile().exists());
+        BlazegraphBackend bb = new BlazegraphBackend(BlazegraphBackendTest.WATDIV);
 
         int numberOfThreads = 3;
         ExecutorService service = Executors.newFixedThreadPool(numberOfThreads);

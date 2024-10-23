@@ -1,6 +1,9 @@
 package fr.gdd.passage.blazegraph;
 
-import com.bigdata.btree.*;
+import com.bigdata.btree.AbstractBTree;
+import com.bigdata.btree.IIndex;
+import com.bigdata.btree.ITuple;
+import com.bigdata.btree.ITupleIterator;
 import com.bigdata.btree.filter.EmptyTupleIterator;
 import com.bigdata.rdf.internal.IV;
 import com.bigdata.rdf.model.BigdataValue;
@@ -9,12 +12,20 @@ import com.bigdata.rdf.store.AbstractTripleStore;
 import com.bigdata.relation.accesspath.AccessPath;
 import com.bigdata.relation.accesspath.IAccessPath;
 import com.bigdata.util.BytesUtil;
+import fr.gdd.passage.commons.exceptions.UndefinedCode;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
 
 import java.util.Objects;
 import java.util.Random;
 
+/**
+ * Most basic scan iterator that iterates over triple/quad patterns.
+ * Based on augmented balanced trees of Blazegraph, it can skip range
+ * of elements efficiently.
+ * It can also generate random (uniform) triples matching the triple
+ * pattern efficiently.
+ */
 public class BlazegraphIterator extends BackendIterator<IV, BigdataValue, Long> {
     public static ThreadLocal<Random> RNG = ThreadLocal.withInitial(() -> {
         // Seed can be derived from a common seed or generated uniquely per thread
@@ -22,25 +33,25 @@ public class BlazegraphIterator extends BackendIterator<IV, BigdataValue, Long> 
         return new Random(seed);
     });
 
-    private ITupleIterator<?> tupleIterator;
+    final AbstractTripleStore store;
+    final IAccessPath<ISPO> accessPath;
+    final IIndex iindex;
     private final byte[] min;
     private final byte[] max;
-    private ITuple<?> currentValue;
-    AbstractTripleStore store;
-    IAccessPath<ISPO> accessPath;
-    IIndex iindex;
+
+    ITupleIterator<?> tupleIterator;
+    ITuple<?> currentValue;
     ISPO currentISPO = null;
     Long offset = 0L;
 
     public BlazegraphIterator(AbstractTripleStore store, IV s, IV p, IV o, IV c) {
         this.store = store;
-        this.accessPath =  store.getAccessPath(s, p, o, c);
+        this.accessPath = store.getAccessPath(s, p, o, c);
         this.iindex = accessPath.getIndex();
-        IRangeQuery rangeQuery = iindex;
         AccessPath<ISPO> access = (AccessPath<ISPO>) accessPath;
         this.min = access.getFromKey();
         this.max = access.getToKey();
-        this.tupleIterator = (ITupleIterator<?>) rangeQuery.rangeIterator(min, max);
+        this.tupleIterator = (ITupleIterator<?>) iindex.rangeIterator(min, max);
     }
 
     public Long current() {
@@ -56,7 +67,7 @@ public class BlazegraphIterator extends BackendIterator<IV, BigdataValue, Long> 
             case SPOC.PREDICATE -> currentISPO.p();
             case SPOC.OBJECT -> currentISPO.o();
             case SPOC.CONTEXT -> currentISPO.c();
-            default -> throw new UnsupportedOperationException("Unexpected type in getId.");
+            default -> throw new UndefinedCode(type);
         };
     }
 

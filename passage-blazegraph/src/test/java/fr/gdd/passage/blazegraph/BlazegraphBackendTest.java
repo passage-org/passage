@@ -7,10 +7,11 @@ import com.bigdata.rdf.model.BigdataValue;
 import com.bigdata.rdf.spo.ISPO;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
-import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.commons.generics.LazyIterator;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
+import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.query.BindingSet;
@@ -22,13 +23,16 @@ import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.file.Path;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 public class BlazegraphBackendTest {
 
     private final static Logger log = LoggerFactory.getLogger(BlazegraphBackendTest.class);
+    public static final String WATDIV = "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl";
 
     @Test
     public void create_values_with_string_repr () throws RepositoryException {
@@ -135,7 +139,7 @@ public class BlazegraphBackendTest {
     @Disabled
     @Test
     public void on_watdiv_conjunctive_with_blazegraph_engine () throws QueryEvaluationException, MalformedQueryException, RepositoryException, SailException {
-        BlazegraphBackend bb = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
+        BlazegraphBackend bb = new BlazegraphBackend(WATDIV);
         bb.executeQuery("""
                 SELECT * WHERE {
                     hint:Query hint:optimizer "None" .
@@ -146,18 +150,18 @@ public class BlazegraphBackendTest {
                 }""");
     }
 
-    @Disabled
     @Test
     public void on_watdiv_conjunctive_query_with_compiled_query () throws RepositoryException, SailException {
-        BlazegraphBackend bb = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
+        Assumptions.assumeTrue(Path.of(WATDIV).toFile().exists());
+        BlazegraphBackend bb = new BlazegraphBackend(WATDIV);
 
         long start = System.currentTimeMillis();
         final var any = bb.any();
-        final var p_1 = bb.getId("http://xmlns.com/foaf/age", SPOC.PREDICATE);
-        final var o_1 = bb.getId("http://db.uwaterloo.ca/~galuc/wsdbm/AgeGroup2", SPOC.OBJECT);
-        final var p_2 = bb.getId("http://schema.org/nationality", SPOC.PREDICATE);
-        final var p_3 = bb.getId("http://schema.org/eligibleRegion", SPOC.PREDICATE);
-        final var p_4 = bb.getId("http://purl.org/goodrelations/includes", SPOC.PREDICATE);
+        final var p_1 = bb.getId("<http://xmlns.com/foaf/age>", SPOC.PREDICATE);
+        final var o_1 = bb.getId("<http://db.uwaterloo.ca/~galuc/wsdbm/AgeGroup2>", SPOC.OBJECT);
+        final var p_2 = bb.getId("<http://schema.org/nationality>", SPOC.PREDICATE);
+        final var p_3 = bb.getId("<http://schema.org/eligibleRegion>", SPOC.PREDICATE);
+        final var p_4 = bb.getId("<http://purl.org/goodrelations/includes>", SPOC.PREDICATE);
 
         BackendIterator<IV, BigdataValue, Long> i_1 = bb.search(any, p_1, o_1);
 
@@ -182,21 +186,22 @@ public class BlazegraphBackendTest {
 
         long elapsed = System.currentTimeMillis() - start;
         log.debug("Nb elements = {}", nbElements);
+        assertEquals(11255178, nbElements);
         log.debug("Duration = {} ms", elapsed);
     }
 
-    @Disabled
     @Test
     public void on_watdiv_test_some_cardinalities () throws RepositoryException, SailException {
-        BlazegraphBackend bb = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
+        Assumptions.assumeTrue(Path.of(WATDIV).toFile().exists());
+        BlazegraphBackend bb = new BlazegraphBackend(WATDIV);
 
-        IV eligibleRegion = bb.getId("http://schema.org/eligibleRegion", SPOC.PREDICATE);
-        IV country21 = bb.getId("http://db.uwaterloo.ca/~galuc/wsdbm/Country21", SPOC.OBJECT);
-        IV validThrough = bb.getId("http://purl.org/goodrelations/validThrough", SPOC.PREDICATE);
-        IV includes = bb.getId("http://purl.org/goodrelations/includes", SPOC.PREDICATE);
-        IV text = bb.getId("http://schema.org/text", SPOC.PREDICATE);
-        IV eligibleQuantity = bb.getId("http://schema.org/eligibleQuantity", SPOC.PREDICATE);
-        IV price = bb.getId("http://purl.org/goodrelations/price", SPOC.PREDICATE);
+        IV eligibleRegion = bb.getId("<http://schema.org/eligibleRegion>", SPOC.PREDICATE);
+        IV country21 = bb.getId("<http://db.uwaterloo.ca/~galuc/wsdbm/Country21>", SPOC.OBJECT);
+        IV validThrough = bb.getId("<http://purl.org/goodrelations/validThrough>", SPOC.PREDICATE);
+        IV includes = bb.getId("<http://purl.org/goodrelations/includes>", SPOC.PREDICATE);
+        IV text = bb.getId("<http://schema.org/text>", SPOC.PREDICATE);
+        IV eligibleQuantity = bb.getId("<http://schema.org/eligibleQuantity>", SPOC.PREDICATE);
+        IV price = bb.getId("<http://purl.org/goodrelations/price>", SPOC.PREDICATE);
 
         LazyIterator lit = (LazyIterator) bb.search(bb.any(), eligibleRegion, country21);
         assertEquals(2613L, lit.cardinality());
