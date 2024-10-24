@@ -20,9 +20,9 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 
-public class BlazegraphDistinctIteratorTest {
+public class BlazegraphDistinctIteratorVVXTest {
 
-    private static final Logger log = LoggerFactory.getLogger(BlazegraphDistinctIteratorTest.class);
+    private static final Logger log = LoggerFactory.getLogger(BlazegraphDistinctIteratorVVXTest.class);
 
     @Test
     public void get_distinct_s_over_a_simple_triple_pattern() throws RepositoryException {
@@ -31,7 +31,7 @@ public class BlazegraphDistinctIteratorTest {
         IV address = bb.getId("<http://address>", SPOC.PREDICATE);
         IV any = bb.any();
 
-        BlazegraphDistinctIterator it = new BlazegraphDistinctIterator(bb.store,
+        BlazegraphDistinctIteratorXDV it = new BlazegraphDistinctIteratorXDV(bb.store,
                 any, address, any, any,
                 Set.of(SPOC.SUBJECT)); // distinct (?s)
 
@@ -53,7 +53,7 @@ public class BlazegraphDistinctIteratorTest {
         IV address = bb.getId("<http://address>", SPOC.PREDICATE);
         IV any = bb.any();
 
-        BlazegraphDistinctIterator it = new BlazegraphDistinctIterator(bb.store,
+        BlazegraphDistinctIteratorXDV it = new BlazegraphDistinctIteratorXDV(bb.store,
                 any, address, any, any,
                 Set.of(SPOC.OBJECT)); // distinct (?o)
 
@@ -75,7 +75,7 @@ public class BlazegraphDistinctIteratorTest {
         IV address = bb.getId("<http://address>", SPOC.PREDICATE);
         IV any = bb.any();
 
-        BlazegraphDistinctIterator it = new BlazegraphDistinctIterator(bb.store,
+        BlazegraphDistinctIteratorXDV it = new BlazegraphDistinctIteratorXDV(bb.store,
                 any, address, any, any,
                 Set.of(SPOC.OBJECT)); // distinct (?o)
 
@@ -98,7 +98,7 @@ public class BlazegraphDistinctIteratorTest {
         IV address = bb.getId("<http://address>", SPOC.PREDICATE);
         IV any = bb.any();
 
-        BlazegraphDistinctIterator it = new BlazegraphDistinctIterator(bb.store,
+        BlazegraphDistinctIteratorXDV it = new BlazegraphDistinctIteratorXDV(bb.store,
                 any, address, any, any,
                 Set.of(SPOC.SUBJECT));
 
@@ -123,7 +123,7 @@ public class BlazegraphDistinctIteratorTest {
         IV address = bb.getId("<http://address>", SPOC.PREDICATE);
         IV any = bb.any();
 
-        BlazegraphDistinctIterator itBase = new BlazegraphDistinctIterator(bb.store,
+        BlazegraphDistinctIteratorXDV itBase = new BlazegraphDistinctIteratorXDV(bb.store,
                 any, address, any, any,
                 Set.of(SPOC.SUBJECT));
 
@@ -135,7 +135,7 @@ public class BlazegraphDistinctIteratorTest {
         }
 
         for (int i = 0; i < offsets.size(); ++i ){
-            BlazegraphDistinctIterator it = new BlazegraphDistinctIterator(bb.store,
+            BlazegraphDistinctIteratorXDV it = new BlazegraphDistinctIteratorXDV(bb.store,
                     any, address, any, any,
                     Set.of(SPOC.SUBJECT));
 
@@ -159,7 +159,7 @@ public class BlazegraphDistinctIteratorTest {
         IV address = bb.getId("<http://address>", SPOC.PREDICATE);
         IV any = bb.any();
 
-        BlazegraphDistinctIterator itBase = new BlazegraphDistinctIterator(bb.store,
+        BlazegraphDistinctIteratorXDV itBase = new BlazegraphDistinctIteratorXDV(bb.store,
                 any, address, any, any,
                 Set.of(SPOC.SUBJECT));
 
@@ -171,7 +171,7 @@ public class BlazegraphDistinctIteratorTest {
         long maxOffset = offsets.get(offsets.size()-1);
         log.debug("Max offset: {} for {}", maxOffset, itBase.getString(SPOC.SUBJECT));
 
-        BlazegraphDistinctIterator it = new BlazegraphDistinctIterator(bb.store,
+        BlazegraphDistinctIteratorXDV it = new BlazegraphDistinctIteratorXDV(bb.store,
                 any, address, any, any,
                 Set.of(SPOC.SUBJECT));
 
@@ -197,7 +197,7 @@ public class BlazegraphDistinctIteratorTest {
         IV address = bb.getId("<http://schema.org/eligibleRegion>", SPOC.PREDICATE);
         IV any = bb.any();
 
-        BlazegraphDistinctIterator it = new BlazegraphDistinctIterator(bb.store,
+        BlazegraphDistinctIteratorXDV it = new BlazegraphDistinctIteratorXDV(bb.store,
                 any, address, any, any,
                 Set.of(SPOC.SUBJECT)); // distinct (?s)
 
@@ -229,7 +229,7 @@ public class BlazegraphDistinctIteratorTest {
         IV address = bb.getId("<http://schema.org/eligibleRegion>", SPOC.PREDICATE);
         IV any = bb.any();
 
-        BlazegraphDistinctIterator it = new BlazegraphDistinctIterator(bb.store,
+        BlazegraphDistinctIteratorXDV it = new BlazegraphDistinctIteratorXDV(bb.store,
                 any, address, any, any,
                 Set.of(SPOC.OBJECT)); // distinct (?s)
 

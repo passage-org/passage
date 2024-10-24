@@ -24,16 +24,16 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * Explore the space of distinct values.
- * Careful: this might be inefficient in cases such as:
- * `SELECT distinct(?s) WHERE {?s :bounded_predicate ?o}`
- * Indeed, to ensure order over subjects ?s, the chosen index will be SPO.
- * but the range of keys cannot be set properly since S is a variable, therefore
- * we must explore the whole SPO index to get the distinct S.
- * // TODO use cardinalities to skip to the next element…
- * // TODO Investigate ways to manipulate keys to increment distinct values' key directly
+ * Explore the space of distinct values. It is designed to be efficient when the
+ * indexes match the key.
+ * *
+ * The default available indexes of the triple store are SPO, POS, and OSP.
+ * So this iterator works well for:
+ * distinct ?p, S, ?o
+ * distinct ?o, P, ?s
+ * distinct ?s, O, ?p
  */
-public class BlazegraphDistinctIterator extends BackendIterator<IV, BigdataValue, Long> {
+public class BlazegraphDistinctIteratorXDV extends BackendIterator<IV, BigdataValue, Long> {
 
     final AbstractTripleStore store;
     final IAccessPath<ISPO> accessPath;
@@ -57,7 +57,7 @@ public class BlazegraphDistinctIterator extends BackendIterator<IV, BigdataValue
      * @param c The context (or graph) to look for, or null if a variable.
      * @param codes The SPOC codes of distinct variables. If none, it's like a normal scan iterator.
      */
-    public BlazegraphDistinctIterator(AbstractTripleStore store, IV s, IV p, IV o, IV c, Set<Integer> codes) {
+    public BlazegraphDistinctIteratorXDV(AbstractTripleStore store, IV s, IV p, IV o, IV c, Set<Integer> codes) {
         // TODO when distinct = unbounded variables, then it should be a normal iterator, no artificial bound in
         //      the pattern to force the key order, otherwise, it might be inefficient for nothing.
         this.codes = codes;
@@ -92,6 +92,7 @@ public class BlazegraphDistinctIterator extends BackendIterator<IV, BigdataValue
     @Override
     public IV getId(int code) {
         if (Objects.isNull(currentISPO)) {
+            // TODO use UtilityIV.decode(key, 0, numTerms)
             this.currentISPO = (ISPO) this.currentValue.getTupleSerializer().deserialize(this.currentValue);
         }
         if (!codes.contains(code)) {
@@ -124,7 +125,7 @@ public class BlazegraphDistinctIterator extends BackendIterator<IV, BigdataValue
     @Override
     public boolean hasNext() {
         // TODO should be able to throw an exception when the deadline is over, because looking for a next
-        //      might be long.
+        //      might be long. Even using cardinality, it remains unbounded on some indexes.
         if (!consumed && Objects.nonNull(currentValue)) return true;
 
         try {

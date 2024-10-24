@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -25,8 +26,8 @@ public class ProfilingScanSpeedTest {
 
     @Test
     public void test_concurrent_execution_to_profile_perf() throws InterruptedException, RepositoryException, SailException {
-        Assumptions.assumeTrue(Path.of(BlazegraphBackendTest.WATDIV).toFile().exists());
-        BlazegraphBackend bb = new BlazegraphBackend(BlazegraphBackendTest.WATDIV);
+        Assumptions.assumeTrue(Objects.nonNull(BlazegraphBackendTest.watdiv));
+        BlazegraphBackend bb = BlazegraphBackendTest.watdiv;
 
         int numberOfThreads = 3;
         ExecutorService service = Executors.newFixedThreadPool(numberOfThreads);

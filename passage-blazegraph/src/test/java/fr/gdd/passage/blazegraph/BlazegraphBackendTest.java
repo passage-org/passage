@@ -33,8 +33,10 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 public class BlazegraphBackendTest {
 
     private final static Logger log = LoggerFactory.getLogger(BlazegraphBackendTest.class);
-    public static final String WATDIV = "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl";
+    private static final String WATDIV = "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl";
     public static final BlazegraphBackend watdiv;
+    private static final String WDBENCH = "/Users/nedelec-b-2/Desktop/Projects/temp/wdbench-blaze/wdbench-blaze.jnl";
+    public static final BlazegraphBackend wdbench;
 
     static {
         try {
@@ -43,6 +45,17 @@ public class BlazegraphBackendTest {
             throw new RuntimeException(e);
         }
     }
+
+    static {
+        try {
+            wdbench = Path.of(WDBENCH).toFile().exists() ? new BlazegraphBackend(WDBENCH) : null;
+        } catch (SailException | RepositoryException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    /* ************************************************************************* */
 
     @Test
     public void create_values_with_string_repr () throws RepositoryException {

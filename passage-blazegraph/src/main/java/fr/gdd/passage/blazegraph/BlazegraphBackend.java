@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * Backend for Blazegraph providing easy access to the most important
@@ -100,6 +101,16 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
     @Override
     public BackendIterator<IV, BigdataValue, Long> search(IV s, IV p, IV o, IV c) {
         return new LazyIterator<>(this,new BlazegraphIterator(store, s, p, o, c));
+    }
+
+    public BackendIterator<IV, BigdataValue, Long> searchDistinct(IV s, IV p, IV o, Set<Integer> codes) {
+        // TODO add laziness
+        return BlazegraphDistinctIteratorFactory.get(store, s, p, o, null, codes);
+    }
+
+    public BackendIterator<IV, BigdataValue, Long> searchDistinct(IV s, IV p, IV o, IV c, Set<Integer> codes) {
+        // TODO add laziness
+        return BlazegraphDistinctIteratorFactory.get(store, s, p, o, c, codes);
     }
 
     @Override
@@ -238,9 +249,6 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
      * However, be aware that it stores values in a multiset which can be
      * inefficient in terms of execution time and memory usage.
      * @param queryString The SPARQL query to execute as a string.
-     * @throws RepositoryException
-     * @throws MalformedQueryException
-     * @throws QueryEvaluationException
      */
     public Multiset<BindingSet> executeQuery(String queryString) throws RepositoryException, MalformedQueryException, QueryEvaluationException {
         TupleQuery tupleQuery = connection.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
