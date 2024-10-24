@@ -103,11 +103,13 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
         return new LazyIterator<>(this,new BlazegraphIterator(store, s, p, o, c));
     }
 
+    @Override
     public BackendIterator<IV, BigdataValue, Long> searchDistinct(IV s, IV p, IV o, Set<Integer> codes) {
         // TODO add laziness
         return BlazegraphDistinctIteratorFactory.get(store, s, p, o, null, codes);
     }
 
+    @Override
     public BackendIterator<IV, BigdataValue, Long> searchDistinct(IV s, IV p, IV o, IV c, Set<Integer> codes) {
         // TODO add laziness
         return BlazegraphDistinctIteratorFactory.get(store, s, p, o, c, codes);

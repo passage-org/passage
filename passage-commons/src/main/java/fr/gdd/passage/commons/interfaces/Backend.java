@@ -1,6 +1,7 @@
 package fr.gdd.passage.commons.interfaces;
 
 import java.io.Serializable;
+import java.util.Set;
 
 /**
  * Basic interface that a backend must implement to execute the code
@@ -10,20 +11,44 @@ import java.io.Serializable;
 public interface Backend<ID, VALUE, SKIP extends Serializable> {
 
     /**
-     * Returns a preemptable iterator that enables scanning the triple pattern.
      * @param s The identifier of the subject.
      * @param p The identifier of the predicate.
      * @param o The identifier of the object.
-     * @return A preemptable iterator.
+     * @return An iterator that enables scanning triple patterns, and skipping triples.
      */
     BackendIterator<ID, VALUE, SKIP> search(final ID s, final ID p, final ID o);
 
     /**
-     * Same as above, but with a context or graph parameter.
-     * @param c (Optional) The identifier of the context, also known as graph.
-     * @return A preemptable iterator.
+     * @param s The identifier of the subject.
+     * @param p The identifier of the predicate.
+     * @param o The identifier of the object.
+     * @param c The identifier of the context, also known as graph.
+     * @return A scan iterator over quad patterns that allows skipping quads.
      */
     BackendIterator<ID, VALUE, SKIP> search(final ID s, final ID p, final ID o, final ID c);
+
+    /**
+     * @param s The identifier of the subject.
+     * @param p The identifier of the predicate.
+     * @param o The identifier of the object.
+     * @param codes The SPOC codes of values that must be distinct.
+     * @return A scan iterators on distinct values, that allows skipping to an offset.
+     */
+    default BackendIterator<ID, VALUE, SKIP> searchDistinct(final ID s, final ID p, final ID o, Set<Integer> codes) {
+        throw new UnsupportedOperationException(); // not mandatory
+    }
+
+    /**
+     * @param s The identifier of the subject.
+     * @param p The identifier of the predicate.
+     * @param o The identifier of the object.
+     * @param c The identifier of the context (or graph).
+     * @param codes The SPOC codes of values that must be distinct.
+     * @return A scan iterators on distinct values, that allows skipping to an offset.
+     */
+    default BackendIterator<ID, VALUE, SKIP> searchDistinct(final ID s, final ID p, final ID o, final ID c, Set<Integer> codes) {
+        throw new UnsupportedOperationException(); // not mandatory
+    }
 
     /**
      * Calls the underlying dictionary to retrieve the identifier
