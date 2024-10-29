@@ -149,7 +149,7 @@ public class PassageServerCLI {
                 .port(port)
                 .enablePing(true)
                 .enableCompact(true)
-                // .enableCors(true)
+                .enableCors(true, "passage-cli/src/main/resources/cors.config")
                 .enableStats(true)
                 .enableTasks(true)
                 .enableMetrics(true)

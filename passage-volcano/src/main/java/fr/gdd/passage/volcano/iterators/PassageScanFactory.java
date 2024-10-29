@@ -1,5 +1,6 @@
 package fr.gdd.passage.volcano.iterators;
 
+import fr.gdd.passage.commons.exceptions.NotFoundException;
 import fr.gdd.passage.commons.factories.IBackendTriplesFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendCache;
@@ -72,11 +73,16 @@ public class PassageScanFactory<ID, VALUE> implements Iterator<BackendBindings<I
             return false;
         } else while (!instantiated.hasNext() && input.hasNext()) {
             inputBinding = input.next();
-            Tuple3<ID> spo = Substitutor.substitute(triple.getTriple(), inputBinding, cache);
 
-            instantiated = new PassageScan<>(context, triple, spo, backend.search(spo.get(0), spo.get(1), spo.get(2)));
-            if (Objects.nonNull(skip) && skip > 0L) {
-                ((PassageScan<ID,VALUE>) instantiated).skip(skip);
+            try{
+                Tuple3<ID> spo = Substitutor.substitute(triple.getTriple(), inputBinding, cache);
+
+                instantiated = new PassageScan<>(context, triple, spo, backend.search(spo.get(0), spo.get(1), spo.get(2)));
+                if (Objects.nonNull(skip) && skip > 0L) {
+                    ((PassageScan<ID,VALUE>) instantiated).skip(skip);
+                }
+            }catch (NotFoundException e){
+                return false;
             }
         }
 
