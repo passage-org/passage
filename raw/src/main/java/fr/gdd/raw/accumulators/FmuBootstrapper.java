@@ -50,11 +50,11 @@ public class FmuBootstrapper<ID,VALUE> extends ReturningArgsOpVisitor<Double, Se
         this.bindings = bindings;
 
         this.dedicatedCache = new BackendCache<>(backend).copy(this.cache);
-        for (Var toBind : bindings.vars()) { // all mappings are cached
+        for (Var toBind : bindings.variables()) { // all mappings are cached
             // take a look at CountSubqueryBuilder comment to understand why we do this.
             // (tldr: to work on ID, not on String)
             Node valueAsNode = CountSubqueryBuilder.placeholderNode(toBind);
-            dedicatedCache.register(valueAsNode, bindings.get(toBind).getId());
+            dedicatedCache.register(valueAsNode, bindings.getBinding(toBind).getId());
         }
     }
 

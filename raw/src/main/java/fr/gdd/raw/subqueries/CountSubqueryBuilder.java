@@ -59,7 +59,7 @@ public class CountSubqueryBuilder<ID,VALUE> extends ReturningOpBaseVisitor {
 
             // this is a URI because it works for all: graph subject predicate object.
             Node valueAsNode = placeholderNode(toBind);
-            cache.register(valueAsNode, bindings.get(toBind).getId());
+            cache.register(valueAsNode, bindings.getBinding(toBind).getId());
         }
 
         resultVar = Var.alloc(RawConstants.COUNT_VARIABLE);

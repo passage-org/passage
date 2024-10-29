@@ -31,7 +31,7 @@ public class ProjectIterator<ID, VALUE> implements Iterator<BackendBindings<ID, 
         BackendBindings<ID, VALUE> b2v = new BackendBindings<>();
         BackendBindings<ID, VALUE> current = wrapped.next();
         for (Var v : this.project.getVars()) {
-            BackendBindings.IdValueBackend<ID, VALUE> forV = current.get(v);
+            BackendBindings.IdValueBackend<ID, VALUE> forV = current.getBinding(v);
             if (Objects.nonNull(forV)) {
                 b2v.put(v, forV);
             }

@@ -1,9 +1,15 @@
 package fr.gdd.passage.commons.generics;
 
 import fr.gdd.passage.commons.interfaces.Backend;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.expr.NodeValue;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 
 /**
  * Closely related to Jena's `Binding` implementations, or `BindingSet`, etc.
@@ -19,7 +25,7 @@ import java.util.*;
  * children refer to parents instead of copying the parent; (ii) caching so
  * ids or values are retrieved once.
  */
-public class BackendBindings<ID, VALUE> {
+public class BackendBindings<ID, VALUE> implements Binding {
 
     /**
      * Contains everything to lazily get a value, or an id
@@ -86,6 +92,8 @@ public class BackendBindings<ID, VALUE> {
         }
     }
 
+    /* ****************************** BINDINGS ************************************ */
+
     final Map<Var, IdValueBackend<ID, VALUE>> var2binding = new HashMap<>();
     BackendBindings<ID, VALUE> parent = null;
 
@@ -100,7 +108,7 @@ public class BackendBindings<ID, VALUE> {
     public BackendBindings (BackendBindings<ID,VALUE> copy, List<Var> varsToKeep) {
         for (Var v: varsToKeep) {
             if (copy.contains(v)) {
-                this.put(v, copy.get(v));
+                this.put(v, copy.getBinding(v));
             }
         }
     }
@@ -125,38 +133,79 @@ public class BackendBindings<ID, VALUE> {
         return this;
     }
 
-    public IdValueBackend<ID, VALUE> get(Var var) {
+    public IdValueBackend<ID, VALUE> getBinding(Var var) {
         if (var2binding.containsKey(var)) {
             return var2binding.get(var);
         }
         if (Objects.isNull(parent)) {
             return null;
         }
-        return parent.get(var);
+        return parent.getBinding(var);
     }
 
-    public boolean contains(Var var) {
-        return Objects.nonNull(this.get(var));
-    }
-
-    /**
-     * @return All variables.
-     */
-    public Set<Var> vars() {
+    public Set<Var> variables() {
         if (Objects.isNull(parent)) {
             return this.var2binding.keySet();
         }
         Set<Var> result = new HashSet<>(this.var2binding.keySet());
-        result.addAll(parent.vars());
+        result.addAll(parent.variables());
         return result;
     }
 
+    /* **************************** JENA BINDING INTERFACE *************************** */
+
+    @Override
+    public int size() {
+        return var2binding.size();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return var2binding.isEmpty();
+    }
+
+    public boolean contains(Var var) {
+        return Objects.nonNull(this.getBinding(var));
+    }
+
+    @Override
+    public boolean contains(String varName) {
+        return this.contains(Var.alloc(varName));
+    }
+
+    @Override
+    public Node get(String varName) { // TODO cache this probably
+        return NodeValue.parse(getBinding(Var.alloc(varName)).getString()).asNode();
+    }
+
+    @Override
+    public Node get(Var var) { // TODO cache this probably
+        return NodeValue.parse(getBinding(var).getString()).asNode();
+    }
+
+    @Override
+    public Iterator<Var> vars() {
+        return this.variables().iterator();
+    }
+
+    @Override
+    public Set<Var> varsMentioned() {
+        return this.variables();
+    }
+
+    @Override
+    public void forEach(BiConsumer<Var, Node> action) {
+        this.variables().forEach(v -> action.accept(v, get(v)));
+    }
+
+    /* ******************************** UTILITY ************************************* */
+
     @Override
     public String toString() {
-        Set<Var> vars = vars();
+        Set<Var> vars = variables();
         StringBuilder builder = new StringBuilder("{");
         for (Var v : vars) {
-            builder.append(v.toString()).append("-> ").append(this.get(v).getString()).append(" ; ");
+            builder.append(v.toString()).append("-> ").append(this.getBinding(v).getString()).append(" ; ");
         }
         builder.append("}");
         return builder.toString();
@@ -167,7 +216,7 @@ public class BackendBindings<ID, VALUE> {
         if (Objects.isNull(obj)) return false;
 
         if (obj instanceof BackendBindings<?, ?> other) {
-            if (!other.vars().equals(this.vars())) return false;
+            if (!other.variables().equals(this.variables())) return false;
 
             // TODO optimize this by comparing on ID, VALUE etc, hence reducing the number of transformation to string
             return obj.toString().equals(this.toString());

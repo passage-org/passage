@@ -102,7 +102,7 @@ public class PassageValues<ID,VALUE> implements Iterator<BackendBindings<ID,VALU
         }
         BackendBindings<ID,VALUE> newBinding = new BackendBindings<>(
                 values.get(index), // copy
-                values.get(index).vars().stream().toList())
+                values.get(index).variables().stream().toList())
                 .setParent(current);
 
         index += 1;

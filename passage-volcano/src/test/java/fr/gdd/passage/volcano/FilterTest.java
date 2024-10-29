@@ -10,12 +10,14 @@ import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@Disabled(value = "Filters not supported yet.")
-public class PassageOpExecutorFilterTest {
+public class FilterTest {
 
-    static final Logger log = LoggerFactory.getLogger(PassageOpExecutorFilterTest.class);
+    static final Logger log = LoggerFactory.getLogger(FilterTest.class);
 
     @BeforeEach
     public void make_sure_we_dont_stop () { PassageScan.stopping = (e) -> false; }
@@ -31,6 +33,8 @@ public class PassageOpExecutorFilterTest {
 
         var results = PassageOpExecutorTest.executeWithPassage(queryAsString, blazegraph);
         assertEquals(1, results.size()); // Bob only
+        assertTrue(PassageOpExecutorTest.containsResult(results, List.of("person", "address"),
+                List.of("Bob", "paris")));
     }
 
     @Test
@@ -44,6 +48,9 @@ public class PassageOpExecutorFilterTest {
 
         var results = PassageOpExecutorTest.executeWithPassage(queryAsString, blazegraph);
         assertEquals(2, results.size()); // Bob and Carol
+        assertTrue(PassageOpExecutorTest.containsAllResults(results, List.of("person", "address"),
+                List.of("Bob", "paris"),
+                List.of("Carol", "nantes")));
     }
 
 }

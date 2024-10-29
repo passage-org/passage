@@ -75,12 +75,12 @@ public class PassageDistinct<ID,VALUE> implements Iterator<BackendBindings<ID,VA
         ExprList exprs = new ExprList();
 
         // TODO use E_NotEquals and E_LogicalOr
-        String expr = lastBinding.vars().stream().map(
-                v-> String.format("%s != %s", v, lastBinding.get(v).getString())
+        String expr = lastBinding.variables().stream().map(
+                v-> String.format("%s != %s", v, lastBinding.getBinding(v).getString())
         ).collect(Collectors.joining( " || "));
 
-        for (Var v : lastBinding.vars()) {
-            String exprAsString = String.format("%s != %s", v, lastBinding.get(v).getString());
+        for (Var v : lastBinding.variables()) {
+            String exprAsString = String.format("%s != %s", v, lastBinding.getBinding(v).getString());
             exprs.add(ExprUtils.parse(exprAsString));// ugly but whatever
         }
 

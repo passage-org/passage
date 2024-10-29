@@ -7,7 +7,7 @@ import com.bigdata.rdf.model.BigdataValue;
 import com.bigdata.rdf.spo.ISPO;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
-import fr.gdd.passage.commons.generics.LazyIterator;
+import fr.gdd.passage.commons.iterators.BackendLazyIterator;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
@@ -110,7 +110,7 @@ public class BlazegraphBackendTest {
     public void creating_simple_random () throws RepositoryException {
         BlazegraphBackend bb = new BlazegraphBackend(IM4Blazegraph.triples9());
         IV address = bb.getId("<http://address>", SPOC.PREDICATE);
-        LazyIterator<IV, BigdataValue, Long> li = (LazyIterator<IV, BigdataValue, Long>) bb.search(bb.any(), address, bb.any());
+        BackendLazyIterator<IV, BigdataValue, Long> li = (BackendLazyIterator<IV, BigdataValue, Long>) bb.search(bb.any(), address, bb.any());
 
         Multiset<BindingSet> results = HashMultiset.create();
         for (int i = 0; i < 10_000; ++i) {
@@ -224,17 +224,17 @@ public class BlazegraphBackendTest {
         IV eligibleQuantity = watdiv.getId("<http://schema.org/eligibleQuantity>", SPOC.PREDICATE);
         IV price = watdiv.getId("<http://purl.org/goodrelations/price>", SPOC.PREDICATE);
 
-        LazyIterator lit = (LazyIterator) watdiv.search(watdiv.any(), eligibleRegion, country21);
+        BackendLazyIterator lit = (BackendLazyIterator) watdiv.search(watdiv.any(), eligibleRegion, country21);
         assertEquals(2613L, lit.cardinality());
-        lit = (LazyIterator) watdiv.search(watdiv.any(), validThrough, watdiv.any());
+        lit = (BackendLazyIterator) watdiv.search(watdiv.any(), validThrough, watdiv.any());
         assertEquals(36346L, lit.cardinality());
-        lit = (LazyIterator) watdiv.search(watdiv.any(), includes, watdiv.any());
+        lit = (BackendLazyIterator) watdiv.search(watdiv.any(), includes, watdiv.any());
         assertEquals(90000L, lit.cardinality());
-        lit = (LazyIterator) watdiv.search(watdiv.any(), text, watdiv.any());
+        lit = (BackendLazyIterator) watdiv.search(watdiv.any(), text, watdiv.any());
         assertEquals(7476L, lit.cardinality());
-        lit = (LazyIterator) watdiv.search(watdiv.any(), eligibleQuantity, watdiv.any());
+        lit = (BackendLazyIterator) watdiv.search(watdiv.any(), eligibleQuantity, watdiv.any());
         assertEquals(90000L, lit.cardinality());
-        lit = (LazyIterator) watdiv.search(watdiv.any(), price, watdiv.any());
+        lit = (BackendLazyIterator) watdiv.search(watdiv.any(), price, watdiv.any());
         assertEquals(240000L, lit.cardinality());
     }
 
@@ -259,13 +259,13 @@ public class BlazegraphBackendTest {
         }
         assertEquals(expectedNb, results.size());
         // cardinality should be exact without deletions in btree
-        assertEquals(expectedNb, ((LazyIterator<?,?,?>) it).cardinality());
+        assertEquals(expectedNb, ((BackendLazyIterator<?,?,?>) it).cardinality());
         return results;
     }
 
     public Multiset<BindingSet> executeSimpleTPWithSkip(BlazegraphBackend bb, IV s, IV p, IV o, long skip, long expectedNb) {
         BackendIterator<IV, BigdataValue, Long> it = bb.search(s, p, o);
-        BlazegraphIterator bit = (BlazegraphIterator) ((LazyIterator)it).getWrapped();
+        BlazegraphIterator bit = (BlazegraphIterator) ((BackendLazyIterator)it).getWrapped();
         bit.skip(skip);
         Multiset<BindingSet> results = HashMultiset.create();
         while (it.hasNext()) {
@@ -279,7 +279,7 @@ public class BlazegraphBackendTest {
             results.add(bs);
         }
         assertEquals(expectedNb, results.size());
-        assertEquals(expectedNb, Math.max(0, ((LazyIterator<?,?,?>) it).cardinality() - skip));
+        assertEquals(expectedNb, Math.max(0, ((BackendLazyIterator<?,?,?>) it).cardinality() - skip));
         return results;
     }
 

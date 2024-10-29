@@ -1,6 +1,7 @@
 package fr.gdd.passage.cli.server;
 
 import fr.gdd.passage.commons.generics.BackendBindings;
+import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.PassageOpExecutor;
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.shared.PrefixMapping;
@@ -36,7 +37,7 @@ public class PassageOpExecutorFactory implements OpExecutorFactory {
 
         public OpExecutorWrapper(ExecutionContext ec) {
             super(ec);
-            sager = new PassageOpExecutor<>(ec);
+            sager = new PassageOpExecutor<>(new PassageExecutionContextBuilder<>().setContext(ec).build());
         }
 
         @Override
@@ -67,9 +68,9 @@ public class PassageOpExecutorFactory implements OpExecutorFactory {
         public Binding next() {
             BackendBindings next = wrapped.next();
             BindingBuilder builder = BindingFactory.builder();
-            Set<Var> vars = next.vars();
+            Set<Var> vars = next.variables();
             for (Var v : vars) {
-                builder.add(v, NodeValueNode.parse(next.get(v).getString()).getNode());
+                builder.add(v, NodeValueNode.parse(next.getBinding(v).getString()).getNode());
             }
             return builder.build();
         }

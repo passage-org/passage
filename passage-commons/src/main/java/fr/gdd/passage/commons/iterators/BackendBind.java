@@ -65,14 +65,14 @@ public class BackendBind<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>
             BackendBindings.IdValueBackend<ID,VALUE> newBinding = new BackendBindings.IdValueBackend<ID,VALUE>()
                     .setBackend(backend);
             if (expr.isVariable()) {
-                newBinding.setValue(b.get(expr.asVar()).getValue());
+                newBinding.setValue(b.getBinding(expr.asVar()).getValue());
             } else if (expr.isConstant()) {
                 if (expr instanceof NodeValue nv) {
                     newBinding.setId(cache.getId(nv.getNode())); // The id might already exist in cache
                 }
                 newBinding.setString(expr.toString()); // try subject
             } else if (expr instanceof E_Add add) {
-                String binding = current.get(add.getArg1().asVar()).getString(); // substr because it has ""
+                String binding = current.getBinding(add.getArg1().asVar()).getString(); // substr because it has ""
                 binding = binding.substring(1, binding.length()-1); // ugly af
 
                 NodeValueInteger right = (NodeValueInteger) add.getArg2();

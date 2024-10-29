@@ -1,4 +1,4 @@
-package fr.gdd.passage.commons.generics;
+package fr.gdd.passage.commons.iterators;
 
 import fr.gdd.passage.commons.exceptions.UndefinedCode;
 import fr.gdd.passage.commons.interfaces.Backend;
@@ -12,7 +12,7 @@ import java.io.Serializable;
  * retrieved, the value is cached and only gets erased when the
  * underlying identifier changes.
  */
-public class LazyIterator<ID, VALUE, SKIP extends Serializable> extends BackendIterator<ID, VALUE, SKIP> {
+public class BackendLazyIterator<ID, VALUE, SKIP extends Serializable> extends BackendIterator<ID, VALUE, SKIP> {
 
     public BackendIterator<ID, VALUE, SKIP> iterator;
     private final Backend<ID, VALUE, SKIP> backend;
@@ -37,7 +37,7 @@ public class LazyIterator<ID, VALUE, SKIP extends Serializable> extends BackendI
     private String object = null;
     private String context = null;
 
-    public LazyIterator(Backend<ID, VALUE, SKIP> backend, BackendIterator<ID, VALUE, SKIP> wrapped) {
+    public BackendLazyIterator(Backend<ID, VALUE, SKIP> backend, BackendIterator<ID, VALUE, SKIP> wrapped) {
         this.backend = backend;
         this.iterator = wrapped;
     }

@@ -3,8 +3,11 @@ package fr.gdd.passage.commons.iterators;
 import fr.gdd.passage.commons.factories.IBackendFiltersFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
+import fr.gdd.passage.commons.generics.BackendOpExecutor;
 import fr.gdd.passage.commons.interfaces.Backend;
+import org.apache.commons.collections4.iterators.EmptyIterator;
 import org.apache.jena.sparql.algebra.op.OpFilter;
+import org.apache.jena.sparql.engine.main.OpExecutor;
 import org.apache.jena.sparql.expr.E_LogicalOr;
 import org.apache.jena.sparql.expr.E_NotEquals;
 import org.apache.jena.sparql.expr.Expr;
@@ -14,29 +17,38 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * A very specific filter that only works for expressions of NOT_EQUAL, and OR, such as:
+ * `FILTER (?x != "some_value" || ?x != <other_value>)`
+ */
 public class BackendFilter<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
 
     public static <ID,VALUE> IBackendFiltersFactory<ID,VALUE> factory() {
         return (context, input, filter) -> {
             Backend<ID,VALUE,?> backend = context.getContext().get(BackendConstants.BACKEND);
-            return new BackendFilter<>(backend, input, filter);
+            BackendOpExecutor<ID,VALUE> executor = context.getContext().get(BackendConstants.EXECUTOR);
+            return new BackendFilter<>(executor, backend, input, filter);
         };
     }
 
+    /* ******************************* ACTUAL FILTER ******************************** */
+
+    final BackendOpExecutor<ID,VALUE> executor;
     final OpFilter filter;
     final Iterator<BackendBindings<ID,VALUE>> wrapped;
 
     final BackendBindings<ID,VALUE> differentOf = new BackendBindings<>();
     BackendBindings<ID,VALUE> lastProduced;
 
-    public BackendFilter(Backend<ID,VALUE,?> backend, Iterator<BackendBindings<ID,VALUE>> input, OpFilter filter) {
+    public BackendFilter(BackendOpExecutor<ID,VALUE> executor, Backend<ID,VALUE,?> backend, Iterator<BackendBindings<ID,VALUE>> input, OpFilter filter) {
+        this.executor = executor;
         this.filter = filter;
-        this.wrapped = input;
-        for (E_NotEquals neq : unfoldOrExpr(filter.getExprs().get(0))) {
-            differentOf.put(neq.getArg1().asVar(), new BackendBindings.IdValueBackend<ID,VALUE>()
-                    .setBackend(backend)
-                    .setString(neq.getArg2().toString()));
-        }
+        this.wrapped = executor.visit(filter.getSubOp(), input); // The input is bypassed, then filter applies
+//        for (E_NotEquals neq : unfoldOrExpr(filter.getExprs().get(0))) {
+//            differentOf.put(neq.getArg1().asVar(), new BackendBindings.IdValueBackend<ID,VALUE>()
+//                    .setBackend(backend)
+//                    .setString(neq.getArg2().toString()));
+//        }
     }
 
     @Override
@@ -45,7 +57,8 @@ public class BackendFilter<ID,VALUE> implements Iterator<BackendBindings<ID,VALU
 
         while (wrapped.hasNext()) {
             BackendBindings<ID,VALUE> produced = wrapped.next();
-            if (!produced.equals(differentOf)) {
+
+            if (filter.getExprs().isSatisfied(produced, this.executor.context)) {
                 lastProduced = produced;
                 return true;
             }

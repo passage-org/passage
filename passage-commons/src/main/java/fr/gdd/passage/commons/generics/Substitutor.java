@@ -22,7 +22,7 @@ public class Substitutor {
 
     public static <ID, VALUE> ID substitute(Node sOrPOrO, BackendBindings<ID, VALUE> binding, Integer spoc, BackendCache<ID,VALUE> cache) {
         if (sOrPOrO.isVariable()) {
-            BackendBindings.IdValueBackend<ID, VALUE> b = binding.get(Var.alloc(sOrPOrO));
+            BackendBindings.IdValueBackend<ID, VALUE> b = binding.getBinding(Var.alloc(sOrPOrO));
             return Objects.isNull(b) ? null : b.getId();
         } else {
             return cache.getId(sOrPOrO, spoc);

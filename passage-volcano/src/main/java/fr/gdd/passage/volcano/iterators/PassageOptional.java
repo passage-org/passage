@@ -135,10 +135,10 @@ public class PassageOptional<ID,VALUE>  implements Iterator<BackendBindings<ID, 
     public Op pause(Op preemptedRight) {
         if (Objects.isNull(mandatoryBinding) && (Objects.isNull(optionalBinding) || !optional.hasNext())) return null; // TODO probably something to do with this condition
 
-        Set<Var> mandatoryVars = mandatoryBinding.vars();
+        Set<Var> mandatoryVars = mandatoryBinding.variables();
         OpSequence seq = OpSequence.create();
         for (Var v : mandatoryVars) {
-            seq.add(OpExtend.extend(OpTable.unit(), v, ExprUtils.parse(mandatoryBinding.get(v).getString())));
+            seq.add(OpExtend.extend(OpTable.unit(), v, ExprUtils.parse(mandatoryBinding.getBinding(v).getString())));
         }
 
         Set<Var> optionalVars = OpVars.visibleVars(op.getRight());

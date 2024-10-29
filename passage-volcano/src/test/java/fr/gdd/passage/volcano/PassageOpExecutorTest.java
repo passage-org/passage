@@ -49,22 +49,37 @@ public class PassageOpExecutorTest {
     }
 
     /**
-     * Checks if the set of results contains the values associated to the variables.
-     * @param results
-     * @param vars
-     * @param values
-     * @return
+     * @param results The results of the query execution.
+     * @param vars The variables to check associated to:
+     * @param values The values corresponding to the variables aforementioned.
+     * @return True if the set of results contains the values associated to the variables, false otherwise
      */
     public static boolean containsResult(Multiset<BackendBindings<?,?>> results, List<String> vars, List<String> values) {
         return results.stream().anyMatch(
                 result -> {
                     for (int i = 0; i < vars.size(); ++i) {
-                        if (!result.get(Var.alloc(vars.get(i))).getString().contains(values.get(i))) {
+                        if (!result.getBinding(Var.alloc(vars.get(i))).getString().contains(values.get(i))) {
                             return false;
                         }
                     }
                     return true;
                 });
+    }
+
+    /**
+     * @param results The results of the query execution.
+     * @param vars The variables to check associated to:
+     * @param valuess The list of values corresponding to the variables aforementioned.
+     * @return True if the set of results contains the values associated to the variables, false otherwise
+     */
+    @SafeVarargs
+    public static boolean containsAllResults(Multiset<BackendBindings<?,?>> results, List<String> vars, List<String>... valuess) {
+        for (int i = 0; i < valuess.length; ++i) {
+            if (!containsResult(results, vars, valuess[i])) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /* ****************************************************************** */

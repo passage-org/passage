@@ -2,7 +2,7 @@ package fr.gdd.passage.blazegraph;
 
 import com.bigdata.rdf.internal.IV;
 import com.bigdata.rdf.spo.ISPO;
-import fr.gdd.passage.commons.generics.LazyIterator;
+import fr.gdd.passage.commons.iterators.BackendLazyIterator;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
 import org.junit.jupiter.api.Assumptions;
@@ -13,7 +13,6 @@ import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.file.Path;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -44,7 +43,7 @@ public class ProfilingScanSpeedTest {
                 final var any = bb.any();
                 final var p_1 = bb.getId("http://xmlns.com/foaf/age", SPOC.PREDICATE);
                 BackendIterator<IV, ?, ?> i_1 = bb.search(any, p_1, any);
-                BlazegraphIterator bi = (BlazegraphIterator) ((LazyIterator) i_1).getWrapped();
+                BlazegraphIterator bi = (BlazegraphIterator) ((BackendLazyIterator) i_1).getWrapped();
                 long sum = 0;
                 while (System.currentTimeMillis() < start+TIMEOUT) {
                     ISPO r = bi.getUniformRandomSPO();

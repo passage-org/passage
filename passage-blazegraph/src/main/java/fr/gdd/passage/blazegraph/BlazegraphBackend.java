@@ -17,7 +17,7 @@ import com.bigdata.striterator.IChunkedOrderedIterator;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import fr.gdd.passage.commons.exceptions.NotFoundException;
-import fr.gdd.passage.commons.generics.LazyIterator;
+import fr.gdd.passage.commons.iterators.BackendLazyIterator;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
@@ -95,12 +95,12 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
 
     @Override
     public BackendIterator<IV, BigdataValue, Long> search(IV s, IV p, IV o) {
-        return new LazyIterator<>(this,new BlazegraphIterator(store, s, p, o, null));
+        return new BackendLazyIterator<>(this,new BlazegraphIterator(store, s, p, o, null));
     }
 
     @Override
     public BackendIterator<IV, BigdataValue, Long> search(IV s, IV p, IV o, IV c) {
-        return new LazyIterator<>(this,new BlazegraphIterator(store, s, p, o, c));
+        return new BackendLazyIterator<>(this,new BlazegraphIterator(store, s, p, o, c));
     }
 
     @Override

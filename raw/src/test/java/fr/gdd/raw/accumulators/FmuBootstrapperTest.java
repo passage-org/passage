@@ -101,9 +101,9 @@ class FmuBootstrapperTest {
             // Every ?s has only one corresponding ?o, so it's a 100% chance to get it once ?s is set
             double probability = bootsrapper.visit(countQuery);
             log.debug("Probability Fµ: {}", probability);
-            if (binding.get(Var.alloc("o")).getString().contains("nantes")) {
+            if (binding.getBinding(Var.alloc("o")).getString().contains("nantes")) {
                 assertEquals(1./2., probability);
-            } else if (binding.get(Var.alloc("o")).getString().contains("paris")) {
+            } else if (binding.getBinding(Var.alloc("o")).getString().contains("paris")) {
                 assertEquals(1., probability);
             }
         }

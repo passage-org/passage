@@ -145,7 +145,7 @@ public class RandomAggregator<ID,VALUE> implements Iterator<BackendBindings<ID,V
 
     public static <ID,VALUE> BackendBindings<ID,VALUE> getKeyBinding(Set<Var> vars, BackendBindings<ID,VALUE> binding) {
         BackendBindings<ID,VALUE> keyBinding = new BackendBindings<>();
-        vars.forEach(v -> keyBinding.put(v, binding.get(v)));
+        vars.forEach(v -> keyBinding.put(v, binding.getBinding(v)));
         return keyBinding;
     }
 

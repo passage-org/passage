@@ -122,10 +122,10 @@ public class PassageScanFactory<ID, VALUE> implements Iterator<BackendBindings<I
             return null;
         }
 
-        Set<Var> vars = inputBinding.vars();
+        Set<Var> vars = inputBinding.variables();
         OpSequence seq = OpSequence.create();
         for (Var v : vars) {
-            seq.add(OpExtend.extend(OpTable.unit(), v, ExprUtils.parse(inputBinding.get(v).getString())));
+            seq.add(OpExtend.extend(OpTable.unit(), v, ExprUtils.parse(inputBinding.getBinding(v).getString())));
         }
         seq.add(triple);
 
