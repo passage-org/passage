@@ -1,3 +1,4 @@
+*.versionsBackup
 *queries/
 *results/
 */temp/
