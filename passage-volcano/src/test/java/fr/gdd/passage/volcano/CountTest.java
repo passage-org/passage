@@ -12,10 +12,10 @@ import org.slf4j.LoggerFactory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Disabled(value = "Aggregations not supported yet.")
-public class PassageOpExecutorAggTest {
+@Disabled("Count aggregates not supported yet.")
+public class CountTest {
 
-    static final Logger log = LoggerFactory.getLogger(PassageOpExecutorAggTest.class);
+    static final Logger log = LoggerFactory.getLogger(CountTest.class);
 
     @BeforeEach
     public void make_sure_we_dont_stop () { PassageScan.stopping = (e) -> false; }
@@ -25,7 +25,7 @@ public class PassageOpExecutorAggTest {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String query = "SELECT (COUNT(*) AS ?count) { ?p <http://address> ?c }";
 
-        var results = PassageOpExecutorTest.executeWithPassage(query, blazegraph);
+        var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(1, results.size()); // ?count = 3
     }
 
@@ -39,7 +39,7 @@ public class PassageOpExecutorAggTest {
         }
         """;
 
-        var results = PassageOpExecutorTest.executeWithPassage(query, blazegraph);
+        var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(3, results.size()); // ?count = 3 for Alice; Bob and Carol have ?count = 0
     }
 

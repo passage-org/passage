@@ -6,14 +6,14 @@ import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class PassageOpExecutorDistinctTest {
-
-    static final Logger log = LoggerFactory.getLogger(PassageOpExecutorDistinctTest.class);
+public class DistinctTest {
 
     @BeforeEach
     public void make_sure_we_dont_stop () { PassageScan.stopping = (e) -> false; }
@@ -23,8 +23,10 @@ public class PassageOpExecutorDistinctTest {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String query = "SELECT DISTINCT * WHERE { ?p <http://address> ?a }";
 
-        var results = PassageOpExecutorTest.executeWithPassage(query, blazegraph);
+        var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(3, results.size()); // Alice, Carol, and Bob
+        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "a"),
+                List.of("Alice", "nantes"), List.of("Bob", "paris"), List.of("Carol", "nantes")));
     }
 
     @Test
@@ -32,8 +34,10 @@ public class PassageOpExecutorDistinctTest {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String query = "SELECT DISTINCT ?a WHERE { ?p <http://address> ?a }";
 
-        var results = PassageOpExecutorTest.executeWithPassage(query, blazegraph);
+        var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(2, results.size()); // Nantes and Paris
+        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("a", "p"),
+                Arrays.asList("nantes", null), Arrays.asList("paris", null)));
     }
 
     @Test
@@ -45,8 +49,9 @@ public class PassageOpExecutorDistinctTest {
             ?person <http://own> ?animal }
         """;
 
-        var results = PassageOpExecutorTest.executeWithPassage(query, blazegraph);
+        var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(1, results.size()); // Nantes only, since only Alice has animals
+        assertTrue(OpExecutorUtils.containsResult(results, List.of("address"), List.of("nantes")));
     }
 
     @Test
@@ -62,8 +67,10 @@ public class PassageOpExecutorDistinctTest {
             }}
         }""";
 
-        var results = PassageOpExecutorTest.executeWithPassage(query, blazegraph);
+        var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(1, results.size()); // Nantes only, since only Alice has animals
+        assertTrue(OpExecutorUtils.containsResult(results, List.of("address", "person"),
+                Arrays.asList("nantes", null)));
     }
 
 }

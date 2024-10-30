@@ -4,7 +4,6 @@ import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
 
@@ -23,7 +22,7 @@ public class ValuesTest {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String query = "SELECT * WHERE {  VALUES ?p { UNDEF } }";
 
-        var results = PassageOpExecutorTest.executeWithPassage(query, blazegraph);
+        var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(1, results.size()); // 1 result but empty. (Wikidata's online server confirms)
     }
 
@@ -32,9 +31,9 @@ public class ValuesTest {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String query = "SELECT * WHERE {  VALUES ?p { <http://does_not_exist> } }";
 
-        var results = PassageOpExecutorTest.executeWithPassage(query, blazegraph);
+        var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(1, results.size()); // the one that does not exist
-        assertTrue(PassageOpExecutorTest.containsResult(results, List.of("p"), List.of("does_not_exist")));
+        assertTrue(OpExecutorUtils.containsResult(results, List.of("p"), List.of("does_not_exist")));
     }
 
     @Test
@@ -46,7 +45,7 @@ public class ValuesTest {
                     ?p <http://address> ?c
                 }""";
 
-        var results = PassageOpExecutorTest.executeWithPassage(query, blazegraph);
+        var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(0, results.size()); // does not exist
     }
 
@@ -55,9 +54,9 @@ public class ValuesTest {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String query = "SELECT * WHERE { VALUES ?p { <http://Alice> }  }";
 
-        var results = PassageOpExecutorTest.executeWithPassage(query, blazegraph);
+        var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(1, results.size()); // Alice lives in Nantes
-        assertTrue(PassageOpExecutorTest.containsResult(results, List.of("p"), List.of("Alice")));
+        assertTrue(OpExecutorUtils.containsResult(results, List.of("p"), List.of("Alice")));
     }
 
     @Test
@@ -70,9 +69,9 @@ public class ValuesTest {
             }
         """;
 
-        var results = PassageOpExecutorTest.executeWithPassage(query, blazegraph);
+        var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(1, results.size()); // Alice lives in Nantes
-        assertTrue(PassageOpExecutorTest.containsResult(results, List.of("p", "c"), List.of("Alice", "nantes")));
+        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "c"), List.of("Alice", "nantes")));
     }
 
     @Test
@@ -85,10 +84,10 @@ public class ValuesTest {
             }
         """;
 
-        var results = PassageOpExecutorTest.executeWithPassage(query, blazegraph);
+        var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(2, results.size()); // Alice lives in Nantes; Bob lives in Paris
-        assertTrue(PassageOpExecutorTest.containsResult(results, List.of("p", "c"), List.of("Alice", "nantes")));
-        assertTrue(PassageOpExecutorTest.containsResult(results, List.of("p", "c"), List.of("Bob", "paris")));
+        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "c"), List.of("Alice", "nantes")));
+        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "c"), List.of("Bob", "paris")));
     }
 
     @Test
@@ -101,10 +100,10 @@ public class ValuesTest {
             }
         """;
 
-        var results = PassageOpExecutorTest.executeWithPassage(query, blazegraph);
+        var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(2, results.size()); // Alice lives in Nantes; Bob lives in Paris
-        assertTrue(PassageOpExecutorTest.containsResult(results, List.of("p", "c"), List.of("Alice", "nantes")));
-        assertTrue(PassageOpExecutorTest.containsResult(results, List.of("p", "c"), List.of("Bob", "paris")));
+        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "c"), List.of("Alice", "nantes")));
+        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "c"), List.of("Bob", "paris")));
     }
 
     @Test
@@ -117,7 +116,7 @@ public class ValuesTest {
             }
         """;
 
-        var results = PassageOpExecutorTest.executeWithPassage(query, blazegraph);
+        var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(0, results.size()); // Nothing
     }
 
@@ -132,10 +131,10 @@ public class ValuesTest {
             }
         """;
 
-        var results = PassageOpExecutorTest.executeWithPassage(query, blazegraph);
+        var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(2, results.size()); // (Alice and herself + Alice and Carol) live in nantes
-        assertTrue(PassageOpExecutorTest.containsResult(results, List.of("p", "p2", "c"), List.of("Alice", "Alice", "nantes")));
-        assertTrue(PassageOpExecutorTest.containsResult(results, List.of("p", "p2", "c"), List.of("Alice", "Carol", "nantes")));
+        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "p2", "c"), List.of("Alice", "Alice", "nantes")));
+        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "p2", "c"), List.of("Alice", "Carol", "nantes")));
     }
 
 }

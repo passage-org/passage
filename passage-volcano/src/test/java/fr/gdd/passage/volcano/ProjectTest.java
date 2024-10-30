@@ -1,23 +1,19 @@
 package fr.gdd.passage.volcano;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
-import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.iterators.PassageScan;
-import org.apache.jena.query.DatasetFactory;
-import org.apache.jena.sparql.engine.ExecutionContext;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class PassageOpExecutorProjectTest {
-
-    static final Logger log = LoggerFactory.getLogger(PassageOpExecutorProjectTest.class);
+public class ProjectTest {
 
     @BeforeEach
     public void make_sure_we_dont_stop () { PassageScan.stopping = (e) -> false; }
@@ -27,8 +23,12 @@ public class PassageOpExecutorProjectTest {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = "SELECT ?p WHERE {?p <http://address> ?c}";
 
-        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, blazegraph);
+        var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size()); // Bob, Alice, and Carol.
+        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "c"),
+                Arrays.asList("Bob", null),
+                Arrays.asList("Alice", null),
+                Arrays.asList("Carol", null)));
     }
 
     @Test
@@ -40,8 +40,10 @@ public class PassageOpExecutorProjectTest {
                 ?p <http://own> ?a .
                }""";
 
-        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, blazegraph);
+        var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size()); // Alice, Alice, and Alice.
+        assertTrue(OpExecutorUtils.containsResultTimes(results, List.of("p", "c"),
+                Arrays.asList("Alice", null), 3));
 
         queryAsString = """
                SELECT ?a WHERE {
@@ -49,8 +51,12 @@ public class PassageOpExecutorProjectTest {
                 ?p <http://own> ?a .
                }""";
 
-        results = PassageOpExecutorTest.executeWithPassage(queryAsString, blazegraph);
+        results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size()); // dog, snake and cat.
+        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("a", "p"),
+                Arrays.asList("dog", null),
+                Arrays.asList("snake", null),
+                Arrays.asList("cat", null)));
 
         queryAsString = """
                SELECT ?p ?a WHERE {
@@ -58,8 +64,12 @@ public class PassageOpExecutorProjectTest {
                 ?p <http://own> ?a .
                }""";
 
-        results = PassageOpExecutorTest.executeWithPassage(queryAsString, blazegraph);
+        results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size()); // both at once, similar to *
+        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("a", "p"),
+                Arrays.asList("dog", "Alice"),
+                Arrays.asList("snake", "Alice"),
+                Arrays.asList("cat", "Alice")));
     }
 
 }

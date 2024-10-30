@@ -2,15 +2,21 @@ package fr.gdd.passage.volcano;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.volcano.benchmarks.WatDivTest;
 import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
+import org.openrdf.sail.SailException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class BGPTest {
+
+    final static Logger log = LoggerFactory.getLogger(BGPTest.class);
 
     @BeforeEach
     public void make_sure_we_dont_stop () { PassageScan.stopping = (e) -> false; }
@@ -24,7 +30,7 @@ public class BGPTest {
                     ?p ?predicate ?c
                 }""";
 
-        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, blazegraph);
+        var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(0, results.size());
     }
 
@@ -33,7 +39,7 @@ public class BGPTest {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = "SELECT * WHERE {?p <http://does_not_exist> ?c}";
 
-        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, blazegraph);
+        var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(0, results.size());
     }
 
@@ -42,7 +48,7 @@ public class BGPTest {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c . ?p <http://does_not_exist> ?c}";
 
-        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, blazegraph);
+        var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(0, results.size());
     }
 
@@ -55,7 +61,7 @@ public class BGPTest {
                     ?p ?predicate ?c}
                 """;
 
-        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, blazegraph);
+        var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size());
     }
 
@@ -68,7 +74,7 @@ public class BGPTest {
                     ?p ?predicate ?c}
                 """;
 
-        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, blazegraph);
+        var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size());
     }
 
@@ -77,7 +83,7 @@ public class BGPTest {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c}";
 
-        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, blazegraph);
+        var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size()); // Bob, Alice, and Carol.
     }
 
@@ -90,7 +96,7 @@ public class BGPTest {
                 ?p <http://own> ?a .
                }""";
 
-        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, blazegraph);
+        var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size()); // Alice, Alice, and Alice.
     }
 
@@ -104,8 +110,51 @@ public class BGPTest {
                 ?a <http://species> ?s
                }""";
 
-        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, blazegraph);
+        var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size()); // Alice->own->cat,dog,snake
+    }
+
+
+    @Disabled(value = "Need the WatDiv dataset to work.")
+    @Test
+    public void sandbox_of_test () throws RepositoryException, SailException {
+        BlazegraphBackend watdivBlazegraph = new BlazegraphBackend(WatDivTest.PATH);
+
+        String query = """        
+                SELECT ?v7 ?v1 ?v5 ?v6 ?v0 ?v3 ?v2 WHERE {
+                        ?v0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://db.uwaterloo.ca/~galuc/wsdbm/Genre13>.
+                        ?v2 <http://db.uwaterloo.ca/~galuc/wsdbm/hasGenre> ?v0.
+                        ?v2 <http://schema.org/caption> ?v5.
+                        ?v2 <http://schema.org/keywords> ?v7.
+                        ?v2 <http://schema.org/contentRating> ?v6.
+                        ?v2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?v3.
+                        ?v0 <http://ogp.me/ns#tag> ?v1.
+                }
+                """;
+
+        int sum = OpExecutorUtils.executeWithPassage(query, watdivBlazegraph).size();
+        log.info("{}", sum);
+    }
+
+    @Disabled(value = "Need the WatDiv dataset to work.")
+    @Test
+    public void on_watdiv_conjunctive_query_10124 () throws RepositoryException, SailException {
+        BlazegraphBackend watdivBlazegraph = new BlazegraphBackend(WatDivTest.PATH);
+
+        String query0 = """
+                SELECT * WHERE {
+                        ?v1 <http://www.geonames.org/ontology#parentCountry> ?v2.
+                        ?v3 <http://purl.org/ontology/mo/performed_in> ?v1.
+                        ?v0 <http://purl.org/dc/terms/Location> ?v1.
+                        ?v0 <http://db.uwaterloo.ca/~galuc/wsdbm/gender> <http://db.uwaterloo.ca/~galuc/wsdbm/Gender1>.
+                        ?v0 <http://db.uwaterloo.ca/~galuc/wsdbm/userId> ?v5.
+                        ?v0 <http://db.uwaterloo.ca/~galuc/wsdbm/follows> ?v0.
+                }
+                """;
+
+        int sum = OpExecutorUtils.executeWithPassage(query0, watdivBlazegraph).size();
+
+        assertEquals(117, sum);
     }
 
 }

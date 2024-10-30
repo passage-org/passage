@@ -7,6 +7,8 @@ import fr.gdd.passage.volcano.pause.Triples2BGP;
 import fr.gdd.passage.volcano.resume.BGP2Triples;
 import fr.gdd.passage.volcano.resume.Subqueries2LeftOfJoins;
 import org.apache.jena.sparql.algebra.Op;
+import org.apache.jena.sparql.algebra.Transformer;
+import org.apache.jena.sparql.algebra.optimize.TransformFilterPlacement;
 
 /**
  * Create the plan that will be used by the Executor afterward.
@@ -23,9 +25,11 @@ public class PassageOptimizer<ID,VALUE> {
     }
 
     public Op optimize(Op toOptimize) {
+        toOptimize = Transformer.transform(new TransformFilterPlacement(), toOptimize);
+
         if (!forceOrder) {
-            // for now, it's cardinality based only. TODO register them in lists
             toOptimize = ReturningOpVisitorRouter.visit(new Triples2BGP(), toOptimize);
+            // for now, it's cardinality based only. TODO register them in lists
             toOptimize = new CardinalityJoinOrdering<>(backend, cache).visit(toOptimize); // need to have bgp to optimize, no tps
         }
 

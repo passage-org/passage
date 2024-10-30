@@ -26,9 +26,9 @@ public class FilterTest {
             FILTER ( ?address != <http://nantes> )
         }""";
 
-        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, blazegraph);
+        var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(1, results.size()); // Bob only
-        assertTrue(PassageOpExecutorTest.containsResult(results, List.of("person", "address"),
+        assertTrue(OpExecutorUtils.containsResult(results, List.of("person", "address"),
                 List.of("Bob", "paris")));
     }
 
@@ -41,9 +41,9 @@ public class FilterTest {
             FILTER ( (?address != <http://nantes>) || (?person != <http://Alice>) )
         }""";
 
-        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, blazegraph);
+        var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(2, results.size()); // Bob and Carol
-        assertTrue(PassageOpExecutorTest.containsAllResults(results, List.of("person", "address"),
+        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("person", "address"),
                 List.of("Bob", "paris"),
                 List.of("Carol", "nantes")));
     }
@@ -58,9 +58,9 @@ public class FilterTest {
                 FILTER (?a != <http://dog>)
                }""";
 
-        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, blazegraph);
+        var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(2, results.size()); // Alice and Alice.
-        assertTrue(PassageOpExecutorTest.containsAllResults(results, List.of("p", "a"),
+        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "a"),
                 List.of("Alice", "cat"),
                 List.of("Alice", "snake")));
     }

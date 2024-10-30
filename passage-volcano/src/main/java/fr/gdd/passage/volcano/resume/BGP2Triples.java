@@ -29,6 +29,12 @@ public class BGP2Triples extends ReturningOpBaseVisitor {
         };
     }
 
+    @Override
+    public Op visit(OpSequence sequence) {
+        OpSequence transformedInside = (OpSequence) super.visit(sequence);
+        return asJoins(transformedInside.getElements());
+    }
+
     public static Op asJoins(List<Op> ops) {
         if (ops.isEmpty()) {
             return null;

@@ -1,23 +1,18 @@
 package fr.gdd.passage.volcano;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
-import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.iterators.PassageScan;
-import org.apache.jena.query.DatasetFactory;
-import org.apache.jena.sparql.engine.ExecutionContext;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class PassageOpExecutorUnionTest {
-
-    static final Logger log = LoggerFactory.getLogger(PassageOpExecutorUnionTest.class);
+public class UnionTest {
 
     @BeforeEach
     public void make_sure_we_dont_stop () { PassageScan.stopping = (e) -> false; }
@@ -32,8 +27,11 @@ public class PassageOpExecutorUnionTest {
                 {?p  <http://address> ?a}
                }""";
 
-        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, blazegraph);
+        var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(6, results.size()); // 3 triples + 3 triples
+        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "a"),
+                List.of("Alice", "snake"), List.of("Alice", "dog"), List.of("Alice", "cat"),
+                List.of("Alice", "nantes"), List.of("Bob", "paris"), List.of("Carol", "nantes")));
     }
 
     @Test
@@ -45,8 +43,14 @@ public class PassageOpExecutorUnionTest {
                 {?a <http://species> ?s} UNION {?a <http://species> ?s}
                }""";
 
-        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, blazegraph);
+        var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(6, results.size()); // (cat + dog + snake)*2
+        assertTrue(OpExecutorUtils.containsResultTimes(results, List.of("p", "s"),
+                List.of("Alice", "feline"), 2));
+        assertTrue(OpExecutorUtils.containsResultTimes(results, List.of("p", "s"),
+                List.of("Alice", "canine"), 2));
+        assertTrue(OpExecutorUtils.containsResultTimes(results, List.of("p", "s"),
+                List.of("Alice", "reptile"), 2));
     }
 
 }

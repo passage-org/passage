@@ -60,6 +60,17 @@ public class CardinalityJoinOrdering<ID,VALUE> extends ReturningArgsOpVisitor<
     /* ********************************************************************* */
 
     @Override
+    public Op visit(OpSequence sequence, Set<Var> alreadySetVars) {
+        List<Op> ops = new ArrayList<>();
+        for (Op op : sequence.getElements()) {
+            Op newOp = this.visit(op, new HashSet<>(alreadySetVars));
+            alreadySetVars.addAll(OpVars.visibleVars(newOp));
+            ops.add(newOp);
+        }
+        return OpSequence.create().copy(ops);
+    }
+
+    @Override
     public Op visit(OpFilter filter, Set<Var> alreadySetVars) {
         return OpCloningUtil.clone(filter, this.visit(filter.getSubOp(), alreadySetVars));
     }
