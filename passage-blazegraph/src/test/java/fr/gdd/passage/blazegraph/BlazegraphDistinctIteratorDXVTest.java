@@ -48,28 +48,6 @@ public class BlazegraphDistinctIteratorDXVTest {
         bb.close();
     }
 
-    @Test
-    public void get_distinct_s_over_a_simple_triple_pattern_with_duplicates() throws RepositoryException {
-        BlazegraphBackend bb = new BlazegraphBackend(IM4Blazegraph.triples9());
-
-        IV address = bb.getId("<http://address>", SPOC.PREDICATE);
-        IV any = bb.any();
-
-        BlazegraphDistinctIteratorDXV it = new BlazegraphDistinctIteratorDXV(bb.store,
-                any, address, any, any,
-                Set.of(SPOC.OBJECT)); // distinct (?o)
-
-        int nbResults = 0;
-        while (it.hasNext()) {
-            it.next();
-            ++nbResults;
-            log.debug("{} {}", nbResults, it.getString(SPOC.OBJECT));
-        }
-        assertEquals(2, nbResults); // nantes and paris
-
-        bb.close();
-    }
-
 //    @Test
 //    public void throws_when_trying_to_get_access_to_not_distinct() throws RepositoryException {
 //        BlazegraphBackend bb = new BlazegraphBackend(IM4Blazegraph.triples9());

@@ -11,11 +11,11 @@ import java.util.Objects;
 /**
  * Write a SageOutput to an out-stream.
  */
-public class OutputWriterJSONSage implements ModuleOutputWriter {
+public class OutputWriterJSONPassage implements ModuleOutputWriter {
 
     @Override
     public void write(IndentedWriter writer, Context context) {
-        if (context.isUndef(PassageConstants.PAUSED) || context.isUndef(PassageConstants.PAUSED_STATE)) {
+        if (context.isUndef(PassageConstants.PAUSED)) {
             return; // nothing to do, nothing to save
         }
 
@@ -24,7 +24,7 @@ public class OutputWriterJSONSage implements ModuleOutputWriter {
 //            throw new RuntimeException("Should be in paused state…");
 //        }
 
-        PassagePaused savedString = context.get(PassageConstants.PAUSED_STATE);
+        PassagePaused savedString = context.get(PassageConstants.PAUSED);
 
         if (Objects.isNull(savedString.getPausedQueryAsString())) {
             return; // no next, we are done!

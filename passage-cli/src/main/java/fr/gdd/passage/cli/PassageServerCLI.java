@@ -6,7 +6,7 @@ import fr.gdd.passage.cli.server.PassageOperation;
 import fr.gdd.passage.cli.server.PassageQueryEngine;
 import fr.gdd.passage.cli.writers.ExtensibleRowSetWriterJSON;
 import fr.gdd.passage.cli.writers.ModuleOutputRegistry;
-import fr.gdd.passage.cli.writers.OutputWriterJSONSage;
+import fr.gdd.passage.cli.writers.OutputWriterJSONPassage;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.PassageConstants;
@@ -140,7 +140,7 @@ public class PassageServerCLI {
         // set globally but the dedicated writter of sage only comes into
         // play when some variables exist in the execution context.
         RowSetWriterRegistry.register(ResultSetLang.RS_JSON, ExtensibleRowSetWriterJSON.factory);
-        ModuleOutputRegistry.register(ResultSetLang.RS_JSON, new OutputWriterJSONSage());
+        ModuleOutputRegistry.register(ResultSetLang.RS_JSON, new OutputWriterJSONPassage());
 
         // FusekiModules.add(new SageModule());
 

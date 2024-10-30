@@ -1,6 +1,7 @@
 package fr.gdd.passage.cli.server;
 
 import fr.gdd.passage.commons.generics.BackendBindings;
+import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.PassageOpExecutor;
 import org.apache.jena.atlas.io.IndentedWriter;
@@ -37,7 +38,10 @@ public class PassageOpExecutorFactory implements OpExecutorFactory {
 
         public OpExecutorWrapper(ExecutionContext ec) {
             super(ec);
-            sager = new PassageOpExecutor<>(new PassageExecutionContextBuilder<>().setContext(ec).build());
+            sager = new PassageOpExecutor<>(new PassageExecutionContextBuilder<>()
+                    .setTimeout(ec.getContext().get(PassageConstants.TIMEOUT))
+                    .setContext(ec)
+                    .build());
         }
 
         @Override
