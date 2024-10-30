@@ -19,6 +19,48 @@ public class ValuesTest {
     public void make_sure_we_dont_stop () { PassageScan.stopping = (e) -> false; }
 
     @Test
+    public void undef_in_values () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        String query = "SELECT * WHERE {  VALUES ?p { UNDEF } }";
+
+        var results = PassageOpExecutorTest.executeWithPassage(query, blazegraph);
+        assertEquals(1, results.size()); // 1 result but empty. (Wikidata's online server confirms)
+    }
+
+    @Test
+    public void values_with_a_term_that_does_not_exist_in_database () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        String query = "SELECT * WHERE {  VALUES ?p { <http://does_not_exist> } }";
+
+        var results = PassageOpExecutorTest.executeWithPassage(query, blazegraph);
+        assertEquals(1, results.size()); // the one that does not exist
+        assertTrue(PassageOpExecutorTest.containsResult(results, List.of("p"), List.of("does_not_exist")));
+    }
+
+    @Test
+    public void values_with_a_term_that_does_not_exist_put_in_tp () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        String query = """
+                SELECT * WHERE {
+                    VALUES ?p { <http://does_not_exist> }
+                    ?p <http://address> ?c
+                }""";
+
+        var results = PassageOpExecutorTest.executeWithPassage(query, blazegraph);
+        assertEquals(0, results.size()); // does not exist
+    }
+
+    @Test
+    public void simple_values_with_nothing_else () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        String query = "SELECT * WHERE { VALUES ?p { <http://Alice> }  }";
+
+        var results = PassageOpExecutorTest.executeWithPassage(query, blazegraph);
+        assertEquals(1, results.size()); // Alice lives in Nantes
+        assertTrue(PassageOpExecutorTest.containsResult(results, List.of("p"), List.of("Alice")));
+    }
+
+    @Test
     public void simple_values_with_only_one_variable_value () throws RepositoryException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String query = """
@@ -49,7 +91,6 @@ public class ValuesTest {
         assertTrue(PassageOpExecutorTest.containsResult(results, List.of("p", "c"), List.of("Bob", "paris")));
     }
 
-    @Disabled
     @Test
     public void values_that_do_not_exist () throws RepositoryException { // TODO
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
@@ -66,10 +107,8 @@ public class ValuesTest {
         assertTrue(PassageOpExecutorTest.containsResult(results, List.of("p", "c"), List.of("Bob", "paris")));
     }
 
-    @Disabled
     @Test
     public void an_empty_values() throws RepositoryException {
-        // TODO: should it return nothing or should it return as if unbound ?
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String query = """
             SELECT * WHERE {

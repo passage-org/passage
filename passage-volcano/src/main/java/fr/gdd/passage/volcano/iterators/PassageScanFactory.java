@@ -81,10 +81,8 @@ public class PassageScanFactory<ID, VALUE> implements Iterator<BackendBindings<I
                 if (Objects.nonNull(skip) && skip > 0L) {
                     ((PassageScan<ID,VALUE>) instantiated).skip(skip);
                 }
-            }catch (NotFoundException e){
-                return false;
-            }catch (IllegalArgumentException e){
-                return false;
+            } catch (NotFoundException | IllegalArgumentException e){
+                instantiated = Iter.empty(); // issue if we cast
             }
         }
 
