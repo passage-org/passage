@@ -25,7 +25,7 @@ public class Pause2SPARQLBGPTest {
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);
-            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            var result = PauseUtils4Test.executeQuery(queryAsString, blazegraph);
             sum += result.getLeft();
             queryAsString = result.getRight();
         }
@@ -44,7 +44,7 @@ public class Pause2SPARQLBGPTest {
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);
-            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            var result = PauseUtils4Test.executeQuery(queryAsString, blazegraph);
             sum += result.getLeft();
             queryAsString = result.getRight();
         }
@@ -63,7 +63,7 @@ public class Pause2SPARQLBGPTest {
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);
-            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            var result = PauseUtils4Test.executeQuery(queryAsString, blazegraph);
             sum += result.getLeft();
             queryAsString = result.getRight();
         }
@@ -83,7 +83,7 @@ public class Pause2SPARQLBGPTest {
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);
-            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            var result = PauseUtils4Test.executeQuery(queryAsString, blazegraph);
             sum += result.getLeft();
             queryAsString = result.getRight();
         }
@@ -107,7 +107,7 @@ public class Pause2SPARQLBGPTest {
 
         int sum = 0;
         while (Objects.nonNull(query0)) {
-            var result = Save2SPARQLTest.executeQuery(query0, watdivBlazegraph);
+            var result = PauseUtils4Test.executeQuery(query0, watdivBlazegraph);
             sum += result.getLeft();
             query0 = result.getRight();
         }
@@ -132,7 +132,7 @@ public class Pause2SPARQLBGPTest {
 
         int sum = 0;
         while (Objects.nonNull(query10124)) {
-            var result = Save2SPARQLTest.executeQuery(query10124, watdivBlazegraph);
+            var result = PauseUtils4Test.executeQuery(query10124, watdivBlazegraph);
             sum += result.getLeft();
             query10124 = result.getRight();
             log.debug(query10124);

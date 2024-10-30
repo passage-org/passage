@@ -3,7 +3,7 @@ package fr.gdd.passage.volcano.benchmarks;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.databases.persistent.Watdiv10M;
 import fr.gdd.passage.volcano.iterators.PassageScan;
-import fr.gdd.passage.volcano.pause.Save2SPARQLTest;
+import fr.gdd.passage.volcano.pause.PauseUtils4Test;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -46,7 +46,7 @@ public class WatDivTest {
         long start = System.currentTimeMillis();
         while (Objects.nonNull(query)) {
             log.debug(query);
-            var result = Save2SPARQLTest.executeQueryWithTimeout(query, watdivBlazegraph, 100L);
+            var result = PauseUtils4Test.executeQueryWithTimeout(query, watdivBlazegraph, 100L);
             // var result = Save2SPARQLTest.executeQueryWithTimeout(query, watdivBlazegraph, 60000L); // 1s timeout
             nbResults += result.getLeft();
             query = result.getRight();
@@ -61,7 +61,7 @@ public class WatDivTest {
         Map<String, Long> groundTruth = readGroundTruth("/Users/nedelec-b-2/Desktop/Projects/sage-jena/results/baseline.csv", 2);
         List<Pair<String, String>> queries = Watdiv10M.getQueries("/Users/nedelec-b-2/Desktop/Projects/" + Watdiv10M.QUERIES_PATH, Watdiv10M.blacklist);
 
-        PassageScan.stopping = Save2SPARQLTest.stopEveryThreeScans;
+        PassageScan.stopping = PauseUtils4Test.stopEveryThreeScans;
 
         Set<String> skip = Set.of("query_10122.sparql", "query_10020.sparql", "query_10061.sparql", "query_10168.sparql",
                 "query_10083.sparql");
@@ -79,7 +79,7 @@ public class WatDivTest {
             long start = System.currentTimeMillis();
             while (Objects.nonNull(query)) {
                 log.debug(query);
-                var result = Save2SPARQLTest.executeQuery(query, watdivBlazegraph);
+                var result = PauseUtils4Test.executeQuery(query, watdivBlazegraph);
                 // var result = Save2SPARQLTest.executeQueryWithTimeout(query, watdivBlazegraph, 60000L); // 1s timeout
                 nbResults += result.getLeft();
                 query = result.getRight();
@@ -150,7 +150,7 @@ public class WatDivTest {
         long start = System.currentTimeMillis();
         while (Objects.nonNull(query)) {
             log.debug(query);
-            var result = Save2SPARQLTest.executeQueryWithTimeout(query, watdivBlazegraph, 100000000L); // 1s timeout
+            var result = PauseUtils4Test.executeQueryWithTimeout(query, watdivBlazegraph, 100000000L); // 1s timeout
             nbResults += result.getLeft();
             query = result.getRight();
         }

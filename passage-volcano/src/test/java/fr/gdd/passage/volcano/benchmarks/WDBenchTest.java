@@ -6,7 +6,7 @@ import fr.gdd.passage.commons.exceptions.NotFoundException;
 import fr.gdd.passage.databases.persistent.Watdiv10M;
 import fr.gdd.passage.volcano.iterators.PassageScan;
 import fr.gdd.passage.volcano.optimizers.CardinalityJoinOrdering;
-import fr.gdd.passage.volcano.pause.Save2SPARQLTest;
+import fr.gdd.passage.volcano.pause.PauseUtils4Test;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.algebra.Algebra;
@@ -134,7 +134,7 @@ public class WDBenchTest {
             while (Objects.nonNull(query)) {
                 log.debug("nbResults so far: " + nbResults);
                 log.debug(query);
-                var result = Save2SPARQLTest.executeQuery(query, wdbenchBlazegraph, 1000L);
+                var result = PauseUtils4Test.executeQuery(query, wdbenchBlazegraph, 1000L);
                 nbResults += result.getLeft();
                 query = result.getRight();
                 nbPreempt += 1;
@@ -182,10 +182,10 @@ public class WDBenchTest {
 //            nbPreempt += 1;
 //        }
 
-        PassageScan.stopping = Save2SPARQLTest.stopEveryFiveScans;
+        PassageScan.stopping = PauseUtils4Test.stopEveryFiveScans;
         while (Objects.nonNull(query)) {
             log.debug(query);
-            var result = Save2SPARQLTest.executeQuery(query, wdbenchBlazegraph, 10000L);
+            var result = PauseUtils4Test.executeQuery(query, wdbenchBlazegraph, 10000L);
             nbResults += result.getLeft();
             query = result.getRight();
             nbPreempt += 1;
@@ -239,7 +239,7 @@ public class WDBenchTest {
                       { ?x1  <http://www.wikidata.org/prop/direct/P18>  ?x2 }
                   }
                 """;
-        var result = Save2SPARQLTest.executeQuery(queryAsString, wdbenchBlazegraph, 10000L);
+        var result = PauseUtils4Test.executeQuery(queryAsString, wdbenchBlazegraph, 10000L);
         //var results = wdbenchBlazegraph.executeQuery(queryAsString);
         // System.out.println(results);
     }

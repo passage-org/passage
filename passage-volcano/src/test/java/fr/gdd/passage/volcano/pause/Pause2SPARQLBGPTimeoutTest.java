@@ -29,12 +29,12 @@ public class Pause2SPARQLBGPTimeoutTest {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c}";
 
-        PassageScan.stopping = Save2SPARQLTest.stopAtEveryScan;
+        PassageScan.stopping = PauseUtils4Test.stopAtEveryScan;
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);
-            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            var result = PauseUtils4Test.executeQuery(queryAsString, blazegraph);
             sum += result.getLeft();
             queryAsString = result.getRight();
 
@@ -51,12 +51,12 @@ public class Pause2SPARQLBGPTimeoutTest {
                 ?p <http://own> ?a .
                }""";
 
-        PassageScan.stopping = Save2SPARQLTest.stopAtEveryScan;
+        PassageScan.stopping = PauseUtils4Test.stopAtEveryScan;
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);
-            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            var result = PauseUtils4Test.executeQuery(queryAsString, blazegraph);
             sum += result.getLeft();
             queryAsString = result.getRight();
 
@@ -74,12 +74,12 @@ public class Pause2SPARQLBGPTimeoutTest {
                 ?a <http://species> ?s
                }""";
 
-        PassageScan.stopping = Save2SPARQLTest.stopAtEveryScan;
+        PassageScan.stopping = PauseUtils4Test.stopAtEveryScan;
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);
-            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            var result = PauseUtils4Test.executeQuery(queryAsString, blazegraph);
             sum += result.getLeft();
             queryAsString = result.getRight();
         }
@@ -90,7 +90,7 @@ public class Pause2SPARQLBGPTimeoutTest {
     @Test
     public void on_watdiv_conjunctive_query_0_every_scan () throws RepositoryException, SailException {
         BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl");
-        PassageScan.stopping = Save2SPARQLTest.stopAtEveryScan;
+        PassageScan.stopping = PauseUtils4Test.stopAtEveryScan;
 
         String query0 = """
         SELECT * WHERE {
@@ -104,7 +104,7 @@ public class Pause2SPARQLBGPTimeoutTest {
 
         int sum = 0;
         while (Objects.nonNull(query0)) {
-            var result = Save2SPARQLTest.executeQuery(query0, watdivBlazegraph);
+            var result = PauseUtils4Test.executeQuery(query0, watdivBlazegraph);
             sum += result.getLeft();
             query0 = result.getRight();
         }
@@ -116,7 +116,7 @@ public class Pause2SPARQLBGPTimeoutTest {
     @Test
     public void on_watdiv_conjunctive_query_10124_every_scan () throws RepositoryException, SailException { // /!\ it takes time (19minutes)
         BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
-        PassageScan.stopping = Save2SPARQLTest.stopAtEveryScan;
+        PassageScan.stopping = PauseUtils4Test.stopAtEveryScan;
 
         String query10124 = """
                 SELECT * WHERE {
@@ -132,7 +132,7 @@ public class Pause2SPARQLBGPTimeoutTest {
         int sum = 0;
         while (Objects.nonNull(query10124)) {
             log.debug(query10124);
-            var result = Save2SPARQLTest.executeQuery(query10124, watdivBlazegraph);
+            var result = PauseUtils4Test.executeQuery(query10124, watdivBlazegraph);
             sum += result.getLeft();
             query10124 = result.getRight();
             // log.debug("progress = {}", result.getRight());
@@ -165,7 +165,7 @@ public class Pause2SPARQLBGPTimeoutTest {
         int sum = 0;
         while (Objects.nonNull(query10124)) {
             log.debug(query10124);
-            var result = Save2SPARQLTest.executeQuery(query10124, watdivBlazegraph);
+            var result = PauseUtils4Test.executeQuery(query10124, watdivBlazegraph);
             sum += result.getLeft();
             query10124 = result.getRight();
             // log.debug("progress = {}", result.getRight());

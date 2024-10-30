@@ -2,7 +2,6 @@ package fr.gdd.passage.volcano.pause;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryEvaluationException;
@@ -39,7 +38,7 @@ public class Pause2SPARQLOptionalTest {
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);
-            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            var result = PauseUtils4Test.executeQuery(queryAsString, blazegraph);
             sum += result.getLeft();
             queryAsString = result.getRight();
         }
@@ -58,7 +57,7 @@ public class Pause2SPARQLOptionalTest {
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);
-            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            var result = PauseUtils4Test.executeQuery(queryAsString, blazegraph);
             sum += result.getLeft();
             queryAsString = result.getRight();
         }
@@ -79,7 +78,7 @@ public class Pause2SPARQLOptionalTest {
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);
-            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            var result = PauseUtils4Test.executeQuery(queryAsString, blazegraph);
             sum += result.getLeft();
             queryAsString = result.getRight();
         }
@@ -100,7 +99,7 @@ public class Pause2SPARQLOptionalTest {
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);
-            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            var result = PauseUtils4Test.executeQuery(queryAsString, blazegraph);
             sum += result.getLeft();
             queryAsString = result.getRight();
         }
@@ -134,7 +133,7 @@ public class Pause2SPARQLOptionalTest {
             log.debug(expected.toString());
 
             log.debug(queryAsString);
-            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            var result = PauseUtils4Test.executeQuery(queryAsString, blazegraph);
             // should return alice cat feline, and not feline all alone…
     }
 

@@ -1,5 +1,6 @@
 package fr.gdd.passage.volcano.pause;
 
+import com.google.common.collect.Multiset;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.PassageConstants;
@@ -16,9 +17,9 @@ import java.util.Iterator;
 import java.util.function.Function;
 
 @Disabled
-public class Save2SPARQLTest {
+public class PauseUtils4Test {
 
-    private static final Logger log = LoggerFactory.getLogger(Save2SPARQLTest.class);
+    private static final Logger log = LoggerFactory.getLogger(PauseUtils4Test.class);
 
     // just a sample of stopping conditions based on scans
     public static final Function<ExecutionContext, Boolean> stopAtEveryScan = (ec) -> ec.getContext().getLong(PassageConstants.SCANS, 0L) >= 1;
@@ -73,6 +74,23 @@ public class Save2SPARQLTest {
         }
 
         return new ImmutablePair<>(nbResults, executor.pauseAsString());
+    }
+
+
+    public static <ID,VALUE> String executeQuery(String queryAsString, Backend<ID,VALUE,Long> backend, Multiset<BackendBindings<?,?>> results) {
+        PassageOpExecutor<ID, VALUE> executor = new PassageOpExecutor<>(
+                new PassageExecutionContextBuilder<ID,VALUE>()
+                        .setBackend(backend)
+                        .build());
+        Iterator<BackendBindings<ID, VALUE>> iterator = executor.execute(queryAsString);
+
+        while (iterator.hasNext()){
+            BackendBindings<ID,VALUE> next = iterator.next();
+            results.add(next);
+            log.debug("{}", next);
+        }
+
+        return executor.pauseAsString();
     }
 
 }

@@ -2,7 +2,6 @@ package fr.gdd.passage.volcano.pause;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
@@ -28,7 +27,7 @@ public class Pause2SPARQLUnionTest {
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
-            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            var result = PauseUtils4Test.executeQuery(queryAsString, blazegraph);
             sum += result.getLeft();
             queryAsString = result.getRight();
         }
@@ -47,7 +46,7 @@ public class Pause2SPARQLUnionTest {
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
-            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            var result = PauseUtils4Test.executeQuery(queryAsString, blazegraph);
             sum += result.getLeft();
             queryAsString = result.getRight();
         }

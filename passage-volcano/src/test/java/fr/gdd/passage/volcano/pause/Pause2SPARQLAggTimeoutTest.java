@@ -3,7 +3,6 @@ package fr.gdd.passage.volcano.pause;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
-import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.QueryFactory;
@@ -38,13 +37,13 @@ public class Pause2SPARQLAggTimeoutTest {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = "SELECT (COUNT(*) AS ?count) { ?p <http://address> ?c }";
 
-        PassageScan.stopping = Save2SPARQLTest.stopAtEveryScan;
+        PassageScan.stopping = PauseUtils4Test.stopAtEveryScan;
 
         int sum = 0;
         int nbPreempt = 0;
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);
-            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            var result = PauseUtils4Test.executeQuery(queryAsString, blazegraph);
             sum += result.getLeft();
             queryAsString = result.getRight();
             nbPreempt += 1;
@@ -62,13 +61,13 @@ public class Pause2SPARQLAggTimeoutTest {
             SELECT  * WHERE { ?p  <http://address>  ?c } OFFSET  2 }
         """;
 
-        PassageScan.stopping = Save2SPARQLTest.stopAtEveryScan;
+        PassageScan.stopping = PauseUtils4Test.stopAtEveryScan;
 
         int sum = 0;
         int nbPreempt = 0;
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);
-            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            var result = PauseUtils4Test.executeQuery(queryAsString, blazegraph);
             sum += result.getLeft();
             queryAsString = result.getRight();
             nbPreempt += 1;
@@ -96,13 +95,13 @@ public class Pause2SPARQLAggTimeoutTest {
         }
         """;
 
-        PassageScan.stopping = Save2SPARQLTest.stopAtEveryScan;
+        PassageScan.stopping = PauseUtils4Test.stopAtEveryScan;
 
         int sum = 0;
         int nbPreempt = 0;
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);
-            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            var result = PauseUtils4Test.executeQuery(queryAsString, blazegraph);
             sum += result.getLeft();
             queryAsString = result.getRight();
             nbPreempt += 1;

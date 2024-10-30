@@ -11,9 +11,9 @@ import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class PauseWithValuesTest {
+public class PauseValuesTest {
 
-    private final static Logger log = LoggerFactory.getLogger(PauseWithValuesTest.class);
+    private final static Logger log = LoggerFactory.getLogger(PauseValuesTest.class);
 
     @Test
     public void simple_values_with_pause () throws RepositoryException {
@@ -27,7 +27,7 @@ public class PauseWithValuesTest {
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
-            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            var result = PauseUtils4Test.executeQuery(queryAsString, blazegraph);
             sum += result.getLeft();
             queryAsString = result.getRight();
         }
@@ -49,7 +49,7 @@ public class PauseWithValuesTest {
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
-            var result = Save2SPARQLTest.executeQuery(queryAsString, blazegraph);
+            var result = PauseUtils4Test.executeQuery(queryAsString, blazegraph);
             sum += result.getLeft();
             queryAsString = result.getRight();
             log.debug(queryAsString);

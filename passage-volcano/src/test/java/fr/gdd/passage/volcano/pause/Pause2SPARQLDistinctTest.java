@@ -77,7 +77,7 @@ public class Pause2SPARQLDistinctTest {
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);
-            var result = Save2SPARQLTest.executeQuery(queryAsString, backend);
+            var result = PauseUtils4Test.executeQuery(queryAsString, backend);
             sum += result.getLeft();
             queryAsString = result.getRight();
         }
