@@ -4,11 +4,8 @@ import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -16,8 +13,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class FilterTest {
-
-    static final Logger log = LoggerFactory.getLogger(FilterTest.class);
 
     @BeforeEach
     public void make_sure_we_dont_stop () { PassageScan.stopping = (e) -> false; }
@@ -51,6 +46,23 @@ public class FilterTest {
         assertTrue(PassageOpExecutorTest.containsAllResults(results, List.of("person", "address"),
                 List.of("Bob", "paris"),
                 List.of("Carol", "nantes")));
+    }
+
+    @Test
+    public void filter_bgp_of_2_tp () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        String queryAsString = """
+               SELECT * WHERE {
+                ?p <http://address> ?c .
+                ?p <http://own> ?a
+                FILTER (?a != <http://dog>)
+               }""";
+
+        var results = PassageOpExecutorTest.executeWithPassage(queryAsString, blazegraph);
+        assertEquals(2, results.size()); // Alice and Alice.
+        assertTrue(PassageOpExecutorTest.containsAllResults(results, List.of("p", "a"),
+                List.of("Alice", "cat"),
+                List.of("Alice", "snake")));
     }
 
 }

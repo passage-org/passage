@@ -7,6 +7,7 @@ import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.PassageExecutionContext;
+import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.atlas.lib.tuple.Tuple3;
 import org.apache.jena.atlas.lib.tuple.TupleFactory;
@@ -62,7 +63,6 @@ public class PassageScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALU
 
     @Override
     public BackendBindings<ID, VALUE> next() {
-        // first = false; // at least one iteration
         wrapped.next();
 
         context.getContext().set(PassageConstants.SCANS, context.getContext().getLong(PassageConstants.SCANS,0L) + 1);

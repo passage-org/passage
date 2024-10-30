@@ -1,6 +1,7 @@
 package fr.gdd.passage.volcano.iterators;
 
 import com.google.common.collect.Lists;
+import fr.gdd.passage.commons.exceptions.NotFoundException;
 import fr.gdd.passage.commons.factories.IBackendValuesFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendCache;
@@ -43,6 +44,7 @@ public class PassageValues<ID,VALUE> implements Iterator<BackendBindings<ID,VALU
         };
     }
 
+    /* *********************** ACTUAL VALUES ITERATOR **************************** */
 
     final Iterator<BackendBindings<ID,VALUE>> input;
     final ExecutionContext context;
@@ -76,10 +78,15 @@ public class PassageValues<ID,VALUE> implements Iterator<BackendBindings<ID,VALU
                 String val = NodeFmtLib.str(node, null);
                 if (Objects.isNull(cache.getId(node))) {
                     // cache it
-                    ID id = backend.getId(node.toString());
-                    cache.register(node, id);
+                    try {
+                        ID id = backend.getId(node.toString());
+                        cache.register(node, id);
+                    } catch (NotFoundException e) {
+                        // the ID was not found in the database, so nothing
+                        // to cache for now.
+                    }
                 }
-                newBinding.setId(cache.getId(node));
+                newBinding.setId(cache.getId(node)); // null if not found
                 newBinding.setString(val);
                 mappings.put(v, newBinding);
             });
@@ -89,6 +96,7 @@ public class PassageValues<ID,VALUE> implements Iterator<BackendBindings<ID,VALU
 
     @Override
     public boolean hasNext() {
+        if (values.isEmpty()) { return false; }
         return input.hasNext() || index < values.size();
     }
 
