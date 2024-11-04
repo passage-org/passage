@@ -27,6 +27,16 @@ public class ReturningOpBaseVisitor extends ReturningOpVisitor<Op> {
     }
 
     @Override
+    public Op visit(OpQuadBlock block) {
+        return block;
+    }
+
+    @Override
+    public Op visit(OpGraph graph) {
+        return OpCloningUtil.clone(graph, this.visit(graph.getSubOp()));
+    }
+
+    @Override
     public Op visit(OpBGP bgp) {
         return bgp;
     }

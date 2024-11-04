@@ -3,6 +3,7 @@ package fr.gdd.passage.databases.inmemory;
 import com.bigdata.rdf.sail.BigdataSail;
 import com.bigdata.rdf.sail.BigdataSailRepository;
 import com.bigdata.rdf.sail.BigdataSailRepositoryConnection;
+import org.openrdf.query.algebra.Str;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFParseException;
@@ -11,6 +12,7 @@ import org.openrdf.sail.SailException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -23,6 +25,14 @@ public class IM4Blazegraph {
     public static BigdataSail triples6 () { return getDataset(InMemoryStatements.triples6); } // for optional
     public static BigdataSail triples9 () { return getDataset(InMemoryStatements.triples9); } // for random
 
+    public static BigdataSail graph3 () {
+        List<String> graphs = new ArrayList<>();
+        graphs.addAll(InMemoryStatements.graphA);
+        graphs.addAll(InMemoryStatements.graphB);
+        graphs.addAll(InMemoryStatements.graphC);
+        return getDataset(graphs);
+    }
+
     /**
      * @return Properties that makes sure the dataset is deleted at the end of each test.
      */
@@ -31,6 +41,8 @@ public class IM4Blazegraph {
         props.put(BigdataSail.Options.CREATE_TEMP_FILE, "true");
         props.put(BigdataSail.Options.DELETE_ON_CLOSE, "true");
         props.put(BigdataSail.Options.DELETE_ON_EXIT, "true");
+        props.put(BigdataSail.Options.TRUTH_MAINTENANCE, "false"); // not supported with quads mode…
+        props.put(BigdataSail.Options.QUADS_MODE, "true");
         return props;
     }
 
@@ -48,7 +60,11 @@ public class IM4Blazegraph {
 
             InputStream statementsStream = new ByteArrayInputStream(String.join("\n", statements).getBytes());
 
-            connection.add(statementsStream, "", RDFFormat.NTRIPLES);
+            if (statements.getFirst().split("\\s+").length > 3) {
+                connection.add(statementsStream, "", RDFFormat.NQUADS);
+            } else {
+                connection.add(statementsStream, "", RDFFormat.NTRIPLES);
+            }
 
             connection.commit();
         } catch (RepositoryException | IOException | RDFParseException e) {

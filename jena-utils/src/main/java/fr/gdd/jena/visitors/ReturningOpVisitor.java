@@ -16,6 +16,8 @@ public class ReturningOpVisitor<T> {
 
     public T visit(OpTriple triple) {throw new UnsupportedOperationException("OpTriple");}
     public T visit(OpQuad quad) {throw new UnsupportedOperationException("OpQuad");}
+    public T visit(OpGraph graph) {throw new UnsupportedOperationException("OpGraph");}
+    public T visit(OpQuadBlock block) {throw new UnsupportedOperationException("OpQuadBlock");}
     public T visit(OpBGP bgp) {throw new UnsupportedOperationException("OpBGP");}
     public T visit(OpSequence sequence) {throw new UnsupportedOperationException("OpSequence");}
     public T visit(OpTable table) {throw new UnsupportedOperationException("OpTable");}

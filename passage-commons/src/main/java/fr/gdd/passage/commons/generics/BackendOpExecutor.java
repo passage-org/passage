@@ -23,6 +23,7 @@ public class BackendOpExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
     public final ExecutionContext context;
     private final IBackendProjectsFactory<ID,VALUE> projects;
     private final IBackendTriplesFactory<ID,VALUE> triples;
+    private final IBackendQuadsFactory<ID,VALUE> quads;
     private final IBackendJoinsFactory<ID,VALUE> joins;
     private final IBackendUnionsFactory<ID,VALUE> unions;
     private final IBackendValuesFactory<ID,VALUE> values;
@@ -36,6 +37,7 @@ public class BackendOpExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
     public BackendOpExecutor(ExecutionContext context,
                              IBackendProjectsFactory<ID,VALUE> projects,
                              IBackendTriplesFactory<ID,VALUE> triples,
+                             IBackendQuadsFactory<ID,VALUE> quads,
                              IBackendJoinsFactory<ID,VALUE> joins,
                              IBackendUnionsFactory<ID,VALUE> unions,
                              IBackendValuesFactory<ID,VALUE> values,
@@ -47,6 +49,7 @@ public class BackendOpExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
         this.context = context;
         this.context.getContext().set(BackendConstants.EXECUTOR, this);
         this.triples = triples;
+        this.quads = quads;
         this.projects = projects;
         this.joins = joins;
         this.unions = unions;
@@ -63,12 +66,17 @@ public class BackendOpExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
     }
 
     public Iterator<BackendBindings<ID,VALUE>> execute(Op op) {
-        return this.visit(op, Iter.of(new BackendBindings<>()));
+        return this.visit(op, Iter.of(new BackendBindings<>())); // start with an empty binding
     }
 
     @Override
     public Iterator<BackendBindings<ID, VALUE>> visit(OpTriple triple, Iterator<BackendBindings<ID, VALUE>> input) {
         return triples.get(context, input, triple);
+    }
+
+    @Override
+    public Iterator<BackendBindings<ID, VALUE>> visit(OpQuad quad, Iterator<BackendBindings<ID, VALUE>> input) {
+        return quads.get(context, input, quad);
     }
 
     @Override

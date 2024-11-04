@@ -15,7 +15,8 @@ import org.apache.jena.sparql.engine.ExecutionContext;
 public class PassageSubOpExecutor <ID,VALUE> extends BackendOpExecutor<ID,VALUE> {
 
     public PassageSubOpExecutor(ExecutionContext context) {
-        super(context, BackendProject.factory(), PassageScanFactory.factoryLimitOffset(),
+        super(context, BackendProject.factory(),
+                PassageScanFactory.factoryTripleLimitOffset(), PassageScanFactory.factoryQuadLimitOffset(),
                 new BackendNestedLoopJoinFactory<>(), null, null, BackendBind.factory(),
                 null, null, null, null);
     }

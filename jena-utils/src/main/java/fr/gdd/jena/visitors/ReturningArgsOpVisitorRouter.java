@@ -17,6 +17,8 @@ public class ReturningArgsOpVisitorRouter {
 
             case OpTriple o -> t.visit(o, args);
             case OpQuad o -> t.visit(o, args);
+            case OpGraph o -> t.visit(o, args);
+            case OpQuadBlock o -> t.visit(o, args);
             case OpBGP o -> t.visit(o, args);
             case OpSequence o -> t.visit(o, args);
             case OpTable o -> t.visit(o, args);

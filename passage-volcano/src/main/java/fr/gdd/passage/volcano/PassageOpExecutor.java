@@ -22,8 +22,8 @@ public class PassageOpExecutor<ID,VALUE> extends BackendOpExecutor<ID,VALUE> {
     public final PassageExecutionContext<ID,VALUE> context;
 
     public PassageOpExecutor(PassageExecutionContext<ID,VALUE> context) {
-        super(context, BackendProject.factory(), PassageScanFactory.factory(),
-                new BackendNestedLoopJoinFactory<>(), PassageUnion.factory(), PassageValues.factory(),
+        super(context, BackendProject.factory(), PassageScanFactory.tripleFactory(),
+                PassageScanFactory.quadFactory(), new BackendNestedLoopJoinFactory<>(), PassageUnion.factory(), PassageValues.factory(),
                 BackendBind.factory(), BackendFilter.factory(), PassageDistinct.factory(),
                 new PassageLimitOffset<>(), PassageOptional.factory());
         this.context = context;

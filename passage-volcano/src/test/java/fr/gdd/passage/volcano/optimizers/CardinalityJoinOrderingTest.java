@@ -1,19 +1,26 @@
 package fr.gdd.passage.volcano.optimizers;
 
+import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.iterators.PassageScan;
+import fr.gdd.passage.volcano.pause.Triples2BGP;
+import fr.gdd.passage.volcano.resume.BGP2Triples;
+import fr.gdd.passage.volcano.resume.Graph2Quads;
+import fr.gdd.passage.volcano.resume.Patterns2Quad;
+import fr.gdd.passage.volcano.resume.Quad2Patterns;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
+import org.apache.jena.sparql.algebra.OpAsQuery;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class CardinalityJoinOrderingTest {
 
@@ -21,6 +28,28 @@ public class CardinalityJoinOrderingTest {
 
     @BeforeEach
     public void make_sure_we_dont_stop () { PassageScan.stopping = (e) -> false; }
+
+    @Test
+    public void empty_triple_pattern_is_first () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        String queryAsString = """
+                SELECT * WHERE {
+                    ?p <http://address> ?c .
+                    ?p <http://does_not_exist> ?whatever # should change position
+                }""";
+
+        String expectedAsString = """
+                SELECT * WHERE {
+                    ?p <http://does_not_exist> ?whatever . # empty so is first
+                    ?p <http://address> ?c
+                }""";
+
+        Op original = Algebra.compile(QueryFactory.create(queryAsString));
+        Op expected = Algebra.compile(QueryFactory.create(expectedAsString));
+        Op reordered = new CardinalityJoinOrdering<>(blazegraph).visit(original);
+        assertTrue(expected.equalTo(reordered, null));
+        log.debug("{}", reordered);
+    }
 
     @Test
     public void a_single_triple_pattern_stays_this_way_ofc () throws RepositoryException {
@@ -138,5 +167,36 @@ public class CardinalityJoinOrderingTest {
     // ?x1 <http://www.wikidata.org/prop/direct/P2174> ?x2 .
     // ?x3 <http://www.wikidata.org/prop/direct/P625> ?x4 .
     // OPTIONAL { ?x1 <http://www.wikidata.org/prop/direct/P937> ?x3 . }   }
+
+    @Test
+    public void quad_patterns_are_being_ordered_using_graph_cardinalities () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.graph3());
+        String queryAsString = """
+        SELECT * WHERE {
+            GRAPH <http://Alice> {
+                ?person <http://own> ?animal . # card 3
+                ?person <http://address> ?city . # card 1
+            } }""";
+
+        // not only the order is different, but it is cut into graphs instead of
+        // one block of two triple patterns.
+        String expectedAsString = """
+        SELECT * WHERE {
+            GRAPH <http://Alice> { ?person <http://address> ?city } . # card 1
+            GRAPH <http://Alice> { ?person <http://own> ?animal } . # card 3
+        }""";
+
+        Op original = Algebra.compile(QueryFactory.create(queryAsString));
+        original = ReturningOpVisitorRouter.visit(new Graph2Quads(), original);
+        original = ReturningOpVisitorRouter.visit(new Quad2Patterns(), original);
+        original = ReturningOpVisitorRouter.visit(new Triples2BGP(), original);
+        var reordered = new CardinalityJoinOrdering<>(blazegraph).visit(original);
+        reordered = new Patterns2Quad().visit(reordered);
+
+        Op expected = Algebra.compile(QueryFactory.create(expectedAsString));
+        expected = new BGP2Triples().visit(expected);
+        expected = new Graph2Quads().visit(expected);
+        assertEquals(expected, reordered);
+    }
 
 }

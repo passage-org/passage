@@ -1,16 +1,18 @@
 package fr.gdd.passage.volcano.iterators;
 
 import fr.gdd.passage.commons.exceptions.NotFoundException;
+import fr.gdd.passage.commons.factories.IBackendQuadsFactory;
 import fr.gdd.passage.commons.factories.IBackendTriplesFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.generics.Substitutor;
 import fr.gdd.passage.commons.interfaces.Backend;
+import fr.gdd.passage.commons.interfaces.SPOC;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.pause.Pause2Next;
 import org.apache.jena.atlas.iterator.Iter;
-import org.apache.jena.atlas.lib.tuple.Tuple3;
+import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.core.Var;
@@ -23,21 +25,31 @@ import java.util.Set;
 
 public class PassageScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE>> {
 
-    public static <ID,VALUE> IBackendTriplesFactory<ID,VALUE> factory () {
+    public static <ID,VALUE> IBackendTriplesFactory<ID,VALUE> tripleFactory() {
         return PassageScanFactory::new;
     }
+    public static <ID,VALUE> IBackendQuadsFactory<ID,VALUE> quadFactory() { return PassageScanFactory::new; }
 
-    public static <ID,VALUE> IBackendTriplesFactory<ID,VALUE> factoryLimitOffset () {
+    public static <ID,VALUE> IBackendTriplesFactory<ID,VALUE> factoryTripleLimitOffset() {
         return (context, input, op) -> {
             long offset = context.getContext().get(PassageConstants.OFFSET);
             return new PassageScanFactory<>(context, input, op, offset);
         };
     }
 
-    final Long skip; // offset
+    public static <ID,VALUE> IBackendQuadsFactory<ID,VALUE> factoryQuadLimitOffset() { // same as triple but returns different
+        return (context, input, op) -> {
+            long offset = context.getContext().get(PassageConstants.OFFSET);
+            return new PassageScanFactory<>(context, input, op, offset);
+        };
+    }
+
+    /* ******************************** ACTUAL ITERATOR FACTORY *********************************** */
+
+    final Long skip; // by offset
     final Backend<ID, VALUE, Long> backend;
     final ExecutionContext context;
-    final OpTriple triple; // TODO OpQuad
+    final Op0 tripleOrQuad; // Op0 because can be either a triple pattern, or a quad pattern.
     final BackendCache<ID,VALUE> cache;
 
     final Iterator<BackendBindings<ID, VALUE>> input;
@@ -45,25 +57,25 @@ public class PassageScanFactory<ID, VALUE> implements Iterator<BackendBindings<I
 
     Iterator<BackendBindings<ID, VALUE>> instantiated = Iter.empty();
 
-    public PassageScanFactory(ExecutionContext context, Iterator<BackendBindings<ID, VALUE>> input, OpTriple triple) {
+    public PassageScanFactory(ExecutionContext context, Iterator<BackendBindings<ID, VALUE>> input, Op0 tripleOrQuad) {
         this.input = input;
-        this.triple = triple;
+        this.tripleOrQuad = tripleOrQuad;
         backend = context.getContext().get(BackendConstants.BACKEND);
         this.context = context;
         this.skip = 0L;
         Pause2Next<ID, VALUE> saver = context.getContext().get(PassageConstants.SAVER);
-        saver.register(triple, this);
+        saver.register(tripleOrQuad, this);
         this.cache = context.getContext().get(BackendConstants.CACHE);
     }
 
-    public PassageScanFactory(ExecutionContext context, Iterator<BackendBindings<ID, VALUE>> input, OpTriple triple, Long skip) {
+    public PassageScanFactory(ExecutionContext context, Iterator<BackendBindings<ID, VALUE>> input, Op0 tripleOrQuad, Long skip) {
         this.input = input;
-        this.triple = triple;
+        this.tripleOrQuad = tripleOrQuad;
         backend = context.getContext().get(BackendConstants.BACKEND);
         this.context = context;
         this.skip = skip;
         Pause2Next<ID, VALUE> saver = context.getContext().get(PassageConstants.SAVER);
-        saver.register(triple, this);
+        saver.register(tripleOrQuad, this);
         this.cache = context.getContext().get(BackendConstants.CACHE);
     }
 
@@ -75,14 +87,24 @@ public class PassageScanFactory<ID, VALUE> implements Iterator<BackendBindings<I
             inputBinding = input.next();
 
             try{
-                Tuple3<ID> spo = Substitutor.substitute(triple.getTriple(), inputBinding, cache);
+                instantiated = switch (tripleOrQuad) {
+                    case OpTriple opTriple -> {
+                        Tuple<ID> spo = Substitutor.substitute(opTriple.getTriple(), inputBinding, cache);
+                        yield new PassageScan<>(context, tripleOrQuad, spo, backend.search(spo.get(SPOC.SUBJECT), spo.get(SPOC.PREDICATE), spo.get(SPOC.OBJECT)));
+                    }
+                    case OpQuad opQuad -> {
+                        Tuple<ID> spo =Substitutor.substitute(opQuad.getQuad(), inputBinding, cache);
+                        yield new PassageScan<>(context, tripleOrQuad, spo,
+                                backend.search(spo.get(SPOC.SUBJECT), spo.get(SPOC.PREDICATE), spo.get(SPOC.OBJECT), spo.get(SPOC.GRAPH)));
+                    }
+                    default -> throw new UnsupportedOperationException("Operator not handle here:" + tripleOrQuad);
+                };
 
-                instantiated = new PassageScan<>(context, triple, spo, backend.search(spo.get(0), spo.get(1), spo.get(2)));
                 if (Objects.nonNull(skip) && skip > 0L) {
                     ((PassageScan<ID,VALUE>) instantiated).skip(skip);
                 }
             } catch (NotFoundException | IllegalArgumentException e){
-                instantiated = Iter.empty(); // issue if we cast
+                instantiated = Iter.empty(); // can be an issue if we cast later on
             }
         }
 
@@ -125,7 +147,7 @@ public class PassageScanFactory<ID, VALUE> implements Iterator<BackendBindings<I
         for (Var v : vars) {
             seq.add(OpExtend.extend(OpTable.unit(), v, ExprUtils.parse(inputBinding.getBinding(v).getString())));
         }
-        seq.add(triple);
+        seq.add(tripleOrQuad);
 
         Op seqOrSingle = seq.size() > 1 ? seq : seq.get(0);
         return new OpSlice(seqOrSingle, ((PassageScan<ID, VALUE>) instantiated).current(), Long.MIN_VALUE);

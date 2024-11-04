@@ -18,8 +18,10 @@ public class ReturningArgsOpVisitor<R, A> {
     public R visit(OpService req, A args) {throw new UnsupportedOperationException("Req");}
 
     public R visit(OpTriple triple, A args) {throw new UnsupportedOperationException("OpTriple");}
-    public R visit(OpQuad quad, A args) {throw new UnsupportedOperationException("OpQuad");}
     public R visit(OpBGP bgp, A args) {throw new UnsupportedOperationException("OpBGP");}
+    public R visit(OpQuad quad, A args) {throw new UnsupportedOperationException("OpQuad");}
+    public R visit(OpGraph graph, A args) {throw new UnsupportedOperationException("OpGraph");}
+    public R visit(OpQuadBlock block, A args) {throw new UnsupportedOperationException("OpQuadBlock");}
     public R visit(OpSequence sequence, A args) {throw new UnsupportedOperationException("OpSequence");}
     public R visit(OpTable table, A args) {throw new UnsupportedOperationException("OpTable");}
     public R visit(OpLeftJoin lj, A args) {throw new UnsupportedOperationException("OpLeftJoin");}

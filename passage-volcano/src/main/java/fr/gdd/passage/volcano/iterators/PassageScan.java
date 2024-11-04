@@ -7,10 +7,10 @@ import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.PassageExecutionContext;
-import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.atlas.lib.tuple.Tuple;
-import org.apache.jena.atlas.lib.tuple.Tuple3;
 import org.apache.jena.atlas.lib.tuple.TupleFactory;
+import org.apache.jena.sparql.algebra.op.Op0;
+import org.apache.jena.sparql.algebra.op.OpQuad;
 import org.apache.jena.sparql.algebra.op.OpTriple;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ExecutionContext;
@@ -30,23 +30,31 @@ public class PassageScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALU
             System.currentTimeMillis() >= ec.getContext().getLong(PassageConstants.DEADLINE, Long.MAX_VALUE);
 
     final Long deadline;
-    final OpTriple op;
+    final Op0 op;
     final Backend<ID, VALUE, Long> backend;
     final BackendIterator<ID, VALUE, Long> wrapped;
-    final Tuple3<Var> vars; // needed to create bindings
+    final Tuple<Var> vars; // needed to create bindings var -> value
     final PassageExecutionContext<ID,VALUE> context;
 
-    public PassageScan(ExecutionContext context, OpTriple triple, Tuple<ID> spo, BackendIterator<ID, VALUE, Long> wrapped) {
+    public PassageScan(ExecutionContext context, Op0 tripleOrQuad, Tuple<ID> spoc, BackendIterator<ID, VALUE, Long> wrapped) {
         this.context = (PassageExecutionContext<ID, VALUE>) context;
         this.deadline = context.getContext().getLong(PassageConstants.DEADLINE, Long.MAX_VALUE);
         this.backend = context.getContext().get(BackendConstants.BACKEND);
         this.wrapped = wrapped;
-        this.op = triple;
+        this.op = tripleOrQuad;
 
-        this.vars = TupleFactory.create3(
-                triple.getTriple().getSubject().isVariable() && Objects.isNull(spo.get(0)) ? Var.alloc(triple.getTriple().getSubject()) : null,
-                triple.getTriple().getPredicate().isVariable() && Objects.isNull(spo.get(1)) ? Var.alloc(triple.getTriple().getPredicate()) : null,
-                triple.getTriple().getObject().isVariable() && Objects.isNull(spo.get(2)) ? Var.alloc(triple.getTriple().getObject()) : null);
+        this.vars = switch (op) {
+            case OpTriple opTriple -> TupleFactory.create3(
+                    opTriple.getTriple().getSubject().isVariable() && Objects.isNull(spoc.get(SPOC.SUBJECT)) ? Var.alloc(opTriple.getTriple().getSubject()) : null,
+                    opTriple.getTriple().getPredicate().isVariable() && Objects.isNull(spoc.get(SPOC.PREDICATE)) ? Var.alloc(opTriple.getTriple().getPredicate()) : null,
+                    opTriple.getTriple().getObject().isVariable() && Objects.isNull(spoc.get(SPOC.OBJECT)) ? Var.alloc(opTriple.getTriple().getObject()) : null);
+            case OpQuad opQuad -> TupleFactory.create4(
+                    opQuad.getQuad().getSubject().isVariable() && Objects.isNull(spoc.get(SPOC.SUBJECT)) ? Var.alloc(opQuad.getQuad().getSubject()) : null,
+                    opQuad.getQuad().getPredicate().isVariable() && Objects.isNull(spoc.get(SPOC.PREDICATE)) ? Var.alloc(opQuad.getQuad().getPredicate()) : null,
+                    opQuad.getQuad().getObject().isVariable() && Objects.isNull(spoc.get(SPOC.OBJECT)) ? Var.alloc(opQuad.getQuad().getObject()) : null,
+                    opQuad.getQuad().getGraph().isVariable() && Objects.isNull(spoc.get(SPOC.GRAPH)) ? Var.alloc(opQuad.getQuad().getGraph()) : null);
+            default -> throw new UnsupportedOperationException("Operator unknown: " + op);
+        };
     }
 
     @Override
@@ -77,6 +85,9 @@ public class PassageScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALU
         }
         if (Objects.nonNull(vars.get(SPOC.OBJECT))) {
             newBinding.put(vars.get(SPOC.OBJECT), wrapped.getId(SPOC.OBJECT), backend).setCode(vars.get(SPOC.OBJECT), SPOC.OBJECT);
+        }
+        if (vars.len() > 3 && Objects.nonNull(vars.get(SPOC.GRAPH))) {
+            newBinding.put(vars.get(SPOC.GRAPH), wrapped.getId(SPOC.GRAPH), backend).setCode(vars.get(SPOC.GRAPH), SPOC.GRAPH);
         }
 
         return newBinding;

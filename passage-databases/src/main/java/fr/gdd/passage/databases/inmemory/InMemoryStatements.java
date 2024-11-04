@@ -34,8 +34,37 @@ public class InMemoryStatements {
             "<http://snake> <http://species> <http://reptile> ."
     );
 
-    /* *********************************************************** */
+    /* ********************************** GRAPHS ************************************** */
+    // With NQuads, the graph is the fourth parameter.
 
+    // Alice knows she has animals
+    public static final List<String> graphA = Arrays.asList(
+            "<http://Alice> <http://address> <http://nantes> <http://Alice>.",
+
+            "<http://Alice> <http://own>     <http://cat>    <http://Alice>.",
+            "<http://Alice> <http://own>     <http://dog>    <http://Alice>.",
+            "<http://Alice> <http://own>     <http://snake>  <http://Alice>."
+    );
+
+    // Bob maintains a dictionary of species
+    public static final List<String> graphB = Arrays.asList(
+            "<http://Bob>   <http://address> <http://paris>   <http://Bob> .",
+
+            "<http://cat>   <http://species> <http://feline>  <http://Bob> .",
+            "<http://dog>   <http://species> <http://canine>  <http://Bob> .",
+            "<http://snake> <http://species> <http://reptile> <http://Bob> ."
+    );
+
+    // Carol knows the location of everyone.
+    public static final List<String> graphC = Arrays.asList(
+            "<http://Alice> <http://address> <http://nantes> <http://Carol> .",
+            "<http://Bob>   <http://address> <http://paris>  <http://Carol> .",
+            "<http://Carol> <http://address> <http://nantes> <http://Carol> ."
+    );
+
+    /* *************************** EXTRACTED FROM WATDIV ****************************** */
+
+    // Very first dataset for testing, not very useful now since barely understandable.
     public static final List<String> cities10 = Arrays.asList(
             "<http://db.uwaterloo.ca/~galuc/wsdbm/City0>   <http://www.geonames.org/ontology#parentCountry> <http://db.uwaterloo.ca/~galuc/wsdbm/Country6>.",
             "<http://db.uwaterloo.ca/~galuc/wsdbm/City100> <http://www.geonames.org/ontology#parentCountry> <http://db.uwaterloo.ca/~galuc/wsdbm/Country2>.",
