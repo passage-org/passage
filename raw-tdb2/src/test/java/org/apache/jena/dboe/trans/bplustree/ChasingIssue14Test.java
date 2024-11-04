@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
  * The issue 14 is quite difficult to reproduce. It happens rarely, and only
  * with timeout. To help reproduce, increasing the number of pause/resume by
  * setting it low, i.e. 1 millisecond helps.
- * <br />
+ * *
  * This test set aims to create all combinations on a simple hand-made dataset
  * in order to reproduce the issue, then fix it…
  * Most importantly, it tests with combination that are not on `limit` threshold.
@@ -53,7 +53,6 @@ public class ChasingIssue14Test {
 
     @AfterAll
     public static void closeDB() {
-        dataset.abort();
         TDBInternal.expel(dataset.asDatasetGraph());
     }
 

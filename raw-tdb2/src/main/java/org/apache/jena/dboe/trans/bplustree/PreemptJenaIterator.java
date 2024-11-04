@@ -10,6 +10,7 @@ import org.apache.jena.dboe.base.record.Record;
 import org.apache.jena.dboe.base.record.RecordFactory;
 import org.apache.jena.dboe.base.record.RecordMapper;
 import org.apache.jena.graph.Node;
+import org.apache.jena.tdb2.lib.NodeLib;
 import org.apache.jena.tdb2.lib.TupleLib;
 import org.apache.jena.tdb2.store.NodeId;
 import org.apache.jena.util.iterator.NullIterator;
@@ -126,12 +127,12 @@ public class PreemptJenaIterator extends ProgressJenaIterator {
     }
 
     @Override
-    public Node getValue(int code) {
+    public Node getValue(int code) { // done in lazy iterator
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public String getString(int code) {
+    public String getString(int code) { // done in lazy iterator
         throw new UnsupportedOperationException();
     }
 

@@ -1,7 +1,7 @@
 package fr.gdd.raw.tdb2;
 
 import fr.gdd.passage.commons.interfaces.BackendIterator;
-import fr.gdd.passage.databases.inmemory.InMemoryInstanceOfTDB2;
+import fr.gdd.passage.databases.inmemory.IM4Jena;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.jena.atlas.lib.Bytes;
 import org.apache.jena.ext.xerces.impl.dv.util.Base64;
@@ -20,7 +20,7 @@ class SerializableRecordTest {
 
     @Test
     public void serialize_then_deserialize_a_record() {
-        Dataset dataset = new InMemoryInstanceOfTDB2().getDataset();
+        Dataset dataset = IM4Jena.graph3();
 
         JenaBackend backend = new JenaBackend(dataset);
         NodeId predicate = backend.getId("<http://www.geonames.org/ontology#parentCountry>");
@@ -29,7 +29,7 @@ class SerializableRecordTest {
         BackendIterator<NodeId, Node, SerializableRecord> it = backend.search(any, predicate, any);
         it.next();
         it.next();
-        SerializableRecord sr = (SerializableRecord) it.current();
+        SerializableRecord sr = it.current();
         assertEquals(2, sr.getOffset());
 
         byte[] serialized = SerializationUtils.serialize(sr);
@@ -40,7 +40,6 @@ class SerializableRecordTest {
         assertEquals(0, Bytes.compare(sr.getRecord().getKey(), deserialized.getRecord().getKey()));
         assertEquals(sr.getOffset(), deserialized.getOffset());
 
-        dataset.abort();
         TDBInternal.expel(dataset.asDatasetGraph());
     }
 

@@ -5,13 +5,13 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>fr.gdd</groupId> <!-- redundant with parent but preferred this way -->
   <artifactId>raw-tdb2</artifactId>
-  <name>sage-jena-tdb2</name>
+  <name>raw-tdb2</name>
   <packaging>jar</packaging>
 
   <parent>
     <groupId>fr.gdd</groupId>
     <artifactId>passage</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
   </parent>
 
 

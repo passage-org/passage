@@ -1,9 +1,9 @@
 package fr.gdd.raw.tdb2;
 
 import fr.gdd.passage.commons.exceptions.NotFoundException;
-import fr.gdd.passage.commons.generics.LazyIterator;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
+import fr.gdd.passage.commons.iterators.BackendLazyIterator;
 import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.atlas.lib.tuple.TupleFactory;
 import org.apache.jena.graph.Node;
@@ -82,13 +82,13 @@ public class JenaBackend implements Backend<NodeId, Node, SerializableRecord> {
     @Override
     public BackendIterator<NodeId, Node, SerializableRecord> search(final NodeId s, final NodeId p, final NodeId o) {
         Tuple<NodeId> pattern = TupleFactory.tuple(s, p, o);
-        return new LazyIterator<>(this, preemptableTripleTupleTable.preemptFind(pattern));
+        return new BackendLazyIterator<>(this, preemptableTripleTupleTable.preemptFind(pattern));
     }
 
     @Override
     public BackendIterator<NodeId, Node, SerializableRecord> search(final NodeId s, final NodeId p, final NodeId o, final NodeId c) {
         Tuple<NodeId> pattern = TupleFactory.tuple(c, s, p, o);
-        return new LazyIterator<>(this, preemptableQuadTupleTable.preemptFind(pattern));
+        return new BackendLazyIterator<>(this, preemptableQuadTupleTable.preemptFind(pattern));
     }
 
     @Override

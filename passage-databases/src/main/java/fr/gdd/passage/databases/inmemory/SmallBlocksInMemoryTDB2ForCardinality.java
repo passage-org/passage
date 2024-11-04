@@ -21,7 +21,7 @@ public class SmallBlocksInMemoryTDB2ForCardinality {
 
     Dataset dataset;
 
-    public SmallBlocksInMemoryTDB2ForCardinality() throws NoSuchFieldException, IllegalAccessException {
+    public SmallBlocksInMemoryTDB2ForCardinality() {
         dataset = TDB2Factory.createDataset();
         dataset.begin(ReadWrite.WRITE);
 

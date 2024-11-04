@@ -14,15 +14,15 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Creates an artifical graph where the cardinality of the groups are different (there are
+ * Creates an artificial graph where the cardinality of the groups are different (there are
  * a lot more small groups that big groups), and have different probability to appear.
  */
-public class ArtificallySkewedGraph {
+public class ArtificialSkewedGraph {
 
     Dataset dataset;
     public static Random rng = new Random(12);
 
-    public ArtificallySkewedGraph(Integer distinct, Integer probaRange) {
+    public ArtificialSkewedGraph(Integer distinct, Integer probaRange) {
         dataset = TDB2Factory.createDataset();
         dataset.begin(ReadWrite.WRITE);
 
@@ -30,7 +30,7 @@ public class ArtificallySkewedGraph {
         for (int i = 0; i < distinct; ++i) {
             statements.add(String.format("<http://prof_%s> <http://is_a> <http://Prof> .", i));
             Double meow = rng.nextGaussian();
-            Integer students = rng.nextInt(1, ((int) (Math.abs(meow * probaRange)) )+ 2);
+            int students = rng.nextInt(1, ((int) (Math.abs(meow * probaRange)) )+ 2);
             for (int j = 0; j < students; ++j) {
                 statements.add(String.format("<http://prof_%s> <http://teaches> <http://student_%s_%s> .", i, i, j));
                 if (j % 2 == 0) {

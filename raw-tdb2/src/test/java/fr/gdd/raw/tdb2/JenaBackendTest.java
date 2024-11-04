@@ -1,7 +1,7 @@
 package fr.gdd.raw.tdb2;
 
 import fr.gdd.passage.commons.exceptions.NotFoundException;
-import fr.gdd.passage.databases.inmemory.InMemoryInstanceOfTDB2;
+import fr.gdd.passage.databases.inmemory.IM4Jena;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.tdb2.store.NodeId;
 import org.apache.jena.tdb2.sys.TDBInternal;
@@ -20,12 +20,11 @@ public class JenaBackendTest {
 
     @BeforeAll
     public static void initializeDB() {
-        dataset = new InMemoryInstanceOfTDB2().getDataset();
+        dataset = IM4Jena.graph3();
     }
 
     @AfterAll
     public static void closeDB() {
-        dataset.abort();
         TDBInternal.expel(dataset.asDatasetGraph());
     }
 
@@ -42,8 +41,8 @@ public class JenaBackendTest {
     public void node_id_does_not_exist() {
         JenaBackend backend = new JenaBackend(dataset);
 
-        Exception exception = assertThrows(NotFoundException.class, () -> {
-            NodeId city0Id = backend.getId("<http://db.uwaterloo.ca/~galuc/wsdbm/CityUnkown>");
+        assertThrows(NotFoundException.class, () -> {
+            backend.getId("<http://db.uwaterloo.ca/~galuc/wsdbm/CityUnkown>");
         });
     }
 

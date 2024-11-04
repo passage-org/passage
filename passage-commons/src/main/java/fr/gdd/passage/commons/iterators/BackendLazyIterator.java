@@ -32,7 +32,7 @@ public class BackendLazyIterator<ID, VALUE, SKIP extends Serializable> extends B
     private VALUE object_value = null;
     private VALUE context_value = null;
 
-    private String subject = null; // TODO TODO TODO
+    private String subject = null;
     private String predicate = null;
     private String object = null;
     private String context = null;
@@ -132,7 +132,7 @@ public class BackendLazyIterator<ID, VALUE, SKIP extends Serializable> extends B
 
     @Override
     public String getString(int code) {
-        return getWrapped().getString(code); // TODO lazy
+        return backend.getString(getId(code));
     }
 
     @Override

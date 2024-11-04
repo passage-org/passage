@@ -2,11 +2,11 @@ package org.apache.jena.dboe.trans.bplustree;
 
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
-import fr.gdd.passage.commons.generics.LazyIterator;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
+import fr.gdd.passage.commons.iterators.BackendLazyIterator;
 import fr.gdd.passage.databases.inmemory.IM4Jena;
-import fr.gdd.raw.tdb2.ArtificallySkewedGraph;
+import fr.gdd.raw.tdb2.ArtificialSkewedGraph;
 import fr.gdd.raw.tdb2.JenaBackend;
 import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.dboe.base.record.Record;
@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class RandomAccessInBTreeTest {
 
     static Integer DISTINCT = 100;
-    Dataset dataset = new ArtificallySkewedGraph(DISTINCT, 10).getDataset();
+    Dataset dataset = new ArtificialSkewedGraph(DISTINCT, 10).getDataset();
 
     @Test
     public void spo_in_small_dataset() {
@@ -74,7 +74,7 @@ public class RandomAccessInBTreeTest {
         JenaBackend backend = new JenaBackend(dataset);
         NodeId is_a = backend.getId("<http://is_a>");
         NodeId prof = backend.getId("<http://Prof>");
-        ProgressJenaIterator iterator = (ProgressJenaIterator) ((LazyIterator) backend.search(backend.any(), is_a, prof)).getWrapped();
+        ProgressJenaIterator iterator = (ProgressJenaIterator) ((BackendLazyIterator) backend.search(backend.any(), is_a, prof)).getWrapped();
 
         Set<Record> randomUniformValues = new HashSet<>();
         Set<Record> randomValues = new HashSet<>();
@@ -94,7 +94,7 @@ public class RandomAccessInBTreeTest {
         JenaBackend backend = new JenaBackend(dataset);
         NodeId prof = backend.getId("<http://Prof>");
         NodeId group = backend.getId("<http://group_1>");
-        ProgressJenaIterator iterator = (ProgressJenaIterator) ((LazyIterator) backend.search(group, backend.any(), prof)).getWrapped();
+        ProgressJenaIterator iterator = (ProgressJenaIterator) ((BackendLazyIterator) backend.search(group, backend.any(), prof)).getWrapped();
 
         Record random = iterator.getRandom();
         Record randomUniform = iterator.getUniformRandom();
@@ -104,11 +104,11 @@ public class RandomAccessInBTreeTest {
 
     @Test
     public void range_iterator_where_there_is_only_one_result() {
-        Dataset dataset = new ArtificallySkewedGraph(1, 10).getDataset();
+        Dataset dataset = new ArtificialSkewedGraph(1, 10).getDataset();
         JenaBackend backend = new JenaBackend(dataset);
         NodeId is_a = backend.getId("<http://is_a>");
         NodeId prof = backend.getId("<http://Prof>");
-        ProgressJenaIterator iterator = (ProgressJenaIterator) ((LazyIterator) backend.search(backend.any(), is_a, prof)).getWrapped();
+        ProgressJenaIterator iterator = (ProgressJenaIterator) ((BackendLazyIterator) backend.search(backend.any(), is_a, prof)).getWrapped();
 
         Record random = iterator.getRandom();
         Record randomUniform = iterator.getUniformRandom();
@@ -121,12 +121,12 @@ public class RandomAccessInBTreeTest {
 
     @Test
     public void a_specific_bounded_triple_that_exists() {
-        Dataset dataset = new ArtificallySkewedGraph(1, 10).getDataset();
+        Dataset dataset = new ArtificialSkewedGraph(1, 10).getDataset();
         JenaBackend backend = new JenaBackend(dataset);
         NodeId prof1 = backend.getId("<http://prof_0>");
         NodeId is_a = backend.getId("<http://is_a>");
         NodeId prof = backend.getId("<http://Prof>");
-        ProgressJenaIterator iterator = (ProgressJenaIterator) ((LazyIterator) backend.search(prof1, is_a, prof)).getWrapped();
+        ProgressJenaIterator iterator = (ProgressJenaIterator) ((BackendLazyIterator) backend.search(prof1, is_a, prof)).getWrapped();
 
         Record random = iterator.getRandom();
         Record randomUniform = iterator.getUniformRandom();
@@ -137,11 +137,11 @@ public class RandomAccessInBTreeTest {
 
     @Test
     public void a_specific_bounded_triple_that_does_not_exists() {
-        Dataset dataset = new ArtificallySkewedGraph(1, 10).getDataset();
+        Dataset dataset = new ArtificialSkewedGraph(1, 10).getDataset();
         JenaBackend backend = new JenaBackend(dataset);
         NodeId is_a = backend.getId("<http://is_a>");
         NodeId prof = backend.getId("<http://Prof>");
-        ProgressJenaIterator iterator = (ProgressJenaIterator) ((LazyIterator) backend.search(prof, is_a, prof)).getWrapped();
+        ProgressJenaIterator iterator = (ProgressJenaIterator) ((BackendLazyIterator) backend.search(prof, is_a, prof)).getWrapped();
 
         Record random = iterator.getRandom();
         Record randomUniform = iterator.getUniformRandom();
@@ -151,11 +151,11 @@ public class RandomAccessInBTreeTest {
 
     @Test
     public void identifier_appear_in_spo_order_whatever_the_index_used() {
-        Dataset dataset = new ArtificallySkewedGraph(1, 10).getDataset();
+        Dataset dataset = new ArtificialSkewedGraph(1, 10).getDataset();
         JenaBackend backend = new JenaBackend(dataset);
         NodeId is_a = backend.getId("<http://is_a>");
         NodeId prof = backend.getId("<http://Prof>");
-        ProgressJenaIterator iterator = (ProgressJenaIterator) ((LazyIterator) backend.search(backend.any(), is_a, prof)).getWrapped();
+        ProgressJenaIterator iterator = (ProgressJenaIterator) ((BackendLazyIterator) backend.search(backend.any(), is_a, prof)).getWrapped();
 
         Tuple<NodeId> spo = iterator.getRandomSPO();
         // since we look for ?prof <http://is_a> <http://Prof>, the index used is POS.
@@ -174,7 +174,7 @@ public class RandomAccessInBTreeTest {
         NodeId predicate = backend.getId("<http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/rating1>");
 
         NodeId graph = backend.getId("<http://www.vendor88.fr/>");
-        LazyIterator iterator =  (LazyIterator) backend.search(backend.any(), predicate, backend.any(), graph);
+        BackendLazyIterator iterator =  (BackendLazyIterator) backend.search(backend.any(), predicate, backend.any(), graph);
         ProgressJenaIterator progress = (ProgressJenaIterator) iterator.getWrapped();
         assertNull(progress.getRandomSPOWithProbability().getLeft());
     }
