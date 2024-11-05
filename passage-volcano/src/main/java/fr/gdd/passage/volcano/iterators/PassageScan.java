@@ -17,6 +17,7 @@ import org.apache.jena.sparql.engine.ExecutionContext;
 
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
 public class PassageScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE>> {
@@ -73,7 +74,7 @@ public class PassageScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALU
     public BackendBindings<ID, VALUE> next() {
         wrapped.next();
 
-        context.getContext().set(PassageConstants.SCANS, context.getContext().getLong(PassageConstants.SCANS,0L) + 1);
+        ((AtomicLong) context.getContext().get(PassageConstants.SCANS)).getAndIncrement();
 
         BackendBindings<ID, VALUE> newBinding = new BackendBindings<>();
 

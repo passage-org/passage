@@ -37,6 +37,8 @@ public class PassageOptional<ID,VALUE>  implements Iterator<BackendBindings<ID, 
         };
     }
 
+    /* ******************************* ACTUAL ITERATOR ******************************* */
+
     final Op2 op;
     final Iterator<BackendBindings<ID,VALUE>> input;
     final ExecutionContext context;

@@ -14,6 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
 @Disabled
@@ -22,11 +24,9 @@ public class PauseUtils4Test {
     private static final Logger log = LoggerFactory.getLogger(PauseUtils4Test.class);
 
     // just a sample of stopping conditions based on scans
-    public static final Function<ExecutionContext, Boolean> stopAtEveryScan = (ec) -> ec.getContext().getLong(PassageConstants.SCANS, 0L) >= 1;
-    public static final Function<ExecutionContext, Boolean> stopEveryTwoScans = (ec) -> ec.getContext().getLong(PassageConstants.SCANS, 0L) >= 2;
-    public static final Function<ExecutionContext, Boolean> stopEveryThreeScans = (ec) -> ec.getContext().getLong(PassageConstants.SCANS, 0L) >= 3;
-    public static final Function<ExecutionContext, Boolean> stopEveryFourScans = (ec) -> ec.getContext().getLong(PassageConstants.SCANS, 0L) >= 4;
-    public static final Function<ExecutionContext, Boolean> stopEveryFiveScans = (ec) -> ec.getContext().getLong(PassageConstants.SCANS, 0L) >= 5;
+    public static final Function<ExecutionContext, Boolean> stopAtEveryScan = (ec) -> ((AtomicLong) ec.getContext().get(PassageConstants.SCANS)).get() >= 1;
+    public static final Function<ExecutionContext, Boolean> stopEveryThreeScans = (ec) -> ((AtomicLong) ec.getContext().get(PassageConstants.SCANS)).get() >= 3;
+    public static final Function<ExecutionContext, Boolean> stopEveryFiveScans = (ec) -> ((AtomicLong) ec.getContext().get(PassageConstants.SCANS)).get() >= 5;
 
     /**
      * @param queryAsString The SPARQL query to execute.

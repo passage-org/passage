@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -42,15 +43,16 @@ public class PauseBGPTimeoutTest {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c}";
 
-        int sum = 0;
+        Multiset<BackendBindings<?,?>> results = HashMultiset.create();
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);
-            var result = PauseUtils4Test.executeQuery(queryAsString, blazegraph);
-            sum += result.getLeft();
-            queryAsString = result.getRight();
-
+            queryAsString = PauseUtils4Test.executeQuery(queryAsString, blazegraph, results);
         }
-        assertEquals(3, sum);
+        assertEquals(3, results.size());
+        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "c"),
+                List.of("Alice", "nantes"),
+                List.of("Bob", "paris"),
+                List.of("Carol", "nantes")));
     }
 
     @Test
@@ -62,15 +64,16 @@ public class PauseBGPTimeoutTest {
                 ?p <http://own> ?a .
                }""";
 
-        int sum = 0;
+        Multiset<BackendBindings<?,?>> results = HashMultiset.create();
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);
-            var result = PauseUtils4Test.executeQuery(queryAsString, blazegraph);
-            sum += result.getLeft();
-            queryAsString = result.getRight();
-
+            queryAsString = PauseUtils4Test.executeQuery(queryAsString, blazegraph, results);
         }
-        assertEquals(3, sum);
+        assertEquals(3, results.size());
+        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "a"),
+                List.of("Alice", "cat"),
+                List.of("Alice", "snake"),
+                List.of("Alice", "dog")));
     }
 
     @Test
@@ -107,14 +110,16 @@ public class PauseBGPTimeoutTest {
                 ?a <http://species> ?s
                }""";
 
-        int sum = 0;
+        Multiset<BackendBindings<?,?>> results = HashMultiset.create();
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);
-            var result = PauseUtils4Test.executeQuery(queryAsString, blazegraph);
-            sum += result.getLeft();
-            queryAsString = result.getRight();
+            queryAsString = PauseUtils4Test.executeQuery(queryAsString, blazegraph, results);
         }
-        assertEquals(3, sum);
+        assertEquals(3, results.size());
+        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "a", "s"),
+                List.of("Alice", "dog", "canine"),
+                List.of("Alice", "cat", "feline"),
+                List.of("Alice", "snake", "reptile")));
     }
 
     @Disabled("Possibly time consuming.")
@@ -178,9 +183,8 @@ public class PauseBGPTimeoutTest {
         Assumptions.assumeTrue(Path.of(WatDivTest.PATH).toFile().exists());
         BlazegraphBackend watdivBlazegraph = new BlazegraphBackend(WatDivTest.PATH);
         PassageScan.stopping = (ec) -> {
-            return ec.getContext().getLong(PassageConstants.SCANS, 0L) >= 1000; // stop every 1000 scans
+            return ((AtomicLong) ec.getContext().get(PassageConstants.SCANS)).get() >= 1000L; // stop every 1000 scans
         };
-
 
         String query10124 = """
                 SELECT * WHERE {
@@ -195,7 +199,7 @@ public class PauseBGPTimeoutTest {
 
         int sum = 0;
         while (Objects.nonNull(query10124)) {
-            log.debug(query10124);
+            // log.debug(query10124);
             var result = PauseUtils4Test.executeQuery(query10124, watdivBlazegraph);
             sum += result.getLeft();
             query10124 = result.getRight();

@@ -11,6 +11,7 @@ import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Quick access to mandatory things of passage to execute properly.
@@ -27,7 +28,7 @@ public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
     public PassageExecutionContext(ExecutionContext context) {
         super(context);
         this.backend = context.getContext().get(BackendConstants.BACKEND);
-        context.getContext().setIfUndef(PassageConstants.SCANS, 0L);
+        context.getContext().setIfUndef(PassageConstants.SCANS, new AtomicLong(0L));
         context.getContext().setIfUndef(BackendConstants.CACHE, new BackendCache<>(backend));
         this.cache = context.getContext().get(BackendConstants.CACHE);
 
@@ -36,8 +37,6 @@ public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
         if (context.getContext().isTrue(PassageConstants.FORCE_ORDER)) {
             optimizer.forceOrder(); // TODO do this better
         }
-        // this.getContext().setIfUndef(PassageConstants.PAUSED, new AtomicBoolean()); // false by default
-        // this.paused = this.getContext().get(PassageConstants.PAUSED);
         this.getContext().setIfUndef(PassageConstants.PAUSED, new PassagePaused());
         this.paused = this.getContext().get(PassageConstants.PAUSED);
     }

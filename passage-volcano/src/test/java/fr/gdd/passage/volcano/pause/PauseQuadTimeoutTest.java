@@ -8,7 +8,6 @@ import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
@@ -91,7 +90,5 @@ public class PauseQuadTimeoutTest {
                 List.of("Alice", "dog", "canine"),
                 List.of("Alice", "snake", "reptile")));
     }
-
-
 
 }
