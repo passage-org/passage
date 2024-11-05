@@ -1,9 +1,16 @@
 package fr.gdd.passage.volcano.pause;
 
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
+import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.PassageConstants;
+import fr.gdd.passage.volcano.benchmarks.WatDivTest;
 import fr.gdd.passage.volcano.iterators.PassageScan;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
@@ -11,25 +18,29 @@ import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.file.Path;
+import java.util.List;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * These are not timeout test per se. We emulate timeout with a limit in number of scans.
  * Therefore, the execution can stop in the middle of the execution physical plan. Yet,
  * we must be able to resume execution from where it stopped.
  */
-public class Pause2SPARQLBGPTimeoutTest {
+public class PauseBGPTimeoutTest {
 
-    private static final Logger log = LoggerFactory.getLogger(Pause2SPARQLBGPTimeoutTest.class);
+    private static final Logger log = LoggerFactory.getLogger(PauseBGPTimeoutTest.class);
+
+    @BeforeEach
+    public void stop_every_scan() { PassageScan.stopping = PauseUtils4Test.stopAtEveryScan; }
 
     @Test
     public void create_a_simple_query_and_pause_at_each_scan () throws RepositoryException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c}";
-
-        PassageScan.stopping = PauseUtils4Test.stopAtEveryScan;
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
@@ -51,8 +62,6 @@ public class Pause2SPARQLBGPTimeoutTest {
                 ?p <http://own> ?a .
                }""";
 
-        PassageScan.stopping = PauseUtils4Test.stopAtEveryScan;
-
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);
@@ -62,6 +71,30 @@ public class Pause2SPARQLBGPTimeoutTest {
 
         }
         assertEquals(3, sum);
+    }
+
+    @Test
+    public void bgp_that_was_a_problem_with_quads () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.graph3());
+        String queryAsString = """
+                SELECT * WHERE {
+                    ?p <http://own> ?a.
+                    ?a <http://species> ?s
+                }""";
+
+        Multiset<BackendBindings<?,?>> results = HashMultiset.create();
+        int nbPause = 0;
+        while (Objects.nonNull(queryAsString)) {
+            log.debug(queryAsString);
+            queryAsString = PauseUtils4Test.executeQuery(queryAsString, blazegraph, results);
+            nbPause += 1;
+        }
+        assertTrue(nbPause > 1);
+        assertEquals(3, results.size()); // 3x Alice, with different species
+        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "a", "s"),
+                List.of("Alice", "cat", "feline"),
+                List.of("Alice", "dog", "canine"),
+                List.of("Alice", "snake", "reptile")));
     }
 
     @Test
@@ -74,8 +107,6 @@ public class Pause2SPARQLBGPTimeoutTest {
                 ?a <http://species> ?s
                }""";
 
-        PassageScan.stopping = PauseUtils4Test.stopAtEveryScan;
-
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);
@@ -86,11 +117,11 @@ public class Pause2SPARQLBGPTimeoutTest {
         assertEquals(3, sum);
     }
 
-    @Disabled
+    @Disabled("Possibly time consuming.")
     @Test
     public void on_watdiv_conjunctive_query_0_every_scan () throws RepositoryException, SailException {
-        BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl");
-        PassageScan.stopping = PauseUtils4Test.stopAtEveryScan;
+        Assumptions.assumeTrue(Path.of(WatDivTest.PATH).toFile().exists());
+        BlazegraphBackend watdivBlazegraph = new BlazegraphBackend(WatDivTest.PATH);
 
         String query0 = """
         SELECT * WHERE {
@@ -112,11 +143,11 @@ public class Pause2SPARQLBGPTimeoutTest {
     }
 
 
-    @Disabled
+    @Disabled("Time consuming.")
     @Test
     public void on_watdiv_conjunctive_query_10124_every_scan () throws RepositoryException, SailException { // /!\ it takes time (19minutes)
-        BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
-        PassageScan.stopping = PauseUtils4Test.stopAtEveryScan;
+        Assumptions.assumeTrue(Path.of(WatDivTest.PATH).toFile().exists());
+        BlazegraphBackend watdivBlazegraph = new BlazegraphBackend(WatDivTest.PATH);
 
         String query10124 = """
                 SELECT * WHERE {
@@ -142,10 +173,10 @@ public class Pause2SPARQLBGPTimeoutTest {
     }
 
 
-    @Disabled
     @Test
     public void on_watdiv_conjunctive_query_10124_every_1k_scans () throws RepositoryException, SailException { // way faster, matter of seconds
-        BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
+        Assumptions.assumeTrue(Path.of(WatDivTest.PATH).toFile().exists());
+        BlazegraphBackend watdivBlazegraph = new BlazegraphBackend(WatDivTest.PATH);
         PassageScan.stopping = (ec) -> {
             return ec.getContext().getLong(PassageConstants.SCANS, 0L) >= 1000; // stop every 1000 scans
         };

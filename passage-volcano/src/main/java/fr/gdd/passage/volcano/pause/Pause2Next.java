@@ -5,9 +5,8 @@ import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.generics.BackendSaver;
-import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.iterators.*;
-import fr.gdd.passage.volcano.resume.IsSkippable;
+import fr.gdd.passage.volcano.resume.CanBeSkipped;
 import fr.gdd.passage.volcano.resume.Subqueries2LeftOfJoins;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
@@ -31,8 +30,9 @@ public class Pause2Next<ID, VALUE> extends BackendSaver<ID,VALUE,Long> {
     @Override
     public Op save() {
         Op saved = ReturningOpVisitorRouter.visit(this, getRoot());
-        saved = Objects.isNull(saved) ? saved : ReturningOpVisitorRouter.visit(new Triples2BGP(), saved);
-        saved = Objects.isNull(saved) ? saved : ReturningOpVisitorRouter.visit(new Subqueries2LeftOfJoins(), saved);
+        saved = Objects.isNull(saved) ? null : new Triples2BGP().visit(saved);
+        saved = Objects.isNull(saved) ? null : new Subqueries2LeftOfJoins().visit(saved); // TODO remove this
+        saved = Objects.isNull(saved) ? null : new Quad2Pattern().visit(saved);
         return saved;
     }
 
@@ -89,6 +89,13 @@ public class Pause2Next<ID, VALUE> extends BackendSaver<ID,VALUE,Long> {
     }
 
     @Override
+    public Op visit(OpQuad quad) { // very identical to OpTriple
+        PassageScanFactory<ID, VALUE> it = (PassageScanFactory<ID, VALUE>) getIterator(quad);
+        if (Objects.isNull(it)) {return null;}
+        return it.pause();
+    }
+
+    @Override
     public Op visit(OpJoin join) {
         // no state needed really, everything is in the returned value of these:
         Op left = ReturningOpVisitorRouter.visit(this, join.getLeft());
@@ -125,14 +132,13 @@ public class Pause2Next<ID, VALUE> extends BackendSaver<ID,VALUE,Long> {
 
     @Override
     public Op visit(OpSlice slice) {
-        IsSkippable isSkippableVisitor = new IsSkippable();
-        Boolean isSkippable = ReturningOpVisitorRouter.visit(isSkippableVisitor, slice);
-        if (isSkippable) {
-            // behaves as if it does not exist since the tp is interpreted as tp with skip.
-            // If need be, the tp will add the slice OFFSET itself.
-            return ReturningOpVisitorRouter.visit(this, isSkippableVisitor.getOpTriple());
+        CanBeSkipped canBeSkipped = new CanBeSkipped();
+        if (canBeSkipped.visit((Op) slice)) { // OFFSET alone: is a sub query designed for being skipped
+            // behaves as if it does not exist since the tp/qp is interpreted as tp/qp with skip.
+            // If need be, the tp/qp will add the slice OFFSET itself.
+            return ReturningOpVisitorRouter.visit(this, canBeSkipped.getTripleOrQuad());
         }
-        throw new UnsupportedOperationException("TODO OpSlice cannot be saved right now."); // TODO
+        throw new UnsupportedOperationException("TODO OpSlice cannot be saved right now.");
     }
 
     @Override
@@ -208,7 +214,7 @@ public class Pause2Next<ID, VALUE> extends BackendSaver<ID,VALUE,Long> {
 
 
         if (Objects.isNull(left)) {
-            return FlattenUnflatten.unflattenUnion(Arrays.asList(
+            return FlattenUnflatten.unflattenUnion(Collections.singletonList(
                     optional.pause(right) // the right needs mandatory bindings
             ));
         }

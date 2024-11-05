@@ -79,6 +79,10 @@ public class OpExecutorUtils {
                 }
             }
 
+            if (Objects.nonNull(values.get(i)) && Objects.isNull(result.getBinding(Var.alloc(vars.get(i))))) {
+                return false;
+            }
+
             if (Objects.nonNull(result.getBinding(Var.alloc(vars.get(i)))) &&
                     !result.getBinding(Var.alloc(vars.get(i))).getString().contains(values.get(i))) {
                 return false;
@@ -95,8 +99,8 @@ public class OpExecutorUtils {
      */
     @SafeVarargs
     public static boolean containsAllResults(Multiset<BackendBindings<?,?>> results, List<String> vars, List<String>... valuess) {
-        for (List<String> strings : valuess) {
-            if (!containsResult(results, vars, strings)) {
+        for (List<String> values : valuess) {
+            if (!containsResult(results, vars, values)) {
                 return false;
             }
         }

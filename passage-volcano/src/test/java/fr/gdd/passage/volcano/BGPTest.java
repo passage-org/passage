@@ -4,6 +4,7 @@ import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.benchmarks.WatDivTest;
 import fr.gdd.passage.volcano.iterators.PassageScan;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,8 @@ import org.openrdf.repository.RepositoryException;
 import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -115,9 +118,10 @@ public class BGPTest {
     }
 
 
-    @Disabled(value = "Need the WatDiv dataset to work.")
+    @Disabled("Time consuming.")
     @Test
     public void sandbox_of_test () throws RepositoryException, SailException {
+        Assumptions.assumeTrue(Path.of(WatDivTest.PATH).toFile().exists());
         BlazegraphBackend watdivBlazegraph = new BlazegraphBackend(WatDivTest.PATH);
 
         String query = """        
@@ -136,9 +140,10 @@ public class BGPTest {
         log.info("{}", sum);
     }
 
-    @Disabled(value = "Need the WatDiv dataset to work.")
+    @Disabled(value = "Time consuming.")
     @Test
     public void on_watdiv_conjunctive_query_10124 () throws RepositoryException, SailException {
+        Assumptions.assumeTrue(Path.of(WatDivTest.PATH).toFile().exists());
         BlazegraphBackend watdivBlazegraph = new BlazegraphBackend(WatDivTest.PATH);
 
         String query0 = """

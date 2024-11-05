@@ -19,9 +19,9 @@ import java.util.Objects;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class PauseFilterTest {
+public class PauseFilterTimeoutTest {
 
-    private final static Logger log = LoggerFactory.getLogger(PauseFilterTest.class);
+    private final static Logger log = LoggerFactory.getLogger(PauseFilterTimeoutTest.class);
 
     @BeforeEach
     public void stop_every_scan() {

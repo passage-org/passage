@@ -4,7 +4,7 @@ import fr.gdd.jena.visitors.ReturningOpVisitor;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.passage.volcano.iterators.PassageScanFactory;
 import fr.gdd.passage.volcano.pause.Pause2Next;
-import fr.gdd.passage.volcano.resume.IsSkippable;
+import fr.gdd.passage.volcano.resume.CanBeSkipped;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.sparql.algebra.op.OpJoin;
@@ -60,12 +60,12 @@ public class Progress extends ReturningOpVisitor<
 
     @Override
     public Pair<Double, Double> visit(OpSlice slice) {
-        IsSkippable isSkippableVisitor = new IsSkippable();
+        CanBeSkipped isSkippableVisitor = new CanBeSkipped();
         Boolean isSkippable = ReturningOpVisitorRouter.visit(isSkippableVisitor, slice);
         if (isSkippable) {
             // behaves as if it does not exist since the tp is interpreted as tp with skip.
             // If need be, the tp will add the slice OFFSET itself.
-            return ReturningOpVisitorRouter.visit(this, isSkippableVisitor.getOpTriple());
+            return ReturningOpVisitorRouter.visit(this, isSkippableVisitor.getTripleOrQuad());
         }
         throw new UnsupportedOperationException("TODO OpSlice cannot be saved right now."); // TODO
     }

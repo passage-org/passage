@@ -2,6 +2,8 @@ package fr.gdd.passage.volcano.pause;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.volcano.benchmarks.WatDivTest;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
@@ -9,13 +11,14 @@ import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.file.Path;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class Pause2SPARQLBGPTest {
+public class PauseBGPTest {
 
-    private static final Logger log = LoggerFactory.getLogger(Pause2SPARQLBGPTest.class);
+    private static final Logger log = LoggerFactory.getLogger(PauseBGPTest.class);
 
     @Test
     public void create_a_simple_query_and_pause_at_each_result () throws RepositoryException {
@@ -90,10 +93,13 @@ public class Pause2SPARQLBGPTest {
         assertEquals(3, sum);
     }
 
-    @Disabled
+    /* ********************************* BIG DATASET ********************************** */
+
+    @Disabled("Time consuming.")
     @Test
     public void on_watdiv_conjunctive_query_0 () throws RepositoryException, SailException {
-        BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
+        Assumptions.assumeTrue(Path.of(WatDivTest.PATH).toFile().exists());
+        BlazegraphBackend watdivBlazegraph = new BlazegraphBackend(WatDivTest.PATH);
 
         String query0 = """
         SELECT * WHERE {
@@ -114,10 +120,11 @@ public class Pause2SPARQLBGPTest {
         assertEquals(326, sum);
     }
 
-    @Disabled
+    @Disabled("Time consuming.")
     @Test
     public void on_watdiv_conjunctive_query_10124 () throws RepositoryException, SailException {
-        BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv_blazegraph/watdiv.jnl");
+        Assumptions.assumeTrue(Path.of(WatDivTest.PATH).toFile().exists());
+        BlazegraphBackend watdivBlazegraph = new BlazegraphBackend(WatDivTest.PATH);
 
         String query10124 = """
                 SELECT ?v0 ?v1 ?v2 ?v3 ?v5 WHERE {

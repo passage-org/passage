@@ -2,6 +2,8 @@ package fr.gdd.passage.volcano;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.volcano.iterators.PassageScan;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
 
@@ -12,6 +14,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class QuadTest {
+
+    @BeforeEach
+    public void make_sure_we_dont_stop () { PassageScan.stopping = (e) -> false; }
 
     @Test
     public void a_simple_quad_pattern_with_bounded_graph () throws RepositoryException {
@@ -59,7 +64,7 @@ public class QuadTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size()); // 3x Alice, with different species
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "c", "g"),
+        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "a", "s"),
                 List.of("Alice", "cat", "feline"),
                 List.of("Alice", "dog", "canine"),
                 List.of("Alice", "snake", "reptile")));

@@ -4,7 +4,8 @@ import fr.gdd.passage.commons.factories.IBackendLimitOffsetFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageSubOpExecutor;
-import fr.gdd.passage.volcano.resume.IsSkippable;
+import fr.gdd.passage.volcano.resume.CanBeSkipped;
+import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpSlice;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
@@ -22,7 +23,7 @@ public class PassageLimitOffset<ID,VALUE> implements IBackendLimitOffsetFactory<
 
     @Override
     public Iterator<BackendBindings<ID, VALUE>> get(ExecutionContext context, Iterator<BackendBindings<ID, VALUE>> input, OpSlice slice) {
-        Boolean canSkip = new IsSkippable().visit(slice);
+        Boolean canSkip = new CanBeSkipped().visit((Op) slice);
 
         if (canSkip) {
             PassageExecutionContext<ID,VALUE> subContext = ((PassageExecutionContext<ID, VALUE>) context).clone();

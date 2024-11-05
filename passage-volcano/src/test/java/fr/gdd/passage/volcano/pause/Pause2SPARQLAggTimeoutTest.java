@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @Disabled
 public class Pause2SPARQLAggTimeoutTest {
 
-    private static final Logger log = LoggerFactory.getLogger(Pause2SPARQLBGPTimeoutTest.class);
+    private static final Logger log = LoggerFactory.getLogger(PauseBGPTimeoutTest.class);
 
     @Test
     public void count_of_tp_but_stops_inside_the_operator () throws RepositoryException {
