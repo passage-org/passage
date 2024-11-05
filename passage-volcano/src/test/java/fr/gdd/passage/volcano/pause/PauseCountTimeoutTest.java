@@ -9,6 +9,7 @@ import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.engine.ExecutionContext;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.query.MalformedQueryException;
@@ -21,23 +22,23 @@ import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-
 /**
  * Aggregates are slightly more difficult to test since everything happens
  * inside the operator. Therefore, it should not return any result before
  * having processing 1 fully.
  */
-@Disabled
-public class Pause2SPARQLAggTimeoutTest {
+@Disabled("Integrate aggregators again.")
+public class PauseCountTimeoutTest {
 
     private static final Logger log = LoggerFactory.getLogger(PauseBGPTimeoutTest.class);
+
+    @BeforeEach
+    public void stop_every_scan() { PassageScan.stopping = PauseUtils4Test.stopAtEveryScan; }
 
     @Test
     public void count_of_tp_but_stops_inside_the_operator () throws RepositoryException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = "SELECT (COUNT(*) AS ?count) { ?p <http://address> ?c }";
-
-        PassageScan.stopping = PauseUtils4Test.stopAtEveryScan;
 
         int sum = 0;
         int nbPreempt = 0;
@@ -61,8 +62,6 @@ public class Pause2SPARQLAggTimeoutTest {
             SELECT  * WHERE { ?p  <http://address>  ?c } OFFSET  2 }
         """;
 
-        PassageScan.stopping = PauseUtils4Test.stopAtEveryScan;
-
         int sum = 0;
         int nbPreempt = 0;
         while (Objects.nonNull(queryAsString)) {
@@ -78,7 +77,7 @@ public class Pause2SPARQLAggTimeoutTest {
     }
 
 
-    @Disabled
+    @Disabled("Simple trial.")
     @Test
     public void simple_count_on_tp_kindof_groupby_p () throws RepositoryException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
@@ -95,8 +94,6 @@ public class Pause2SPARQLAggTimeoutTest {
         }
         """;
 
-        PassageScan.stopping = PauseUtils4Test.stopAtEveryScan;
-
         int sum = 0;
         int nbPreempt = 0;
         while (Objects.nonNull(queryAsString)) {
@@ -111,7 +108,7 @@ public class Pause2SPARQLAggTimeoutTest {
         assertEquals(3, sum); // ?count = 3 for Alice; Bob and Carol have ?count = 0
     }
 
-    @Disabled
+    @Disabled("Trial to see what group byies look like.")
     @Test
     public void meow() throws RepositoryException, QueryEvaluationException, MalformedQueryException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());

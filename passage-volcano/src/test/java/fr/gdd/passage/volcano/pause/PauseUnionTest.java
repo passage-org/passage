@@ -11,9 +11,9 @@ import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class Pause2SPARQLUnionTest {
+public class PauseUnionTest {
 
-    private static final Logger log = LoggerFactory.getLogger(Pause2SPARQLUnionTest.class);
+    private static final Logger log = LoggerFactory.getLogger(PauseUnionTest.class);
 
     @Test
     public void create_an_simple_union_that_does_not_come_from_preemption() throws RepositoryException {

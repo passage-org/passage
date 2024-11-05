@@ -13,10 +13,10 @@ import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Disabled
-public class Pause2SPARQLDistinctTest {
+@Disabled("Need to be theoretically checked first.")
+public class PauseDistinctTest {
 
-    static final Logger log = LoggerFactory.getLogger(Pause2SPARQLDistinctTest.class);
+    static final Logger log = LoggerFactory.getLogger(PauseDistinctTest.class);
 
     @Test
     public void tp_distinct_where_every_value_is_distinct_anyway() throws RepositoryException {

@@ -3,6 +3,7 @@ package fr.gdd.passage.volcano.pause;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.iterators.PassageScan;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
@@ -17,9 +18,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Therefore, the execution can stop in the middle of the execution physical plan. Yet,
  * we must be able to resume execution from where it stopped.
  */
-public class Pause2SPARQLOptionalTimeoutTest {
+public class PauseOptionalTimeoutTest {
 
-    private static final Logger log = LoggerFactory.getLogger(Pause2SPARQLOptionalTimeoutTest.class);
+    private static final Logger log = LoggerFactory.getLogger(PauseOptionalTimeoutTest.class);
+
+    @BeforeEach
+    public void stop_every_scan() { PassageScan.stopping = PauseUtils4Test.stopAtEveryScan; }
 
     @Test
     public void create_a_bgp_query_and_pause_at_each_scan() throws RepositoryException {
@@ -29,8 +33,6 @@ public class Pause2SPARQLOptionalTimeoutTest {
                 ?p <http://address> ?l .
                 OPTIONAL {?p <http://own> ?a .}
                }""";
-
-        PassageScan.stopping = PauseUtils4Test.stopAtEveryScan;
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
@@ -51,8 +53,6 @@ public class Pause2SPARQLOptionalTimeoutTest {
                 OPTIONAL {?person <http://address> <http://nantes>}
                }""";
 
-        PassageScan.stopping = PauseUtils4Test.stopAtEveryScan;
-
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);
@@ -71,8 +71,6 @@ public class Pause2SPARQLOptionalTimeoutTest {
                   { SELECT * WHERE { ?person  <http://own>  ?animal } OFFSET 2 }
                   OPTIONAL { ?person  <http://address>  <http://nantes> }
                 }""";
-
-        PassageScan.stopping = PauseUtils4Test.stopAtEveryScan;
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
@@ -96,8 +94,6 @@ public class Pause2SPARQLOptionalTimeoutTest {
                  }
                }""";
 
-        PassageScan.stopping = PauseUtils4Test.stopAtEveryScan;
-
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);
@@ -119,8 +115,6 @@ public class Pause2SPARQLOptionalTimeoutTest {
                    OPTIONAL {?animal <http://species> ?specie}
                  }
                }""";
-
-        PassageScan.stopping = PauseUtils4Test.stopAtEveryScan;
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
@@ -163,8 +157,6 @@ public class Pause2SPARQLOptionalTimeoutTest {
                                     ?animal  <http://species>  ?specie
                                 } } } } } } } }
                 """;
-
-        PassageScan.stopping = PauseUtils4Test.stopAtEveryScan;
 
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {

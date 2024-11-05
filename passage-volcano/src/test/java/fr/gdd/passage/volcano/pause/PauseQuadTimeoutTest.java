@@ -91,4 +91,35 @@ public class PauseQuadTimeoutTest {
                 List.of("Alice", "snake", "reptile")));
     }
 
+
+    @Test
+    public void bgp_with_3_tps_that_preempt () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.graph3());
+        String queryAsString = """
+               SELECT * WHERE {
+                GRAPH ?g1 {?p <http://own> ?a .}
+                GRAPH ?g2 {?p <http://address> <http://nantes> .}
+                GRAPH ?g3 {?a <http://species> ?s}
+               }""";
+
+        Multiset<BackendBindings<?,?>> results = HashMultiset.create();
+        int nbPause = 0;
+        while (Objects.nonNull(queryAsString)) {
+            log.debug(queryAsString);
+            queryAsString = PauseUtils4Test.executeQuery(queryAsString, blazegraph, results);
+            nbPause += 1;
+        }
+        assertTrue(nbPause > 1);
+        // 3x Alice, with different species, BUT this time, some tp come from multiple locations.
+        // g1 -> Alice; g2 -> Alice, and Carol; g3 -> Bob
+        assertEquals(6, results.size());
+
+        assertTrue(OpExecutorUtils.containsResultTimes(results, List.of("p", "a", "s"),
+                List.of("Alice", "cat", "feline"), 2));
+        assertTrue(OpExecutorUtils.containsResultTimes(results, List.of("p", "a", "s"),
+                List.of("Alice", "dog", "canine"), 2));
+        assertTrue(OpExecutorUtils.containsResultTimes(results, List.of("p", "a", "s"),
+                List.of("Alice", "snake", "reptile"), 2));
+    }
+
 }

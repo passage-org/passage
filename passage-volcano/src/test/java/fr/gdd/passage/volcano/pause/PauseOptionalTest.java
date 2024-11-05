@@ -13,9 +13,9 @@ import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class Pause2SPARQLOptionalTest {
+public class PauseOptionalTest {
 
-    static final Logger log = LoggerFactory.getLogger(Pause2SPARQLOptionalTest.class);
+    static final Logger log = LoggerFactory.getLogger(PauseOptionalTest.class);
     static final BlazegraphBackend blazegraph;
 
     static {
