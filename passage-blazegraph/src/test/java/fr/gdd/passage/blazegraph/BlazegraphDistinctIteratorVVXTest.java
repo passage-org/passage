@@ -146,7 +146,7 @@ public class BlazegraphDistinctIteratorVVXTest {
                 ++nbResults;
                 log.debug("offset {} for {}", it.current(), it.getString(SPOC.SUBJECT));
             }
-            assertEquals(offsets.size() - i - 1, nbResults);
+            assertEquals(offsets.size() - i, nbResults);
         }
 
         bb.close();

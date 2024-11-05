@@ -9,11 +9,13 @@ import com.bigdata.rdf.internal.impl.TermId;
 import com.bigdata.rdf.model.BigdataValue;
 import com.bigdata.rdf.spo.ISPO;
 import com.bigdata.rdf.store.AbstractTripleStore;
+import com.bigdata.striterator.EmptyChunkedIterator;
 import com.bigdata.striterator.IChunkedIterator;
 import com.bigdata.striterator.IKeyOrder;
 import fr.gdd.passage.commons.exceptions.UndefinedCode;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
+import org.apache.commons.collections4.iterators.EmptyIterator;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -163,10 +165,14 @@ public class BlazegraphDistinctIteratorDXV extends BackendIterator<IV, BigdataVa
     public void skip(Long internalTo) {
         if (internalTo <= 0) { return; } // do nothing
 
-        byte[] keyAt = ((AbstractBTree) store.getSPORelation().getIndex(fakeKeyOrder))
-                .keyAt(internalTo);
+        try {
+            byte[] keyAt = ((AbstractBTree) store.getSPORelation().getIndex(fakeKeyOrder))
+                    .keyAt(internalTo);
 
-        this.distincts = store.getSPORelation().distinctTermScan(fakeKeyOrder, keyAt, null, null);
+            this.distincts = store.getSPORelation().distinctTermScan(fakeKeyOrder, keyAt, null, null);
+        } catch (IndexOutOfBoundsException e) {
+            this.distincts = new EmptyChunkedIterator<>(null);
+        }
     }
 
     @Override

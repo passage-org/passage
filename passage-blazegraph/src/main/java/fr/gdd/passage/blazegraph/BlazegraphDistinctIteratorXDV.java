@@ -207,10 +207,14 @@ public class BlazegraphDistinctIteratorXDV extends BackendIterator<IV, BigdataVa
         }
         long startFrom = Objects.isNull(min) ? 0L: iindex.rangeCount(null, min);
         if (internalTo > 0) {
-            byte[] keyAt = ((AbstractBTree) iindex).keyAt(startFrom + internalTo);
-            if (Objects.isNull(max) || BytesUtil.compareBytes(keyAt, max) < 0) {
-                this.tupleIterator = iindex.rangeIterator(keyAt, max);
-            } else {
+            try {
+                byte[] keyAt = ((AbstractBTree) iindex).keyAt(startFrom + internalTo);
+                if (Objects.isNull(max) || BytesUtil.compareBytes(keyAt, max) < 0) {
+                    this.tupleIterator = iindex.rangeIterator(keyAt, max);
+                } else {
+                    this.tupleIterator = EmptyTupleIterator.INSTANCE;
+                }
+            } catch (IndexOutOfBoundsException oob) {
                 this.tupleIterator = EmptyTupleIterator.INSTANCE;
             }
         }
