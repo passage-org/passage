@@ -3,7 +3,6 @@ package fr.gdd.passage.volcano.iterators;
 import fr.gdd.passage.commons.factories.IBackendLimitOffsetFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendSaver;
-import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageSubOpExecutor;

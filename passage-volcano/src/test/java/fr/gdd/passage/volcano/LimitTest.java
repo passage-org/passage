@@ -9,8 +9,7 @@ import org.openrdf.repository.RepositoryException;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class LimitTest {
 
@@ -95,15 +94,48 @@ public class LimitTest {
     @Test
     public void limit_offset_on_simple_triple_pattern () throws RepositoryException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
-        String queryAsString = "SELECT * WHERE {?p <http://address> ?c} OFFSET 1 # LIMIT 1";
-
+        String queryAsString = "SELECT * WHERE {?p <http://address> ?c} LIMIT 1";
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(1, results.size()); // either Bob, Alice, or Carol.
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "c"),
-                List.of("Bob", "paris")) ||
-                OpExecutorUtils.containsResult(results, List.of("p", "c"),
-                        List.of("Alice", "nantes")) ||
-                OpExecutorUtils.containsResult(results, List.of("p", "c"),
-                        List.of("Carol", "nantes")));
+
+        queryAsString = "SELECT * WHERE {?p <http://address> ?c} OFFSET 1 LIMIT 1";
+        results.addAll(OpExecutorUtils.executeWithPassage(queryAsString, blazegraph));
+        assertEquals(2, results.size()); // either Bob, Alice, or Carol.
+
+        queryAsString = "SELECT * WHERE {?p <http://address> ?c} OFFSET 2 LIMIT 1";
+        results.addAll(OpExecutorUtils.executeWithPassage(queryAsString, blazegraph));
+        assertEquals(3, results.size()); // either Bob, Alice, or Carol.
+
+        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "c"),
+                List.of("Bob", "paris"),
+                List.of("Alice", "nantes"),
+                List.of("Carol", "nantes")));
+    }
+
+    @Test
+    public void limit_offset_in_bgp_but_on_tp () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        String queryAsString = """
+            SELECT * WHERE {
+                ?p <http://address> ?c .
+                {SELECT * WHERE { ?p <http://own> ?a } OFFSET 1 LIMIT 1 }
+            }""";
+        var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
+        assertEquals(1, results.size()); // either dog, cat, or snake.
+    }
+
+    @Test
+    public void limit_offset_on_bgp_should_not_work () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        String queryAsString = """
+            SELECT * WHERE {
+                ?p <http://address> ?c .
+                ?p <http://own> ?a
+            } OFFSET 1 LIMIT 1
+            """;
+
+        assertThrows(UnsupportedOperationException.class, () ->
+                OpExecutorUtils.executeWithPassage(queryAsString, blazegraph)
+        );
     }
 }

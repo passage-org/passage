@@ -42,6 +42,16 @@ public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
     }
 
     /**
+     * @param maxResults The number of results that will be returned, whatever the query
+     *                   and their LIMIT.
+     * @return itself for convenience.
+     */
+    public PassageExecutionContext<ID,VALUE> setMaxResults(Long maxResults) {
+        this.getContext().set(PassageConstants.MAX_RESULTS, maxResults);
+        return this;
+    }
+
+    /**
      * @param limit The maximum number of results for the query usually set with
      *  a LIMIT clause in the query.
      * @return itself.

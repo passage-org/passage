@@ -14,6 +14,7 @@ public class PassageConstants {
     static public final Symbol DEADLINE = allocConstantSymbol("Deadline"); // when to stop execution
     static public final Symbol SCANS = allocVariableSymbol("Scans"); // current number of scans
     static public final Symbol MAX_SCANS = allocConstantSymbol("MaxScans"); // max number of scans
+    static public final Symbol MAX_RESULTS = allocConstantSymbol("MaxResults"); // max number of results whatever the query
 
     static public final Symbol LIMIT = allocConstantSymbol("Limit"); // The limit of the subquery
     static public final Symbol OFFSET = allocConstantSymbol("Offset"); // The offset of the subquery

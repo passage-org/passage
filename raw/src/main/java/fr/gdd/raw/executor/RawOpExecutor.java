@@ -3,6 +3,7 @@ package fr.gdd.raw.executor;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
+import fr.gdd.passage.commons.factories.IBackendBindsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendSaver;
 import fr.gdd.passage.commons.generics.BackendCache;
@@ -153,10 +154,8 @@ public class RawOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
 
     @Override
     public Iterator<BackendBindings<ID, VALUE>> visit(OpExtend extend, Iterator<BackendBindings<ID, VALUE>> input) {
-        // TODO throw when the expressions inside the OpExtend are not supported
-        BackendCache<ID,VALUE> cache = execCxt.getContext().get(RawConstants.CACHE);
-        Iterator<BackendBindings<ID, VALUE>> wrapped = ReturningArgsOpVisitorRouter.visit(this, extend.getSubOp(), input);
-        return new BackendBind<>(wrapped, extend, backend, cache, execCxt);
+        IBackendBindsFactory<ID,VALUE> factory = BackendBind.factory();
+        return factory.get(getExecutionContext(), input, extend);
     }
 
 
