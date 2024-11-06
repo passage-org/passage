@@ -28,7 +28,7 @@ public class PassageLimitOffset<ID,VALUE> implements IBackendLimitOffsetFactory<
     public Iterator<BackendBindings<ID, VALUE>> get(ExecutionContext context, Iterator<BackendBindings<ID, VALUE>> input, OpSlice slice) {
         Boolean canSkip = new CanBeSkipped().visit((Op) slice);
 
-        if (canSkip) { // only OFFSET for simple sub-query
+        if (canSkip) { // only OFFSET (optionally LIMIT) for simple sub-query comprising a single TP/QP
             PassageExecutionContext<ID,VALUE> subContext = ((PassageExecutionContext<ID, VALUE>) context).clone();
             subContext.setLimit(slice.getLength());
             subContext.setOffset(slice.getStart());

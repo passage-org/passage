@@ -90,4 +90,20 @@ public class LimitTest {
                         List.of("Alice", "dog")));
     }
 
+    /* ******************************** LIMIT OFFSET *********************************** */
+
+    @Test
+    public void limit_offset_on_simple_triple_pattern () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        String queryAsString = "SELECT * WHERE {?p <http://address> ?c} OFFSET 1 # LIMIT 1";
+
+        var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
+        assertEquals(1, results.size()); // either Bob, Alice, or Carol.
+        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "c"),
+                List.of("Bob", "paris")) ||
+                OpExecutorUtils.containsResult(results, List.of("p", "c"),
+                        List.of("Alice", "nantes")) ||
+                OpExecutorUtils.containsResult(results, List.of("p", "c"),
+                        List.of("Carol", "nantes")));
+    }
 }

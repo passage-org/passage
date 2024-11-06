@@ -48,5 +48,52 @@ public class PauseLimitTimeoutTest {
                         List.of("Carol", "nantes")));
     }
 
+    @Test
+    public void test_with_pause_on_simple_bgp_inside () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        String queryAsString = "SELECT * WHERE {?p <http://address> ?c . ?p <http://own> ?a } LIMIT 2";
+
+        int nbContinuations = -1;
+        Multiset<BackendBindings<?,?>> results = HashMultiset.create();
+        while (Objects.nonNull(queryAsString)) {
+            log.debug(queryAsString);
+            queryAsString = PauseUtils4Test.executeQuery(queryAsString, blazegraph, results);
+            nbContinuations += 1;
+        }
+        assertEquals(2, results.size());
+        assertTrue(nbContinuations >= 1);
+        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "c", "a"),
+                List.of("Alice", "nantes", "dog")) ||
+                OpExecutorUtils.containsResult(results, List.of("p", "c", "a"),
+                        List.of("Alice", "nantes", "cat")) ||
+                OpExecutorUtils.containsResult(results, List.of("p", "c", "a"),
+                        List.of("Alice", "nantes", "snake")));
+    }
+
+    @Test
+    public void test_with_pause_with_limit_in_the_bgp () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        String queryAsString = """
+                SELECT * WHERE {
+                    ?p <http://address> ?c .
+                    { SELECT * WHERE { ?p <http://own> ?a } LIMIT 2 }
+                }""";
+
+        int nbContinuations = -1;
+        Multiset<BackendBindings<?,?>> results = HashMultiset.create();
+        while (Objects.nonNull(queryAsString)) {
+            log.debug(queryAsString);
+            queryAsString = PauseUtils4Test.executeQuery(queryAsString, blazegraph, results);
+            nbContinuations += 1;
+        }
+        assertEquals(2, results.size());
+        assertTrue(nbContinuations >= 1);
+        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "c", "a"),
+                List.of("Alice", "nantes", "dog")) ||
+                OpExecutorUtils.containsResult(results, List.of("p", "c", "a"),
+                        List.of("Alice", "nantes", "cat")) ||
+                OpExecutorUtils.containsResult(results, List.of("p", "c", "a"),
+                        List.of("Alice", "nantes", "snake")));
+    }
 
 }
