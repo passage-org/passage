@@ -3,12 +3,13 @@ package fr.gdd.passage.volcano.accumulators;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.interfaces.Backend;
+import fr.gdd.passage.commons.interfaces.BackendAccumulator;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.function.FunctionEnv;
 
 // TODO From SagerAccumulator to BackendAccumulator (EZ but still, todo)
-public class PassageAccCount<ID,VALUE> implements PassageAccumulator<ID,VALUE> {
+public class PassageAccCount<ID,VALUE> implements BackendAccumulator<ID,VALUE> {
 
     final ExecutionContext context;
     final Op op;

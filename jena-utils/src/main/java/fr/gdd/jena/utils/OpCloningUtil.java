@@ -2,6 +2,7 @@ package fr.gdd.jena.utils;
 
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
+import org.apache.jena.sparql.expr.ExprAggregator;
 
 import java.util.List;
 
@@ -16,6 +17,7 @@ public class OpCloningUtil {
     public static OpProject clone (OpProject project, Op subOp) {return new OpProject(subOp, project.getVars());}
     public static OpFilter clone(OpFilter filter, Op subOp) {return OpFilter.filterDirect(filter.getExprs(), subOp);}
     public static OpGroup clone(OpGroup group, Op subOp) {return new OpGroup(subOp, group.getGroupVars(), group.getAggregators());}
+    public static OpGroup clone(OpGroup group, List<ExprAggregator> aggregators, Op subOp) {return new OpGroup(subOp, group.getGroupVars(), aggregators);}
     public static OpUnion clone(OpUnion union, Op left, Op right) {return new OpUnion(left, right);}
     public static OpJoin clone(OpJoin join, Op left, Op right) {return (OpJoin) OpJoin.create(left, right);}
 

@@ -99,8 +99,8 @@ public class BackendBind<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>
         this.context = context;
         this.backend = backend;
         this.cache = cache;
-        this.input = eval(input);
-        this.wrapped = executor.visit(op.getSubOp(), Iter.of(this.input));
+        this.input = input;
+        this.wrapped = executor.visit(op.getSubOp(), Iter.of(input));
     }
 
     @Override
@@ -110,7 +110,7 @@ public class BackendBind<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>
 
     @Override
     public BackendBindings<ID, VALUE> next() {
-        return wrapped.next();
+        return eval(wrapped.next());
     }
 
     public BackendBindings<ID,VALUE> eval(BackendBindings<ID,VALUE> current) {

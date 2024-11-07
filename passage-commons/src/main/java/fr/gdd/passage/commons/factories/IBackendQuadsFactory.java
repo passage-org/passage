@@ -2,7 +2,6 @@ package fr.gdd.passage.commons.factories;
 
 import fr.gdd.passage.commons.generics.BackendBindings;
 import org.apache.jena.sparql.algebra.op.OpQuad;
-import org.apache.jena.sparql.algebra.op.OpTriple;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
 import java.util.Iterator;
