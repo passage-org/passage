@@ -9,7 +9,6 @@ import fr.gdd.passage.commons.generics.BackendOpExecutor;
 import fr.gdd.passage.commons.interfaces.BackendAccumulator;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.accumulators.PassageAccCount;
-import fr.gdd.passage.volcano.accumulators.PassageAccumulator;
 import fr.gdd.passage.volcano.pause.Pause2Next;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;

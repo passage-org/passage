@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * inside the operator. Therefore, it should not return any result before
  * having processing 1 fully.
  */
-@Disabled("Integrate aggregators again.")
+@Disabled("Integrate aggregators again with continuation queries.")
 public class PauseCountTimeoutTest {
 
     private static final Logger log = LoggerFactory.getLogger(PauseBGPTimeoutTest.class);

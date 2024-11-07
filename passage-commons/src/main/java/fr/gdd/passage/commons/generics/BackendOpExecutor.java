@@ -9,6 +9,9 @@ import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.expr.aggregate.AggCount;
+import org.apache.jena.sparql.expr.aggregate.AggCountDistinct;
+import org.apache.jena.sparql.expr.aggregate.AggCountVar;
+import org.apache.jena.sparql.expr.aggregate.AggCountVarDistinct;
 
 import java.util.Iterator;
 import java.util.Objects;
@@ -144,12 +147,15 @@ public class BackendOpExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
         for (int i = 0; i < groupBy.getAggregators().size(); ++i) {
             switch (groupBy.getAggregators().get(i).getAggregator()) {
                 case AggCount ac -> {} // nothing, just checking it's handled (this is COUNT(*))
-                // case AggCountVar acv -> {} // TODO count when (a) variable(s) is/are bound
-                // case AggCountVarDistinct acvd -> {}
-                // case AggCountDistinct acd -> {} // nothing
+                case AggCountVar acv -> throw new UnsupportedOperationException("COUNT with variable(s) is not implemented.");  // TODO
+                case AggCountVarDistinct acvd -> throw new UnsupportedOperationException("COUNT DISTINCT with variable(s) is not supported.");
+                case AggCountDistinct acd -> throw new UnsupportedOperationException("COUNT DISTINCT of star (*) is not supported."); // TODO
                 default -> throw new UnsupportedOperationException("The aggregation function is not implemented: " +
                         groupBy.getAggregators().get(i).toString());
             }
+        }
+        if (!groupBy.getGroupVars().isEmpty()) {
+            throw new UnsupportedOperationException("Group keys are not supported.");
         }
         return counts.get(context, input, groupBy);
     }
