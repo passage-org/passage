@@ -174,12 +174,12 @@ public class BackendBindings<ID, VALUE> implements Binding {
     }
 
     @Override
-    public Node get(String varName) { // TODO cache this probably
+    public Node get(String varName) { // TODO cache this probably, put it in the specific binding?
         return NodeValue.parse(getBinding(Var.alloc(varName)).getString()).asNode();
     }
 
     @Override
-    public Node get(Var var) { // TODO cache this probably
+    public Node get(Var var) { // TODO cache this probably, put it in the specific binding?
         return NodeValue.parse(getBinding(var).getString()).asNode();
     }
 
@@ -223,5 +223,22 @@ public class BackendBindings<ID, VALUE> implements Binding {
         } else {
             return false; // other is not a BackendBinding
         }
+    }
+
+    /**
+     * Check if the two bindings are compatible, i.e., if for every variable,
+     * they either do not have a value, or have the same.
+     * @param other The other binding to check the compatibility with.
+     * @return True if they are compatible, false otherwise.
+     */
+    public boolean isCompatible (BackendBindings<ID,VALUE> other) {
+        for (Var v : variables()) {
+            IdValueBackend<ID,VALUE> valThis = this.getBinding(v);
+            IdValueBackend<ID,VALUE> valOther = other.getBinding(v);
+            if (Objects.nonNull(valOther) && Objects.nonNull(valThis)) {
+                return valOther.getString().equals(valThis.getString()); // compared as string
+            }
+        }
+        return true;
     }
 }

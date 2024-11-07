@@ -27,9 +27,9 @@ public class CanBeSkipped extends ReturningOpVisitor<Boolean> {
         tripleOrQuad = null; // reset
 
         if (op instanceof OpSlice slice) { // The root slice
-            if (slice.getLength() != Long.MIN_VALUE) {
-                return NOT_ALLOWED; // only OFFSET is allowed: OFFSET + LIMIT we don't know
-            }
+            // if (slice.getLength() != Long.MIN_VALUE) {
+            //    return NOT_ALLOWED; // only OFFSET is allowed: OFFSET + LIMIT we don't know
+            // }
             canBeSkipped = super.visit(slice.getSubOp()); // call to super to reroute the operation
             return canBeSkipped;
         }

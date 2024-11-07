@@ -138,7 +138,13 @@ public class Pause2Next<ID, VALUE> extends BackendSaver<ID,VALUE,Long> {
             // If need be, the tp/qp will add the slice OFFSET itself.
             return ReturningOpVisitorRouter.visit(this, canBeSkipped.getTripleOrQuad());
         }
-        throw new UnsupportedOperationException("TODO OpSlice cannot be saved right now.");
+        if (slice.getLength() != Long.MIN_VALUE && slice.getStart() == Long.MIN_VALUE) { // only LIMIT
+            PassageLimit<ID,VALUE> it = (PassageLimit<ID, VALUE>) getIterator(slice);
+            if (Objects.isNull(it)) return null;
+            return it.pause(super.visit(slice.getSubOp()));
+        }
+
+        throw new UnsupportedOperationException("LIMIT OFFSET together is not supported.");
     }
 
     @Override

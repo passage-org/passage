@@ -8,6 +8,7 @@ import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.engine.ExecutionContext;
+import org.apache.jena.sparql.expr.aggregate.AggCount;
 
 import java.util.Iterator;
 import java.util.Objects;
@@ -32,6 +33,7 @@ public class BackendOpExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
     private final IBackendDistinctsFactory<ID,VALUE> distincts;
     private final IBackendLimitOffsetFactory<ID,VALUE> slices;
     private final IBackendOptionalsFactory<ID,VALUE> optionals;
+    private final IBackendCountsFactory<ID,VALUE> counts;
 
 
     public BackendOpExecutor(ExecutionContext context,
@@ -45,7 +47,8 @@ public class BackendOpExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
                              IBackendFiltersFactory<ID,VALUE> filters,
                              IBackendDistinctsFactory<ID,VALUE> distincts,
                              IBackendLimitOffsetFactory<ID,VALUE> slices,
-                             IBackendOptionalsFactory<ID,VALUE> optionals) {
+                             IBackendOptionalsFactory<ID,VALUE> optionals,
+                             IBackendCountsFactory<ID, VALUE> counts) {
         this.context = context;
         this.context.getContext().set(BackendConstants.EXECUTOR, this);
         this.triples = triples;
@@ -59,6 +62,7 @@ public class BackendOpExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
         this.distincts = distincts;
         this.slices = slices;
         this.optionals = optionals;
+        this.counts = counts;
     }
 
     public Iterator<BackendBindings<ID,VALUE>> execute(String opAsString) {
@@ -133,5 +137,20 @@ public class BackendOpExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
             throw new UnsupportedOperationException("Expressions are not supported in left joins.");
         }
         return optionals.get(context, input, lj);
+    }
+
+    @Override
+    public Iterator<BackendBindings<ID, VALUE>> visit(OpGroup groupBy, Iterator<BackendBindings<ID, VALUE>> input) {
+        for (int i = 0; i < groupBy.getAggregators().size(); ++i) {
+            switch (groupBy.getAggregators().get(i).getAggregator()) {
+                case AggCount ac -> {} // nothing, just checking it's handled (this is COUNT(*))
+                // case AggCountVar acv -> {} // TODO count when (a) variable(s) is/are bound
+                // case AggCountVarDistinct acvd -> {}
+                // case AggCountDistinct acd -> {} // nothing
+                default -> throw new UnsupportedOperationException("The aggregation function is not implemented: " +
+                        groupBy.getAggregators().get(i).toString());
+            }
+        }
+        return counts.get(context, input, groupBy);
     }
 }

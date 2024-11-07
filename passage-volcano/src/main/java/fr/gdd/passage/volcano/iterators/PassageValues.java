@@ -11,17 +11,19 @@ import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.pause.Pause2Next;
 import org.apache.jena.graph.Node;
 import org.apache.jena.riot.out.NodeFmtLib;
+import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.Table;
 import org.apache.jena.sparql.algebra.TableFactory;
+import org.apache.jena.sparql.algebra.op.OpExtend;
+import org.apache.jena.sparql.algebra.op.OpJoin;
+import org.apache.jena.sparql.algebra.op.OpSequence;
 import org.apache.jena.sparql.algebra.op.OpTable;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.util.ExprUtils;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * VALUES are important to inject data in the query. They are
@@ -35,40 +37,85 @@ public class PassageValues<ID,VALUE> implements Iterator<BackendBindings<ID,VALU
             if (table.isJoinIdentity())
                 return input; // nothing to do
 
-            Pause2Next<ID,VALUE> saver = context.getContext().get(PassageConstants.SAVER);
+
             Backend<ID,VALUE,?> backend = context.getContext().get(BackendConstants.BACKEND);
             BackendCache<ID,VALUE> cache = context.getContext().get(BackendConstants.CACHE);
-            Iterator<BackendBindings<ID,VALUE>> values = new PassageValues<>(input, table, backend, cache, context);
-            saver.register(table, values);
-            return values;
+            return new PassageValuesFactory<>(input, table, backend, cache, context);
         };
+    }
+
+    /* ************************ FACTORY OF ITERATOR PER INPUT **************************** */
+
+    public static class PassageValuesFactory<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
+
+        final Iterator<BackendBindings<ID,VALUE>> input;
+        final ExecutionContext context;
+        final Backend<ID,VALUE,?> backend;
+        final BackendCache<ID,VALUE> cache;
+        final OpTable values;
+        Iterator<BackendBindings<ID,VALUE>> wrapped;
+
+        public PassageValuesFactory (Iterator<BackendBindings<ID,VALUE>> input, OpTable op,
+                                        Backend<ID,VALUE,?> backend, BackendCache<ID,VALUE> cache,
+                                        ExecutionContext context) {
+            this.input = input;
+            this.cache = cache;
+            this.backend = backend;
+            this.context = context;
+            this.values = op;
+        }
+
+        @Override
+        public boolean hasNext() {
+            if ((Objects.isNull(wrapped) || !wrapped.hasNext()) && !input.hasNext()) return false;
+
+            if (Objects.nonNull(wrapped) && !wrapped.hasNext()) {
+                wrapped = null;
+            }
+
+            while (Objects.isNull(wrapped) && input.hasNext()) {
+                BackendBindings<ID,VALUE> bindings = input.next();
+                wrapped = new PassageValues<>(bindings, values, backend, cache, context);
+                if (!wrapped.hasNext()) {
+                    wrapped = null;
+                }
+            }
+
+            return !Objects.isNull(wrapped);
+        }
+
+        @Override
+        public BackendBindings<ID, VALUE> next() {
+            return wrapped.next();
+        }
     }
 
     /* *********************** ACTUAL VALUES ITERATOR **************************** */
 
-    final Iterator<BackendBindings<ID,VALUE>> input;
     final ExecutionContext context;
     final Backend<ID,VALUE,?> backend;
     final BackendCache<ID,VALUE> cache;
     final List<BackendBindings<ID,VALUE>> values;
-    BackendBindings<ID,VALUE> current;
+    final BackendBindings<ID,VALUE> current;
     final List<Var> vars;
     final List<Binding> table;
 
     int index = 0; // current position in the table
 
-    public PassageValues(Iterator<BackendBindings<ID,VALUE>> input, OpTable op,
+    public PassageValues(BackendBindings<ID,VALUE> current, OpTable values,
                          Backend<ID,VALUE,?> backend, BackendCache<ID,VALUE> cache,
                          ExecutionContext context) {
-        this.vars = op.getTable().getVars();
-        this.table = Lists.newArrayList(op.getTable().rows());
+        this.vars = values.getTable().getVars();
+        this.table = Lists.newArrayList(values.getTable().rows());
         this.context = context;
-        this.input = input;
         this.backend = backend;
         this.cache = cache;
         this.values = new ArrayList<>();
+        this.current = current;
+        Pause2Next<ID,VALUE> saver = context.getContext().get(PassageConstants.SAVER);
+        saver.register(values, this);
 
-        Iterator<Binding> bindings = op.getTable().rows();
+        Iterator<Binding> bindings = values.getTable().rows();
         bindings.forEachRemaining(b -> {
             BackendBindings<ID,VALUE> mappings = new BackendBindings<>();
             b.vars().forEachRemaining(v -> {
@@ -97,17 +144,20 @@ public class PassageValues<ID,VALUE> implements Iterator<BackendBindings<ID,VALU
     @Override
     public boolean hasNext() {
         if (values.isEmpty()) { return false; }
-        return input.hasNext() || index < values.size();
+        boolean compatible = false;
+        while (!compatible && index < values.size()) {
+            compatible = current.isCompatible(values.get(index));
+            if (!compatible) {
+                ++index;
+            }
+        }
+        return compatible;
     }
 
     @Override
     public BackendBindings<ID, VALUE> next() {
-        if (index >= values.size()) {
-            index = 0;
-        }
-        if (index == 0) {
-            current = input.next();
-        }
+        // index positioned in hasNext
+
         BackendBindings<ID,VALUE> newBinding = new BackendBindings<>(
                 values.get(index), // copy
                 values.get(index).variables().stream().toList())
@@ -118,15 +168,28 @@ public class PassageValues<ID,VALUE> implements Iterator<BackendBindings<ID,VALU
         return newBinding;
     }
 
-    public OpTable pause() {
+    public Op pause() {
         if (index >= values.size()) {
             return null; // done everything
         }
+
+        // Encode the current binding in the new operator
+        Set<Var> vars = current.variables();
+        OpSequence seq = OpSequence.create();
+        for (Var v : vars) {
+            seq.add(OpExtend.extend(OpTable.unit(), v, ExprUtils.parse(current.getBinding(v).getString())));
+        }
+
+        // get the rest of the table
         Table newTable = TableFactory.create(this.vars);
         for (int i = index; i < values.size(); ++i) {
             newTable.addBinding(this.table.get(i));
         }
-        return OpTable.create(newTable);
+
+        //return OpJoin.create(seq, OpTable.create(newTable));
+        seq.add(OpTable.create(newTable));
+
+        return seq.size() > 1 ? seq : seq.get(0);
     }
 
 }

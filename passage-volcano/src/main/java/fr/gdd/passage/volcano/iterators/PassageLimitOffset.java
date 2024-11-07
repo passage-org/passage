@@ -2,6 +2,8 @@ package fr.gdd.passage.volcano.iterators;
 
 import fr.gdd.passage.commons.factories.IBackendLimitOffsetFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
+import fr.gdd.passage.commons.generics.BackendSaver;
+import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageSubOpExecutor;
 import fr.gdd.passage.volcano.resume.CanBeSkipped;
@@ -25,17 +27,27 @@ public class PassageLimitOffset<ID,VALUE> implements IBackendLimitOffsetFactory<
     public Iterator<BackendBindings<ID, VALUE>> get(ExecutionContext context, Iterator<BackendBindings<ID, VALUE>> input, OpSlice slice) {
         Boolean canSkip = new CanBeSkipped().visit((Op) slice);
 
-        if (canSkip) {
+        if (canSkip) { // only OFFSET (optionally LIMIT) for simple sub-query comprising a single TP/QP
             PassageExecutionContext<ID,VALUE> subContext = ((PassageExecutionContext<ID, VALUE>) context).clone();
             subContext.setLimit(slice.getLength());
             subContext.setOffset(slice.getStart());
             subContext.setQuery(slice.getSubOp());
+            // TODO remove input I think.
             return new PassageSubOpExecutor<ID,VALUE>(subContext).visit(slice.getSubOp(), input);
         }
-        // TODO otherwise it's a normal slice (TODO) handle it or never
-        //  We will handle it by +1 on offset when produced result is produced
-        //  As a regular query, however, we don't run it as a subquery with limit offset in the execution context
-        throw new UnsupportedOperationException("TODO Default LIMIT OFFSET not implemented yet.");
+
+        if (slice.getLength() != Long.MIN_VALUE && slice.getStart() == Long.MIN_VALUE) { // only LIMIT
+            PassageExecutionContext<ID,VALUE> subContext = ((PassageExecutionContext<ID, VALUE>) context).clone();
+            subContext.setLimit(slice.getLength());
+            subContext.setOffset(slice.getStart());
+            subContext.setQuery(slice.getSubOp());
+            BackendSaver<ID,VALUE,?> saver = context.getContext().get(PassageConstants.SAVER);
+            PassageLimit<ID,VALUE> it = new PassageLimit<>(subContext, slice);
+            saver.register(slice, it);
+            return it;
+        }
+
+        throw new UnsupportedOperationException("OFFSET on complex queries is not supported.");
     }
 
 }

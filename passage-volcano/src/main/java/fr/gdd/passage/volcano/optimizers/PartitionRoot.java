@@ -38,10 +38,6 @@ public class PartitionRoot<ID,VALUE> extends ReturningOpVisitor<Op> {
         this.nbThreads = nbThreads;
     }
 
-    public Op visit(Op op) {
-        return ReturningOpVisitorRouter.visit(this, op);
-    }
-
     /* ************************************************************************* */
 
     @Override

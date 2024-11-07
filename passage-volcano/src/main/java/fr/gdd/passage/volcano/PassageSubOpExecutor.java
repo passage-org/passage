@@ -18,6 +18,6 @@ public class PassageSubOpExecutor <ID,VALUE> extends BackendOpExecutor<ID,VALUE>
         super(context, BackendProject.factory(),
                 PassageScanFactory.factoryTripleLimitOffset(), PassageScanFactory.factoryQuadLimitOffset(),
                 new BackendNestedLoopJoinFactory<>(), null, null, BackendBind.factory(),
-                null, null, null, null);
+                null, null, null, null, null);
     }
 }

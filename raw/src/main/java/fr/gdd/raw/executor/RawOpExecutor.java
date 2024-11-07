@@ -5,6 +5,10 @@ import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.passage.commons.factories.BackendNestedLoopJoinFactory;
 import fr.gdd.passage.commons.generics.*;
+import fr.gdd.passage.commons.factories.IBackendBindsFactory;
+import fr.gdd.passage.commons.generics.BackendBindings;
+import fr.gdd.passage.commons.generics.BackendSaver;
+import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.iterators.BackendBind;
 import fr.gdd.passage.commons.iterators.BackendFilter;
@@ -168,16 +172,12 @@ public class RawOpExecutor<ID, VALUE> extends BackendOpExecutor<ID, VALUE> { // 
         return new ProjectIterator<>(project, ReturningArgsOpVisitorRouter.visit(this, project.getSubOp(), input));
     }
 
-    /*@Override
-    public Iterator<BackendBindings<ID, VALUE>> visit(OpExtend extend, Iterator<BackendBindings<ID, VALUE>> input) {
-        // TODO throw when the expressions inside the OpExtend are not supported
-        return this.
 
-        Backend<ID,VALUE,?> backend = execCxt.getContext().get(BackendConstants.BACKEND);
-        BackendCache<ID,VALUE> cache = execCxt.getContext().get(BackendConstants.CACHE);
-        BackendOpExecutor<ID,VALUE> executor = execCxt.getContext().get(BackendConstants.EXECUTOR);
-        return new BackendBind.BackendBindsFactory<>(executor, input, extend, backend, cache, execCxt);
-    }*/
+    @Override
+    public Iterator<BackendBindings<ID, VALUE>> visit(OpExtend extend, Iterator<BackendBindings<ID, VALUE>> input) {
+        IBackendBindsFactory<ID,VALUE> factory = BackendBind.factory();
+        return factory.get(getExecutionContext(), input, extend);
+    }
 
 
     @Override

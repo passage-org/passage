@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
@@ -47,7 +46,7 @@ public class PauseUtils4Test {
         PassageOpExecutor<ID, VALUE> executor = new PassageOpExecutor<>(
                 new PassageExecutionContextBuilder<ID,VALUE>()
                         .setBackend(backend)
-                        .build().setLimit(limit)); // As if it was within the query…
+                        .build().setMaxResults(limit)); // As if it was within the query…
 
         Iterator<BackendBindings<ID, VALUE>> iterator = executor.execute(queryAsString);
         int nbResults = 0;

@@ -54,6 +54,8 @@ public class PassageScanFactory<ID, VALUE> implements Iterator<BackendBindings<I
 
     final Iterator<BackendBindings<ID, VALUE>> input;
     BackendBindings<ID, VALUE> inputBinding;
+    long produced = 0L;
+    final Long limit;
 
     Iterator<BackendBindings<ID, VALUE>> instantiated = Iter.empty();
 
@@ -66,6 +68,7 @@ public class PassageScanFactory<ID, VALUE> implements Iterator<BackendBindings<I
         Pause2Next<ID, VALUE> saver = context.getContext().get(PassageConstants.SAVER);
         saver.register(tripleOrQuad, this);
         this.cache = context.getContext().get(BackendConstants.CACHE);
+        this.limit = context.getContext().get(PassageConstants.LIMIT);
     }
 
     public PassageScanFactory(ExecutionContext context, Iterator<BackendBindings<ID, VALUE>> input, Op0 tripleOrQuad, Long skip) {
@@ -77,10 +80,12 @@ public class PassageScanFactory<ID, VALUE> implements Iterator<BackendBindings<I
         Pause2Next<ID, VALUE> saver = context.getContext().get(PassageConstants.SAVER);
         saver.register(tripleOrQuad, this);
         this.cache = context.getContext().get(BackendConstants.CACHE);
+        this.limit = context.getContext().get(PassageConstants.LIMIT);
     }
 
     @Override
     public boolean hasNext() {
+        if (Objects.nonNull(limit) && limit != Long.MIN_VALUE && produced >= limit) {return false;} // when limit exists
         if (!instantiated.hasNext() && !input.hasNext()) {
             return false;
         } else while (!instantiated.hasNext() && input.hasNext()) {
@@ -113,6 +118,7 @@ public class PassageScanFactory<ID, VALUE> implements Iterator<BackendBindings<I
 
     @Override
     public BackendBindings<ID, VALUE> next() {
+        produced += 1;
         return instantiated.next().setParent(inputBinding);
     }
 
@@ -150,7 +156,8 @@ public class PassageScanFactory<ID, VALUE> implements Iterator<BackendBindings<I
         seq.add(tripleOrQuad);
 
         Op seqOrSingle = seq.size() > 1 ? seq : seq.get(0);
-        return new OpSlice(seqOrSingle, ((PassageScan<ID, VALUE>) instantiated).current(), Long.MIN_VALUE);
+        long newLimit = Objects.isNull(limit) || limit == Long.MIN_VALUE ? Long.MIN_VALUE : limit - produced;
+        return new OpSlice(seqOrSingle, ((PassageScan<ID, VALUE>) instantiated).current(), newLimit);
     }
 
 }
