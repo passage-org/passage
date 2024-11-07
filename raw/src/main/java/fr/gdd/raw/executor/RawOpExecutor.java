@@ -147,18 +147,37 @@ public class RawOpExecutor<ID, VALUE> extends BackendOpExecutor<ID, VALUE> { // 
     }
 
     @Override
+    public Iterator<BackendBindings<ID, VALUE>> visit(OpQuad quad, Iterator<BackendBindings<ID, VALUE>> input){
+        return new RandomScanFactory<>(execCxt, input, quad);
+    }
+
+    @Override
+    public Iterator<BackendBindings<ID, VALUE>> visit(OpGraph graph, Iterator<BackendBindings<ID, VALUE>> args) {
+        // TODO: implement
+        return super.visit(graph, args);
+    }
+
+    @Override
+    public Iterator<BackendBindings<ID, VALUE>> visit(OpQuadBlock block, Iterator<BackendBindings<ID, VALUE>> args) {
+        // TODO: implement
+        return super.visit(block, args);
+    }
+
+    @Override
     public Iterator<BackendBindings<ID, VALUE>> visit(OpProject project, Iterator<BackendBindings<ID, VALUE>> input) {
         return new ProjectIterator<>(project, ReturningArgsOpVisitorRouter.visit(this, project.getSubOp(), input));
     }
 
-    @Override
+    /*@Override
     public Iterator<BackendBindings<ID, VALUE>> visit(OpExtend extend, Iterator<BackendBindings<ID, VALUE>> input) {
         // TODO throw when the expressions inside the OpExtend are not supported
+        return this.
+
         Backend<ID,VALUE,?> backend = execCxt.getContext().get(BackendConstants.BACKEND);
         BackendCache<ID,VALUE> cache = execCxt.getContext().get(BackendConstants.CACHE);
         BackendOpExecutor<ID,VALUE> executor = execCxt.getContext().get(BackendConstants.EXECUTOR);
         return new BackendBind.BackendBindsFactory<>(executor, input, extend, backend, cache, execCxt);
-    }
+    }*/
 
 
     @Override

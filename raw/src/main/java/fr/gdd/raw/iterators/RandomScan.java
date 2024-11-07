@@ -9,6 +9,8 @@ import fr.gdd.raw.executor.RawConstants;
 import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.atlas.lib.tuple.Tuple3;
 import org.apache.jena.atlas.lib.tuple.TupleFactory;
+import org.apache.jena.sparql.algebra.op.Op0;
+import org.apache.jena.sparql.algebra.op.OpQuad;
 import org.apache.jena.sparql.algebra.op.OpTriple;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ExecutionContext;
@@ -25,24 +27,41 @@ public class RandomScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE
     Double currentProbability;
 
     final ExecutionContext context;
-    final OpTriple triple;
+    final Op0 tripleOrQuad;
     final BackendIterator<ID, VALUE, ?> iterator;
     final Backend<ID, VALUE, ?> backend;
-    final Tuple3<Var> vars;
+    final Tuple<Var> vars;
 
-    public RandomScan(ExecutionContext context, OpTriple triple, Tuple<ID> spo) {
+    public RandomScan(ExecutionContext context, Op0 opTripleOrQuad, Tuple<ID> spo) {
         this.backend = context.getContext().get(RawConstants.BACKEND);
-        this.triple = triple;
+        this.tripleOrQuad = opTripleOrQuad;
         this.context = context;
-        this.iterator = backend.search(spo.get(0), spo.get(1), spo.get(2));
-        this.vars = TupleFactory.create3(
-                triple.getTriple().getSubject().isVariable() && Objects.isNull(spo.get(0)) ? Var.alloc(triple.getTriple().getSubject()) : null,
-                triple.getTriple().getPredicate().isVariable() && Objects.isNull(spo.get(1)) ? Var.alloc(triple.getTriple().getPredicate()) : null,
-                triple.getTriple().getObject().isVariable() && Objects.isNull(spo.get(2)) ? Var.alloc(triple.getTriple().getObject()) : null);
+
+        switch (opTripleOrQuad) {
+            case OpTriple opTriple -> {
+                this.iterator = backend.search(spo.get(0), spo.get(1), spo.get(2));
+                this.vars = TupleFactory.create3(
+                        opTriple.getTriple().getSubject().isVariable() && Objects.isNull(spo.get(0)) ? Var.alloc(opTriple.getTriple().getSubject()) : null,
+                        opTriple.getTriple().getPredicate().isVariable() && Objects.isNull(spo.get(1)) ? Var.alloc(opTriple.getTriple().getPredicate()) : null,
+                        opTriple.getTriple().getObject().isVariable() && Objects.isNull(spo.get(2)) ? Var.alloc(opTriple.getTriple().getObject()) : null);
+            }
+            case OpQuad opQuad -> {
+                this.iterator = backend.search(spo.get(0), spo.get(1), spo.get(2));
+                this.vars = TupleFactory.create4(
+                        opQuad.getQuad().getSubject().isVariable() && Objects.isNull(spo.get(0)) ? Var.alloc(opQuad.getQuad().getSubject()) : null,
+                        opQuad.getQuad().getPredicate().isVariable() && Objects.isNull(spo.get(1)) ? Var.alloc(opQuad.getQuad().getPredicate()) : null,
+                        opQuad.getQuad().getObject().isVariable() && Objects.isNull(spo.get(2)) ? Var.alloc(opQuad.getQuad().getObject()) : null,
+                        opQuad.getQuad().getGraph().isVariable() && Objects.isNull(spo.get(3)) ? Var.alloc(opQuad.getQuad().getGraph()) : null);
+            }
+
+            default -> throw new UnsupportedOperationException("Operator unknown: " + opTripleOrQuad);
+        };
+
+
 
         BackendSaver<ID,VALUE,?> saver = this.context.getContext().get(RawConstants.SAVER);
         if (Objects.nonNull(saver)) {
-            saver.register(triple, this);
+            saver.register(opTripleOrQuad, this);
         }
     }
 
