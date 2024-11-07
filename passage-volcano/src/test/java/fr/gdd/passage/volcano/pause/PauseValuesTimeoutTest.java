@@ -100,4 +100,34 @@ public class PauseValuesTimeoutTest {
                 List.of("Bob", "paris")));
     }
 
+    @Test
+    public void caerthesian_product_with_values () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        String queryAsString = """
+            SELECT * WHERE {
+                ?person <http://address> ?city
+                VALUES ?location { <http://France> <http://Europe> }
+            }
+        """;
+
+
+        int nbContinuations = -1;
+        Multiset<BackendBindings<?,?>> results = HashMultiset.create();
+        while (Objects.nonNull(queryAsString)) {
+            log.debug(queryAsString);
+            queryAsString = PauseUtils4Test.executeQuery(queryAsString, blazegraph, results);
+            nbContinuations += 1;
+        }
+        // it pauses only a few times since it only can pause in scans. Therefore, the VALUES is
+        // produced in full before stopping again.
+        assertTrue(nbContinuations > 0);
+        assertEquals(6, results.size());
+        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("person", "city", "location"),
+                List.of("Alice", "nantes", "France"),
+                List.of("Bob", "paris", "France"),
+                List.of("Carol", "nantes", "France"),
+                List.of("Alice", "nantes", "Europe"),
+                List.of("Bob", "paris", "Europe"),
+                List.of("Carol", "nantes", "Europe")));
+    }
 }

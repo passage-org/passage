@@ -137,4 +137,25 @@ public class ValuesTest {
         assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "p2", "c"), List.of("Alice", "Carol", "nantes")));
     }
 
+    @Test
+    public void caerthesian_product_with_values () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        String query = """
+            SELECT * WHERE {
+                ?person <http://address> ?city
+                VALUES ?location { <http://France> <http://Europe> }
+            }
+        """;
+
+        var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
+        assertEquals(6, results.size());
+        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("person", "city", "location"),
+                List.of("Alice", "nantes", "France"),
+                List.of("Bob", "paris", "France"),
+                List.of("Carol", "nantes", "France"),
+                List.of("Alice", "nantes", "Europe"),
+                List.of("Bob", "paris", "Europe"),
+                List.of("Carol", "nantes", "Europe")));
+    }
+
 }
