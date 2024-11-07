@@ -3,20 +3,19 @@ package fr.gdd.raw.executor;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
-import fr.gdd.passage.commons.generics.BackendBindings;
-import fr.gdd.passage.commons.generics.BackendSaver;
-import fr.gdd.passage.commons.generics.BackendCache;
+import fr.gdd.passage.commons.factories.BackendNestedLoopJoinFactory;
+import fr.gdd.passage.commons.generics.*;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.iterators.BackendBind;
+import fr.gdd.passage.commons.iterators.BackendFilter;
+import fr.gdd.passage.commons.iterators.BackendProject;
+import fr.gdd.passage.volcano.iterators.*;
 import fr.gdd.passage.volcano.optimizers.CardinalityJoinOrdering;
 import fr.gdd.passage.volcano.pause.Triples2BGP;
 import fr.gdd.passage.volcano.resume.BGP2Triples;
 import fr.gdd.raw.accumulators.AccumulatorFactory;
 import fr.gdd.raw.budgeting.NaiveBudgeting;
-import fr.gdd.raw.iterators.ProjectIterator;
-import fr.gdd.raw.iterators.RandomAggregator;
-import fr.gdd.raw.iterators.RandomRoot;
-import fr.gdd.raw.iterators.RandomScanFactory;
+import fr.gdd.raw.iterators.*;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.algebra.Algebra;
@@ -33,35 +32,37 @@ import java.util.Iterator;
  * If an operator is not implemented, then it returns the explicit mention
  * that it's not implemented. No surprises.
  */
-public class RawOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
-        Iterator<BackendBindings<ID, VALUE>>, // input
-        Iterator<BackendBindings<ID, VALUE>>> { // output
+public class RawOpExecutor<ID, VALUE> extends BackendOpExecutor<ID, VALUE> { // output
 
     final ExecutionContext execCxt;
     Backend<ID, VALUE, ?> backend;
     BackendCache<ID, VALUE> cache;
 
+
+    public RawOpExecutor(ExecutionContext context) {
+        // TODO default execution context to unburden this class
+
+        super(context, BackendProject.factory(), RandomScanFactory.tripleFactory(),
+                RandomScanFactory.quadFactory(), new BackendNestedLoopJoinFactory<>(), PassageUnion.factory(), PassageValues.factory(),
+                BackendBind.factory(), BackendFilter.factory(), PassageDistinct.factory(),
+                new PassageLimitOffset<>(), PassageOptional.factory());
+        this.execCxt = context;
+    }
+
     public RawOpExecutor() {
         // This creates a brandnew execution context, but it's important
         // that `setBackend` is called, or it will throw at runtime.
-        this.execCxt = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        execCxt.getContext().setIfUndef(RawConstants.SCANS, 0L);
-        execCxt.getContext().setIfUndef(RawConstants.LIMIT, Long.MAX_VALUE);
-        execCxt.getContext().setIfUndef(RawConstants.TIMEOUT, Long.MAX_VALUE);
-        execCxt.getContext().setIfUndef(RawConstants.BUDGETING, new NaiveBudgeting(
-                execCxt.getContext().get(RawConstants.TIMEOUT),
-                execCxt.getContext().get(RawConstants.LIMIT)));
-    }
 
-    public RawOpExecutor(ExecutionContext execCxt) {
-        // TODO default execution context to unburden this class
-        this.execCxt = execCxt;
-        this.backend = execCxt.getContext().get(RawConstants.BACKEND);
+        super(new ExecutionContext(DatasetFactory.empty().asDatasetGraph()), BackendProject.factory(), RandomScanFactory.tripleFactory(),
+                RandomScanFactory.quadFactory(), new BackendNestedLoopJoinFactory<>(), PassageUnion.factory(), PassageValues.factory(),
+                BackendBind.factory(), BackendFilter.factory(), PassageDistinct.factory(),
+                new PassageLimitOffset<>(), PassageOptional.factory());
+
+        execCxt = context;
+
         execCxt.getContext().setIfUndef(RawConstants.SCANS, 0L);
         execCxt.getContext().setIfUndef(RawConstants.LIMIT, Long.MAX_VALUE);
         execCxt.getContext().setIfUndef(RawConstants.TIMEOUT, Long.MAX_VALUE);
-        this.cache = new BackendCache<>(this.backend);
-        execCxt.getContext().setIfUndef(RawConstants.CACHE, cache);
         execCxt.getContext().setIfUndef(RawConstants.BUDGETING, new NaiveBudgeting(
                 execCxt.getContext().get(RawConstants.TIMEOUT),
                 execCxt.getContext().get(RawConstants.LIMIT)));
@@ -142,7 +143,7 @@ public class RawOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
 
     @Override
     public Iterator<BackendBindings<ID, VALUE>> visit(OpTriple triple, Iterator<BackendBindings<ID, VALUE>> input) {
-        return new RandomScanFactory<>(input, execCxt, triple);
+        return new RandomScanFactory<>(execCxt, input, triple);
     }
 
     @Override
@@ -150,13 +151,13 @@ public class RawOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
         return new ProjectIterator<>(project, ReturningArgsOpVisitorRouter.visit(this, project.getSubOp(), input));
     }
 
-
     @Override
     public Iterator<BackendBindings<ID, VALUE>> visit(OpExtend extend, Iterator<BackendBindings<ID, VALUE>> input) {
         // TODO throw when the expressions inside the OpExtend are not supported
-        BackendCache<ID,VALUE> cache = execCxt.getContext().get(RawConstants.CACHE);
-        Iterator<BackendBindings<ID, VALUE>> wrapped = ReturningArgsOpVisitorRouter.visit(this, extend.getSubOp(), input);
-        return new BackendBind<>(wrapped, extend, backend, cache, execCxt);
+        Backend<ID,VALUE,?> backend = execCxt.getContext().get(BackendConstants.BACKEND);
+        BackendCache<ID,VALUE> cache = execCxt.getContext().get(BackendConstants.CACHE);
+        BackendOpExecutor<ID,VALUE> executor = execCxt.getContext().get(BackendConstants.EXECUTOR);
+        return new BackendBind.BackendBindsFactory<>(executor, input, extend, backend, cache, execCxt);
     }
 
 

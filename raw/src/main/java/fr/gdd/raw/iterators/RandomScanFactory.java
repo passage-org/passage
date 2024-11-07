@@ -32,6 +32,11 @@ public class RandomScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID
         this.cache = context.getContext().get(RawConstants.CACHE);
     }
 
+    public static <ID,VALUE> IBackendTriplesFactory<ID,VALUE> tripleFactory() {
+        return RandomScanFactory::new;
+    }
+    public static <ID,VALUE> IBackendQuadsFactory<ID,VALUE> quadFactory() { return RandomScanFactory::new; }
+
     @Override
     public boolean hasNext() {
         if (!instantiated.hasNext() && !input.hasNext()) {
