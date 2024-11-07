@@ -41,7 +41,7 @@ public class PassageOptimizer<ID,VALUE> {
         toOptimize = ReturningOpVisitorRouter.visit(new BGP2Triples(), toOptimize);
         toOptimize = Transformer.transform(new TransformPattern2Join(), toOptimize);
         toOptimize = Transformer.transform(new TransformSimplify(), toOptimize);
-        toOptimize = ReturningOpVisitorRouter.visit(new Subqueries2LeftOfJoins(), toOptimize);
+        // toOptimize = ReturningOpVisitorRouter.visit(new Subqueries2LeftOfJoins(), toOptimize);
         return toOptimize;
     }
 

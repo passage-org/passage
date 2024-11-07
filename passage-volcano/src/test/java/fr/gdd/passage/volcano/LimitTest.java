@@ -125,17 +125,55 @@ public class LimitTest {
     }
 
     @Test
-    public void limit_offset_on_bgp_should_not_work () throws RepositoryException {
+    public void limit_offset_on_bgp_should_work_now () throws RepositoryException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
-        String queryAsString = """
+        String queryA = """
+            SELECT * WHERE {
+                ?p <http://address> ?c .
+                ?p <http://own> ?a
+            } LIMIT 1
+            """;
+        var results = OpExecutorUtils.executeWithPassage(queryA, blazegraph);
+        assertEquals(1, results.size()); // either dog, cat, or snake.
+
+        String queryB = """
             SELECT * WHERE {
                 ?p <http://address> ?c .
                 ?p <http://own> ?a
             } OFFSET 1 LIMIT 1
             """;
+        results.addAll(OpExecutorUtils.executeWithPassage(queryB, blazegraph));
+        assertEquals(2, results.size()); // either dog, cat, or snake.
 
-        assertThrows(UnsupportedOperationException.class, () ->
-                OpExecutorUtils.executeWithPassage(queryAsString, blazegraph)
-        );
+        String queryC = """
+            SELECT * WHERE {
+                ?p <http://address> ?c .
+                ?p <http://own> ?a
+            } OFFSET 2 LIMIT 1
+            """;
+        results.addAll(OpExecutorUtils.executeWithPassage(queryC, blazegraph));
+        assertEquals(3, results.size()); // either dog, cat, or snake.
+
+        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "a"),
+                List.of("Alice", "cat"),
+                List.of("Alice", "dog"),
+                List.of("Alice", "snake")));
     }
+
+    @Test
+    public void should_take_into_account_the_compatibility_of_input () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        String queryAsString = """
+            SELECT * WHERE {
+                <http://Bob> <http://address> ?c.
+                {SELECT * WHERE {
+                    ?p <http://address> ?c .
+                    ?p <http://own> ?a
+                } OFFSET 1 LIMIT 2}
+            }""";
+
+        var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
+        assertEquals(0, results.size()); // should be 0 as Bob lives in Paris, and no one owns animals in Paris
+    }
+
 }

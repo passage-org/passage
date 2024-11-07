@@ -20,6 +20,8 @@ public class PassageLimit<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE
     final OpSlice slice;
     final Iterator<BackendBindings<ID,VALUE>> wrapped;
     long produced = 0L;
+    long offset = 0L;
+    boolean consumed = true;
 
     public PassageLimit (ExecutionContext context, OpSlice slice) {
         this.context = context;
@@ -30,11 +32,21 @@ public class PassageLimit<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE
 
     @Override
     public boolean hasNext() {
-        return Objects.nonNull(wrapped) && wrapped.hasNext() && produced < slice.getLength();
+        if (!consumed) { return true; } // found but not consumed yet.
+        if (produced >= slice.getLength()) { return false; } // above LIMIT
+
+        while (slice.getStart() != Long.MIN_VALUE && offset < slice.getStart() && wrapped.hasNext()) {
+            wrapped.next(); // thrown away
+            ++offset; // but cursor increments
+        }
+
+        consumed = !wrapped.hasNext();
+        return !consumed;
     }
 
     @Override
     public BackendBindings<ID, VALUE> next() {
+        consumed = true;
         produced += 1;
         return wrapped.next();
     }
