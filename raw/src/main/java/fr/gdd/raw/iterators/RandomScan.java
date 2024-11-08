@@ -7,7 +7,6 @@ import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
 import fr.gdd.raw.executor.RawConstants;
 import org.apache.jena.atlas.lib.tuple.Tuple;
-import org.apache.jena.atlas.lib.tuple.Tuple3;
 import org.apache.jena.atlas.lib.tuple.TupleFactory;
 import org.apache.jena.sparql.algebra.op.Op0;
 import org.apache.jena.sparql.algebra.op.OpQuad;
@@ -46,7 +45,7 @@ public class RandomScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE
                         opTriple.getTriple().getObject().isVariable() && Objects.isNull(spo.get(2)) ? Var.alloc(opTriple.getTriple().getObject()) : null);
             }
             case OpQuad opQuad -> {
-                this.iterator = backend.search(spo.get(0), spo.get(1), spo.get(2));
+                this.iterator = backend.search(spo.get(0), spo.get(1), spo.get(2), spo.get(3));
                 this.vars = TupleFactory.create4(
                         opQuad.getQuad().getSubject().isVariable() && Objects.isNull(spo.get(0)) ? Var.alloc(opQuad.getQuad().getSubject()) : null,
                         opQuad.getQuad().getPredicate().isVariable() && Objects.isNull(spo.get(1)) ? Var.alloc(opQuad.getQuad().getPredicate()) : null,
@@ -88,6 +87,9 @@ public class RandomScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE
         }
         if (Objects.nonNull(vars.get(2))) {
             newBinding.put(vars.get(2), iterator.getId(SPOC.OBJECT), backend).setCode(vars.get(2), SPOC.OBJECT);
+        }
+        if(Objects.nonNull(vars.get(3))) {
+            newBinding.put(vars.get(3), iterator.getId(SPOC.GRAPH), backend).setCode(vars.get(3), SPOC.GRAPH);
         }
 
         return newBinding;

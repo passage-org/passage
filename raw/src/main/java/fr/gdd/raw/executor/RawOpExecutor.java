@@ -1,25 +1,27 @@
 package fr.gdd.raw.executor;
 
-import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.passage.commons.factories.BackendNestedLoopJoinFactory;
-import fr.gdd.passage.commons.generics.*;
 import fr.gdd.passage.commons.factories.IBackendBindsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
-import fr.gdd.passage.commons.generics.BackendSaver;
 import fr.gdd.passage.commons.generics.BackendCache;
+import fr.gdd.passage.commons.generics.BackendOpExecutor;
+import fr.gdd.passage.commons.generics.BackendSaver;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.iterators.BackendBind;
 import fr.gdd.passage.commons.iterators.BackendFilter;
 import fr.gdd.passage.commons.iterators.BackendProject;
-import fr.gdd.passage.volcano.iterators.*;
 import fr.gdd.passage.volcano.optimizers.CardinalityJoinOrdering;
 import fr.gdd.passage.volcano.pause.Triples2BGP;
 import fr.gdd.passage.volcano.resume.BGP2Triples;
+import fr.gdd.passage.volcano.resume.Graph2Quads;
 import fr.gdd.raw.accumulators.AccumulatorFactory;
 import fr.gdd.raw.budgeting.NaiveBudgeting;
-import fr.gdd.raw.iterators.*;
+import fr.gdd.raw.iterators.ProjectIterator;
+import fr.gdd.raw.iterators.RandomAggregator;
+import fr.gdd.raw.iterators.RandomRoot;
+import fr.gdd.raw.iterators.RandomScanFactory;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.algebra.Algebra;
@@ -47,9 +49,9 @@ public class RawOpExecutor<ID, VALUE> extends BackendOpExecutor<ID, VALUE> { // 
         // TODO default execution context to unburden this class
 
         super(context, BackendProject.factory(), RandomScanFactory.tripleFactory(),
-                RandomScanFactory.quadFactory(), new BackendNestedLoopJoinFactory<>(), PassageUnion.factory(), PassageValues.factory(),
-                BackendBind.factory(), BackendFilter.factory(), PassageDistinct.factory(),
-                new PassageLimitOffset<>(), PassageOptional.factory());
+                RandomScanFactory.quadFactory(), new BackendNestedLoopJoinFactory<>(), null, null,
+                BackendBind.factory(), BackendFilter.factory(), null,
+                null, null, null);
         this.execCxt = context;
     }
 
@@ -58,9 +60,9 @@ public class RawOpExecutor<ID, VALUE> extends BackendOpExecutor<ID, VALUE> { // 
         // that `setBackend` is called, or it will throw at runtime.
 
         super(new ExecutionContext(DatasetFactory.empty().asDatasetGraph()), BackendProject.factory(), RandomScanFactory.tripleFactory(),
-                RandomScanFactory.quadFactory(), new BackendNestedLoopJoinFactory<>(), PassageUnion.factory(), PassageValues.factory(),
-                BackendBind.factory(), BackendFilter.factory(), PassageDistinct.factory(),
-                new PassageLimitOffset<>(), PassageOptional.factory());
+                RandomScanFactory.quadFactory(), new BackendNestedLoopJoinFactory<>(), null, null,
+                BackendBind.factory(), BackendFilter.factory(), null,
+                null, null, null);
 
         execCxt = context;
 
@@ -135,6 +137,8 @@ public class RawOpExecutor<ID, VALUE> extends BackendOpExecutor<ID, VALUE> { // 
 
     public Iterator<BackendBindings<ID, VALUE>> execute(Op root) {
         // #A reordering of bgps if need be
+
+        root = ReturningOpVisitorRouter.visit(new Graph2Quads(), root);
         if (execCxt.getContext().isFalseOrUndef(RawConstants.FORCE_ORDER)) {
             root = ReturningOpVisitorRouter.visit(new Triples2BGP(), root);
             root = new CardinalityJoinOrdering<>(backend, cache).visit(root); // need to have bgp to optimize, no tps
@@ -153,18 +157,6 @@ public class RawOpExecutor<ID, VALUE> extends BackendOpExecutor<ID, VALUE> { // 
     @Override
     public Iterator<BackendBindings<ID, VALUE>> visit(OpQuad quad, Iterator<BackendBindings<ID, VALUE>> input){
         return new RandomScanFactory<>(execCxt, input, quad);
-    }
-
-    @Override
-    public Iterator<BackendBindings<ID, VALUE>> visit(OpGraph graph, Iterator<BackendBindings<ID, VALUE>> args) {
-        // TODO: implement
-        return super.visit(graph, args);
-    }
-
-    @Override
-    public Iterator<BackendBindings<ID, VALUE>> visit(OpQuadBlock block, Iterator<BackendBindings<ID, VALUE>> args) {
-        // TODO: implement
-        return super.visit(block, args);
     }
 
     @Override
