@@ -136,15 +136,19 @@ public class Pause2Next<ID, VALUE> extends BackendSaver<ID,VALUE,Long> {
         if (canBeSkipped.visit((Op) slice)) { // OFFSET alone: is a sub query designed for being skipped
             // behaves as if it does not exist since the tp/qp is interpreted as tp/qp with skip.
             // If need be, the tp/qp will add the slice OFFSET itself.
-            return ReturningOpVisitorRouter.visit(this, canBeSkipped.getTripleOrQuad());
+            PassageLimitOffset.CompatibilityCheckIterator it = (PassageLimitOffset.CompatibilityCheckIterator) getIterator(slice);
+            if (Objects.isNull(it)) { return null; }
+            Op meow = ReturningOpVisitorRouter.visit(this, canBeSkipped.getTripleOrQuad());
+            return it.pause(meow);
         }
-        if (slice.getLength() != Long.MIN_VALUE && slice.getStart() == Long.MIN_VALUE) { // only LIMIT
-            PassageLimit<ID,VALUE> it = (PassageLimit<ID, VALUE>) getIterator(slice);
+        // if (slice.getLength() != Long.MIN_VALUE && slice.getStart() == Long.MIN_VALUE) { // only LIMIT
+            PassageLimitOffset.CompatibilityCheckIterator it = (PassageLimitOffset.CompatibilityCheckIterator) getIterator(slice);
+            // PassageLimit<ID,VALUE> it = (PassageLimit<ID, VALUE>) getIterator(slice);
             if (Objects.isNull(it)) return null;
             return it.pause(super.visit(slice.getSubOp()));
-        }
+        // }
 
-        throw new UnsupportedOperationException("LIMIT OFFSET together is not supported.");
+        // throw new UnsupportedOperationException("LIMIT OFFSET together is not supported.");
     }
 
     @Override
