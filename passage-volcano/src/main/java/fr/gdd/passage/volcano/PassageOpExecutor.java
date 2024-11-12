@@ -49,4 +49,5 @@ public class PassageOpExecutor<ID,VALUE> extends BackendOpExecutor<ID,VALUE> {
         // the iterator does not have next.
         return new PassageRoot<>(context, super.execute(root)); // super  must be called because it sets Executor in context.
     }
+
 }

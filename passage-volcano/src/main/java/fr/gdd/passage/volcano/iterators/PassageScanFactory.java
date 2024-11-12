@@ -25,9 +25,7 @@ import java.util.Set;
 
 public class PassageScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE>> {
 
-    public static <ID,VALUE> IBackendTriplesFactory<ID,VALUE> tripleFactory() {
-        return PassageScanFactory::new;
-    }
+    public static <ID,VALUE> IBackendTriplesFactory<ID,VALUE> tripleFactory() { return PassageScanFactory::new; }
     public static <ID,VALUE> IBackendQuadsFactory<ID,VALUE> quadFactory() { return PassageScanFactory::new; }
 
     public static <ID,VALUE> IBackendTriplesFactory<ID,VALUE> factoryTripleLimitOffset() {

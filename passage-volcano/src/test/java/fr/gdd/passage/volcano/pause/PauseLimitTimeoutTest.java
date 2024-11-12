@@ -9,6 +9,8 @@ import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.openrdf.query.MalformedQueryException;
+import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,6 +96,56 @@ public class PauseLimitTimeoutTest {
                         List.of("Alice", "nantes", "cat")) ||
                 OpExecutorUtils.containsResult(results, List.of("p", "c", "a"),
                         List.of("Alice", "nantes", "snake")));
+    }
+
+    @Test
+    public void make_sure_that_the_limit_offset_is_not_applies_to_each_tp_in_bgp () throws RepositoryException, QueryEvaluationException, MalformedQueryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        String queryAsString = """
+                SELECT * WHERE {
+                    ?a <http://species> ?s. # nantes
+                    {SELECT * WHERE {
+                        ?p <http://own> ?a .
+                        ?a <http://species> <http://reptile>
+                    } LIMIT 1 }
+            }""";
+
+        int nbContinuations = -1;
+        Multiset<BackendBindings<?,?>> results = HashMultiset.create();
+        while (Objects.nonNull(queryAsString)) {
+            log.debug(queryAsString);
+            queryAsString = PauseUtils4Test.executeQuery(queryAsString, blazegraph, results);
+            nbContinuations += 1;
+        }
+        assertEquals(1, results.size());
+        assertTrue(nbContinuations >= 1);
+        // assertEquals(1, results.size()); // should be 1, (processed multiple times without optimization)
+        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "a", "s"),
+                List.of("Alice", "snake", "reptile")));
+    }
+
+    @Test
+    public void limit_offset_on_a_bgp () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        String queryAsString = """
+                SELECT * WHERE {
+                    ?p <http://address> ?c.
+                    ?p <http://own> ?a
+                } OFFSET 2""";
+
+        int nbContinuations = -1;
+        Multiset<BackendBindings<?,?>> results = HashMultiset.create();
+        while (Objects.nonNull(queryAsString)) {
+            log.debug(queryAsString);
+            queryAsString = PauseUtils4Test.executeQuery(queryAsString, blazegraph, results);
+            nbContinuations += 1;
+        }
+        assertEquals(1, results.size());
+        assertTrue(nbContinuations >= 1);
+        // assertEquals(1, results.size()); // should be 1, (processed multiple times without optimization)
+        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "a"), List.of("Alice", "cat")) ||
+                OpExecutorUtils.containsResult(results, List.of("p", "a"), List.of("Alice", "snake")) ||
+                OpExecutorUtils.containsResult(results, List.of("p", "a"), List.of("Alice", "dog")));
     }
 
 }

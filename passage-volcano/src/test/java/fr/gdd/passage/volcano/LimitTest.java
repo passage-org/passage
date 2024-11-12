@@ -1,17 +1,26 @@
 package fr.gdd.passage.volcano;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
+import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.iterators.PassageScan;
+import org.apache.jena.sparql.engine.ExecutionContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.openrdf.query.MalformedQueryException;
+import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.repository.RepositoryException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class LimitTest {
+
+    private final static Logger log = LoggerFactory.getLogger(LimitTest.class);
 
     @BeforeEach
     public void make_sure_we_dont_stop () { PassageScan.stopping = (e) -> false; }
@@ -174,6 +183,57 @@ public class LimitTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(0, results.size()); // should be 0 as Bob lives in Paris, and no one owns animals in Paris
+    }
+
+    @Test
+    public void make_sure_that_the_limit_offset_is_not_applies_to_each_tp_in_bgp () throws RepositoryException, QueryEvaluationException, MalformedQueryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        String queryAsString = """
+                SELECT * WHERE {
+                    ?a <http://species> ?s. # nantes
+                    {SELECT * WHERE {
+                        ?p <http://own> ?a .
+                        ?a <http://species> <http://reptile>
+                    } LIMIT 1 }
+            }""";
+
+        var expected = blazegraph.executeQuery(queryAsString);
+        log.debug("Expected: {}", expected);
+
+        PassageExecutionContext ec = new PassageExecutionContextBuilder().setBackend(blazegraph).setForceOrder(true).build();
+        var results = OpExecutorUtils.executeWithPassage(queryAsString, ec);
+        assertEquals(1, results.size()); // should be 1, (processed multiple times without optimization)
+        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "a", "s"),
+                List.of("Alice", "snake", "reptile")));
+    }
+
+    @Test
+    public void offset_alone_on_bgp () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        String queryAsString = """
+                SELECT * WHERE {
+                    ?p <http://address> ?c .
+                    ?p <http://own> ?a
+                } OFFSET 2""";
+
+        var expected = blazegraph.executeQuery(queryAsString);
+        log.debug("Expected: {}", expected);
+
+        var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
+        assertEquals(1, results.size()); // skipped 2 results, so there is only one left.
+    }
+
+    @Test
+    public void offset_alone_on_bgp_above_nb_results () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        String queryAsString = """
+                SELECT * WHERE {
+                    ?p <http://address> ?c .
+                    ?p <http://own> ?a
+                } OFFSET 1000""";
+
+        var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
+        assertEquals(0, results.size()); // skip all
     }
 
 }
