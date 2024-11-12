@@ -88,7 +88,9 @@ public class RandomScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE
         if (Objects.nonNull(vars.get(2))) {
             newBinding.put(vars.get(2), iterator.getId(SPOC.OBJECT), backend).setCode(vars.get(2), SPOC.OBJECT);
         }
-        if(Objects.nonNull(vars.get(3))) {
+
+        // unsure if this is the right way to do it, but without this check it throws an error for triples
+        if(vars instanceof Tuple4<Var> && Objects.nonNull(vars.get(3))) {
             newBinding.put(vars.get(3), iterator.getId(SPOC.GRAPH), backend).setCode(vars.get(3), SPOC.GRAPH);
         }
 
