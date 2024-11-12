@@ -59,9 +59,9 @@ public class PassageQueryEngine extends QueryEngineBase {
     }
 
     // ---- Factory *************************************************************/
-    public static QueryEngineFactory factory = new SagerQueryEngineFactory();
+    public static QueryEngineFactory factory = new PassageQueryEngineFactory();
 
-    public static class SagerQueryEngineFactory implements QueryEngineFactory {
+    public static class PassageQueryEngineFactory implements QueryEngineFactory {
         @Override
         public boolean accept(Query query, DatasetGraph dataset, Context context) {
             return true;

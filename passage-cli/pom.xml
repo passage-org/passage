@@ -64,7 +64,7 @@
         <version>3.4.1</version>
         <executions>
           <execution>
-            <id>make-assembly-sager</id> <!-- sager -->
+            <id>make-assembly-passage</id>
             <phase>package</phase>
             <goals>
               <goal>single</goal>
@@ -83,7 +83,7 @@
             </configuration>
           </execution>
           <execution>
-            <id>make-assembly-sager-server</id> <!-- sager -->
+            <id>make-assembly-passage-server</id>
             <phase>package</phase>
             <goals>
               <goal>single</goal>

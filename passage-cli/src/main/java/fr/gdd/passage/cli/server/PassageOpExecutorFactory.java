@@ -34,11 +34,11 @@ public class PassageOpExecutorFactory implements OpExecutorFactory {
 
     public static class OpExecutorWrapper extends OpExecutor {
 
-        final PassageOpExecutor sager;
+        final PassageOpExecutor executor;
 
         public OpExecutorWrapper(ExecutionContext ec) {
             super(ec);
-            sager = new PassageOpExecutor<>(new PassageExecutionContextBuilder<>()
+            executor = new PassageOpExecutor<>(new PassageExecutionContextBuilder<>()
                     .setTimeout(ec.getContext().get(PassageConstants.TIMEOUT))
                     .setContext(ec)
                     .build());
@@ -46,7 +46,7 @@ public class PassageOpExecutorFactory implements OpExecutorFactory {
 
         @Override
         public QueryIterator executeOp(Op op, QueryIterator input) {
-            return new BindingWrapper(sager.execute(op), sager);
+            return new BindingWrapper(executor.execute(op), executor);
         }
 
         @Override
