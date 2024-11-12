@@ -9,6 +9,8 @@ import org.junit.jupiter.api.Test;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.repository.RepositoryException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -17,6 +19,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Disabled("Counts not ready yet.")
 public class CountTest {
+
+    private final static Logger log = LoggerFactory.getLogger(CountTest.class);
 
     @BeforeEach
     public void make_sure_we_dont_stop () { PassageScan.stopping = (e) -> false; }
@@ -32,6 +36,17 @@ public class CountTest {
                 List.of("3")));
     }
 
+    @Test
+    public void count_of_something_that_does_not_exist_is_zero() throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        String query = "SELECT (COUNT(*) AS ?count) { ?p <http://does_not_exist> ?c }";
+
+        var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
+        assertEquals(1, results.size()); // ?count = 0
+        assertTrue(OpExecutorUtils.containsResult(results, List.of("count"),
+                List.of("0")));
+    }
+
     @Disabled("Not implemented yet.")
     @Test
     public void count_on_a_specific_variable_but_still_tp() throws RepositoryException {
@@ -42,6 +57,24 @@ public class CountTest {
         assertEquals(1, results.size()); // ?count = 3
         assertTrue(OpExecutorUtils.containsResult(results, List.of("count"),
                 List.of("3")));
+    }
+
+    @Disabled("Not implemented yet.")
+    @Test
+    public void count_in_optional_so_everything_does_not_count() throws RepositoryException, QueryEvaluationException, MalformedQueryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        String query = """
+            SELECT (COUNT(?a) AS ?count) {
+                ?p <http://address> ?c
+                OPTIONAL { ?p <http://own> ?a }}""";
+
+        var expected = blazegraph.executeQuery(query);
+        log.debug("Expected: {}", expected);
+
+        var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
+        assertEquals(1, results.size()); // ?count = 3
+        assertTrue(OpExecutorUtils.containsResult(results, List.of("count"),
+                List.of("3"))); // if count=5, it means that the iterator wrongfully counted Bob and Carol…
     }
 
     @Disabled("The sub-query should be executed all alone.")
@@ -58,15 +91,16 @@ public class CountTest {
             }""";
 
         var expected = blazegraph.executeQuery(query);
+        log.debug("Expected: {}", expected);
         // Alice, Bob, and Carol all have a count of 3 because the sub-query is executed as is.
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
-        assertEquals(3, results.size()); // ?count = 3 for Alice; Bob and Carol have ?count = 0
+        assertEquals(3, results.size());
         assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "count"),
-                List.of("Alice", "3"), List.of("Bob", "0"), List.of("Carol", "0")));
+                List.of("Alice", "3"), List.of("Bob", "3"), List.of("Carol", "3")));
     }
 
-    @Disabled("Group keys not supported yet")
+    @Disabled("Group keys not supported yet.")
     @Test
     public void count_with_bound_variables_projected_this_time_by_the_count () throws RepositoryException, QueryEvaluationException, MalformedQueryException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
@@ -77,8 +111,8 @@ public class CountTest {
             }""";
 
         var expected = blazegraph.executeQuery(query);
+        log.debug("Expected: {}", expected);
         // Only Alice is returned, with a value of 3 since only it matches in the sub-query.
-
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(3, results.size()); // ?count = 3 for Alice; Bob and Carol have ?count = 0

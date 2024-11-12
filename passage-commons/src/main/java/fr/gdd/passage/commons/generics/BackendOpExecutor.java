@@ -146,10 +146,10 @@ public class BackendOpExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
     public Iterator<BackendBindings<ID, VALUE>> visit(OpGroup groupBy, Iterator<BackendBindings<ID, VALUE>> input) {
         for (int i = 0; i < groupBy.getAggregators().size(); ++i) {
             switch (groupBy.getAggregators().get(i).getAggregator()) {
-                case AggCount ac -> {} // nothing, just checking it's handled (this is COUNT(*))
-                case AggCountVar acv -> throw new UnsupportedOperationException("COUNT with variable(s) is not implemented.");  // TODO
-                case AggCountVarDistinct acvd -> throw new UnsupportedOperationException("COUNT DISTINCT with variable(s) is not supported.");
-                case AggCountDistinct acd -> throw new UnsupportedOperationException("COUNT DISTINCT of star (*) is not supported."); // TODO
+                case AggCount ignored -> {} // nothing, just checking it's handled (this is COUNT(*))
+                case AggCountVar ignored -> {}  // nothing, just checking it's handled (this is COUNT(?variable))
+                case AggCountVarDistinct ignored -> throw new UnsupportedOperationException("COUNT DISTINCT with variable(s) is not supported.");
+                case AggCountDistinct ignored -> throw new UnsupportedOperationException("COUNT DISTINCT of star (*) is not supported."); // TODO
                 default -> throw new UnsupportedOperationException("The aggregation function is not implemented: " +
                         groupBy.getAggregators().get(i).toString());
             }

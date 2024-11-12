@@ -21,6 +21,7 @@ import org.apache.jena.sparql.core.VarExprList;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.expr.*;
 import org.apache.jena.sparql.expr.aggregate.AggCount;
+import org.apache.jena.sparql.expr.aggregate.AggCountVar;
 import org.apache.jena.sparql.expr.nodevalue.NodeValueInteger;
 import org.apache.jena.sparql.util.ExprUtils;
 
@@ -75,7 +76,10 @@ public class PassageCount<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE
 
             while (Objects.isNull(wrapped) && input.hasNext()) {
                 BackendBindings<ID,VALUE> bindings = input.next();
-                wrapped = new PassageCount<>(context, executor, op, bindings);
+
+                BackendBindings<ID,VALUE> keyBindings = getKeyBinding(op.getGroupVars().getVars(), bindings);
+
+                wrapped = new PassageCount<>(context, executor, op, keyBindings);
                 if (!wrapped.hasNext()) {
                     wrapped = null;
                 }
@@ -101,15 +105,16 @@ public class PassageCount<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE
     Pair<Var, BackendAccumulator<ID,VALUE>> var2accumulator = null;
     long produced = 0L;
 
-    public PassageCount(ExecutionContext context, BackendOpExecutor<ID, VALUE> executor, OpGroup op, BackendBindings<ID,VALUE> input){
+    public PassageCount(ExecutionContext context, BackendOpExecutor<ID, VALUE> executor, OpGroup opCount, BackendBindings<ID,VALUE> input){
         this.executor = executor;
-        this.op = op;
+        this.op = opCount;
         this.input = input;
         this.context = context;
 
-        for (ExprAggregator agg : op.getAggregators() ) {
+        for (ExprAggregator agg : opCount.getAggregators() ) {
             BackendAccumulator<ID,VALUE> passageCount = switch (agg.getAggregator()) {
-                case AggCount ignored -> new PassageAccCount<>(context, op.getSubOp());
+                case AggCount ignored -> new PassageAccCount<>(context, opCount);
+                case AggCountVar ignored -> new PassageAccCount<>(context, opCount);
                 default -> throw new UnsupportedOperationException("The aggregator is not supported yet.");
             };
             Var v = agg.getVar();
@@ -117,7 +122,7 @@ public class PassageCount<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE
         }
 
         Pause2Next<ID,VALUE> saver = executor.context.getContext().get(PassageConstants.SAVER);
-        saver.register(op, this);
+        saver.register(opCount, this);
 
     }
 

@@ -15,7 +15,6 @@ import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.Table;
 import org.apache.jena.sparql.algebra.TableFactory;
 import org.apache.jena.sparql.algebra.op.OpExtend;
-import org.apache.jena.sparql.algebra.op.OpJoin;
 import org.apache.jena.sparql.algebra.op.OpSequence;
 import org.apache.jena.sparql.algebra.op.OpTable;
 import org.apache.jena.sparql.core.Var;
