@@ -7,6 +7,7 @@ import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
 import fr.gdd.raw.executor.RawConstants;
 import org.apache.jena.atlas.lib.tuple.Tuple;
+import org.apache.jena.atlas.lib.tuple.Tuple4;
 import org.apache.jena.atlas.lib.tuple.TupleFactory;
 import org.apache.jena.sparql.algebra.op.Op0;
 import org.apache.jena.sparql.algebra.op.OpQuad;
@@ -54,7 +55,7 @@ public class RandomScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE
             }
 
             default -> throw new UnsupportedOperationException("Operator unknown: " + opTripleOrQuad);
-        };
+        }
 
 
 
