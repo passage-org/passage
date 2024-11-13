@@ -98,16 +98,18 @@ public class PassageCount<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE
     /* ************************** ACTUAL ITERATOR ************************** */
 
     final BackendOpExecutor<ID,VALUE> executor;
-    final OpGroup op;
+    final OpGroup opCount;
     final BackendBindings<ID,VALUE> input;
     final ExecutionContext context;
+    final Iterator<BackendBindings<ID,VALUE>> wrapped;
 
-    Pair<Var, BackendAccumulator<ID,VALUE>> var2accumulator = null;
+    Pair<Var, BackendAccumulator<ID,VALUE>> var2accumulator = null; // TODO map of Var -> accumulator
     long produced = 0L;
+
 
     public PassageCount(ExecutionContext context, BackendOpExecutor<ID, VALUE> executor, OpGroup opCount, BackendBindings<ID,VALUE> input){
         this.executor = executor;
-        this.op = opCount;
+        this.opCount = opCount;
         this.input = input;
         this.context = context;
 
@@ -115,34 +117,38 @@ public class PassageCount<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE
             BackendAccumulator<ID,VALUE> passageCount = switch (agg.getAggregator()) {
                 case AggCount ignored -> new PassageAccCount<>(context, opCount);
                 case AggCountVar ignored -> new PassageAccCount<>(context, opCount);
-                default -> throw new UnsupportedOperationException("The aggregator is not supported yet.");
+                default -> throw new UnsupportedOperationException("The aggregator is not supported.");
             };
             Var v = agg.getVar();
             var2accumulator = new ImmutablePair<>(v, passageCount);
         }
 
+        // automatically join with the input
+        // TODO if variables that are in keys are not in the input,
+        //      then they should be enumerated as a DISTINCT iterator
+        wrapped = executor.visit(this.opCount.getSubOp(), Iter.of(input));
+
         Pause2Next<ID,VALUE> saver = executor.context.getContext().get(PassageConstants.SAVER);
         saver.register(opCount, this);
-
     }
 
     @Override
     public boolean hasNext() {
-        return produced < 1; // TODO fix that
+        // if the wrapped does not have a next, it means that
+        // the aggregate should not even exist.
+        if (opCount.getGroupVars().isEmpty()) {
+            return produced < 1;
+        }
+        return wrapped.hasNext();
     }
 
     @Override
     public BackendBindings<ID, VALUE> next() {
-        produced += 1;
-        Iterator<BackendBindings<ID,VALUE>> subop = ReturningArgsOpVisitorRouter.visit(executor, op.getSubOp(), Iter.of(input));
-
-        while (subop.hasNext()) {
-            BackendBindings<ID,VALUE> bindings = subop.next();
-            // BackendBindings<ID,VALUE> keyBinding = getKeyBinding(op.getGroupVars().getVars(), bindings);
-
+        while (wrapped.hasNext()) {
+            BackendBindings<ID,VALUE> bindings = wrapped.next();
             var2accumulator.getRight().accumulate(bindings, executor.context);
         }
-
+        produced += 1;
         return createBinding(var2accumulator);
     }
 
@@ -150,12 +156,8 @@ public class PassageCount<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE
     public OpExtend save(OpExtend parent, Op subop) {
         BackendBindings<ID,VALUE> export = createBinding(var2accumulator);
 
-        OpGroup clonedGB = OpCloningUtil.clone(op, subop);
+        OpGroup clonedGB = OpCloningUtil.clone(opCount, subop);
         OpExtend cloned = OpCloningUtil.clone(parent, clonedGB);
-
-//        for (Var v : inputBinding.vars()) {
-//            clonedGB.getGroupVars().add(v);
-//        }
 
         VarExprList exprList = parent.getVarExprList();
         for (int i = 0; i < exprList.size(); ++i) {
@@ -188,7 +190,7 @@ public class PassageCount<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE
     }
 
 
-    /* ************************************************************************* */
+    /* ************************************** UTILITIES ************************************** */
 
     private static <ID,VALUE> BackendBindings<ID,VALUE> getKeyBinding(List<Var> vars, BackendBindings<ID,VALUE> binding) {
         BackendBindings<ID,VALUE> keyBinding = new BackendBindings<>();

@@ -154,9 +154,9 @@ public class BackendOpExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
                         groupBy.getAggregators().get(i).toString());
             }
         }
-        if (!groupBy.getGroupVars().isEmpty()) {
-            throw new UnsupportedOperationException("Group keys are not supported.");
-        }
+//        if (!groupBy.getGroupVars().isEmpty()) {
+//            throw new UnsupportedOperationException("Group keys are not supported.");
+//        }
         return counts.get(context, input, groupBy);
     }
 }

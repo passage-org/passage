@@ -17,7 +17,6 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@Disabled("Counts not ready yet.")
 public class CountTest {
 
     private final static Logger log = LoggerFactory.getLogger(CountTest.class);
@@ -37,21 +36,58 @@ public class CountTest {
     }
 
     @Test
-    public void count_of_something_that_does_not_exist_is_zero() throws RepositoryException {
+    public void count_of_something_that_does_not_exist_is_zero() throws RepositoryException, QueryEvaluationException, MalformedQueryException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String query = "SELECT (COUNT(*) AS ?count) { ?p <http://does_not_exist> ?c }";
 
+        var expected = blazegraph.executeQuery(query);
+        log.debug("Expected: {}", expected);
+
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
-        assertEquals(1, results.size()); // ?count = 0
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("count"),
+        assertEquals(1, results.size()); // not even a ?count = 0
+        assertTrue(OpExecutorUtils.containsResult(results,
+                List.of("count"),
                 List.of("0")));
     }
 
-    @Disabled("Not implemented yet.")
     @Test
-    public void count_on_a_specific_variable_but_still_tp() throws RepositoryException {
+    public void variable_undefined_in_subquery () throws RepositoryException, QueryEvaluationException, MalformedQueryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        String query = "SELECT (COUNT(?undefined) AS ?count) { ?p <http://address> ?c }";
+
+        var expected = blazegraph.executeQuery(query);
+        log.debug("Expected: {}", expected);
+
+        var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
+        assertEquals(1, results.size());
+        assertTrue(OpExecutorUtils.containsResult(results, List.of("count"), List.of("0")));
+    }
+
+    @Test
+    public void count_in_bgp_without_results () throws RepositoryException, QueryEvaluationException, MalformedQueryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        String query = """
+            SELECT (COUNT(*) AS ?count) {
+                VALUES ?c { <http://washington> }
+                ?p <http://address> ?c.
+            }""";
+
+        var expected = blazegraph.executeQuery(query);
+        log.debug("Expected: {}", expected);
+
+        var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
+        assertEquals(1, results.size());
+        assertTrue(OpExecutorUtils.containsResult(results, List.of("count"), List.of("0")));
+    }
+
+
+    @Test
+    public void count_on_a_specific_variable_but_still_tp() throws RepositoryException, QueryEvaluationException, MalformedQueryException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String query = "SELECT (COUNT(?p) AS ?count) { ?p <http://address> ?c }";
+
+        var expected = blazegraph.executeQuery(query);
+        log.debug("Expected: {}", expected);
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(1, results.size()); // ?count = 3
@@ -59,7 +95,6 @@ public class CountTest {
                 List.of("3")));
     }
 
-    @Disabled("Not implemented yet.")
     @Test
     public void count_in_optional_so_everything_does_not_count() throws RepositoryException, QueryEvaluationException, MalformedQueryException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
@@ -77,12 +112,11 @@ public class CountTest {
                 List.of("3"))); // if count=5, it means that the iterator wrongfully counted Bob and Carol…
     }
 
-    @Disabled("The sub-query should be executed all alone.")
     // The sub-query does not project `p`, so it should probably be a carthesian
     // product, unless the variable `p` is projected in the sub-query. However,
     // it requires a `GROUP BY`, which is then difficult to implement for continuations.
     @Test
-    public void simple_count_on_a_single_triple_pattern_driven_by_another_one() throws RepositoryException, QueryEvaluationException, MalformedQueryException {
+    public void a_tp_join_with_a_count_subquery() throws RepositoryException, QueryEvaluationException, MalformedQueryException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String query = """
             SELECT * WHERE {
@@ -100,7 +134,6 @@ public class CountTest {
                 List.of("Alice", "3"), List.of("Bob", "3"), List.of("Carol", "3")));
     }
 
-    @Disabled("Group keys not supported yet.")
     @Test
     public void count_with_bound_variables_projected_this_time_by_the_count () throws RepositoryException, QueryEvaluationException, MalformedQueryException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
@@ -115,9 +148,64 @@ public class CountTest {
         // Only Alice is returned, with a value of 3 since only it matches in the sub-query.
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
-        assertEquals(3, results.size()); // ?count = 3 for Alice; Bob and Carol have ?count = 0
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "count"),
-                List.of("Alice", "3"), List.of("Bob", "0"), List.of("Carol", "0")));
+        assertEquals(1, results.size()); // ?count = 3 for Alice; Bob and Carol don't even exist.
+        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "count"), List.of("Alice", "3")));
+    }
+
+    @Test
+    public void count_with_group_by_at_the_top () throws RepositoryException, QueryEvaluationException, MalformedQueryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        String query = """
+                SELECT ?p (COUNT(*) AS ?nbAnimals) WHERE {
+                    ?p <http://address> ?c .
+                    ?p <http://own> ?animal
+                } GROUP BY ?p""";
+
+        var expected = blazegraph.executeQuery(query);
+        log.debug("Expected: {}", expected);
+
+        var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
+        assertEquals(1, results.size()); // ?count = 3 for Alice; Bob and Carol don't even exist.
+        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "count"), List.of("Alice", "3")));
+    }
+
+    @Disabled("Not implemented yet when multiple COUNTs in a single (sub-)query.")
+    @Test
+    public void multiple_counts_in_a_single_aggregate () throws RepositoryException, QueryEvaluationException, MalformedQueryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        String query = """
+            SELECT (COUNT(?p) AS ?pCount) (COUNT(?animal) AS ?aCount) WHERE {
+                ?p <http://own> ?animal
+            }""";
+
+        var expected = blazegraph.executeQuery(query);
+        log.debug("Expected: {}", expected);
+
+        var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
+        assertEquals(1, results.size());
+        assertTrue(OpExecutorUtils.containsResult(results,
+                List.of("pCount", "aCount"),
+                List.of("3", "3"))); // both 3 since they count the same
+    }
+
+    @Disabled("Not implemented yet when multiple COUNTs in a single (sub-)query.")
+    @Test
+    public void multiple_counts_in_a_single_aggregate_with_optional () throws RepositoryException, QueryEvaluationException, MalformedQueryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        String query = """
+            SELECT (COUNT(?p) AS ?pCount) (COUNT(?a) AS ?aCount) WHERE {
+                ?p <http://address> ?c
+                OPTIONAL { ?p <http://own> ?a }
+            }""";
+
+        var expected = blazegraph.executeQuery(query);
+        log.debug("Expected: {}", expected);
+
+        var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
+        assertEquals(1, results.size());
+        assertTrue(OpExecutorUtils.containsResult(results,
+                List.of("pCount", "aCount"),
+                List.of("5", "3"))); // p: 3 Alices + Bob + Carol; a: dog + cat + snake
     }
 
 }
