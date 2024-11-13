@@ -1,10 +1,11 @@
-package fr.gdd.passage.volcano;
+package fr.gdd.passage.volcano.executes;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
-import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
-import fr.gdd.passage.volcano.iterators.PassageScan;
-import org.apache.jena.sparql.engine.ExecutionContext;
+import fr.gdd.passage.volcano.OpExecutorUtils;
+import fr.gdd.passage.volcano.PassageExecutionContext;
+import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
+import fr.gdd.passage.volcano.iterators.scan.PassageScan;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openrdf.query.MalformedQueryException;

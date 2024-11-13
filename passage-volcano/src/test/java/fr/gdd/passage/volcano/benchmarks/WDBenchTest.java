@@ -4,7 +4,7 @@ import com.bigdata.concurrent.TimeoutException;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.exceptions.NotFoundException;
 import fr.gdd.passage.databases.persistent.Watdiv10M;
-import fr.gdd.passage.volcano.iterators.PassageScan;
+import fr.gdd.passage.volcano.iterators.scan.PassageScan;
 import fr.gdd.passage.volcano.optimizers.CardinalityJoinOrdering;
 import fr.gdd.passage.volcano.pause.PauseUtils4Test;
 import org.apache.commons.lang3.tuple.Pair;

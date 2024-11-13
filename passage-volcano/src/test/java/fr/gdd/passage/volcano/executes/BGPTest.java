@@ -1,9 +1,10 @@
-package fr.gdd.passage.volcano;
+package fr.gdd.passage.volcano.executes;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.benchmarks.WatDivTest;
-import fr.gdd.passage.volcano.iterators.PassageScan;
+import fr.gdd.passage.volcano.iterators.scan.PassageScan;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -14,8 +15,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class BGPTest {
 
@@ -66,6 +69,10 @@ public class BGPTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size());
+        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "predicate", "c"),
+                List.of("Alice", "address", "nantes"),
+                List.of("Bob", "address", "paris"),
+                List.of("Carol", "address", "nantes")));
     }
 
     @Test
@@ -79,6 +86,10 @@ public class BGPTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size());
+        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "predicate", "c"),
+                List.of("Alice", "address", "nantes"),
+                List.of("Bob", "address", "paris"),
+                List.of("Carol", "address", "nantes")));
     }
 
     @Test
@@ -88,10 +99,14 @@ public class BGPTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size()); // Bob, Alice, and Carol.
+        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "c"),
+                List.of("Alice", "nantes"),
+                List.of("Bob", "paris"),
+                List.of("Carol", "nantes")));
     }
 
     @Test
-    public void bgp_of_2_tp () throws RepositoryException {
+    public void bgp_of_2_tps () throws RepositoryException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = """
                SELECT * WHERE {
@@ -101,6 +116,10 @@ public class BGPTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size()); // Alice, Alice, and Alice.
+        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "a"),
+                List.of("Alice", "dog"),
+                List.of("Alice", "cat"),
+                List.of("Alice", "snake")));
     }
 
     @Test
@@ -115,6 +134,10 @@ public class BGPTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size()); // Alice->own->cat,dog,snake
+        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "a", "s"),
+                List.of("Alice", "dog", "canine"),
+                List.of("Alice", "cat", "feline"),
+                List.of("Alice", "snake", "reptile")));
     }
 
 
@@ -140,7 +163,7 @@ public class BGPTest {
         log.info("{}", sum);
     }
 
-    @Disabled(value = "Time consuming.")
+    @Disabled("Time consuming.")
     @Test
     public void on_watdiv_conjunctive_query_10124 () throws RepositoryException, SailException {
         Assumptions.assumeTrue(Path.of(WatDivTest.PATH).toFile().exists());

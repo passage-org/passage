@@ -1,8 +1,9 @@
-package fr.gdd.passage.volcano;
+package fr.gdd.passage.volcano.executes;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
-import fr.gdd.passage.volcano.iterators.PassageScan;
+import fr.gdd.passage.volcano.OpExecutorUtils;
+import fr.gdd.passage.volcano.iterators.scan.PassageScan;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -14,8 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class CountTest {
 
@@ -112,11 +112,11 @@ public class CountTest {
                 List.of("3"))); // if count=5, it means that the iterator wrongfully counted Bob and Carol…
     }
 
-    // The sub-query does not project `p`, so it should probably be a carthesian
-    // product, unless the variable `p` is projected in the sub-query. However,
-    // it requires a `GROUP BY`, which is then difficult to implement for continuations.
     @Test
     public void a_tp_join_with_a_count_subquery() throws RepositoryException, QueryEvaluationException, MalformedQueryException {
+        // The sub-query does not project `p`, so it should probably be a carthesian
+        // product, unless the variable `p` is projected in the sub-query. However,
+        // it requires a `GROUP BY`, which is then difficult to implement for continuations.
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String query = """
             SELECT * WHERE {
@@ -154,6 +154,7 @@ public class CountTest {
 
     @Test
     public void count_with_group_by_at_the_top () throws RepositoryException, QueryEvaluationException, MalformedQueryException {
+        // For now, it throws because GROUP BY needs DISTINCT on keys when they are not bounded by the environment.
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String query = """
                 SELECT ?p (COUNT(*) AS ?nbAnimals) WHERE {
@@ -164,9 +165,7 @@ public class CountTest {
         var expected = blazegraph.executeQuery(query);
         log.debug("Expected: {}", expected);
 
-        var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
-        assertEquals(1, results.size()); // ?count = 3 for Alice; Bob and Carol don't even exist.
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "count"), List.of("Alice", "3")));
+        assertThrows(UnsupportedOperationException.class, () -> OpExecutorUtils.executeWithPassage(query, blazegraph));
     }
 
     @Disabled("Not implemented yet when multiple COUNTs in a single (sub-)query.")

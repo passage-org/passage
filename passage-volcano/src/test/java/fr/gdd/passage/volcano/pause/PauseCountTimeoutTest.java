@@ -4,20 +4,12 @@ import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;
-import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.OpExecutorUtils;
-import fr.gdd.passage.volcano.iterators.PassageScan;
-import org.apache.jena.query.DatasetFactory;
-import org.apache.jena.query.QueryFactory;
-import org.apache.jena.sparql.algebra.Algebra;
-import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.engine.ExecutionContext;
+import fr.gdd.passage.volcano.iterators.scan.PassageScan;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,6 +84,7 @@ public class PauseCountTimeoutTest {
         int nbContinuations = -1;
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);
+            assertEquals(0, results.size());
             queryAsString = PauseUtils4Test.executeQuery(queryAsString, blazegraph, results);
             ++nbContinuations;
         }
@@ -100,65 +93,55 @@ public class PauseCountTimeoutTest {
         assertTrue(OpExecutorUtils.containsResult(results, List.of("count"), List.of("3")));
     }
 
-
-    @Disabled("Simple trial.")
     @Test
-    public void simple_count_on_tp_kindof_groupby_p () throws RepositoryException {
+    public void subquery_count_carthesian_producted () throws RepositoryException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
-        // TODO issue, when preempting the inner tp, it saves the upper
-        // TODO binding with ?p=Alice and ?c=Nantes. But the COUNT filters these
-        // TODO to only retrieve ?count. Therefore, not only the result is return
-        // TODO but without the binding ?p and ?c…
-        // TODO so maybe, re BIND the input before SELECT ?
-        // TODO    maybe, add the input variables in projected values. (Best option probably)
         String queryAsString = """
-        SELECT * WHERE {
-            ?p <http://address> ?c .
-            {SELECT (COUNT(*) AS ?count) { ?p <http://own> ?animal }}
-        }
-        """;
+            SELECT * WHERE {
+                ?p <http://address> ?c .
+                {SELECT (COUNT(*) AS ?count) { ?p <http://own> ?animal }}
+            }""";
 
-        int sum = 0;
-        int nbPreempt = 0;
+        Multiset<BackendBindings<?,?>> results = HashMultiset.create();
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);
-            var result = PauseUtils4Test.executeQuery(queryAsString, blazegraph);
-            sum += result.getLeft();
-            queryAsString = result.getRight();
-            nbPreempt += 1;
-
+            queryAsString = PauseUtils4Test.executeQuery(queryAsString, blazegraph, results);
         }
-        assertEquals(1, nbPreempt);
-        assertEquals(3, sum); // ?count = 3 for Alice; Bob and Carol have ?count = 0
+
+        assertEquals(3, results.size()); // 3 results where ?count = 3
+        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "count"),
+                List.of("Alice", "3"),
+                List.of("Bob", "3"),
+                List.of("Carol", "3")));
     }
 
-    @Disabled("Trial to see what group byies look like.")
-    @Test
-    public void meow() throws RepositoryException, QueryEvaluationException, MalformedQueryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
-        // TODO obtain identical result to this?
-        String queryAsString = """
-        SELECT * WHERE {
-            ?p <http://address> ?address .
-            {SELECT (COUNT(*) AS ?count) ?p { ?p <http://own> ?animal } GROUP BY ?p }
-        }
-        """;
-
-//        (join
-//          (bgp (triple ?p <http://address> ?address))
-//          (project (?count ?p)
-//              (extend ((?count ?.0))
-//              (group (?p) ((?.0 (count)))
-//                  (bgp (triple ?p <http://own> ?animal))))))
-
-        Op meow = Algebra.compile(QueryFactory.create(queryAsString));
-
-        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        ec.getContext().set(BackendConstants.BACKEND, blazegraph);
-
-        var results = blazegraph.executeQuery(queryAsString);
-        log.debug(results.toString());
-    }
+//    @Disabled("Trial to see what group byies look like.")
+//    @Test
+//    public void meow() throws RepositoryException, QueryEvaluationException, MalformedQueryException {
+//        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+//        // TODO obtain identical result to this?
+//        String queryAsString = """
+//        SELECT * WHERE {
+//            ?p <http://address> ?address .
+//            {SELECT (COUNT(*) AS ?count) ?p { ?p <http://own> ?animal } GROUP BY ?p }
+//        }
+//        """;
+//
+//        //        (join
+//        //          (bgp (triple ?p <http://address> ?address))
+//        //          (project (?count ?p)
+//        //              (extend ((?count ?.0))
+//        //              (group (?p) ((?.0 (count)))
+//        //                  (bgp (triple ?p <http://own> ?animal))))))
+//
+//        Op meow = Algebra.compile(QueryFactory.create(queryAsString));
+//
+//        ExecutionContext ec = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
+//        ec.getContext().set(BackendConstants.BACKEND, blazegraph);
+//
+//        var results = blazegraph.executeQuery(queryAsString);
+//        log.debug(results.toString());
+//    }
 
 
 }

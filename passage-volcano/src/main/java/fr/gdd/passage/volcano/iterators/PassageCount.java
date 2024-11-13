@@ -1,7 +1,6 @@
 package fr.gdd.passage.volcano.iterators;
 
 import fr.gdd.jena.utils.OpCloningUtil;
-import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.passage.commons.factories.IBackendCountsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
@@ -16,6 +15,8 @@ import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpExtend;
 import org.apache.jena.sparql.algebra.op.OpGroup;
+import org.apache.jena.sparql.algebra.op.OpSequence;
+import org.apache.jena.sparql.algebra.op.OpTable;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.core.VarExprList;
 import org.apache.jena.sparql.engine.ExecutionContext;
@@ -28,6 +29,7 @@ import org.apache.jena.sparql.util.ExprUtils;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * An aggregator function dedicated to `COUNT` clauses.
@@ -40,11 +42,8 @@ public class PassageCount<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE
 
     public static <ID,VALUE> IBackendCountsFactory<ID,VALUE> factory() {
         return (context, input, group) -> {
-            // BackendSaver<ID,VALUE,?> saver = context.getContext().get(PassageConstants.SAVER);
             BackendOpExecutor<ID,VALUE> executor = context.getContext().get(BackendConstants.EXECUTOR);
-            Iterator<BackendBindings<ID,VALUE>> it = new PassageCount.BackendCountsFactory<>(context, input, group, executor);
-            // saver.register(distinct, distincts);
-            return it;
+            return new BackendCountsFactory<>(context, input, group, executor);
         };
     }
 
@@ -69,20 +68,15 @@ public class PassageCount<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE
         @Override
         public boolean hasNext() {
             if ((Objects.isNull(wrapped) || !wrapped.hasNext()) && !input.hasNext()) return false;
+            if (Objects.nonNull(wrapped) && !wrapped.hasNext()) { wrapped = null; } // reset
 
-            if (Objects.nonNull(wrapped) && !wrapped.hasNext()) {
-                wrapped = null;
-            }
-
+            // enumerate the input
             while (Objects.isNull(wrapped) && input.hasNext()) {
                 BackendBindings<ID,VALUE> bindings = input.next();
 
-                BackendBindings<ID,VALUE> keyBindings = getKeyBinding(op.getGroupVars().getVars(), bindings);
 
-                wrapped = new PassageCount<>(context, executor, op, keyBindings);
-                if (!wrapped.hasNext()) {
-                    wrapped = null;
-                }
+                wrapped = new PassageCount<>(context, executor, op, bindings);
+                if (!wrapped.hasNext()) { wrapped = null; }
             }
 
             return !Objects.isNull(wrapped);
@@ -92,6 +86,7 @@ public class PassageCount<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE
         public BackendBindings<ID, VALUE> next() {
             return wrapped.next();
         }
+
     }
 
 
@@ -100,6 +95,7 @@ public class PassageCount<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE
     final BackendOpExecutor<ID,VALUE> executor;
     final OpGroup opCount;
     final BackendBindings<ID,VALUE> input;
+    final BackendBindings<ID,VALUE> keys;
     final ExecutionContext context;
     final Iterator<BackendBindings<ID,VALUE>> wrapped;
 
@@ -113,6 +109,15 @@ public class PassageCount<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE
         this.input = input;
         this.context = context;
 
+        keys = getKeyBinding(opCount.getGroupVars().getVars(), input);
+        if (keys.variables().stream().anyMatch(v -> Objects.isNull(keys.getBinding(v)))) {
+            // TODO if variables that are in keys are not in the input,
+            //      then they should be enumerated as a DISTINCT iterator.
+            //      Continuation queries on DISTINCT might be feasible only
+            //      under some conditions.
+            throw new UnsupportedOperationException("Unbounded GROUP BY keys in COUNT are not supported yet.");
+        }
+
         for (ExprAggregator agg : opCount.getAggregators() ) {
             BackendAccumulator<ID,VALUE> passageCount = switch (agg.getAggregator()) {
                 case AggCount ignored -> new PassageAccCount<>(context, opCount);
@@ -123,10 +128,8 @@ public class PassageCount<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE
             var2accumulator = new ImmutablePair<>(v, passageCount);
         }
 
-        // automatically join with the input
-        // TODO if variables that are in keys are not in the input,
-        //      then they should be enumerated as a DISTINCT iterator
-        wrapped = executor.visit(this.opCount.getSubOp(), Iter.of(input));
+        // automatically join with the input, but only on keys
+        wrapped = executor.visit(this.opCount.getSubOp(), Iter.of(keys));
 
         Pause2Next<ID,VALUE> saver = executor.context.getContext().get(PassageConstants.SAVER);
         saver.register(opCount, this);
@@ -152,8 +155,20 @@ public class PassageCount<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE
         return createBinding(var2accumulator);
     }
 
+    /**
+     * If paused during the execution, it should return an expression
+     * using the count. For instance `SELECT ((COUNT(*) + 12) AS ?count)…`.
+     */
+    public Op save(OpExtend parent, Op subop) {
+        // If it has an input, it should be saved as well to join with it.
+        Set<Var> vars = input.variables();
+        OpSequence seq = OpSequence.create();
+        for (Var v : vars) {
+            seq.add(OpExtend.extend(OpTable.unit(), v, ExprUtils.parse(input.getBinding(v).getString())));
+        }
 
-    public OpExtend save(OpExtend parent, Op subop) {
+
+        // It should save the current count value processed until there.
         BackendBindings<ID,VALUE> export = createBinding(var2accumulator);
 
         OpGroup clonedGB = OpCloningUtil.clone(opCount, subop);
@@ -186,7 +201,9 @@ public class PassageCount<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE
             cloned.getVarExprList().add(varFullName, newExpr);
         }
 
-        return cloned;
+        seq.add(cloned);
+        Op seqOrSingle = seq.size() > 1 ? seq : seq.get(0);
+        return seqOrSingle;
     }
 
 

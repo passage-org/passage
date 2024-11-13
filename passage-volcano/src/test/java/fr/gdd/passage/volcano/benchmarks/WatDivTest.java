@@ -2,7 +2,7 @@ package fr.gdd.passage.volcano.benchmarks;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.databases.persistent.Watdiv10M;
-import fr.gdd.passage.volcano.iterators.PassageScan;
+import fr.gdd.passage.volcano.iterators.scan.PassageScan;
 import fr.gdd.passage.volcano.pause.PauseUtils4Test;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Disabled;

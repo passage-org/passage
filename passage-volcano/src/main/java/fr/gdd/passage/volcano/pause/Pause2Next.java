@@ -6,6 +6,8 @@ import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.generics.BackendSaver;
 import fr.gdd.passage.volcano.iterators.*;
+import fr.gdd.passage.volcano.iterators.scan.PassageScan;
+import fr.gdd.passage.volcano.iterators.scan.PassageScanFactory;
 import fr.gdd.passage.volcano.resume.CanBeSkipped;
 import fr.gdd.passage.volcano.resume.Subqueries2LeftOfJoins;
 import org.apache.jena.sparql.algebra.Op;
@@ -75,7 +77,7 @@ public class Pause2Next<ID, VALUE> extends BackendSaver<ID,VALUE,Long> {
     public Op visit(OpTriple triple) {
         // It gets a ScanFactory instead of a Scan because the factory
         // contains the input binding that constitutes the state of the scan.
-        PassageScanFactory<ID, VALUE> it = (PassageScanFactory<ID, VALUE>) getIterator(triple);
+        PassageScan<ID, VALUE> it = (PassageScan<ID, VALUE>) getIterator(triple);
 
         // If the scan iterator is not registered, it should not be preempted
         if (Objects.isNull(it)) {return null;}
@@ -90,7 +92,7 @@ public class Pause2Next<ID, VALUE> extends BackendSaver<ID,VALUE,Long> {
 
     @Override
     public Op visit(OpQuad quad) { // very identical to OpTriple
-        PassageScanFactory<ID, VALUE> it = (PassageScanFactory<ID, VALUE>) getIterator(quad);
+        PassageScan<ID, VALUE> it = (PassageScan<ID, VALUE>) getIterator(quad);
         if (Objects.isNull(it)) {return null;}
         return it.pause();
     }
@@ -133,22 +135,16 @@ public class Pause2Next<ID, VALUE> extends BackendSaver<ID,VALUE,Long> {
     @Override
     public Op visit(OpSlice slice) {
         CanBeSkipped canBeSkipped = new CanBeSkipped();
-        if (canBeSkipped.visit((Op) slice)) { // OFFSET alone: is a sub query designed for being skipped
-            // behaves as if it does not exist since the tp/qp is interpreted as tp/qp with skip.
-            // If need be, the tp/qp will add the slice OFFSET itself.
+        if (canBeSkipped.visit((Op) slice)) { // simple OFFSET LIMIT query with only one triple pattern inside
             PassageLimitOffset.CompatibilityCheckIterator it = (PassageLimitOffset.CompatibilityCheckIterator) getIterator(slice);
             if (Objects.isNull(it)) { return null; }
-            Op meow = ReturningOpVisitorRouter.visit(this, canBeSkipped.getTripleOrQuad());
-            return it.pause(meow);
-        }
-        // if (slice.getLength() != Long.MIN_VALUE && slice.getStart() == Long.MIN_VALUE) { // only LIMIT
+            Op tripleOrQuadPaused = ReturningOpVisitorRouter.visit(this, canBeSkipped.getTripleOrQuad());
+            return it.pause(tripleOrQuadPaused);
+        } else { // complex OFFSET LIMIT query or subquery
             PassageLimitOffset.CompatibilityCheckIterator it = (PassageLimitOffset.CompatibilityCheckIterator) getIterator(slice);
-            // PassageLimit<ID,VALUE> it = (PassageLimit<ID, VALUE>) getIterator(slice);
             if (Objects.isNull(it)) return null;
             return it.pause(super.visit(slice.getSubOp()));
-        // }
-
-        // throw new UnsupportedOperationException("LIMIT OFFSET together is not supported.");
+        }
     }
 
     @Override

@@ -7,6 +7,7 @@ import fr.gdd.passage.commons.iterators.BackendBind;
 import fr.gdd.passage.commons.iterators.BackendFilter;
 import fr.gdd.passage.commons.iterators.BackendProject;
 import fr.gdd.passage.volcano.iterators.*;
+import fr.gdd.passage.volcano.iterators.scan.PassageScanFactory;
 import org.apache.jena.sparql.algebra.Op;
 
 import java.util.Iterator;

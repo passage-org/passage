@@ -9,6 +9,7 @@ import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageOpExecutor;
 import fr.gdd.passage.volcano.PassageSubOpExecutor;
+import fr.gdd.passage.volcano.iterators.scan.PassageScanFactory;
 import fr.gdd.passage.volcano.resume.CanBeSkipped;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.sparql.algebra.Op;
@@ -102,8 +103,8 @@ public class PassageLimitOffset<ID,VALUE> implements IBackendLimitOffsetFactory<
 
             if (canSkip) { // for simple sub-query comprising a single TP/QP, efficient skip is allowed.
                 PassageExecutionContext<ID,VALUE> subContext = ((PassageExecutionContext<ID, VALUE>) executor.context).clone();
-                subContext.setLimit(subquery.getLength());
-                subContext.setOffset(subquery.getStart());
+                subContext.setLimit(subquery.getLength() != Long.MIN_VALUE ? subquery.getLength() : null);
+                subContext.setOffset(subquery.getStart() != Long.MIN_VALUE ? subquery.getStart() : null);
                 subContext.setQuery(subquery.getSubOp());
                 this.wrapped = new PassageSubOpExecutor<ID,VALUE>(subContext).visit(subquery.getSubOp(), Iter.of(new BackendBindings<>()));
             } else {
