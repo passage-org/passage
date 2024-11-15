@@ -24,6 +24,9 @@ public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
     public BackendSaver<ID,VALUE,Long> saver;
     public final PassagePaused paused;
     public Op query;
+    Long limit; // null is no limit
+    Long offset; // null is no offset
+    final Long deadline;
 
     public PassageExecutionContext(ExecutionContext context) {
         super(context);
@@ -39,6 +42,8 @@ public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
         }
         this.getContext().setIfUndef(PassageConstants.PAUSED, new PassagePaused());
         this.paused = this.getContext().get(PassageConstants.PAUSED);
+
+        this.deadline = this.getContext().get(PassageConstants.DEADLINE);
     }
 
     /**
@@ -57,12 +62,14 @@ public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
      * @return itself.
      */
     public PassageExecutionContext<ID,VALUE> setLimit(Long limit) {
-        this.getContext().set(PassageConstants.LIMIT, limit);
+        this.limit = Objects.isNull(limit) || limit < 0 ? null : limit;
+        this.getContext().set(PassageConstants.LIMIT, this.limit);
         return this;
     }
 
     public PassageExecutionContext<ID,VALUE> setOffset(Long offset) {
-        this.getContext().set(PassageConstants.OFFSET, offset);
+        this.offset = Objects.isNull(offset) || offset <= 0 ? null : offset;
+        this.getContext().set(PassageConstants.OFFSET, this.offset);
         return this;
     }
 
@@ -81,6 +88,18 @@ public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
             this.cache = cache;
         }
         return this;
+    }
+
+    public Long getLimit() {
+        return limit;
+    }
+
+    public Long getOffset() {
+        return offset;
+    }
+
+    public Long getDeadline() {
+        return deadline;
     }
 
     public PassageExecutionContext<ID,VALUE> clone() {

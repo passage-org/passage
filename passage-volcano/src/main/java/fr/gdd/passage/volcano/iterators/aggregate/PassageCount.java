@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.iterators;
+package fr.gdd.passage.volcano.iterators.aggregate;
 
 import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.passage.commons.factories.IBackendCountsFactory;
@@ -6,17 +6,15 @@ import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.generics.BackendOpExecutor;
 import fr.gdd.passage.commons.interfaces.BackendAccumulator;
+import fr.gdd.passage.commons.iterators.BackendIteratorOverInput;
 import fr.gdd.passage.volcano.PassageConstants;
-import fr.gdd.passage.volcano.accumulators.PassageAccCount;
+import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.pause.Pause2Next;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.algebra.op.OpExtend;
-import org.apache.jena.sparql.algebra.op.OpGroup;
-import org.apache.jena.sparql.algebra.op.OpSequence;
-import org.apache.jena.sparql.algebra.op.OpTable;
+import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.core.VarExprList;
 import org.apache.jena.sparql.engine.ExecutionContext;
@@ -29,7 +27,6 @@ import org.apache.jena.sparql.util.ExprUtils;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * An aggregator function dedicated to `COUNT` clauses.
@@ -41,73 +38,25 @@ import java.util.Set;
 public class PassageCount<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
 
     public static <ID,VALUE> IBackendCountsFactory<ID,VALUE> factory() {
-        return (context, input, group) -> {
-            BackendOpExecutor<ID,VALUE> executor = context.getContext().get(BackendConstants.EXECUTOR);
-            return new BackendCountsFactory<>(context, input, group, executor);
-        };
+        return (context, input, agg) -> new BackendIteratorOverInput<>(context, input, agg, PassageCount::new);
     }
-
-    /* ********************** FACTORY OF ITERATOR PER INPUT ******************* */
-
-    public static class BackendCountsFactory<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
-
-        final ExecutionContext context;
-        final Iterator<BackendBindings<ID,VALUE>> input;
-        final OpGroup op;
-        final BackendOpExecutor<ID,VALUE> executor;
-        Iterator<BackendBindings<ID,VALUE>> wrapped;
-
-        public BackendCountsFactory (ExecutionContext context, Iterator<BackendBindings<ID,VALUE>> input, OpGroup op,
-                                     BackendOpExecutor<ID,VALUE> executor) {
-            this.context = context;
-            this.input = input;
-            this.op = op;
-            this.executor = executor;
-        }
-
-        @Override
-        public boolean hasNext() {
-            if ((Objects.isNull(wrapped) || !wrapped.hasNext()) && !input.hasNext()) return false;
-            if (Objects.nonNull(wrapped) && !wrapped.hasNext()) { wrapped = null; } // reset
-
-            // enumerate the input
-            while (Objects.isNull(wrapped) && input.hasNext()) {
-                BackendBindings<ID,VALUE> bindings = input.next();
-
-
-                wrapped = new PassageCount<>(context, executor, op, bindings);
-                if (!wrapped.hasNext()) { wrapped = null; }
-            }
-
-            return !Objects.isNull(wrapped);
-        }
-
-        @Override
-        public BackendBindings<ID, VALUE> next() {
-            return wrapped.next();
-        }
-
-    }
-
-
-    /* ************************** ACTUAL ITERATOR ************************** */
 
     final BackendOpExecutor<ID,VALUE> executor;
     final OpGroup opCount;
     final BackendBindings<ID,VALUE> input;
     final BackendBindings<ID,VALUE> keys;
-    final ExecutionContext context;
+    final PassageExecutionContext<ID,VALUE> context;
     final Iterator<BackendBindings<ID,VALUE>> wrapped;
 
     Pair<Var, BackendAccumulator<ID,VALUE>> var2accumulator = null; // TODO map of Var -> accumulator
     long produced = 0L;
 
-
-    public PassageCount(ExecutionContext context, BackendOpExecutor<ID, VALUE> executor, OpGroup opCount, BackendBindings<ID,VALUE> input){
-        this.executor = executor;
+    public PassageCount(ExecutionContext context, BackendBindings<ID,VALUE> input, OpGroup opCount){
+        this.context = (PassageExecutionContext<ID, VALUE>) context;
+        this.executor = context.getContext().get(BackendConstants.EXECUTOR); // TODO put it in context
         this.opCount = opCount;
         this.input = input;
-        this.context = context;
+
 
         keys = getKeyBinding(opCount.getGroupVars().getVars(), input);
         if (keys.variables().stream().anyMatch(v -> Objects.isNull(keys.getBinding(v)))) {
@@ -160,12 +109,6 @@ public class PassageCount<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE
      * using the count. For instance `SELECT ((COUNT(*) + 12) AS ?count)…`.
      */
     public Op save(OpExtend parent, Op subop) {
-        // If it has an input, it should be saved as well to join with it.
-        Set<Var> vars = input.variables();
-        OpSequence seq = OpSequence.create();
-        for (Var v : vars) {
-            seq.add(OpExtend.extend(OpTable.unit(), v, ExprUtils.parse(input.getBinding(v).getString())));
-        }
 
 
         // It should save the current count value processed until there.
@@ -201,9 +144,7 @@ public class PassageCount<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE
             cloned.getVarExprList().add(varFullName, newExpr);
         }
 
-        seq.add(cloned);
-        Op seqOrSingle = seq.size() > 1 ? seq : seq.get(0);
-        return seqOrSingle;
+        return OpJoin.create(input.toOp(), cloned); // add the environment mapping
     }
 
 

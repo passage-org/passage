@@ -1,10 +1,10 @@
-package fr.gdd.passage.volcano;
+package fr.gdd.passage.volcano.iterators.limitoffset;
 
 import fr.gdd.passage.commons.factories.BackendNestedLoopJoinFactory;
 import fr.gdd.passage.commons.generics.BackendOpExecutor;
 import fr.gdd.passage.commons.iterators.BackendBind;
 import fr.gdd.passage.commons.iterators.BackendProject;
-import fr.gdd.passage.volcano.iterators.scan.PassageScanFactory;
+import fr.gdd.passage.volcano.iterators.scan.PassageScan;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
 /**
@@ -12,11 +12,11 @@ import org.apache.jena.sparql.engine.ExecutionContext;
  * This limited sub-set of operators allows us to pause/resume the query execution
  * when needed.
  */
-public class PassageSubOpExecutor <ID,VALUE> extends BackendOpExecutor<ID,VALUE> {
+public class PassageLimitOffsetSimple<ID,VALUE> extends BackendOpExecutor<ID,VALUE> {
 
-    public PassageSubOpExecutor(ExecutionContext context) {
+    public PassageLimitOffsetSimple(ExecutionContext context) {
         super(context, BackendProject.factory(),
-                PassageScanFactory.tripleFactory(), PassageScanFactory.quadFactory(),
+                PassageScan.triplesFactory(), PassageScan.quadsFactory(),
                 new BackendNestedLoopJoinFactory<>(), null, null, BackendBind.factory(),
                 null, null, null, null, null);
     }

@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.resume;
+package fr.gdd.passage.volcano.transforms;
 
 import fr.gdd.jena.utils.FlattenUnflatten;
 import fr.gdd.jena.visitors.ReturningOpBaseVisitor;

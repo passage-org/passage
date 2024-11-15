@@ -1,8 +1,7 @@
-package fr.gdd.passage.volcano.iterators;
+package fr.gdd.passage.volcano.iterators.limitoffset;
 
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
-import fr.gdd.passage.commons.generics.BackendOpExecutor;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageOpExecutor;
 import org.apache.jena.atlas.iterator.Iter;
@@ -15,7 +14,7 @@ import java.util.Iterator;
 /**
  * No input. The sub query must be evaluated all alone.
  */
-public class PassageLimit<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
+public class PassageLimitOffsetComplex<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
 
     final PassageExecutionContext<ID,VALUE> context;
     final OpSlice slice;
@@ -24,7 +23,7 @@ public class PassageLimit<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE
     long offset = 0L;
     boolean consumed = true;
 
-    public PassageLimit (ExecutionContext context, OpSlice slice) {
+    public PassageLimitOffsetComplex(ExecutionContext context, OpSlice slice) {
         this.context = (PassageExecutionContext<ID, VALUE>) context;
         this.slice = slice;
         PassageOpExecutor<ID,VALUE> executor = context.getContext().get(BackendConstants.EXECUTOR);

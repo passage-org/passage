@@ -1,13 +1,11 @@
-package fr.gdd.passage.volcano.pause;
+package fr.gdd.passage.volcano.transforms;
 
 import fr.gdd.jena.utils.FlattenUnflatten;
 import fr.gdd.jena.visitors.ReturningOpBaseVisitor;
-import fr.gdd.passage.volcano.resume.BGP2Triples;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpBGP;
 import org.apache.jena.sparql.algebra.op.OpJoin;
-import org.apache.jena.sparql.algebra.op.OpSequence;
 import org.apache.jena.sparql.algebra.op.OpTriple;
 import org.apache.jena.sparql.core.BasicPattern;
 

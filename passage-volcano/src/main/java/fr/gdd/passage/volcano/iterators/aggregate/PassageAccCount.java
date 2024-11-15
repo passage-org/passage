@@ -1,10 +1,9 @@
-package fr.gdd.passage.volcano.accumulators;
+package fr.gdd.passage.volcano.iterators.aggregate;
 
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendAccumulator;
-import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpGroup;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ExecutionContext;

@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.optimizers;
+package fr.gdd.passage.volcano.transforms;
 
 import fr.gdd.jena.utils.FlattenUnflatten;
 import fr.gdd.jena.visitors.ReturningOpVisitor;
@@ -7,8 +7,7 @@ import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
-import fr.gdd.passage.volcano.iterators.scan.PassageScanFactory;
-import org.apache.jena.atlas.iterator.Iter;
+import fr.gdd.passage.volcano.iterators.scan.PassageScan;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpJoin;
 import org.apache.jena.sparql.algebra.op.OpSlice;
@@ -44,7 +43,7 @@ public class PartitionRoot<ID,VALUE> extends ReturningOpVisitor<Op> {
                 .build()
                 .setQuery(null);
 
-        PassageScanFactory<ID,VALUE> scan = new PassageScanFactory<>(context, Iter.of(new BackendBindings<>()), triple);
+        PassageScan<ID,VALUE> scan = new PassageScan<>(context, new BackendBindings<>(), triple);
         scan.hasNext(); // TODO remove this `hasNext`
         double cardinality = scan.cardinality();
 

@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.pause;
+package fr.gdd.passage.volcano.transforms;
 
 import fr.gdd.jena.visitors.ReturningOpBaseVisitor;
 import org.apache.jena.sparql.algebra.Op;

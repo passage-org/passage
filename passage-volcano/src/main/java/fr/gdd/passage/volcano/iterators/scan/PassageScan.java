@@ -1,12 +1,20 @@
 package fr.gdd.passage.volcano.iterators.scan;
 
+import fr.gdd.passage.commons.exceptions.NotFoundException;
+import fr.gdd.passage.commons.factories.IBackendQuadsFactory;
+import fr.gdd.passage.commons.factories.IBackendTriplesFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
+import fr.gdd.passage.commons.generics.BackendCache;
+import fr.gdd.passage.commons.generics.Substitutor;
+import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
+import fr.gdd.passage.commons.iterators.BackendIteratorOverInput;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.iterators.PauseException;
 import fr.gdd.passage.volcano.iterators.PausableIterator;
+import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.atlas.lib.tuple.TupleFactory;
 import org.apache.jena.sparql.algebra.Op;
@@ -24,7 +32,15 @@ import java.util.function.Function;
 /**
  * The most default basic simple iterator that scans the dataset.
  */
-public class PassageScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE>>, PausableIterator {
+public class PassageScan<ID, VALUE> extends PausableIterator<ID,VALUE> implements Iterator<BackendBindings<ID, VALUE>>{
+
+    public static <ID,VALUE> IBackendTriplesFactory<ID,VALUE> triplesFactory() {
+        return (context, input, op) -> new BackendIteratorOverInput<>(context, input, (Op0) op, PassageScan::new);
+    }
+
+    public static <ID,VALUE> IBackendQuadsFactory<ID,VALUE> quadsFactory() {
+        return (context, input, op) -> new BackendIteratorOverInput<>(context, input, (Op0) op, PassageScan::new);
+    }
 
     /**
      * By default, this is based on execution time. However, developers can change it
@@ -33,45 +49,65 @@ public class PassageScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALU
     public static Function<ExecutionContext, Boolean> stopping = (ec) ->
             System.currentTimeMillis() >= ec.getContext().getLong(PassageConstants.DEADLINE, Long.MAX_VALUE);
 
+    final Backend<ID,VALUE,Long> backend;
+    final BackendCache<ID,VALUE> cache;
     final Long deadline;
     final Op0 op;
-    final BackendIterator<ID, VALUE, Long> wrapped;
-    final Tuple<Var> vars; // needed to create bindings var -> value
+
     final PassageExecutionContext<ID,VALUE> context;
     final BackendBindings<ID,VALUE> input;
     final Long limit;
     final Long offset;
 
+    BackendIterator<ID, VALUE, Long> wrapped;
+    Tuple<Var> vars; // needed to create bindings var -> value
     Long produced = 0L;
+    boolean consumed = true;
 
-    public PassageScan(ExecutionContext context, BackendBindings<ID,VALUE> input, Op0 tripleOrQuad,
-                       Tuple<ID> spoc, BackendIterator<ID, VALUE, Long> wrapped, Long offset, Long limit) {
+    public PassageScan(ExecutionContext context, BackendBindings<ID,VALUE> input, Op0 tripleOrQuad) {
+        super((PassageExecutionContext<ID, VALUE>) context, tripleOrQuad);
         this.context = (PassageExecutionContext<ID, VALUE>) context;
-        this.deadline = context.getContext().getLong(PassageConstants.DEADLINE, Long.MAX_VALUE);
-        this.wrapped = wrapped;
+        this.backend = this.context.backend;
+        this.cache = this.context.cache;
         this.op = tripleOrQuad;
         this.input = input;
-        this.limit = limit;
-        this.offset = offset;
 
-        this.vars = switch (op) {
-            case OpTriple opTriple -> TupleFactory.create3(
-                    opTriple.getTriple().getSubject().isVariable() && Objects.isNull(spoc.get(SPOC.SUBJECT)) ? Var.alloc(opTriple.getTriple().getSubject()) : null,
-                    opTriple.getTriple().getPredicate().isVariable() && Objects.isNull(spoc.get(SPOC.PREDICATE)) ? Var.alloc(opTriple.getTriple().getPredicate()) : null,
-                    opTriple.getTriple().getObject().isVariable() && Objects.isNull(spoc.get(SPOC.OBJECT)) ? Var.alloc(opTriple.getTriple().getObject()) : null);
-            case OpQuad opQuad -> TupleFactory.create4(
-                    opQuad.getQuad().getSubject().isVariable() && Objects.isNull(spoc.get(SPOC.SUBJECT)) ? Var.alloc(opQuad.getQuad().getSubject()) : null,
-                    opQuad.getQuad().getPredicate().isVariable() && Objects.isNull(spoc.get(SPOC.PREDICATE)) ? Var.alloc(opQuad.getQuad().getPredicate()) : null,
-                    opQuad.getQuad().getObject().isVariable() && Objects.isNull(spoc.get(SPOC.OBJECT)) ? Var.alloc(opQuad.getQuad().getObject()) : null,
-                    opQuad.getQuad().getGraph().isVariable() && Objects.isNull(spoc.get(SPOC.GRAPH)) ? Var.alloc(opQuad.getQuad().getGraph()) : null);
-            default -> throw new UnsupportedOperationException("Operator unknown: " + op);
-        };
+        try {
+            switch (tripleOrQuad) {
+                case OpTriple opTriple -> {
+                    Tuple<ID> spo = Substitutor.substitute(opTriple.getTriple(), input, cache);
+                    this.vars = TupleFactory.create3(
+                            opTriple.getTriple().getSubject().isVariable() && Objects.isNull(spo.get(SPOC.SUBJECT)) ? Var.alloc(opTriple.getTriple().getSubject()) : null,
+                            opTriple.getTriple().getPredicate().isVariable() && Objects.isNull(spo.get(SPOC.PREDICATE)) ? Var.alloc(opTriple.getTriple().getPredicate()) : null,
+                            opTriple.getTriple().getObject().isVariable() && Objects.isNull(spo.get(SPOC.OBJECT)) ? Var.alloc(opTriple.getTriple().getObject()) : null);
+                    this.wrapped = backend.search(spo.get(SPOC.SUBJECT), spo.get(SPOC.PREDICATE), spo.get(SPOC.OBJECT));
+                }
+                case OpQuad opQuad -> {
+                    Tuple<ID> spoc = Substitutor.substitute(opQuad.getQuad(), input, cache);
+                    this.vars = TupleFactory.create4(
+                            opQuad.getQuad().getSubject().isVariable() && Objects.isNull(spoc.get(SPOC.SUBJECT)) ? Var.alloc(opQuad.getQuad().getSubject()) : null,
+                            opQuad.getQuad().getPredicate().isVariable() && Objects.isNull(spoc.get(SPOC.PREDICATE)) ? Var.alloc(opQuad.getQuad().getPredicate()) : null,
+                            opQuad.getQuad().getObject().isVariable() && Objects.isNull(spoc.get(SPOC.OBJECT)) ? Var.alloc(opQuad.getQuad().getObject()) : null,
+                            opQuad.getQuad().getGraph().isVariable() && Objects.isNull(spoc.get(SPOC.GRAPH)) ? Var.alloc(opQuad.getQuad().getGraph()) : null);
+                    this.wrapped = backend.search(spoc.get(SPOC.SUBJECT), spoc.get(SPOC.PREDICATE), spoc.get(SPOC.OBJECT), spoc.get(SPOC.GRAPH));
+                }
+                default -> throw new UnsupportedOperationException("Operator not handle here: " + tripleOrQuad);
+            }
+        } catch (NotFoundException | IllegalArgumentException e) {
+            this.vars = null;
+            this.wrapped = null;
+        }
 
-        if (Objects.nonNull(offset) && offset > 0) wrapped.skip(offset); // quick skip
+        this.deadline = this.context.getDeadline();
+        this.limit = this.context.getLimit();
+        this.offset = this.context.getOffset();
+        if (Objects.nonNull(wrapped) && Objects.nonNull(offset) && offset > 0) wrapped.skip(offset); // quick skip
     }
 
     @Override
     public boolean hasNext() {
+        if (Objects.isNull(wrapped)) {return false;}
+        if (!consumed) {return true;}
         if (Objects.nonNull(limit) && produced >= limit) return false;
 
         boolean result = wrapped.hasNext();
@@ -81,11 +117,14 @@ public class PassageScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALU
             throw new PauseException(op);
         }
 
+        consumed = !result;
+
         return result;
     }
 
     @Override
     public BackendBindings<ID, VALUE> next() {
+        consumed = true;
         produced += 1;
         wrapped.next();
 
@@ -109,6 +148,13 @@ public class PassageScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALU
         return newBinding.setParent(input);
     }
 
+    public double cardinality(){
+        if (Objects.nonNull(wrapped) && this.wrapped.hasNext()) {
+            return this.wrapped.cardinality();
+        }
+        return 0.;
+    }
+
     /**
      * @return The Jena operator that summarizes the current state of this scan iterator.
      * It is made of `Bind … As …` to save the state that created this iterator, plus the triple pattern
@@ -119,15 +165,8 @@ public class PassageScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALU
     public Op pause() {
         if (!this.hasNext()) { return null; }
 
-        Set<Var> vars = input.variables();
-        OpSequence seq = OpSequence.create();
-        for (Var v : vars) {
-            seq.add(OpExtend.extend(OpTable.unit(), v, ExprUtils.parse(input.getBinding(v).getString())));
-        }
-        seq.add(op);
-
-        Op seqOrSingle = seq.size() > 1 ? seq : seq.get(0);
+        Op toSave = OpJoin.create(input.toOp(), op);
         long newLimit = Objects.isNull(limit) || limit == Long.MIN_VALUE ? Long.MIN_VALUE : limit - produced;
-        return new OpSlice(seqOrSingle, wrapped.current(), newLimit);
+        return new OpSlice(toSave, wrapped.current(), newLimit);
     }
 }

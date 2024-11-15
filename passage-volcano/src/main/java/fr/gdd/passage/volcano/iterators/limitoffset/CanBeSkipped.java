@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.resume;
+package fr.gdd.passage.volcano.iterators.limitoffset;
 
 import fr.gdd.jena.visitors.ReturningOpVisitor;
 import org.apache.jena.sparql.algebra.Op;
@@ -8,7 +8,7 @@ import org.apache.jena.sparql.algebra.op.*;
  * Visits a query or a subquery and states if the OFFSET operation
  * can use a fast skip algorithm or not. Not every operation are allowed skipping.
  * Mostly triple patterns and quad patterns, along with direct modifiers on them, e.g.
- * bound variables.
+ * bounded variables.
  */
 public class CanBeSkipped extends ReturningOpVisitor<Boolean> {
 

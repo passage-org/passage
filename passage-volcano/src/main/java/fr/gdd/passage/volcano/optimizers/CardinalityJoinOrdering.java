@@ -8,7 +8,7 @@ import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
-import fr.gdd.passage.volcano.iterators.scan.PassageScanFactory;
+import fr.gdd.passage.volcano.iterators.scan.PassageScan;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.atlas.iterator.Iter;
@@ -78,8 +78,7 @@ public class CardinalityJoinOrdering<ID,VALUE> extends ReturningArgsOpVisitor<
         List<Pair<OpTriple, Double>> triple2card = new ArrayList<>();
         for (Triple t : bgp.getPattern()) {
             OpTriple key = new OpTriple(t);
-            PassageScanFactory<ID,VALUE> scan = new PassageScanFactory<>(fakeContext, Iter.of(new BackendBindings<>()), key);
-            scan.hasNext(); // to make sure it's properly initialized, whether it has next or not does not matter
+            PassageScan<ID,VALUE> scan = new PassageScan<>(fakeContext, new BackendBindings<>(), key);
             log.debug("{} => {}", key.getTriple(), scan.cardinality());
             triple2card.add(new ImmutablePair<>(key, scan.cardinality()));
         }
@@ -118,8 +117,7 @@ public class CardinalityJoinOrdering<ID,VALUE> extends ReturningArgsOpVisitor<
         List<Pair<OpQuad, Double>> quad2card = new ArrayList<>();
         for (Quad q : opQuadblock.getPattern().getList()) {
             OpQuad key = new OpQuad(q);
-            PassageScanFactory<ID,VALUE> scan = new PassageScanFactory<>(fakeContext, Iter.of(new BackendBindings<>()), key);
-            scan.hasNext(); // to make sure it's properly initialized, whether it has next or not does not matter
+            PassageScan<ID,VALUE> scan = new PassageScan<>(fakeContext, new BackendBindings<>(), key);
             log.debug("{} => {}", key.getQuad(), scan.cardinality());
             quad2card.add(new ImmutablePair<>(key, scan.cardinality()));
         }

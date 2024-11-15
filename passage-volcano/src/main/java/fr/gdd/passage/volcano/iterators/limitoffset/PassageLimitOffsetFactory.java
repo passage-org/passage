@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.iterators;
+package fr.gdd.passage.volcano.iterators.limitoffset;
 
 import fr.gdd.passage.commons.factories.IBackendLimitOffsetFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
@@ -8,9 +8,7 @@ import fr.gdd.passage.commons.generics.BackendSaver;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageOpExecutor;
-import fr.gdd.passage.volcano.PassageSubOpExecutor;
-import fr.gdd.passage.volcano.iterators.scan.PassageScanFactory;
-import fr.gdd.passage.volcano.resume.CanBeSkipped;
+import fr.gdd.passage.volcano.iterators.scan.PassageScan;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpExtend;
@@ -33,7 +31,7 @@ import java.util.Set;
  * it must skip X elements of the iterator. But the pattern must be accurate: a single
  * triple pattern.
  */
-public class PassageLimitOffset<ID,VALUE> implements IBackendLimitOffsetFactory<ID,VALUE> {
+public class PassageLimitOffsetFactory<ID,VALUE> implements IBackendLimitOffsetFactory<ID,VALUE> {
 
     @Override
     public Iterator<BackendBindings<ID, VALUE>> get(ExecutionContext context, Iterator<BackendBindings<ID, VALUE>> input, OpSlice slice) {
@@ -106,7 +104,7 @@ public class PassageLimitOffset<ID,VALUE> implements IBackendLimitOffsetFactory<
                 subContext.setLimit(subquery.getLength() != Long.MIN_VALUE ? subquery.getLength() : null);
                 subContext.setOffset(subquery.getStart() != Long.MIN_VALUE ? subquery.getStart() : null);
                 subContext.setQuery(subquery.getSubOp());
-                this.wrapped = new PassageSubOpExecutor<ID,VALUE>(subContext).visit(subquery.getSubOp(), Iter.of(new BackendBindings<>()));
+                this.wrapped = new PassageLimitOffsetSimple<ID,VALUE>(subContext).visit(subquery.getSubOp(), Iter.of(new BackendBindings<>()));
             } else {
                 // otherwise, resort to a slow enumeration of results until OFFSET is reached.
                 // TODO improve the handling of sub-queries
@@ -115,7 +113,7 @@ public class PassageLimitOffset<ID,VALUE> implements IBackendLimitOffsetFactory<
                 subContext.setOffset(null); // handled by PassageLimit directly
                 subContext.setQuery(subquery.getSubOp());
                 new PassageOpExecutor<>(subContext); // registers a new passage executor.
-                this.wrapped = new PassageLimit<>(subContext, subquery);
+                this.wrapped = new PassageLimitOffsetComplex<>(subContext, subquery);
             }
             BackendSaver<ID, VALUE, ?> saver = executor.context.getContext().get(PassageConstants.SAVER);
             saver.register(subquery, this);
@@ -155,14 +153,15 @@ public class PassageLimitOffset<ID,VALUE> implements IBackendLimitOffsetFactory<
             for (Var v : vars) {
                 seq.add(OpExtend.extend(OpTable.unit(), v, ExprUtils.parse(input.getBinding(v).getString())));
             }
-            if (wrapped instanceof PassageLimit<ID,VALUE> complexQuery) {
-                seq.add(complexQuery.pause(inside));
-            } else if (wrapped instanceof PassageScanFactory simpleQuery) { // TODO unuglify
+
+            Boolean canSkip = new CanBeSkipped().visit((Op) subquery);
+            if (canSkip) {
                 seq.add(inside); // everything already included within `inside`.
+            } else {
+                seq.add(((PassageLimitOffsetComplex<ID,VALUE>) wrapped).pause(inside));
             }
 
-            Op seqOrSingle = seq.size() > 1 ? seq : seq.get(0);
-            return seqOrSingle;
+            return seq.size() > 1 ? seq : seq.get(0);
         }
     }
 

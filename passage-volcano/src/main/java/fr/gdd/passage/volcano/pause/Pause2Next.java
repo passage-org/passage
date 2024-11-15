@@ -5,11 +5,17 @@ import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.generics.BackendSaver;
-import fr.gdd.passage.volcano.iterators.*;
+import fr.gdd.passage.volcano.iterators.aggregate.PassageCount;
+import fr.gdd.passage.volcano.iterators.distinct.PassageDistinct;
+import fr.gdd.passage.volcano.iterators.limitoffset.PassageLimitOffsetFactory;
+import fr.gdd.passage.volcano.iterators.optional.PassageOptional;
 import fr.gdd.passage.volcano.iterators.scan.PassageScan;
-import fr.gdd.passage.volcano.iterators.scan.PassageScanFactory;
-import fr.gdd.passage.volcano.resume.CanBeSkipped;
-import fr.gdd.passage.volcano.resume.Subqueries2LeftOfJoins;
+import fr.gdd.passage.volcano.iterators.union.PassageUnion;
+import fr.gdd.passage.volcano.iterators.values.PassageValues;
+import fr.gdd.passage.volcano.iterators.limitoffset.CanBeSkipped;
+import fr.gdd.passage.volcano.transforms.Quad2Pattern;
+import fr.gdd.passage.volcano.transforms.Subqueries2LeftOfJoins;
+import fr.gdd.passage.volcano.transforms.Triples2BGP;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.engine.ExecutionContext;
@@ -25,6 +31,9 @@ import java.util.Objects;
  */
 public class Pause2Next<ID, VALUE> extends BackendSaver<ID,VALUE,Long> {
 
+    public Pause2Next(ExecutionContext context) {
+        super(context.getContext().get(BackendConstants.BACKEND),null);
+    }
     public Pause2Next(Op root, ExecutionContext context) {
         super(context.getContext().get(BackendConstants.BACKEND), root);
     }
@@ -124,24 +133,19 @@ public class Pause2Next<ID, VALUE> extends BackendSaver<ID,VALUE,Long> {
         // not executed yet, otherwise would exist. So no need to preempt it.
         if (Objects.isNull(u)) {return null;}
 
-        if (u.onLeft()) {  // preempt the left, copy the right for later
-            Op left = ReturningOpVisitorRouter.visit(this, union.getLeft());
-            return FlattenUnflatten.unflattenUnion(Arrays.asList(left, union.getRight()));
-        } else { // on right: remove left part of union
-            return  ReturningOpVisitorRouter.visit(this, union.getRight());
-        }
+        return u.pause();
     }
 
     @Override
     public Op visit(OpSlice slice) {
         CanBeSkipped canBeSkipped = new CanBeSkipped();
         if (canBeSkipped.visit((Op) slice)) { // simple OFFSET LIMIT query with only one triple pattern inside
-            PassageLimitOffset.CompatibilityCheckIterator it = (PassageLimitOffset.CompatibilityCheckIterator) getIterator(slice);
+            PassageLimitOffsetFactory.CompatibilityCheckIterator it = (PassageLimitOffsetFactory.CompatibilityCheckIterator) getIterator(slice);
             if (Objects.isNull(it)) { return null; }
             Op tripleOrQuadPaused = ReturningOpVisitorRouter.visit(this, canBeSkipped.getTripleOrQuad());
             return it.pause(tripleOrQuadPaused);
         } else { // complex OFFSET LIMIT query or subquery
-            PassageLimitOffset.CompatibilityCheckIterator it = (PassageLimitOffset.CompatibilityCheckIterator) getIterator(slice);
+            PassageLimitOffsetFactory.CompatibilityCheckIterator it = (PassageLimitOffsetFactory.CompatibilityCheckIterator) getIterator(slice);
             if (Objects.isNull(it)) return null;
             return it.pause(super.visit(slice.getSubOp()));
         }

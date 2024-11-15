@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.resume;
+package fr.gdd.passage.volcano.transforms;
 
 import fr.gdd.jena.utils.FlattenUnflatten;
 import fr.gdd.jena.visitors.ReturningOpBaseVisitor;
@@ -17,6 +17,7 @@ import java.util.List;
  * Since our subqueries are one triple pattern only, we still can
  * proceed with tuple-at-a-time evaluation though.
  */
+@Deprecated(forRemoval = true)
 public class Subqueries2LeftOfJoins extends ReturningOpBaseVisitor {
 
     @Override

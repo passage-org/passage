@@ -23,10 +23,9 @@ public class PauseUnionTest {
                 {?p <http://own> ?a } UNION { ?p <http://address> <http://nantes> }
                }""";
 
-        log.debug(queryAsString);
-
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
+            log.debug(queryAsString);
             var result = PauseUtils4Test.executeQuery(queryAsString, blazegraph);
             sum += result.getLeft();
             queryAsString = result.getRight();

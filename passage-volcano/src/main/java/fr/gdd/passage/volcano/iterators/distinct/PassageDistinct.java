@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.iterators;
+package fr.gdd.passage.volcano.iterators.distinct;
 
 import fr.gdd.passage.commons.factories.IBackendDistinctsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
  * an order by where bindings that are identical are produced are contiguous.
  * Only works in this case, which is enough for us for now.
  */
+@Deprecated()
 public class PassageDistinct<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
 
     public static <ID,VALUE> IBackendDistinctsFactory<ID,VALUE> factory() {

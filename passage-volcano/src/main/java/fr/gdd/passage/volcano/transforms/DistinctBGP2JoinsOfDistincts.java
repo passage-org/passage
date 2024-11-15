@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.optimizers;
+package fr.gdd.passage.volcano.transforms;
 
 import fr.gdd.jena.visitors.ReturningOpBaseVisitor;
 import org.apache.jena.sparql.algebra.Op;
@@ -25,6 +25,7 @@ import org.apache.jena.sparql.algebra.op.OpProject;
  *  }}
  * }
  */
+@Deprecated()
 public class DistinctBGP2JoinsOfDistincts extends ReturningOpBaseVisitor {
 
     @Override

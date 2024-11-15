@@ -4,9 +4,14 @@ import fr.gdd.passage.commons.interfaces.Backend;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.riot.out.NodeFmtLib;
+import org.apache.jena.sparql.algebra.Op;
+import org.apache.jena.sparql.algebra.op.OpExtend;
+import org.apache.jena.sparql.algebra.op.OpSequence;
+import org.apache.jena.sparql.algebra.op.OpTable;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.expr.NodeValue;
+import org.apache.jena.sparql.util.ExprUtils;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -240,5 +245,26 @@ public class BackendBindings<ID, VALUE> implements Binding {
             }
         }
         return true;
+    }
+
+    /**
+     * @return a SPARQL pattern that represents the state of this binding.
+     */
+    public Op toOp() {
+        Set<Var> vars = this.variables();
+
+        OpSequence seq = OpSequence.create();
+        for (Var v : vars) {
+            seq.add(OpExtend.extend(OpTable.unit(), v, ExprUtils.parse(this.getBinding(v).getString())));
+        }
+
+        return switch (seq.size()) {
+            case 0 -> {
+                seq.add(OpTable.unit());
+                yield seq;
+            }
+            case 1 -> seq.get(0);
+            default -> seq;
+        };
     }
 }
