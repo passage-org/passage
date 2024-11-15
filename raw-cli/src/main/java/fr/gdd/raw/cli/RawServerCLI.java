@@ -1,14 +1,14 @@
 package fr.gdd.raw.cli;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
-import fr.gdd.passage.cli.writers.ExtensibleRowSetWriterJSON;
 import fr.gdd.passage.cli.writers.ModuleOutputRegistry;
-import fr.gdd.passage.cli.writers.OutputWriterJSONPassage;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.raw.cli.server.RawOpExecutorFactory;
 import fr.gdd.raw.cli.server.RawOperation;
 import fr.gdd.raw.cli.server.RawQueryEngine;
+import fr.gdd.raw.cli.writers.OutputWriterJSONRaw;
+import fr.gdd.raw.cli.writers.RawRowSetWriterJSON;
 import fr.gdd.raw.executor.RawConstants;
 import org.apache.jena.fuseki.auth.Auth;
 import org.apache.jena.fuseki.main.FusekiServer;
@@ -61,6 +61,13 @@ public class RawServerCLI {
             paramLabel = "<scans>",
             description = "Number of scans before the query execution is stopped.")
     Long limit = Long.MAX_VALUE;
+
+    @CommandLine.Option(
+            order = 3,
+            names = {"-al", "--attempt-limit"},
+            paramLabel = "<randomwalkattempt>",
+            description = "Number of random walk attempts before the query execution is stopped.")
+    Long attemptLimit = Long.MAX_VALUE;
 
 //    @CommandLine.Option(
 //            order = 5,
@@ -124,7 +131,7 @@ public class RawServerCLI {
 
         FusekiServer server = buildServer(name, backend,
                 serverOptions.timeout,
-                serverOptions.port, serverOptions.ui, serverOptions.limit);
+                serverOptions.port, serverOptions.ui, serverOptions.limit, serverOptions.attemptLimit);
 
         server.start();
     }
@@ -140,7 +147,8 @@ public class RawServerCLI {
                                     Long timeout,
                                     Integer port,
                                     String ui,
-                                    Long limit) {
+                                    Long limit,
+                                    Long attemptLimit) {
         // ARQ.setExecutionLogging(Explain.InfoLevel.ALL);
         // wraps our database inside a standard but empty dataset.
         ARQ.enableOptimizer(false); // just in case
@@ -148,14 +156,15 @@ public class RawServerCLI {
         Dataset dataset = DatasetFactory.create(); // TODO double check if it's alright
         dataset.getContext().set(BackendConstants.BACKEND, backend);
         dataset.getContext().set(RawConstants.LIMIT, limit);
+        dataset.getContext().setIfUndef(RawConstants.ATTEMPT_LIMIT, attemptLimit);
 //        dataset.getContext().set(PassageConstants.TIMEOUT, timeout);
         QC.setFactory(dataset.getContext(), new RawOpExecutorFactory());
         QueryEngineRegistry.addFactory(RawQueryEngine.factory);
 
         // set globally but the dedicated writter of sage only comes into
         // play when some variables exist in the execution context.
-        RowSetWriterRegistry.register(ResultSetLang.RS_JSON, ExtensibleRowSetWriterJSON.factory);
-        ModuleOutputRegistry.register(ResultSetLang.RS_JSON, new OutputWriterJSONPassage());
+        RowSetWriterRegistry.register(ResultSetLang.RS_JSON, RawRowSetWriterJSON.factory);
+        ModuleOutputRegistry.register(ResultSetLang.RS_JSON, new OutputWriterJSONRaw());
 
         // FusekiModules.add(new SageModule());
 

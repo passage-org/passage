@@ -16,6 +16,7 @@ import fr.gdd.passage.volcano.optimizers.CardinalityJoinOrdering;
 import fr.gdd.passage.volcano.pause.Triples2BGP;
 import fr.gdd.passage.volcano.resume.BGP2Triples;
 import fr.gdd.passage.volcano.resume.Graph2Quads;
+import fr.gdd.raw.DefaultGraphUriQueryModifier;
 import fr.gdd.raw.accumulators.AccumulatorFactory;
 import fr.gdd.raw.budgeting.NaiveBudgeting;
 import fr.gdd.raw.iterators.ProjectIterator;
@@ -31,6 +32,7 @@ import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.expr.aggregate.AggCount;
 import org.apache.jena.sparql.expr.aggregate.AggCountVarDistinct;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
@@ -53,6 +55,9 @@ public class RawOpExecutor<ID, VALUE> extends BackendOpExecutor<ID, VALUE> { // 
                 BackendBind.factory(), BackendFilter.factory(), null,
                 null, null, null);
         this.execCxt = context;
+        this.execCxt.getContext().setIfUndef(RawConstants.SCAN_PROBABILITIES, new ArrayList<>());
+        this.execCxt.getContext().setIfUndef(RawConstants.RANDOM_WALK_ATTEMPTS, new RawConstants.Wrapper<Long>(0L));
+
     }
 
     public RawOpExecutor() {
@@ -66,7 +71,10 @@ public class RawOpExecutor<ID, VALUE> extends BackendOpExecutor<ID, VALUE> { // 
 
         execCxt = context;
 
+
         execCxt.getContext().setIfUndef(RawConstants.SCANS, 0L);
+        execCxt.getContext().setIfUndef(RawConstants.SCAN_PROBABILITIES, new ArrayList<>());
+        execCxt.getContext().setIfUndef(RawConstants.RANDOM_WALK_ATTEMPTS, new RawConstants.Wrapper<Long>(0L));
         execCxt.getContext().setIfUndef(RawConstants.LIMIT, Long.MAX_VALUE);
         execCxt.getContext().setIfUndef(RawConstants.TIMEOUT, Long.MAX_VALUE);
         execCxt.getContext().setIfUndef(RawConstants.BUDGETING, new NaiveBudgeting(
@@ -144,7 +152,7 @@ public class RawOpExecutor<ID, VALUE> extends BackendOpExecutor<ID, VALUE> { // 
             root = new CardinalityJoinOrdering<>(backend, cache).visit(root); // need to have bgp to optimize, no tps
         }
         root = ReturningOpVisitorRouter.visit(new BGP2Triples(), root);
-
+        root = ReturningArgsOpVisitorRouter.visit(new DefaultGraphUriQueryModifier(), root, execCxt);
         execCxt.getContext().set(RawConstants.SAVER, new BackendSaver<>(backend, root));
         return new RandomRoot<>(this, execCxt, root);
     }
