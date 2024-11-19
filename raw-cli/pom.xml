@@ -27,6 +27,14 @@
             <groupId>stax</groupId>
             <artifactId>stax</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.jena</groupId>
+            <artifactId>jena-fuseki-main</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.gdd</groupId>
+            <artifactId>passage-cli</artifactId>
+        </dependency>
     </dependencies>
 
 
@@ -47,7 +55,7 @@
                             <appendAssemblyId>false</appendAssemblyId>
                             <archive>
                                 <manifest>
-                                    <mainClass>fr.gdd.raw.RawerCLI</mainClass>
+                                    <mainClass>fr.gdd.raw.cli.RawCLI</mainClass>
                                 </manifest>
                             </archive>
                             <finalName>raw</finalName>
