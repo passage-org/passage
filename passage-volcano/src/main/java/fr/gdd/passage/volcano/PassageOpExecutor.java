@@ -6,6 +6,7 @@ import fr.gdd.passage.commons.generics.BackendOpExecutor;
 import fr.gdd.passage.commons.iterators.BackendBind;
 import fr.gdd.passage.commons.iterators.BackendFilter;
 import fr.gdd.passage.commons.iterators.BackendProject;
+import fr.gdd.passage.commons.transforms.DefaultGraphUriQueryModifier;
 import fr.gdd.passage.volcano.iterators.*;
 import fr.gdd.passage.volcano.iterators.aggregate.PassageCount;
 import fr.gdd.passage.volcano.iterators.PassageDistinct;
@@ -51,6 +52,7 @@ public class PassageOpExecutor<ID,VALUE> extends BackendOpExecutor<ID,VALUE> {
     @Override
     public Iterator<BackendBindings<ID, VALUE>> execute(Op root) {
         root = context.optimizer.optimize(root);
+        root = new DefaultGraphUriQueryModifier(context).visit(root);
         context.setQuery(root); // mandatory to be saved later on
         // Only need a root that will catch the timeout exception to state that
         // the iterator does not have next.
