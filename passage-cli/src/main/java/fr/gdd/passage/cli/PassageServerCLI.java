@@ -33,7 +33,7 @@ import java.util.Objects;
  */
 @CommandLine.Command(
         name = "passage-server",
-        version = "0.0.1",
+        version = "0.0.3",
         description = "A server for preemptive SPARQL query processing!",
         usageHelpAutoWidth = true, // adapt to the screen size instead of new line on 80 chars
         sortOptions = false,

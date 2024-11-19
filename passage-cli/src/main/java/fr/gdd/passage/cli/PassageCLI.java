@@ -20,7 +20,7 @@ import java.util.Objects;
  */
 @CommandLine.Command(
         name = "passage",
-        version = "0.0.1",
+        version = "0.0.3",
         description = "SPARQL continuation query processing. Looping until done!",
         usageHelpAutoWidth = true, // adapt to the screen size instead of new line on 80 chars
         sortOptions = false,
