@@ -1,17 +1,22 @@
 package fr.gdd.raw.executor;
 
-import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
+import fr.gdd.passage.commons.factories.BackendNestedLoopJoinFactory;
 import fr.gdd.passage.commons.factories.IBackendBindsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
-import fr.gdd.passage.commons.generics.BackendSaver;
 import fr.gdd.passage.commons.generics.BackendCache;
+import fr.gdd.passage.commons.generics.BackendOpExecutor;
+import fr.gdd.passage.commons.generics.BackendSaver;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.iterators.BackendBind;
+import fr.gdd.passage.commons.iterators.BackendFilter;
+import fr.gdd.passage.commons.iterators.BackendProject;
 import fr.gdd.passage.volcano.optimizers.CardinalityJoinOrdering;
-import fr.gdd.passage.volcano.transforms.Triples2BGP;
 import fr.gdd.passage.volcano.transforms.BGP2Triples;
+import fr.gdd.passage.volcano.transforms.Graph2Quads;
+import fr.gdd.passage.volcano.transforms.Triples2BGP;
+import fr.gdd.raw.DefaultGraphUriQueryModifier;
 import fr.gdd.raw.accumulators.AccumulatorFactory;
 import fr.gdd.raw.budgeting.NaiveBudgeting;
 import fr.gdd.raw.iterators.ProjectIterator;
@@ -27,6 +32,7 @@ import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.expr.aggregate.AggCount;
 import org.apache.jena.sparql.expr.aggregate.AggCountVarDistinct;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
@@ -34,35 +40,43 @@ import java.util.Iterator;
  * If an operator is not implemented, then it returns the explicit mention
  * that it's not implemented. No surprises.
  */
-public class RawOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
-        Iterator<BackendBindings<ID, VALUE>>, // input
-        Iterator<BackendBindings<ID, VALUE>>> { // output
+public class RawOpExecutor<ID, VALUE> extends BackendOpExecutor<ID, VALUE> { // output
 
     final ExecutionContext execCxt;
     Backend<ID, VALUE, ?> backend;
     BackendCache<ID, VALUE> cache;
 
+
+    public RawOpExecutor(ExecutionContext context) {
+        // TODO default execution context to unburden this class
+
+        super(context, BackendProject.factory(), RandomScanFactory.tripleFactory(),
+                RandomScanFactory.quadFactory(), new BackendNestedLoopJoinFactory<>(), null, null,
+                BackendBind.factory(), BackendFilter.factory(), null,
+                null, null, null);
+        this.execCxt = context;
+        this.execCxt.getContext().setIfUndef(RawConstants.SCAN_PROBABILITIES, new ArrayList<>());
+        this.execCxt.getContext().setIfUndef(RawConstants.RANDOM_WALK_ATTEMPTS, new RawConstants.Wrapper<Long>(0L));
+
+    }
+
     public RawOpExecutor() {
         // This creates a brandnew execution context, but it's important
         // that `setBackend` is called, or it will throw at runtime.
-        this.execCxt = new ExecutionContext(DatasetFactory.empty().asDatasetGraph());
-        execCxt.getContext().setIfUndef(RawConstants.SCANS, 0L);
-        execCxt.getContext().setIfUndef(RawConstants.LIMIT, Long.MAX_VALUE);
-        execCxt.getContext().setIfUndef(RawConstants.TIMEOUT, Long.MAX_VALUE);
-        execCxt.getContext().setIfUndef(RawConstants.BUDGETING, new NaiveBudgeting(
-                execCxt.getContext().get(RawConstants.TIMEOUT),
-                execCxt.getContext().get(RawConstants.LIMIT)));
-    }
 
-    public RawOpExecutor(ExecutionContext execCxt) {
-        // TODO default execution context to unburden this class
-        this.execCxt = execCxt;
-        this.backend = execCxt.getContext().get(RawConstants.BACKEND);
+        super(new ExecutionContext(DatasetFactory.empty().asDatasetGraph()), BackendProject.factory(), RandomScanFactory.tripleFactory(),
+                RandomScanFactory.quadFactory(), new BackendNestedLoopJoinFactory<>(), null, null,
+                BackendBind.factory(), BackendFilter.factory(), null,
+                null, null, null);
+
+        execCxt = context;
+
+
         execCxt.getContext().setIfUndef(RawConstants.SCANS, 0L);
+        execCxt.getContext().setIfUndef(RawConstants.SCAN_PROBABILITIES, new ArrayList<>());
+        execCxt.getContext().setIfUndef(RawConstants.RANDOM_WALK_ATTEMPTS, new RawConstants.Wrapper<Long>(0L));
         execCxt.getContext().setIfUndef(RawConstants.LIMIT, Long.MAX_VALUE);
         execCxt.getContext().setIfUndef(RawConstants.TIMEOUT, Long.MAX_VALUE);
-        this.cache = new BackendCache<>(this.backend);
-        execCxt.getContext().setIfUndef(RawConstants.CACHE, cache);
         execCxt.getContext().setIfUndef(RawConstants.BUDGETING, new NaiveBudgeting(
                 execCxt.getContext().get(RawConstants.TIMEOUT),
                 execCxt.getContext().get(RawConstants.LIMIT)));
@@ -131,19 +145,26 @@ public class RawOpExecutor<ID, VALUE> extends ReturningArgsOpVisitor<
 
     public Iterator<BackendBindings<ID, VALUE>> execute(Op root) {
         // #A reordering of bgps if need be
+
+        root = ReturningOpVisitorRouter.visit(new Graph2Quads(), root);
         if (execCxt.getContext().isFalseOrUndef(RawConstants.FORCE_ORDER)) {
             root = ReturningOpVisitorRouter.visit(new Triples2BGP(), root);
             root = new CardinalityJoinOrdering<>(backend, cache).visit(root); // need to have bgp to optimize, no tps
         }
         root = ReturningOpVisitorRouter.visit(new BGP2Triples(), root);
-
+        root = ReturningArgsOpVisitorRouter.visit(new DefaultGraphUriQueryModifier(), root, execCxt);
         execCxt.getContext().set(RawConstants.SAVER, new BackendSaver<>(backend, root));
         return new RandomRoot<>(this, execCxt, root);
     }
 
     @Override
     public Iterator<BackendBindings<ID, VALUE>> visit(OpTriple triple, Iterator<BackendBindings<ID, VALUE>> input) {
-        return new RandomScanFactory<>(input, execCxt, triple);
+        return new RandomScanFactory<>(execCxt, input, triple);
+    }
+
+    @Override
+    public Iterator<BackendBindings<ID, VALUE>> visit(OpQuad quad, Iterator<BackendBindings<ID, VALUE>> input){
+        return new RandomScanFactory<>(execCxt, input, quad);
     }
 
     @Override

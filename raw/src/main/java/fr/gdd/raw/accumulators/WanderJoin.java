@@ -30,6 +30,12 @@ public class WanderJoin<ID, VALUE> extends ReturningOpVisitor<Double> {
     }
 
     @Override
+    public Double visit(OpQuad quad) {
+        RandomScan<ID, VALUE> scan = (RandomScan<ID, VALUE>) saver.getIterator(quad);
+        return Objects.isNull(scan) ? 0 : scan.getProbability();
+    }
+
+    @Override
     public Double visit(OpJoin join) {
         Double leftProba = ReturningOpVisitorRouter.visit(this, join.getLeft());
         Double rightProba = ReturningOpVisitorRouter.visit(this, join.getRight());

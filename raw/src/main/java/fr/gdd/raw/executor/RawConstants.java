@@ -1,7 +1,10 @@
 package fr.gdd.raw.executor;
 
 import org.apache.jena.sparql.engine.ExecutionContext;
+import org.apache.jena.sparql.util.Context;
 import org.apache.jena.sparql.util.Symbol;
+
+import java.util.List;
 
 public class RawConstants {
 
@@ -13,6 +16,9 @@ public class RawConstants {
     static public final Symbol DEADLINE = allocConstantSymbol("Deadline"); // when to stop execution
     static public final Symbol LIMIT = allocConstantSymbol("Limit"); // max nb scans to perform
     static public final Symbol SCANS = allocVariableSymbol("Scans"); // nb of scan performed during execution
+    static public final Symbol SCAN_PROBABILITIES = allocConstantSymbol("ScanProbas"); // list of probabilities of retrieving bindings
+    static public final Symbol RANDOM_WALK_ATTEMPTS = allocConstantSymbol("RandomWalkAttempts");
+    static public final Symbol ATTEMPT_LIMIT = allocConstantSymbol("AttemptLimit");
 
     static public final Symbol BUDGETING = allocVariableSymbol("Budgeting"); // distribute thresholds
 
@@ -69,5 +75,47 @@ public class RawConstants {
      */
     public static long getScans(ExecutionContext context) {
         return context.getContext().getLong(RawConstants.SCANS, 0L);
+    }
+
+    public static void saveScanProbabilities(ExecutionContext context, Double proba) {
+        getScanProbabilities(context).add(proba);
+    }
+
+    public static List getScanProbabilities(ExecutionContext context) {
+        return context.getContext().get(SCAN_PROBABILITIES);
+    }
+
+    public static void setRandomWalkAttemps(ExecutionContext executionContext, Long numberOfAttempts) {
+        ((Wrapper) executionContext.getContext().get(RawConstants.RANDOM_WALK_ATTEMPTS)).setValue(numberOfAttempts);
+    }
+
+    public static Long getRandomWalkAttempts(ExecutionContext executionContext) {
+        return ((Wrapper<Long>) executionContext.getContext().get(RawConstants.RANDOM_WALK_ATTEMPTS)).getValue();
+    }
+
+    public static Long getRandomWalkAttempts(Context context) {
+        return ((Wrapper<Long>) context.get(RawConstants.RANDOM_WALK_ATTEMPTS)).getValue();
+    }
+
+    public static Long incrementRandomWalkAttempts(ExecutionContext executionContext) {
+        setRandomWalkAttemps(executionContext, getRandomWalkAttempts(executionContext) + 1L);
+        return getRandomWalkAttempts(executionContext);
+    }
+
+    // For some reason, the context does not properly save changes to objects like Longs throughout query execution,
+    // as updating (incrementing) a Long generates a new reference. Using a wrapper ensures the updated object remains
+    // the same during the entire execution (since the reference to the wrapper itself isn't changed, like a pointer)
+
+    static class Wrapper<T>{
+        T value;
+        Wrapper(T value) {
+            this.value = value;
+        }
+        public T getValue() {
+            return value;
+        }
+        public void setValue(T value) {
+            this.value = value;
+        }
     }
 }

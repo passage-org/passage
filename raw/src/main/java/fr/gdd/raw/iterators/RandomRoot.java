@@ -2,6 +2,8 @@ package fr.gdd.raw.iterators;
 
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.passage.commons.generics.BackendBindings;
+import fr.gdd.passage.commons.generics.BackendSaver;
+import fr.gdd.raw.accumulators.WanderJoin;
 import fr.gdd.raw.executor.RawConstants;
 import fr.gdd.raw.executor.RawOpExecutor;
 import org.apache.jena.atlas.iterator.Iter;
@@ -18,6 +20,7 @@ import java.util.Objects;
 public class RandomRoot<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE>> {
 
     final Long limit;
+    final Long attemptLimit;
     final Long deadline;
     final Op op;
     final RawOpExecutor<ID, VALUE> executor;
@@ -29,6 +32,7 @@ public class RandomRoot<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE
 
     public RandomRoot(RawOpExecutor<ID, VALUE> executor, ExecutionContext context, Op op) {
         this.limit = context.getContext().get(RawConstants.LIMIT, Long.MAX_VALUE);
+        this.attemptLimit = context.getContext().get(RawConstants.ATTEMPT_LIMIT, Long.MAX_VALUE);
         this.deadline = context.getContext().get(RawConstants.DEADLINE, Long.MAX_VALUE);
         this.executor = executor;
         this.op = op;
@@ -41,12 +45,19 @@ public class RandomRoot<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE
             if (shouldStop()) {
                 return false;
             }
-            // TODO input as Iterator<BindingId2Value>
-            if (Objects.nonNull(current) && current.hasNext()) {
+
+            if(Objects.isNull(current)){
+                current = ReturningArgsOpVisitorRouter.visit(this.executor, this.op, Iter.of(new BackendBindings<>()));
+                produced = null;
+            }
+
+            if(current.hasNext()) {
                 produced = current.next();
             } else {
-                current = ReturningArgsOpVisitorRouter.visit(this.executor, this.op, Iter.of(new BackendBindings<>()));
+                current = null;
             }
+
+            RawConstants.incrementRandomWalkAttempts(context);
         }
         return true;
     }
@@ -54,7 +65,8 @@ public class RandomRoot<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE
     private boolean shouldStop() {
         return System.currentTimeMillis() > deadline ||
                 count >= limit ||
-                context.getContext().getLong(RawConstants.SCANS, 0L) >= limit;
+                context.getContext().getLong(RawConstants.SCANS, 0L) >= limit ||
+                RawConstants.getRandomWalkAttempts(context) >= attemptLimit;
     }
 
     @Override
@@ -62,6 +74,16 @@ public class RandomRoot<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE
         ++count;
         BackendBindings<ID, VALUE> toReturn = produced; // ugly :(
         produced = null;
+
+        WanderJoin wj = new WanderJoin<>(context.getContext().get(RawConstants.SAVER));
+        try{
+            Double proba = (Double) wj.visit(((BackendSaver) context.getContext().get(RawConstants.SAVER)).getRoot());
+            RawConstants.saveScanProbabilities(context, proba);
+        }catch (Exception e){
+            // TODO : to remove eventually, useful for debugging while still in the works
+            System.out.println("Can't execute wander join on " + e.getMessage());
+        }
+
         return toReturn;
     }
 }
