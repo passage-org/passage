@@ -26,8 +26,11 @@ public class OutputWriterJSONRaw implements ModuleOutputWriter {
         writer.println("[");
 
         writer.incIndent();
+        boolean first = true;
         for (Double probability : probas) {
-            writer.println(JSWriter.outputQuotedString(String.valueOf(probability)) + ",");
+            if(!first) writer.println(",");
+            first = false;
+            writer.print(JSWriter.outputQuotedString(String.valueOf(probability)));
         }
 
         writer.decIndent();
@@ -35,7 +38,7 @@ public class OutputWriterJSONRaw implements ModuleOutputWriter {
 
         writer.print(JSWriter.outputQuotedString("attempts"));
         writer.print(" : ");
-        writer.println(attempts + ",");
+        writer.println(attempts);
 
         writer.decIndent();
         writer.println("}"); // end metadata
