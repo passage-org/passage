@@ -1,6 +1,6 @@
-package fr.gdd.raw.cli.writers;
+package fr.gdd.raw.cli.server;
 
-import fr.gdd.passage.cli.writers.ModuleOutputWriter;
+import fr.gdd.passage.commons.io.ModuleOutputWriter;
 import fr.gdd.raw.executor.RawConstants;
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.atlas.json.io.JSWriter;
@@ -8,17 +8,13 @@ import org.apache.jena.sparql.util.Context;
 
 import java.util.List;
 
-public class OutputWriterJSONRaw implements ModuleOutputWriter {
+public class RawOutputWriterJSON implements ModuleOutputWriter {
 
     @Override
     public void write(IndentedWriter writer, Context context) {
 
         List<Double> probas = context.get(RawConstants.SCAN_PROBABILITIES);
         Long attempts = RawConstants.getRandomWalkAttempts(context);
-        // otherwise, we add a field to the response.
-        writer.print(" ,");
-        writer.print(JSWriter.outputQuotedString("metadata"));
-        writer.println(" : {");
 
         writer.incIndent();
         writer.print(JSWriter.outputQuotedString("cardinalities"));
@@ -41,7 +37,6 @@ public class OutputWriterJSONRaw implements ModuleOutputWriter {
         writer.println(attempts);
 
         writer.decIndent();
-        writer.println("}"); // end metadata
     }
 
 }

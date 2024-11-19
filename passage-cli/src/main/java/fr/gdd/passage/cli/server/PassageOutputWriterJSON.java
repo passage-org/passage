@@ -1,5 +1,6 @@
-package fr.gdd.passage.cli.writers;
+package fr.gdd.passage.cli.server;
 
+import fr.gdd.passage.commons.io.ModuleOutputWriter;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.pause.PassagePaused;
 import org.apache.jena.atlas.io.IndentedWriter;
@@ -9,9 +10,10 @@ import org.apache.jena.sparql.util.Context;
 import java.util.Objects;
 
 /**
- * Write a SageOutput to an out-stream.
+ * Write continuation query of Passage as an output stream, in
+ * a `next` field like triple pattern fragment servers do.
  */
-public class OutputWriterJSONPassage implements ModuleOutputWriter {
+public class PassageOutputWriterJSON implements ModuleOutputWriter {
 
     @Override
     public void write(IndentedWriter writer, Context context) {
@@ -29,14 +31,11 @@ public class OutputWriterJSONPassage implements ModuleOutputWriter {
         if (Objects.isNull(savedString.getPausedQueryAsString())) {
             return; // no next, we are done!
         }
-        // otherwise, we add a field to the response.
-        writer.print(" ,");
-        writer.print(JSWriter.outputQuotedString("metadata"));
-        writer.print(" : {");
+
+        // otherwise, we add a `next` field to the response.
         writer.print(JSWriter.outputQuotedString("next"));
         writer.println(" : ");
         writer.println(JSWriter.outputQuotedString(savedString.getPausedQueryAsString()));
-        writer.print("}"); // end metadata
     }
 
 }

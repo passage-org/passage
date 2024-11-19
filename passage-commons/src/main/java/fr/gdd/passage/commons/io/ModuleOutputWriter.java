@@ -1,4 +1,4 @@
-package fr.gdd.passage.cli.writers;
+package fr.gdd.passage.commons.io;
 
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.sparql.util.Context;

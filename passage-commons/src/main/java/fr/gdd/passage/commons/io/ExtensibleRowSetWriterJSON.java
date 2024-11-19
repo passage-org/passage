@@ -1,7 +1,5 @@
-package fr.gdd.raw.cli.writers;
+package fr.gdd.passage.commons.io;
 
-import fr.gdd.passage.cli.writers.ModuleOutputRegistry;
-import fr.gdd.passage.cli.writers.ModuleOutputWriter;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.atlas.json.io.JSWriter;
@@ -10,11 +8,11 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.ARQ;
 import org.apache.jena.rdf.model.impl.Util;
-import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.out.NodeToLabel;
 import org.apache.jena.riot.resultset.ResultSetLang;
 import org.apache.jena.riot.rowset.RowSetWriter;
 import org.apache.jena.riot.rowset.RowSetWriterFactory;
+import org.apache.jena.riot.rowset.rw.RowSetWriterJSON;
 import org.apache.jena.riot.system.SyntaxLabels;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
@@ -29,20 +27,16 @@ import java.util.Objects;
 
 import static org.apache.jena.riot.rowset.rw.JSONResultsKW.*;
 
-public class RawRowSetWriterJSON implements RowSetWriter {
+/** Write results in {@code application/sparql-results+json} format. */
+public class ExtensibleRowSetWriterJSON implements RowSetWriter {
 
     public static RowSetWriterFactory factory = lang -> {
         if (!Objects.equals(lang, ResultSetLang.RS_JSON ) )
             throw new ResultSetException("ResultSetWriter for JSON asked for a "+lang);
-        return new RawRowSetWriterJSON();
+        return new ExtensibleRowSetWriterJSON();
     };
 
-    private RawRowSetWriterJSON() { }
-
-    public RawRowSetWriterJSON(Lang lang) {
-        if (!Objects.equals(lang, ResultSetLang.RS_JSON ) )
-            throw new ResultSetException("ResultSetWriter for JSON asked for a "+lang);
-    }
+    private ExtensibleRowSetWriterJSON() { }
 
     // We use an inner object for writing of one result set so that the
     // ResultSetWriter has no per-write state variables.
@@ -73,7 +67,7 @@ public class RawRowSetWriterJSON implements RowSetWriter {
     public void write(OutputStream outStream, RowSet rowSet, Context context) {
         IndentedWriter out = new IndentedWriter(outStream);
         try {
-            RawRowSetWriterJSON.ResultSetWriterTableJSON x = new RawRowSetWriterJSON.ResultSetWriterTableJSON(out, context);
+            ResultSetWriterTableJSON x = new ResultSetWriterTableJSON(out, context);
             x.write(rowSet);
         }
         finally {
@@ -84,12 +78,12 @@ public class RawRowSetWriterJSON implements RowSetWriter {
     // Create once per write call.
     // This holds the state of the writing of one ResultSet.
     static class ResultSetWriterTableJSON {
-        private final NodeToLabel labels;
+        private final NodeToLabel    labels;
         private final  IndentedWriter out;
 
         private final Context context;
 
-
+        
         /** Control whether the type/literal/fileds all go on one line. */
         private static final boolean MultiLineValues   = false;
         /** Control whether variables in header are one per line (minor). */
@@ -110,7 +104,7 @@ public class RawRowSetWriterJSON implements RowSetWriter {
 
             boolean outputGraphBNodeLabels = (context != null) && context.isTrue(ARQ.outputGraphBNodeLabels);
             labels = outputGraphBNodeLabels
-                    ? SyntaxLabels.createNodeToLabelAsGiven()
+                ? SyntaxLabels.createNodeToLabelAsGiven()
                     : SyntaxLabels.createNodeToLabel();
         }
 
@@ -120,14 +114,23 @@ public class RawRowSetWriterJSON implements RowSetWriter {
             //incIndent(out);
             writeHeader(rowSet);
             println(out, " ,");
-
+            
             writeRows(rowSet);
 
-            // every module can add their own output
+            // every module can add their own output in a `metadata` field
+            out.print(" ,");
+            out.print(JSWriter.outputQuotedString("metadata"));
+            out.print(" : {");
+            int i = 0;
             for (ModuleOutputWriter writer: ModuleOutputRegistry.getWriters(ResultSetLang.RS_JSON)) {
                 writer.write(out, context);
+                i += 1;
+                if (i < ModuleOutputRegistry.getWriters(ResultSetLang.RS_JSON).size()) {
+                    out.write(",");
+                }
             }
-
+            out.print("}"); // end metadata
+            
             out.decIndent(OuterIndent);
             println(out, "}");      // top level {}
         }
@@ -177,7 +180,7 @@ public class RawRowSetWriterJSON implements RowSetWriter {
             if ( MultiLineVarNames )
                 println(out);
             incIndent(out);
-            for (Iterator<Var> iter = rs.getResultVars().iterator(); iter.hasNext() ; ) {
+            for ( Iterator<Var> iter = rs.getResultVars().iterator() ; iter.hasNext() ; ) {
                 String varname = iter.next().getVarName();
                 print(out, "\"", varname, "\"");
                 if ( iter.hasNext() )
@@ -262,7 +265,7 @@ public class RawRowSetWriterJSON implements RowSetWriter {
             else if ( value.isNodeGraph() )
                 writeValueNodeGraph(out, value, multiLine);
             else
-                Log.warn(RawRowSetWriterJSON.class, "Unknown RDFNode type in result set: " + value.getClass());
+                Log.warn(RowSetWriterJSON.class, "Unknown RDFNode type in result set: " + value.getClass());
             if ( multiLine || value.isNodeTriple()) // OR triple
                 println(out) ;
             else
@@ -406,5 +409,4 @@ public class RawRowSetWriterJSON implements RowSetWriter {
             out.println();
         }
     }
-
 }
