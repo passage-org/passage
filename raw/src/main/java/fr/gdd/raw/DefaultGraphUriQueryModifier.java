@@ -7,6 +7,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.ARQConstants;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpJoin;
+import org.apache.jena.sparql.algebra.op.OpProject;
 import org.apache.jena.sparql.algebra.op.OpQuad;
 import org.apache.jena.sparql.algebra.op.OpTriple;
 import org.apache.jena.sparql.core.Quad;
@@ -59,5 +60,9 @@ public class DefaultGraphUriQueryModifier extends ReturningArgsOpVisitor<Op, Exe
         Set<Node> defaultGraphs = (Set) executionContext.getDataset().getContext().get(ARQConstants.symDatasetDefaultGraphs);
 
         return Objects.isNull(defaultGraphs) ? Collections.EMPTY_LIST : defaultGraphs.stream().toList();
+    }
+
+    public Op visit(OpProject opProject, ExecutionContext executionContext){
+        return opProject;
     }
 }
