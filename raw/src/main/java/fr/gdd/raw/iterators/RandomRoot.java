@@ -41,19 +41,23 @@ public class RandomRoot<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE
 
     @Override
     public boolean hasNext() {
-        boolean failed = false;
         while (Objects.isNull(produced)) {
             if (shouldStop()) {
                 return false;
             }
-            // TODO input as Iterator<BindingId2Value>
-            if (Objects.nonNull(current) && current.hasNext()) {
+
+            if(Objects.isNull(current)){
+                current = ReturningArgsOpVisitorRouter.visit(this.executor, this.op, Iter.of(new BackendBindings<>()));
+                produced = null;
+            }
+
+            if(current.hasNext()) {
                 produced = current.next();
             } else {
-                if(failed) RawConstants.incrementRandomWalkAttempts(context);
-                failed = true;
-                current = ReturningArgsOpVisitorRouter.visit(this.executor, this.op, Iter.of(new BackendBindings<>()));
+                current = null;
             }
+
+            RawConstants.incrementRandomWalkAttempts(context);
         }
         return true;
     }
@@ -74,7 +78,6 @@ public class RandomRoot<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE
         WanderJoin wj = new WanderJoin<>(context.getContext().get(RawConstants.SAVER));
         try{
             Double proba = (Double) wj.visit(((BackendSaver) context.getContext().get(RawConstants.SAVER)).getRoot());
-            RawConstants.incrementRandomWalkAttempts(context);
             RawConstants.saveScanProbabilities(context, proba);
         }catch (Exception e){
             // TODO : to remove eventually, useful for debugging while still in the works
