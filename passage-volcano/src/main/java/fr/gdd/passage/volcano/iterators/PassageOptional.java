@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.iterators.optional;
+package fr.gdd.passage.volcano.iterators;
 
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.passage.commons.factories.IBackendOptionalsFactory;

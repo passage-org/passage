@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.iterators.scan;
+package fr.gdd.passage.volcano.iterators;
 
 import fr.gdd.passage.commons.exceptions.NotFoundException;
 import fr.gdd.passage.commons.factories.IBackendQuadsFactory;
@@ -12,20 +12,15 @@ import fr.gdd.passage.commons.interfaces.SPOC;
 import fr.gdd.passage.commons.iterators.BackendIteratorOverInput;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.PassageExecutionContext;
-import fr.gdd.passage.volcano.iterators.PauseException;
-import fr.gdd.passage.volcano.iterators.PausableIterator;
-import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.atlas.lib.tuple.TupleFactory;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ExecutionContext;
-import org.apache.jena.sparql.util.ExprUtils;
 
 import java.util.Iterator;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 

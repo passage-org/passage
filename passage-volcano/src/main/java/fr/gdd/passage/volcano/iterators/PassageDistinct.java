@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.iterators.distinct;
+package fr.gdd.passage.volcano.iterators;
 
 import fr.gdd.passage.commons.factories.IBackendDistinctsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;

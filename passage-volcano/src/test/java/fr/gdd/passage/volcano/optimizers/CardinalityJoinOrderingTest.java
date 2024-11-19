@@ -3,7 +3,7 @@ package fr.gdd.passage.volcano.optimizers;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
-import fr.gdd.passage.volcano.iterators.scan.PassageScan;
+import fr.gdd.passage.volcano.iterators.PassageScan;
 import fr.gdd.passage.volcano.transforms.Triples2BGP;
 import fr.gdd.passage.volcano.transforms.BGP2Triples;
 import fr.gdd.passage.volcano.transforms.Graph2Quads;

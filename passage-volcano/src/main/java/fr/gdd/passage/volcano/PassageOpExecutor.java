@@ -8,12 +8,12 @@ import fr.gdd.passage.commons.iterators.BackendFilter;
 import fr.gdd.passage.commons.iterators.BackendProject;
 import fr.gdd.passage.volcano.iterators.*;
 import fr.gdd.passage.volcano.iterators.aggregate.PassageCount;
-import fr.gdd.passage.volcano.iterators.distinct.PassageDistinct;
+import fr.gdd.passage.volcano.iterators.PassageDistinct;
 import fr.gdd.passage.volcano.iterators.limitoffset.PassageLimitOffsetFactory;
-import fr.gdd.passage.volcano.iterators.optional.PassageOptional;
-import fr.gdd.passage.volcano.iterators.scan.PassageScan;
+import fr.gdd.passage.volcano.iterators.PassageOptional;
+import fr.gdd.passage.volcano.iterators.PassageScan;
 import fr.gdd.passage.volcano.iterators.union.PassageUnion;
-import fr.gdd.passage.volcano.iterators.values.PassageValues;
+import fr.gdd.passage.volcano.iterators.PassageValues;
 import org.apache.jena.sparql.algebra.Op;
 
 import java.util.Iterator;
