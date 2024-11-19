@@ -24,6 +24,7 @@ mvn clean package
 
 
 - [X] `raw.jar`[`--help`](./raw-cli) provides a one time execution of a sample-based query.
+- [X] `raw-server.jar`[`--help`](./raw-cli) provides a server running raw for random sampling over SPARQL queries.
 
 
 ## References

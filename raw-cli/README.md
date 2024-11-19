@@ -43,3 +43,19 @@ java -jar raw
 # Execution time:  1958 ms
 # Number of Results:  1
 ```
+
+
+## `raw-server.jar`
+
+```shell
+Usage: raw-server [-h] -d=<path> [-t=<ms>] [-l=<scans>] [-al=<randomwalkattempt>] [--ui=<ui>] [-p=<3330>]
+A server for preemptive SPARQL query processing!
+  -d, --database=<path>   The path to your blazegraph database.
+  -t, --timeout=<ms>      Timeout before the query execution is stopped.
+  -l, --limit=<scans>     Number of scans before the query execution is stopped.
+      -al, --attempt-limit=<randomwalkattempt>
+                          Number of random walk attempts before the query execution is stopped.
+      --ui=<ui>           The path to your UI folder.
+  -p, --port=<3330>       The port of the server.
+  -h, --help              Display this help message.
+```
