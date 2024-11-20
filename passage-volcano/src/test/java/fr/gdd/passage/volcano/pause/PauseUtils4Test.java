@@ -17,7 +17,6 @@ import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
-@Disabled
 public class PauseUtils4Test {
 
     private static final Logger log = LoggerFactory.getLogger(PauseUtils4Test.class);
@@ -81,6 +80,22 @@ public class PauseUtils4Test {
                 new PassageExecutionContextBuilder<ID,VALUE>()
                         .setBackend(backend)
                         .build());
+        Iterator<BackendBindings<ID, VALUE>> iterator = executor.execute(queryAsString);
+
+        while (iterator.hasNext()){
+            BackendBindings<ID,VALUE> next = iterator.next();
+            results.add(next);
+            log.debug("{}", next);
+        }
+
+        return executor.pauseAsString();
+    }
+
+    public static <ID,VALUE> String executeQuery(String queryAsString, Backend<ID,VALUE,Long> backend, Multiset<BackendBindings<?,?>> results, long limit) {
+        PassageOpExecutor<ID, VALUE> executor = new PassageOpExecutor<>(
+                new PassageExecutionContextBuilder<ID,VALUE>()
+                        .setBackend(backend)
+                        .build().setMaxResults(limit));
         Iterator<BackendBindings<ID, VALUE>> iterator = executor.execute(queryAsString);
 
         while (iterator.hasNext()){

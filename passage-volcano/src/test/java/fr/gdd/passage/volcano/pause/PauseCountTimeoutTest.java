@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * inside the operator. Therefore, it should not return any result before
  * having processing 1 fully.
  */
+@Deprecated // TODO
 @Disabled("Integrate aggregators again with continuation queries.")
 public class PauseCountTimeoutTest {
 

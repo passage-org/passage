@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 
-@Disabled
 public class RawOpExecutorUtils {
 
     private static final Logger log = LoggerFactory.getLogger(RawOpExecutorUtils.class);

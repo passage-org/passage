@@ -30,6 +30,7 @@ public class RandomProjectTest {
         // assertEquals(6, results.elementSet().size()); // Alice repeated 4 times
 
         var results = RawOpExecutorUtils.executeWithRaw(queryAsString, backend, 1000L);
+        log.debug("{}", results);
         // spo contains other default triples… That why we need more than 100L to
         // retrieve expected spo with high probability.
         assertTrue(results.elementSet().size() >= 6); // the 6 distinct subjects + blazegraph's own

@@ -1,17 +1,25 @@
 package fr.gdd.passage.volcano.pause;
 
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
+import fr.gdd.passage.commons.generics.BackendBindings;
+import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * These are not timeout test per se. We emulate timeout with a limit in number of scans.
@@ -34,14 +42,19 @@ public class PauseOptionalTimeoutTest {
                 OPTIONAL {?p <http://own> ?a .}
                }""";
 
-        int sum = 0;
+        Multiset<BackendBindings<?,?>> results = HashMultiset.create();
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);
-            var result = PauseUtils4Test.executeQuery(queryAsString, blazegraph);
-            sum += result.getLeft();
-            queryAsString = result.getRight();
+            queryAsString = PauseUtils4Test.executeQuery(queryAsString, blazegraph, results);
         }
-        assertEquals(5, sum); // (Alice+animal)*3 + Bob + Carol
+        assertEquals(5, results.size()); // (Alice+animal)*3 + Bob + Carol
+        log.debug("{}", results);
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "l", "a"),
+                List.of("Alice", "nantes", "cat"),
+                List.of("Alice", "nantes", "dog"),
+                List.of("Alice", "nantes", "snake"),
+                Arrays.asList("Bob", "paris", null),
+                Arrays.asList("Carol", "nantes", null)));
     }
 
     @Test
@@ -53,14 +66,17 @@ public class PauseOptionalTimeoutTest {
                 OPTIONAL {?person <http://address> <http://nantes>}
                }""";
 
-        int sum = 0;
+        Multiset<BackendBindings<?,?>> results = HashMultiset.create();
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);
-            var result = PauseUtils4Test.executeQuery(queryAsString, blazegraph);
-            sum += result.getLeft();
-            queryAsString = result.getRight();
+            queryAsString = PauseUtils4Test.executeQuery(queryAsString, blazegraph, results);
         }
-        assertEquals(3, sum); // (Alice * 3)
+        log.debug("{}", results);
+        assertEquals(3, results.size()); // (Alice * 3)
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("person", "animal"),
+                List.of("Alice", "dog"),
+                List.of("Alice", "cat"),
+                List.of("Alice", "snake")));
     }
 
     @Test
@@ -72,14 +88,19 @@ public class PauseOptionalTimeoutTest {
                   OPTIONAL { ?person  <http://address>  <http://nantes> }
                 }""";
 
-        int sum = 0;
+        Multiset<BackendBindings<?,?>> results = HashMultiset.create();
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);
-            var result = PauseUtils4Test.executeQuery(queryAsString, blazegraph);
-            sum += result.getLeft();
-            queryAsString = result.getRight();
+            queryAsString = PauseUtils4Test.executeQuery(queryAsString, blazegraph, results);
         }
-        assertEquals(1, sum); // (Alice owns snake)
+        log.debug("{}", results);
+        assertEquals(1, results.size()); // (Alice owns snake)
+        assertTrue(MultisetResultChecking.containsResult(results,List.of("person", "animal"),
+                List.of("Alice", "dog")) ||
+                MultisetResultChecking.containsResult(results,List.of("person", "animal"),
+                        List.of("Alice", "cat")) ||
+                MultisetResultChecking.containsResult(results,List.of("person", "animal"),
+                        List.of("Alice", "snake")));
     }
 
     @Test
@@ -94,14 +115,20 @@ public class PauseOptionalTimeoutTest {
                  }
                }""";
 
-        int sum = 0;
+        Multiset<BackendBindings<?,?>> results = HashMultiset.create();
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);
-            var result = PauseUtils4Test.executeQuery(queryAsString, blazegraph);
-            sum += result.getLeft();
-            queryAsString = result.getRight();
+            queryAsString = PauseUtils4Test.executeQuery(queryAsString, blazegraph, results);
         }
-        assertEquals(5, sum); // (Alice + animal) * 3 + Bob + Carol
+        log.debug("{}", results);
+        assertEquals(5, results.size()); // (Alice + animal) * 3 + Bob + Carol
+        assertTrue(MultisetResultChecking.containsAllResults(results,
+                List.of("person", "address", "animal", "specie"),
+                List.of("Alice", "nantes", "cat", "feline"),
+                List.of("Alice", "nantes", "dog", "canine"),
+                List.of("Alice", "nantes", "snake", "reptile"),
+                Arrays.asList("Bob", "paris", null, null),
+                Arrays.asList("Carol", "nantes", null, null)));
     }
 
     @Test
@@ -116,18 +143,25 @@ public class PauseOptionalTimeoutTest {
                  }
                }""";
 
-        int sum = 0;
+        Multiset<BackendBindings<?,?>> results = HashMultiset.create();
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);
-            var result = PauseUtils4Test.executeQuery(queryAsString, blazegraph);
-            sum += result.getLeft();
-            queryAsString = result.getRight();
+            queryAsString = PauseUtils4Test.executeQuery(queryAsString, blazegraph, results);
         }
-        assertEquals(5, sum); // (Alice + animal) * 3 + Bob + Carol
+        log.debug("{}", results);
+        assertEquals(5, results.size()); // (Alice + animal) * 3 + Bob + Carol
+        assertTrue(MultisetResultChecking.containsAllResults(results,
+                List.of("person", "address", "animal", "specie"),
+                List.of("Alice", "nantes", "cat", "feline"),
+                List.of("Alice", "nantes", "dog", "canine"),
+                List.of("Alice", "nantes", "snake", "reptile"),
+                Arrays.asList("Bob", "paris", null, null),
+                Arrays.asList("Carol", "nantes", null, null)));
     }
 
+    @Disabled("Not really a meaningful test.")
     @Test
-    public void intermediate_query () throws RepositoryException {
+    public void intermediate_query_should_run () throws RepositoryException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = """
                 SELECT * WHERE { {

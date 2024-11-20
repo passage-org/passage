@@ -14,7 +14,8 @@ import org.openrdf.repository.RepositoryException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Disabled(value = "WiP.")
+@Disabled("WiP.")
+@Deprecated // TODO
 public class PartitionRootTest {
 
     @Test

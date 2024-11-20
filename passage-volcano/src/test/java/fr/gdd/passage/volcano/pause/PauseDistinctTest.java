@@ -14,6 +14,7 @@ import java.util.Objects;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Disabled("Need to be theoretically checked first.")
+@Deprecated // TODO much more difficult, possibly impossible
 public class PauseDistinctTest {
 
     static final Logger log = LoggerFactory.getLogger(PauseDistinctTest.class);

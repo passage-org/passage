@@ -15,6 +15,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Deprecated // TODO need to be more tested
 public class RandomBindAsTest {
 
     private static final Logger log = LoggerFactory.getLogger(RandomBindAsTest.class);
