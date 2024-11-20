@@ -236,4 +236,8 @@ public class CardinalityJoinOrdering<ID,VALUE> extends ReturningArgsOpVisitor<
         return table;
     }
 
+    @Override
+    public Op visit(OpService req, Set<Var> alreadySetVars) {
+        return req; // we don't go inside OpService yet.
+    }
 }

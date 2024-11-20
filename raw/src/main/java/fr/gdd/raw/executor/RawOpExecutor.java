@@ -53,7 +53,7 @@ public class RawOpExecutor<ID, VALUE> extends BackendOpExecutor<ID, VALUE> { // 
         super(context, BackendProject.factory(), RandomScanFactory.tripleFactory(),
                 RandomScanFactory.quadFactory(), new BackendNestedLoopJoinFactory<>(), null, null,
                 BackendBind.factory(), BackendFilter.factory(), null,
-                null, null, null);
+                null, null, null, null);
         this.execCxt = context;
         this.execCxt.getContext().setIfUndef(RawConstants.SCAN_PROBABILITIES, new ArrayList<>());
         this.execCxt.getContext().setIfUndef(RawConstants.RANDOM_WALK_ATTEMPTS, new RawConstants.Wrapper<Long>(0L));
@@ -67,7 +67,7 @@ public class RawOpExecutor<ID, VALUE> extends BackendOpExecutor<ID, VALUE> { // 
         super(new ExecutionContext(DatasetFactory.empty().asDatasetGraph()), BackendProject.factory(), RandomScanFactory.tripleFactory(),
                 RandomScanFactory.quadFactory(), new BackendNestedLoopJoinFactory<>(), null, null,
                 BackendBind.factory(), BackendFilter.factory(), null,
-                null, null, null);
+                null, null, null, null);
 
         execCxt = context;
 

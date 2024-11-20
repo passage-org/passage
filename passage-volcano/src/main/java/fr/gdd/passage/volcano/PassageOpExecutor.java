@@ -13,6 +13,7 @@ import fr.gdd.passage.volcano.iterators.PassageDistinct;
 import fr.gdd.passage.volcano.iterators.limitoffset.PassageLimitOffsetFactory;
 import fr.gdd.passage.volcano.iterators.PassageOptional;
 import fr.gdd.passage.volcano.iterators.PassageScan;
+import fr.gdd.passage.volcano.iterators.service.PassageService;
 import fr.gdd.passage.volcano.iterators.union.PassageUnion;
 import fr.gdd.passage.volcano.iterators.PassageValues;
 import org.apache.jena.sparql.algebra.Op;
@@ -33,7 +34,8 @@ public class PassageOpExecutor<ID,VALUE> extends BackendOpExecutor<ID,VALUE> {
         super(context, BackendProject.factory(), PassageScan.triplesFactory(),
                 PassageScan.quadsFactory(), new BackendNestedLoopJoinFactory<>(), PassageUnion.factory(), PassageValues.factory(),
                 BackendBind.factory(), BackendFilter.factory(), PassageDistinct.factory(),
-                new PassageLimitOffsetFactory<>(), PassageOptional.factory(), PassageCount.factory());
+                new PassageLimitOffsetFactory<>(), PassageOptional.factory(), PassageCount.factory(),
+                PassageService.factory());
         this.context = context;
     }
 

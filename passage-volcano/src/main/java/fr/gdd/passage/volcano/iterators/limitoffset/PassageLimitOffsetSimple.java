@@ -18,6 +18,6 @@ public class PassageLimitOffsetSimple<ID,VALUE> extends BackendOpExecutor<ID,VAL
         super(context, BackendProject.factory(),
                 PassageScan.triplesFactory(), PassageScan.quadsFactory(),
                 new BackendNestedLoopJoinFactory<>(), null, null, BackendBind.factory(),
-                null, null, null, null, null);
+                null, null, null, null, null, null);
     }
 }

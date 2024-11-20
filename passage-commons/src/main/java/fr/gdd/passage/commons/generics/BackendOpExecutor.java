@@ -37,6 +37,7 @@ public class BackendOpExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
     private final IBackendLimitOffsetFactory<ID,VALUE> slices;
     private final IBackendOptionalsFactory<ID,VALUE> optionals;
     private final IBackendCountsFactory<ID,VALUE> counts;
+    private final IBackendServicesFactory<ID,VALUE> services;
 
 
     public BackendOpExecutor(ExecutionContext context,
@@ -51,7 +52,8 @@ public class BackendOpExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
                              IBackendDistinctsFactory<ID,VALUE> distincts,
                              IBackendLimitOffsetFactory<ID,VALUE> slices,
                              IBackendOptionalsFactory<ID,VALUE> optionals,
-                             IBackendCountsFactory<ID, VALUE> counts) {
+                             IBackendCountsFactory<ID, VALUE> counts,
+                             IBackendServicesFactory<ID,VALUE> services) {
         this.context = context;
         this.context.getContext().set(BackendConstants.EXECUTOR, this);
         this.triples = triples;
@@ -66,6 +68,7 @@ public class BackendOpExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
         this.slices = slices;
         this.optionals = optionals;
         this.counts = counts;
+        this.services = services;
     }
 
     public Iterator<BackendBindings<ID,VALUE>> execute(String opAsString) {
@@ -158,5 +161,10 @@ public class BackendOpExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
 //            throw new UnsupportedOperationException("Group keys are not supported.");
 //        }
         return counts.get(context, input, groupBy);
+    }
+
+    @Override
+    public Iterator<BackendBindings<ID, VALUE>> visit(OpService req, Iterator<BackendBindings<ID, VALUE>> input) {
+        return services.get(context, input, req);
     }
 }

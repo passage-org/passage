@@ -3,6 +3,7 @@ package fr.gdd.passage.commons.generics;
 import fr.gdd.passage.commons.interfaces.Backend;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.query.QuerySolution;
 import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpExtend;
@@ -111,6 +112,11 @@ public class BackendBindings<ID, VALUE> implements Binding {
     BackendBindings<ID, VALUE> parent = null;
 
     public BackendBindings () {}
+
+    public BackendBindings (QuerySolution solution) {
+        solution.varNames().forEachRemaining(v -> put(Var.alloc(v),
+                new IdValueBackend<ID,VALUE>().setString(NodeFmtLib.str(solution.get(v).asNode(), null))));
+    }
 
     /**
      * Creates a new BackendBinding that copies the one as argument but only keep

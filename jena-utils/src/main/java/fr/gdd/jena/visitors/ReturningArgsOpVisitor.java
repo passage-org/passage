@@ -15,7 +15,7 @@ import org.apache.jena.sparql.algebra.op.*;
 public class ReturningArgsOpVisitor<R, A> {
     final public R visit(Op op, A args) {return ReturningArgsOpVisitorRouter.visit(this, op, args);}
 
-    public R visit(OpService req, A args) {throw new UnsupportedOperationException("Req");}
+    public R visit(OpService req, A args) {throw new UnsupportedOperationException("OpService");}
 
     public R visit(OpTriple triple, A args) {throw new UnsupportedOperationException("OpTriple");}
     public R visit(OpBGP bgp, A args) {throw new UnsupportedOperationException("OpBGP");}
