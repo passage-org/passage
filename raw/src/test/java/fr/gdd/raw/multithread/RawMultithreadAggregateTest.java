@@ -1,7 +1,7 @@
 package fr.gdd.raw.multithread;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
-import fr.gdd.raw.RawOpExecutorTest;
+import fr.gdd.raw.RawOpExecutorUtils;
 import fr.gdd.raw.executor.RawOpExecutor;
 import fr.gdd.raw.iterators.RandomAggregator;
 import org.junit.jupiter.api.Disabled;
@@ -34,7 +34,7 @@ public class RawMultithreadAggregateTest {
         RawOpExecutor executor = new RawOpExecutor();
         System.currentTimeMillis();
         executor.setBackend(watdivBlazegraph).setLimit(1_000_000L).setMaxThreads(10);
-        RawOpExecutorTest.execute(queryAsString, executor); // 521,585 (+blaze default ones)
+        RawOpExecutorUtils.execute(queryAsString, executor); // 521,585 (+blaze default ones)
     }
 
     @Disabled
@@ -46,7 +46,7 @@ public class RawMultithreadAggregateTest {
         RawOpExecutor executor = new RawOpExecutor();
         System.currentTimeMillis();
         executor.setBackend(watdivBlazegraph).setLimit(1_000_000L).setMaxThreads(10);
-        RawOpExecutorTest.execute(queryAsString, executor); // 10M
+        RawOpExecutorUtils.execute(queryAsString, executor); // 10M
     }
 
     @Disabled
@@ -68,7 +68,7 @@ public class RawMultithreadAggregateTest {
         RawOpExecutor executor = new RawOpExecutor();
         long start = System.currentTimeMillis();
         executor.setBackend(watdivBlazegraph1B).setLimit(10_000_000L).setMaxThreads(1);
-        RawOpExecutorTest.execute(queryAsString, executor);
+        RawOpExecutorUtils.execute(queryAsString, executor);
         long elapsed =  System.currentTimeMillis() - start;
         log.info("Took {} ms to process the estimate.", elapsed);
     }

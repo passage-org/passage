@@ -1,6 +1,7 @@
 package fr.gdd.passage.volcano.executes;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
+import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.iterators.PassageScan;
@@ -26,7 +27,7 @@ public class QuadTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(1, results.size()); // herself
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "c"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "c"),
                 Arrays.asList("Alice", "nantes")));
     }
 
@@ -46,7 +47,7 @@ public class QuadTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(5, results.size()); // 1 Alice, 1 Bob, 3 Carol
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "c", "g"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "c", "g"),
                 List.of("Alice", "nantes", "Alice"),
                 List.of("Bob", "paris", "Bob"),
                 List.of("Alice", "nantes", "Carol"),
@@ -65,7 +66,7 @@ public class QuadTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size()); // 3x Alice, with different species
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "a", "s"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a", "s"),
                 List.of("Alice", "cat", "feline"),
                 List.of("Alice", "dog", "canine"),
                 List.of("Alice", "snake", "reptile")));
@@ -83,7 +84,7 @@ public class QuadTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size()); // 3x Alice, with different species
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "a"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                 List.of("Alice", "cat"),
                 List.of("Alice", "dog"),
                 List.of("Alice", "snake")));

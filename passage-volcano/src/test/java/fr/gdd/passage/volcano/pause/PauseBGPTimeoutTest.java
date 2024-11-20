@@ -4,8 +4,8 @@ import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;
+import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
-import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.benchmarks.WatDivTest;
 import fr.gdd.passage.volcano.iterators.PassageScan;
@@ -49,7 +49,7 @@ public class PauseBGPTimeoutTest {
             queryAsString = PauseUtils4Test.executeQuery(queryAsString, blazegraph, results);
         }
         assertEquals(3, results.size());
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "c"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "c"),
                 List.of("Alice", "nantes"),
                 List.of("Bob", "paris"),
                 List.of("Carol", "nantes")));
@@ -70,7 +70,7 @@ public class PauseBGPTimeoutTest {
             queryAsString = PauseUtils4Test.executeQuery(queryAsString, blazegraph, results);
         }
         assertEquals(3, results.size());
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "a"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                 List.of("Alice", "cat"),
                 List.of("Alice", "snake"),
                 List.of("Alice", "dog")));
@@ -94,7 +94,7 @@ public class PauseBGPTimeoutTest {
         }
         assertTrue(nbPause > 1);
         assertEquals(3, results.size()); // 3x Alice, with different species
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "a", "s"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a", "s"),
                 List.of("Alice", "cat", "feline"),
                 List.of("Alice", "dog", "canine"),
                 List.of("Alice", "snake", "reptile")));
@@ -116,7 +116,7 @@ public class PauseBGPTimeoutTest {
             queryAsString = PauseUtils4Test.executeQuery(queryAsString, blazegraph, results);
         }
         assertEquals(3, results.size());
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "a", "s"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a", "s"),
                 List.of("Alice", "dog", "canine"),
                 List.of("Alice", "cat", "feline"),
                 List.of("Alice", "snake", "reptile")));

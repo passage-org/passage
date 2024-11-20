@@ -4,8 +4,8 @@ import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;
+import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
-import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,11 +42,11 @@ public class PauseLimitTimeoutTest {
         }
         assertEquals(2, results.size());
         assertTrue(nbContinuations >= 1);
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "c"),
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("p", "c"),
                 List.of("Bob", "paris")) ||
-                OpExecutorUtils.containsResult(results, List.of("p", "c"),
+                MultisetResultChecking.containsResult(results, List.of("p", "c"),
                         List.of("Alice", "nantes")) ||
-                OpExecutorUtils.containsResult(results, List.of("p", "c"),
+                MultisetResultChecking.containsResult(results, List.of("p", "c"),
                         List.of("Carol", "nantes")));
     }
 
@@ -64,11 +64,11 @@ public class PauseLimitTimeoutTest {
         }
         assertEquals(2, results.size());
         assertTrue(nbContinuations >= 1);
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "c", "a"),
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("p", "c", "a"),
                 List.of("Alice", "nantes", "dog")) ||
-                OpExecutorUtils.containsResult(results, List.of("p", "c", "a"),
+                MultisetResultChecking.containsResult(results, List.of("p", "c", "a"),
                         List.of("Alice", "nantes", "cat")) ||
-                OpExecutorUtils.containsResult(results, List.of("p", "c", "a"),
+                MultisetResultChecking.containsResult(results, List.of("p", "c", "a"),
                         List.of("Alice", "nantes", "snake")));
     }
 
@@ -90,11 +90,11 @@ public class PauseLimitTimeoutTest {
         }
         assertEquals(2, results.size());
         assertTrue(nbContinuations >= 1);
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "c", "a"),
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("p", "c", "a"),
                 List.of("Alice", "nantes", "dog")) ||
-                OpExecutorUtils.containsResult(results, List.of("p", "c", "a"),
+                MultisetResultChecking.containsResult(results, List.of("p", "c", "a"),
                         List.of("Alice", "nantes", "cat")) ||
-                OpExecutorUtils.containsResult(results, List.of("p", "c", "a"),
+                MultisetResultChecking.containsResult(results, List.of("p", "c", "a"),
                         List.of("Alice", "nantes", "snake")));
     }
 
@@ -120,7 +120,7 @@ public class PauseLimitTimeoutTest {
         assertEquals(1, results.size());
         assertTrue(nbContinuations >= 1);
         // assertEquals(1, results.size()); // should be 1, (processed multiple times without optimization)
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "a", "s"),
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("p", "a", "s"),
                 List.of("Alice", "snake", "reptile")));
     }
 
@@ -143,9 +143,9 @@ public class PauseLimitTimeoutTest {
         assertEquals(1, results.size());
         assertTrue(nbContinuations >= 1);
         // assertEquals(1, results.size()); // should be 1, (processed multiple times without optimization)
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "a"), List.of("Alice", "cat")) ||
-                OpExecutorUtils.containsResult(results, List.of("p", "a"), List.of("Alice", "snake")) ||
-                OpExecutorUtils.containsResult(results, List.of("p", "a"), List.of("Alice", "dog")));
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("p", "a"), List.of("Alice", "cat")) ||
+                MultisetResultChecking.containsResult(results, List.of("p", "a"), List.of("Alice", "snake")) ||
+                MultisetResultChecking.containsResult(results, List.of("p", "a"), List.of("Alice", "dog")));
     }
 
 }

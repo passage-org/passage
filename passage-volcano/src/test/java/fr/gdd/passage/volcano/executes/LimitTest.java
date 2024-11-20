@@ -1,6 +1,7 @@
 package fr.gdd.passage.volcano.executes;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
+import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.PassageExecutionContext;
@@ -42,11 +43,11 @@ public class LimitTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(1, results.size()); // either Bob, Alice, or Carol.
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "c"),
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("p", "c"),
                 List.of("Bob", "paris")) ||
-                OpExecutorUtils.containsResult(results, List.of("p", "c"),
+                MultisetResultChecking.containsResult(results, List.of("p", "c"),
                         List.of("Alice", "nantes")) ||
-                OpExecutorUtils.containsResult(results, List.of("p", "c"),
+                MultisetResultChecking.containsResult(results, List.of("p", "c"),
                         List.of("Carol", "nantes")));
     }
 
@@ -57,7 +58,7 @@ public class LimitTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size()); // limit 42 but only 3 still
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "c"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "c"),
                 List.of("Bob", "paris"),
                 List.of("Alice", "nantes"),
                 List.of("Carol", "nantes")));
@@ -70,11 +71,11 @@ public class LimitTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(1, results.size());
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "a"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                 List.of("Alice", "cat")) ||
-                OpExecutorUtils.containsAllResults(results, List.of("p", "a"),
+                MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                         List.of("Alice", "snake")) ||
-                OpExecutorUtils.containsAllResults(results, List.of("p", "a"),
+                MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                         List.of("Alice", "dog")));
     }
 
@@ -91,11 +92,11 @@ public class LimitTest {
         // Alice has an address.
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(1, results.size());
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "a"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                 List.of("Alice", "cat")) ||
-                OpExecutorUtils.containsAllResults(results, List.of("p", "a"),
+                MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                         List.of("Alice", "snake")) ||
-                OpExecutorUtils.containsAllResults(results, List.of("p", "a"),
+                MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                         List.of("Alice", "dog")));
     }
 
@@ -116,7 +117,7 @@ public class LimitTest {
         results.addAll(OpExecutorUtils.executeWithPassage(queryAsString, blazegraph));
         assertEquals(3, results.size()); // either Bob, Alice, or Carol.
 
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "c"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "c"),
                 List.of("Bob", "paris"),
                 List.of("Alice", "nantes"),
                 List.of("Carol", "nantes")));
@@ -164,7 +165,7 @@ public class LimitTest {
         results.addAll(OpExecutorUtils.executeWithPassage(queryC, blazegraph));
         assertEquals(3, results.size()); // either dog, cat, or snake.
 
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "a"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                 List.of("Alice", "cat"),
                 List.of("Alice", "dog"),
                 List.of("Alice", "snake")));
@@ -204,7 +205,7 @@ public class LimitTest {
         PassageExecutionContext ec = new PassageExecutionContextBuilder().setBackend(blazegraph).setForceOrder(true).build();
         var results = OpExecutorUtils.executeWithPassage(queryAsString, ec);
         assertEquals(1, results.size()); // should be 1, (processed multiple times without optimization)
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "a", "s"),
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("p", "a", "s"),
                 List.of("Alice", "snake", "reptile")));
     }
 

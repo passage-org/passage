@@ -4,8 +4,8 @@ import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;
+import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
-import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -47,7 +47,7 @@ public class PauseCountTimeoutTest {
         }
         assertEquals(1, results.size()); // 1 result where ?count = 3
         assertEquals(2, nbContinuations); // The first read is not a "continuation"
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("count"), List.of("3")));
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("count"), List.of("3")));
     }
 
     @Test
@@ -68,7 +68,7 @@ public class PauseCountTimeoutTest {
         }
         assertEquals(1, results.size()); // 1 result where ?count = 3
         assertEquals(0, nbContinuations);
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("count"), List.of("3")));
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("count"), List.of("3")));
     }
 
     @Test
@@ -90,7 +90,7 @@ public class PauseCountTimeoutTest {
         }
         assertEquals(1, results.size()); // 1 result where ?count = 3
         assertTrue(nbContinuations > 2);
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("count"), List.of("3")));
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("count"), List.of("3")));
     }
 
     @Test
@@ -109,7 +109,7 @@ public class PauseCountTimeoutTest {
         }
 
         assertEquals(3, results.size()); // 3 results where ?count = 3
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "count"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "count"),
                 List.of("Alice", "3"),
                 List.of("Bob", "3"),
                 List.of("Carol", "3")));

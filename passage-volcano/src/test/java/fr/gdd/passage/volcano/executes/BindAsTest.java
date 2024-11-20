@@ -1,6 +1,7 @@
 package fr.gdd.passage.volcano.executes;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
+import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.iterators.PassageScan;
@@ -29,7 +30,7 @@ public class BindAsTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(1, results.size()); // Alice, Alice, and Alice.
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p"),
                 List.of("Someone")));
     }
 
@@ -44,7 +45,7 @@ public class BindAsTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size()); // Alice, Alice, and Alice.
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "a"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                 List.of("Alice", "cat"), List.of("Alice", "dog"), List.of("Alice", "snake")));
     }
 
@@ -59,7 +60,7 @@ public class BindAsTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(1, results.size()); // Alice, Alice, and Alice.
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("count"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("count"),
                 List.of("38")));
     }
 }

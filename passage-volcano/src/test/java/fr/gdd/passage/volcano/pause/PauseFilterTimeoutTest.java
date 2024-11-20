@@ -4,8 +4,8 @@ import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;
+import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
-import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,7 +46,7 @@ public class PauseFilterTimeoutTest {
         }
         assertEquals(1, results.size()); // Bob
         assertEquals(2, nbContinuations); // 2 continuations, 3 queries total
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("person", "address"),
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("person", "address"),
                 List.of("Bob", "paris")));
     }
 
@@ -69,7 +69,7 @@ public class PauseFilterTimeoutTest {
 
         assertEquals(2, results.size()); // Bob and Carol
         assertTrue(nbContinuations > 1);
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("person", "address"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("person", "address"),
                 List.of("Bob", "paris"),
                 List.of("Carol", "nantes")));
     }
@@ -95,7 +95,7 @@ public class PauseFilterTimeoutTest {
 
         assertTrue(nbContinuations > 1);
         assertEquals(2, results.size()); // Alice and Alice.
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "a"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                 List.of("Alice", "cat"),
                 List.of("Alice", "snake")));
     }

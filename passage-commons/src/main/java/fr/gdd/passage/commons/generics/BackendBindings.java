@@ -15,6 +15,7 @@ import org.apache.jena.sparql.util.ExprUtils;
 
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 /**
  * Closely related to Jena's `Binding` implementations, or `BindingSet`, etc.
@@ -31,6 +32,13 @@ import java.util.function.BiConsumer;
  * ids or values are retrieved once.
  */
 public class BackendBindings<ID, VALUE> implements Binding {
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(variables().stream()
+                .map(v-> v.getVarName() + " -> " + getBinding(v).getString())
+                .collect(Collectors.joining()));
+    }
 
     /**
      * Contains everything to lazily get a value, or an id

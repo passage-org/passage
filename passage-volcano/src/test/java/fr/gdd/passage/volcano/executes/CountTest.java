@@ -1,6 +1,7 @@
 package fr.gdd.passage.volcano.executes;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
+import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.iterators.PassageScan;
@@ -31,7 +32,7 @@ public class CountTest {
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(1, results.size()); // ?count = 3
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("count"),
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("count"),
                 List.of("3")));
     }
 
@@ -45,7 +46,7 @@ public class CountTest {
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(1, results.size()); // not even a ?count = 0
-        assertTrue(OpExecutorUtils.containsResult(results,
+        assertTrue(MultisetResultChecking.containsResult(results,
                 List.of("count"),
                 List.of("0")));
     }
@@ -60,7 +61,7 @@ public class CountTest {
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(1, results.size());
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("count"), List.of("0")));
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("count"), List.of("0")));
     }
 
     @Test
@@ -77,7 +78,7 @@ public class CountTest {
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(1, results.size());
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("count"), List.of("0")));
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("count"), List.of("0")));
     }
 
 
@@ -91,7 +92,7 @@ public class CountTest {
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(1, results.size()); // ?count = 3
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("count"),
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("count"),
                 List.of("3")));
     }
 
@@ -108,7 +109,7 @@ public class CountTest {
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(1, results.size()); // ?count = 3
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("count"),
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("count"),
                 List.of("3"))); // if count=5, it means that the iterator wrongfully counted Bob and Carol…
     }
 
@@ -130,7 +131,7 @@ public class CountTest {
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(3, results.size());
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "count"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "count"),
                 List.of("Alice", "3"), List.of("Bob", "3"), List.of("Carol", "3")));
     }
 
@@ -149,7 +150,7 @@ public class CountTest {
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(1, results.size()); // ?count = 3 for Alice; Bob and Carol don't even exist.
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "count"), List.of("Alice", "3")));
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("p", "count"), List.of("Alice", "3")));
     }
 
     @Test
@@ -182,7 +183,7 @@ public class CountTest {
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(1, results.size());
-        assertTrue(OpExecutorUtils.containsResult(results,
+        assertTrue(MultisetResultChecking.containsResult(results,
                 List.of("pCount", "aCount"),
                 List.of("3", "3"))); // both 3 since they count the same
     }
@@ -202,7 +203,7 @@ public class CountTest {
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(1, results.size());
-        assertTrue(OpExecutorUtils.containsResult(results,
+        assertTrue(MultisetResultChecking.containsResult(results,
                 List.of("pCount", "aCount"),
                 List.of("5", "3"))); // p: 3 Alices + Bob + Carol; a: dog + cat + snake
     }

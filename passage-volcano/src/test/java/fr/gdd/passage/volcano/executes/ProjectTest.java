@@ -1,6 +1,7 @@
 package fr.gdd.passage.volcano.executes;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
+import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.iterators.PassageScan;
@@ -26,7 +27,7 @@ public class ProjectTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size()); // Bob, Alice, and Carol.
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "c"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "c"),
                 Arrays.asList("Bob", null),
                 Arrays.asList("Alice", null),
                 Arrays.asList("Carol", null)));
@@ -43,7 +44,7 @@ public class ProjectTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size()); // Alice, Alice, and Alice.
-        assertTrue(OpExecutorUtils.containsResultTimes(results, List.of("p", "c"),
+        assertTrue(MultisetResultChecking.containsResultTimes(results, List.of("p", "c"),
                 Arrays.asList("Alice", null), 3));
 
         queryAsString = """
@@ -54,7 +55,7 @@ public class ProjectTest {
 
         results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size()); // dog, snake and cat.
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("a", "p"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("a", "p"),
                 Arrays.asList("dog", null),
                 Arrays.asList("snake", null),
                 Arrays.asList("cat", null)));
@@ -67,7 +68,7 @@ public class ProjectTest {
 
         results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size()); // both at once, similar to *
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("a", "p"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("a", "p"),
                 Arrays.asList("dog", "Alice"),
                 Arrays.asList("snake", "Alice"),
                 Arrays.asList("cat", "Alice")));

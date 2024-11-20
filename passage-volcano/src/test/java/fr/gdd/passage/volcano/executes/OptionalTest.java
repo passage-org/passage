@@ -1,6 +1,7 @@
 package fr.gdd.passage.volcano.executes;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
+import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.iterators.PassageScan;
@@ -30,7 +31,7 @@ public class OptionalTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size()); // Alice, Alice, and Alice, and Bob, and Carol
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("person", "animal"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("person", "animal"),
                 Arrays.asList("Alice", null),
                 Arrays.asList("Bob", null),
                 Arrays.asList("Carol", null)));
@@ -47,7 +48,7 @@ public class OptionalTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(5, results.size()); // Alice, Alice, and Alice, and Bob, and Carol
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("person", "animal"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("person", "animal"),
                 List.of("Alice", "cat"), List.of("Alice", "dog"), List.of("Alice", "snake"),
                 Arrays.asList("Bob", null),
                 Arrays.asList("Carol", null)));
@@ -64,7 +65,7 @@ public class OptionalTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size()); // Alice, Alice, and Alice.
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("person", "animal"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("person", "animal"),
                 List.of("Alice", "cat"), List.of("Alice", "dog"), List.of("Alice", "snake")));
     }
 
@@ -82,7 +83,7 @@ public class OptionalTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(5, results.size()); // same as "<address> OPT <own>" query
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("person", "animal", "specie"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("person", "animal", "specie"),
                 List.of("Alice", "cat", "feline"),
                 List.of("Alice", "dog", "canine"),
                 List.of("Alice", "snake", "reptile"),
@@ -104,7 +105,7 @@ public class OptionalTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(5, results.size()); // same as "<address> OPT <own>" query
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("person", "animal", "specie"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("person", "animal", "specie"),
                 List.of("Alice", "cat", "feline"),
                 List.of("Alice", "dog", "canine"),
                 List.of("Alice", "snake", "reptile"),

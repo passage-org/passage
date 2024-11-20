@@ -1,6 +1,7 @@
 package fr.gdd.passage.volcano.executes;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
+import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.iterators.PassageScan;
@@ -34,7 +35,7 @@ public class ValuesTest {
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(1, results.size()); // the one that does not exist
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("p"), List.of("does_not_exist")));
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("p"), List.of("does_not_exist")));
     }
 
     @Test
@@ -57,7 +58,7 @@ public class ValuesTest {
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(1, results.size()); // Alice lives in Nantes
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("p"), List.of("Alice")));
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("p"), List.of("Alice")));
     }
 
     @Test
@@ -72,7 +73,7 @@ public class ValuesTest {
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(1, results.size()); // Alice lives in Nantes
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "c"), List.of("Alice", "nantes")));
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("p", "c"), List.of("Alice", "nantes")));
     }
 
     @Test
@@ -87,8 +88,8 @@ public class ValuesTest {
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(2, results.size()); // Alice lives in Nantes; Bob lives in Paris
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "c"), List.of("Alice", "nantes")));
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "c"), List.of("Bob", "paris")));
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("p", "c"), List.of("Alice", "nantes")));
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("p", "c"), List.of("Bob", "paris")));
     }
 
     @Test
@@ -103,8 +104,8 @@ public class ValuesTest {
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(2, results.size()); // Alice lives in Nantes; Bob lives in Paris
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "c"), List.of("Alice", "nantes")));
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "c"), List.of("Bob", "paris")));
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("p", "c"), List.of("Alice", "nantes")));
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("p", "c"), List.of("Bob", "paris")));
     }
 
     @Test
@@ -134,8 +135,8 @@ public class ValuesTest {
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(2, results.size()); // (Alice and herself + Alice and Carol) live in nantes
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "p2", "c"), List.of("Alice", "Alice", "nantes")));
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "p2", "c"), List.of("Alice", "Carol", "nantes")));
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("p", "p2", "c"), List.of("Alice", "Alice", "nantes")));
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("p", "p2", "c"), List.of("Alice", "Carol", "nantes")));
     }
 
     @Test
@@ -150,7 +151,7 @@ public class ValuesTest {
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(6, results.size());
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("person", "city", "location"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("person", "city", "location"),
                 List.of("Alice", "nantes", "France"),
                 List.of("Bob", "paris", "France"),
                 List.of("Carol", "nantes", "France"),

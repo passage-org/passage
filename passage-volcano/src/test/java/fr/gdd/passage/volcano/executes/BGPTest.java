@@ -1,6 +1,7 @@
 package fr.gdd.passage.volcano.executes;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
+import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.benchmarks.WatDivTest;
@@ -69,7 +70,7 @@ public class BGPTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size());
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "predicate", "c"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "predicate", "c"),
                 List.of("Alice", "address", "nantes"),
                 List.of("Bob", "address", "paris"),
                 List.of("Carol", "address", "nantes")));
@@ -86,7 +87,7 @@ public class BGPTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size());
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "predicate", "c"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "predicate", "c"),
                 List.of("Alice", "address", "nantes"),
                 List.of("Bob", "address", "paris"),
                 List.of("Carol", "address", "nantes")));
@@ -99,7 +100,7 @@ public class BGPTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size()); // Bob, Alice, and Carol.
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "c"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "c"),
                 List.of("Alice", "nantes"),
                 List.of("Bob", "paris"),
                 List.of("Carol", "nantes")));
@@ -116,7 +117,7 @@ public class BGPTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size()); // Alice, Alice, and Alice.
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "a"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                 List.of("Alice", "dog"),
                 List.of("Alice", "cat"),
                 List.of("Alice", "snake")));
@@ -134,7 +135,7 @@ public class BGPTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size()); // Alice->own->cat,dog,snake
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "a", "s"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a", "s"),
                 List.of("Alice", "dog", "canine"),
                 List.of("Alice", "cat", "feline"),
                 List.of("Alice", "snake", "reptile")));

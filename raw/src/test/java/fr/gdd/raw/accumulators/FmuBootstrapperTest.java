@@ -1,6 +1,5 @@
 package fr.gdd.raw.accumulators;
 
-import com.bigdata.rdf.sail.BigdataSail;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.interfaces.Backend;
@@ -12,7 +11,6 @@ import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpAsQuery;
 import org.apache.jena.sparql.core.Var;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
@@ -24,16 +22,13 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@Disabled
 class FmuBootstrapperTest {
 
     private static final Logger log = LoggerFactory.getLogger(FmuBootstrapperTest.class);
-    private static final BigdataSail blazegraph = IM4Blazegraph.triples9();
 
-    @Disabled
     @Test
     public void on_a_single_triple_pattern () throws RepositoryException {
-        final Backend backend = new BlazegraphBackend(blazegraph);
+        final Backend backend = new BlazegraphBackend(IM4Blazegraph.triples9());
 
         final RawOpExecutor executor = new RawOpExecutor().setBackend(backend);
         final String queryAsString = "SELECT * WHERE {?s <http://address> ?o}";
@@ -51,12 +46,11 @@ class FmuBootstrapperTest {
         assertEquals(1./3., probability);
     }
 
-    @Disabled
     @Test
     public void on_a_single_triple_pattern_with_variable_set () throws RepositoryException {
         // variable set meaning that its hardbound beforehand. It does not account
         // as a variable when examining the probability.
-        final Backend backend = new BlazegraphBackend(blazegraph);
+        final Backend backend = new BlazegraphBackend(IM4Blazegraph.triples9());
 
         final RawOpExecutor executor = new RawOpExecutor().setBackend(backend);
         final String queryAsString = "SELECT * WHERE {?s <http://address> ?o}";
@@ -77,11 +71,10 @@ class FmuBootstrapperTest {
         assertEquals(1., probability);
     }
 
-    @Disabled
     @Test
     public void single_tp_with_variable_set_but_different_values_for_it () throws RepositoryException {
         final Long LIMIT = 10L;
-        final Backend backend = new BlazegraphBackend(blazegraph);
+        final Backend backend = new BlazegraphBackend(IM4Blazegraph.triples9());
 
         final RawOpExecutor executor = new RawOpExecutor().setBackend(backend).setLimit(LIMIT);
         String queryAsString = "SELECT * WHERE {?s <http://address> ?o}";
@@ -110,11 +103,10 @@ class FmuBootstrapperTest {
         assertEquals(LIMIT, nbResults);
     }
 
-    @Disabled
     @Test
     public void two_tps_with_variable_set () throws RepositoryException {
         final long LIMIT_SCANS = 50L;
-        final Backend backend = new BlazegraphBackend(blazegraph);
+        final Backend backend = new BlazegraphBackend(IM4Blazegraph.triples9());
 
         RawOpExecutor executor = new RawOpExecutor().setBackend(backend).setLimit(LIMIT_SCANS);
         String queryAsString = "SELECT * WHERE {?s <http://address> ?c . ?s <http://own> ?a}";

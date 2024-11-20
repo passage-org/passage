@@ -1,6 +1,7 @@
 package fr.gdd.passage.volcano.executes;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
+import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.iterators.PassageScan;
@@ -30,7 +31,7 @@ public class UnionTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(6, results.size()); // 3 triples + 3 triples
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "a"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                 List.of("Alice", "snake"), List.of("Alice", "dog"), List.of("Alice", "cat"),
                 List.of("Alice", "nantes"), List.of("Bob", "paris"), List.of("Carol", "nantes")));
     }
@@ -46,11 +47,11 @@ public class UnionTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(6, results.size()); // (cat + dog + snake)*2
-        assertTrue(OpExecutorUtils.containsResultTimes(results, List.of("p", "s"),
+        assertTrue(MultisetResultChecking.containsResultTimes(results, List.of("p", "s"),
                 List.of("Alice", "feline"), 2));
-        assertTrue(OpExecutorUtils.containsResultTimes(results, List.of("p", "s"),
+        assertTrue(MultisetResultChecking.containsResultTimes(results, List.of("p", "s"),
                 List.of("Alice", "canine"), 2));
-        assertTrue(OpExecutorUtils.containsResultTimes(results, List.of("p", "s"),
+        assertTrue(MultisetResultChecking.containsResultTimes(results, List.of("p", "s"),
                 List.of("Alice", "reptile"), 2));
     }
 

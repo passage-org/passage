@@ -4,8 +4,8 @@ import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;
+import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
-import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,7 +47,7 @@ public class PauseValuesTimeoutTest {
         }
         assertEquals(1, results.size());
         // assertEquals(0, nbContinuations); // one result and we know we ain't have more
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("p", "c"), List.of("Alice", "nantes")));
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("p", "c"), List.of("Alice", "nantes")));
     }
 
     @Test
@@ -69,7 +69,7 @@ public class PauseValuesTimeoutTest {
         }
         assertEquals(2, results.size());
         assertTrue(nbContinuations > 0); // multiple results so multiple continuation.
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "c"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "c"),
                 List.of("Alice", "nantes"),
                 List.of("Bob", "paris")));
     }
@@ -95,7 +95,7 @@ public class PauseValuesTimeoutTest {
         }
         assertEquals(2, results.size());
         assertTrue(nbContinuations > 0); // multiple results so multiple continuation.
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "c"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "c"),
                 List.of("Alice", "nantes"),
                 List.of("Bob", "paris")));
     }
@@ -122,7 +122,7 @@ public class PauseValuesTimeoutTest {
         // produced in full before stopping again.
         assertTrue(nbContinuations > 0);
         assertEquals(6, results.size());
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("person", "city", "location"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("person", "city", "location"),
                 List.of("Alice", "nantes", "France"),
                 List.of("Bob", "paris", "France"),
                 List.of("Carol", "nantes", "France"),

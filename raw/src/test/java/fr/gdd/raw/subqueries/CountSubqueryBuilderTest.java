@@ -1,6 +1,5 @@
 package fr.gdd.raw.subqueries;
 
-import com.bigdata.rdf.sail.BigdataSail;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
@@ -26,10 +25,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CountSubqueryBuilderTest {
 
     private static final Logger log = LoggerFactory.getLogger(CountSubqueryBuilderTest.class);
-    private static final BigdataSail blazegraph = IM4Blazegraph.triples9();
 
     @Test
     public void small_rewriting_test_of_a_query_into_count () throws RepositoryException {
+        BlazegraphBackend backend = new BlazegraphBackend(IM4Blazegraph.triples9());
+
         String queryAsString = "SELECT * WHERE {?s <http://address> ?c . ?s <http://own> ?a}";
         String expectedAsString = String.format("""
                 SELECT (COUNT(*) AS ?%s) WHERE {
@@ -39,7 +39,7 @@ class CountSubqueryBuilderTest {
         Op expected = Algebra.compile(QueryFactory.create(expectedAsString));
 
         RawOpExecutor executor = new RawOpExecutor()
-                .setBackend(new BlazegraphBackend(blazegraph));
+                .setBackend(backend);
 
         Iterator<BackendBindings> bindings = executor.execute(queryAsString);
 

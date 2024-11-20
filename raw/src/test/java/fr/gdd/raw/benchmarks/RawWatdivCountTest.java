@@ -1,6 +1,7 @@
-package fr.gdd.raw;
+package fr.gdd.raw.benchmarks;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
+import fr.gdd.raw.RawOpExecutorUtils;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
@@ -24,7 +25,7 @@ public class RawWatdivCountTest {
     public void count_star_on_spo () throws RepositoryException, SailException {
         final BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl");
         String queryAsString = "SELECT (COUNT(*) AS ?count) WHERE { ?s ?p ?o }";
-        RawOpExecutorTest.execute(queryAsString, watdivBlazegraph, 1L); // 10,916,457 triples
+        RawOpExecutorUtils.execute(queryAsString, watdivBlazegraph, 1L); // 10,916,457 triples
         // the count is exact with blazegraph, do not need anything but getting a cardinality
         // of spo.
     }
@@ -36,7 +37,7 @@ public class RawWatdivCountTest {
         // TODO TODO TODO variable bound in COUNT
         // TODO same for p, and o
         String queryAsString = "SELECT (COUNT(?s) AS ?count) WHERE { ?s ?p ?o }";
-        RawOpExecutorTest.execute(queryAsString, watdivBlazegraph, 1L); // 10,916,457 since 10M triples
+        RawOpExecutorUtils.execute(queryAsString, watdivBlazegraph, 1L); // 10,916,457 since 10M triples
     }
 
     @Disabled
@@ -51,7 +52,7 @@ public class RawWatdivCountTest {
                     ?v2 <http://www.geonames.org/ontology#parentCountry> ?v3 .
                     ?v4 <http://schema.org/eligibleRegion> ?v3 .
                 }""";
-        RawOpExecutorTest.execute(twoTPsQuery, watdivBlazegraph, 10_000_000L);
+        RawOpExecutorUtils.execute(twoTPsQuery, watdivBlazegraph, 10_000_000L);
     }
 
 }

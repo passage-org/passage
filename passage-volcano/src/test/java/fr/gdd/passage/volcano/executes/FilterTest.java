@@ -1,6 +1,7 @@
 package fr.gdd.passage.volcano.executes;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
+import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.iterators.PassageScan;
@@ -29,7 +30,7 @@ public class FilterTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(1, results.size()); // Bob only
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("person", "address"),
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("person", "address"),
                 List.of("Bob", "paris")));
     }
 
@@ -44,7 +45,7 @@ public class FilterTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(2, results.size()); // Bob and Carol
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("person", "address"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("person", "address"),
                 List.of("Bob", "paris"),
                 List.of("Carol", "nantes")));
     }
@@ -61,7 +62,7 @@ public class FilterTest {
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(2, results.size()); // Alice and Alice.
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "a"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                 List.of("Alice", "cat"),
                 List.of("Alice", "snake")));
     }

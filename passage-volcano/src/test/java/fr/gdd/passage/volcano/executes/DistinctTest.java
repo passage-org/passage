@@ -1,6 +1,7 @@
 package fr.gdd.passage.volcano.executes;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
+import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.iterators.PassageScan;
@@ -26,7 +27,7 @@ public class DistinctTest {
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(3, results.size()); // Alice, Carol, and Bob
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "a"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                 List.of("Alice", "nantes"), List.of("Bob", "paris"), List.of("Carol", "nantes")));
     }
 
@@ -37,7 +38,7 @@ public class DistinctTest {
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(2, results.size()); // Nantes and Paris
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("a", "p"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("a", "p"),
                 Arrays.asList("nantes", null), Arrays.asList("paris", null)));
     }
 
@@ -52,7 +53,7 @@ public class DistinctTest {
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(1, results.size()); // Nantes only, since only Alice has animals
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("address"), List.of("nantes")));
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("address"), List.of("nantes")));
     }
 
     @Test
@@ -70,7 +71,7 @@ public class DistinctTest {
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
         assertEquals(1, results.size()); // Nantes only, since only Alice has animals
-        assertTrue(OpExecutorUtils.containsResult(results, List.of("address", "person"),
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("address", "person"),
                 Arrays.asList("nantes", null)));
     }
 

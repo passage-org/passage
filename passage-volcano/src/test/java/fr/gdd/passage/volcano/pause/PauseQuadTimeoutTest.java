@@ -4,8 +4,8 @@ import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;
+import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
-import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,7 +61,7 @@ public class PauseQuadTimeoutTest {
         }
         assertEquals(3, results.size()); // Alice
         assertTrue(nbPause > 1);
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "a"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                 List.of("Alice", "cat"),
                 List.of("Alice", "dog"),
                 List.of("Alice", "snake")));
@@ -85,7 +85,7 @@ public class PauseQuadTimeoutTest {
         }
         assertTrue(nbPause > 1);
         assertEquals(3, results.size()); // 3x Alice, with different species
-        assertTrue(OpExecutorUtils.containsAllResults(results, List.of("p", "a", "s"),
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a", "s"),
                 List.of("Alice", "cat", "feline"),
                 List.of("Alice", "dog", "canine"),
                 List.of("Alice", "snake", "reptile")));
@@ -114,11 +114,11 @@ public class PauseQuadTimeoutTest {
         // g1 -> Alice; g2 -> Alice, and Carol; g3 -> Bob
         assertEquals(6, results.size());
 
-        assertTrue(OpExecutorUtils.containsResultTimes(results, List.of("p", "a", "s"),
+        assertTrue(MultisetResultChecking.containsResultTimes(results, List.of("p", "a", "s"),
                 List.of("Alice", "cat", "feline"), 2));
-        assertTrue(OpExecutorUtils.containsResultTimes(results, List.of("p", "a", "s"),
+        assertTrue(MultisetResultChecking.containsResultTimes(results, List.of("p", "a", "s"),
                 List.of("Alice", "dog", "canine"), 2));
-        assertTrue(OpExecutorUtils.containsResultTimes(results, List.of("p", "a", "s"),
+        assertTrue(MultisetResultChecking.containsResultTimes(results, List.of("p", "a", "s"),
                 List.of("Alice", "snake", "reptile"), 2));
     }
 

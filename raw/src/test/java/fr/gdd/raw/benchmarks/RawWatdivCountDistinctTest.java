@@ -1,6 +1,7 @@
-package fr.gdd.raw;
+package fr.gdd.raw.benchmarks;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
+import fr.gdd.raw.RawOpExecutorUtils;
 import fr.gdd.raw.accumulators.CountDistinctChaoLee;
 import fr.gdd.raw.executor.RawOpExecutor;
 import fr.gdd.raw.iterators.RandomAggregator;
@@ -40,7 +41,7 @@ public class RawWatdivCountDistinctTest {
     public void count_distinct_s_on_spo () {
         String queryAsString = "SELECT (COUNT( DISTINCT ?s ) AS ?count) WHERE { ?s ?p ?o }";
         RandomAggregator.SUBQUERY_LIMIT = 1;
-        RawOpExecutorTest.execute(queryAsString, watdivBlazegraph, 100_000L); // 521,585 (+blaze default ones)
+        RawOpExecutorUtils.execute(queryAsString, watdivBlazegraph, 100_000L); // 521,585 (+blaze default ones)
     }
 
     @Disabled
@@ -51,7 +52,7 @@ public class RawWatdivCountDistinctTest {
         RandomAggregator.SUBQUERY_LIMIT = 1;
         RawOpExecutor executor = new RawOpExecutor();
         executor.setBackend(watdivBlazegraph).setLimit(1_000_000L).setCountDistinct(CountDistinctChaoLee::new).setMaxThreads(10);
-        RawOpExecutorTest.execute(queryAsString, executor); // 521,585 (+blaze default ones)
+        RawOpExecutorUtils.execute(queryAsString, executor); // 521,585 (+blaze default ones)
     }
 
     @Disabled
@@ -59,7 +60,7 @@ public class RawWatdivCountDistinctTest {
     public void count_distinct_p_on_spo () {
         String queryAsString = "SELECT (COUNT( DISTINCT ?p ) AS ?count) WHERE { ?s ?p ?o }";
         RandomAggregator.SUBQUERY_LIMIT = 1;
-        RawOpExecutorTest.execute(queryAsString, watdivBlazegraph, 100_000L); // 86 (+blaze default ones)
+        RawOpExecutorUtils.execute(queryAsString, watdivBlazegraph, 100_000L); // 86 (+blaze default ones)
     }
 
     @Disabled
@@ -67,7 +68,7 @@ public class RawWatdivCountDistinctTest {
     public void count_distinct_o_on_spo () {
         String queryAsString = "SELECT (COUNT( DISTINCT ?o ) AS ?count) WHERE { ?s ?p ?o }";
         RandomAggregator.SUBQUERY_LIMIT = 1;
-        RawOpExecutorTest.execute(queryAsString, watdivBlazegraph, 100_000L); // 1,005,832 (+blaze default ones)
+        RawOpExecutorUtils.execute(queryAsString, watdivBlazegraph, 100_000L); // 1,005,832 (+blaze default ones)
     }
 
     @Disabled
@@ -87,7 +88,7 @@ public class RawWatdivCountDistinctTest {
         // C(Q) = 4.17E9 results
         // CD(v4) = 44935 offers
         // CD(v1) = 1720 names
-        RawOpExecutorTest.execute(twoTPsQuery, watdivBlazegraph, 1_000_000L);
+        RawOpExecutorUtils.execute(twoTPsQuery, watdivBlazegraph, 1_000_000L);
     }
 
     @Disabled
@@ -109,7 +110,7 @@ public class RawWatdivCountDistinctTest {
         RandomAggregator.SUBQUERY_LIMIT = 8*100;
         // C(Q) = 7_554_617 elements
         // CD(v4) = 11735
-        RawOpExecutorTest.execute(twoTPsQuery, watdivBlazegraph, 1_000_000L);
+        RawOpExecutorUtils.execute(twoTPsQuery, watdivBlazegraph, 1_000_000L);
     }
 
 
