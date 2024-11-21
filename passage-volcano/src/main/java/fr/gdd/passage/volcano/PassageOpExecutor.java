@@ -13,7 +13,7 @@ import fr.gdd.passage.volcano.iterators.PassageDistinct;
 import fr.gdd.passage.volcano.iterators.limitoffset.PassageLimitOffsetFactory;
 import fr.gdd.passage.volcano.iterators.PassageOptional;
 import fr.gdd.passage.volcano.iterators.PassageScan;
-import fr.gdd.passage.volcano.iterators.service.PassageService;
+import fr.gdd.passage.volcano.iterators.PassageService;
 import fr.gdd.passage.volcano.iterators.union.PassageUnion;
 import fr.gdd.passage.volcano.iterators.PassageValues;
 import org.apache.jena.sparql.algebra.Op;

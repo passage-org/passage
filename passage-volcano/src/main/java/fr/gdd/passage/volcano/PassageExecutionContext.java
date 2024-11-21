@@ -32,6 +32,7 @@ public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
         super(context);
         this.backend = context.getContext().get(BackendConstants.BACKEND);
         context.getContext().setIfUndef(PassageConstants.SCANS, new AtomicLong(0L));
+        context.getContext().setIfUndef(PassageConstants.SERVICE_CALLS, new AtomicLong(0L));
         context.getContext().setIfUndef(BackendConstants.CACHE, new BackendCache<>(backend));
         this.cache = context.getContext().get(BackendConstants.CACHE);
 

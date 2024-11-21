@@ -26,13 +26,12 @@ public class OpExecutorUtils {
         Op query = Algebra.compile(QueryFactory.create(queryAsString));
         Iterator<? extends BackendBindings<?, ?>> iterator = executor.execute(query);
 
-        int sum = 0;
         Multiset<BackendBindings<?,?>> bindings = HashMultiset.create();
         while (iterator.hasNext()) {
             BackendBindings<?,?> binding = iterator.next();
             bindings.add(binding);
-            log.debug("{}: {}", sum, binding.toString());
-            sum += 1;
+            log.debug("{}: {}", bindings.size(), binding);
+
         }
         return bindings;
     }

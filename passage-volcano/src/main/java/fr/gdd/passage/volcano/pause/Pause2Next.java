@@ -5,13 +5,10 @@ import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.generics.BackendSaver;
+import fr.gdd.passage.volcano.iterators.*;
 import fr.gdd.passage.volcano.iterators.aggregate.PassageCount;
-import fr.gdd.passage.volcano.iterators.PassageDistinct;
 import fr.gdd.passage.volcano.iterators.limitoffset.PassageLimitOffsetFactory;
-import fr.gdd.passage.volcano.iterators.PassageOptional;
-import fr.gdd.passage.volcano.iterators.PassageScan;
 import fr.gdd.passage.volcano.iterators.union.PassageUnion;
-import fr.gdd.passage.volcano.iterators.PassageValues;
 import fr.gdd.passage.volcano.iterators.limitoffset.CanBeSkipped;
 import fr.gdd.passage.volcano.transforms.Quad2Pattern;
 import fr.gdd.passage.volcano.transforms.Subqueries2LeftOfJoins;
@@ -245,5 +242,12 @@ public class Pause2Next<ID, VALUE> extends BackendSaver<ID,VALUE,Long> {
         if (Objects.isNull(it)) return null;
 
         return groupBy;
+    }
+
+    @Override
+    public Op visit(OpService service) {
+        PassageService<ID,VALUE> it = (PassageService<ID, VALUE>) getIterator(service);
+        if (Objects.isNull(it)) return null;
+        return it.pause();
     }
 }

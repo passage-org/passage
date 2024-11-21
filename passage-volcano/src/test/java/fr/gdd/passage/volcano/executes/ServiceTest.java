@@ -1,13 +1,11 @@
 package fr.gdd.passage.volcano.executes;
 
-import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.iterators.PassageScan;
-import org.apache.commons.collections4.multiset.HashMultiSet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -16,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Deprecated // WiP
-@Disabled("WiP")
+@Disabled("WiP + find a way to simulate service endpoints through HTTP…")
 public class ServiceTest {
 
     private final static Logger log = LoggerFactory.getLogger(ServiceTest.class);
@@ -35,7 +33,22 @@ public class ServiceTest {
                 }""";
 
         Multiset<BackendBindings<?,?>> results = OpExecutorUtils.executeWithPassage(queryAsString, useless);
-        log.debug("{}", results);
+        log.debug("Number of results: {}", results.size());
+    }
+
+    @Test
+    public void an_spo_with_an_input_to_send () throws RepositoryException {
+        BlazegraphBackend useless = new BlazegraphBackend(IM4Blazegraph.triples9());
+        String queryAsString = """
+                SELECT * WHERE {
+                    BIND (<http://www.vendor0.fr/ProductType916> AS ?s)
+                    SERVICE <http://localhost:3000/fedshop.jnl/passage?default-graph-uri=http://www.vendor0.fr/> {
+                        SELECT * WHERE {?s ?p ?o}
+                    }
+                }""";
+
+        Multiset<BackendBindings<?,?>> results = OpExecutorUtils.executeWithPassage(queryAsString, useless);
+        log.debug("Number of results: {}", results.size());
     }
 
 

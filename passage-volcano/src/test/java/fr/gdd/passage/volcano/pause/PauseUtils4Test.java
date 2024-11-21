@@ -85,7 +85,7 @@ public class PauseUtils4Test {
         while (iterator.hasNext()){
             BackendBindings<ID,VALUE> next = iterator.next();
             results.add(next);
-            log.debug("{}", next);
+            log.debug("{}: {}", results.size(), next);
         }
 
         return executor.pauseAsString();
@@ -101,7 +101,7 @@ public class PauseUtils4Test {
         while (iterator.hasNext()){
             BackendBindings<ID,VALUE> next = iterator.next();
             results.add(next);
-            log.debug("{}", next);
+            log.debug("{}: {}", results.size(), next);
         }
 
         return executor.pauseAsString();
