@@ -6,7 +6,9 @@ import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.passage.volcano.PassageConstants;
+import fr.gdd.passage.volcano.executes.ServiceTest;
 import fr.gdd.passage.volcano.iterators.PassageService;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -16,6 +18,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Deprecated // WiP
 @Disabled("WiP + find a way to simulate service endpoints through HTTP…")
@@ -34,6 +38,7 @@ public class PauseServiceTest {
 
     @Test
     public void a_simple_spo_on_a_remote_passage_endpoint () throws RepositoryException {
+        Assumptions.assumeTrue(ServiceTest.endpointIsReachable("http://localhost", 3000, 2000));
         BlazegraphBackend useless = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = String.format("SELECT * WHERE { SERVICE <%s> { {?s ?p ?o} } }",
                 endpoint("http://www.vendor0.fr/"));
@@ -51,13 +56,12 @@ public class PauseServiceTest {
 
     @Test
     public void an_spo_with_an_input_to_send () throws RepositoryException {
+        Assumptions.assumeTrue(ServiceTest.endpointIsReachable("http://localhost", 3000, 2000));
         BlazegraphBackend useless = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = String.format("""
                 SELECT * WHERE {
                     BIND (<http://www.vendor0.fr/ProductType916> AS ?s)
-                    SERVICE <%s> {
-                        {?s ?p ?o}
-                    }
+                    SERVICE <%s> { {?s ?p ?o} }
                 }""", endpoint("http://www.vendor0.fr/"));
 
         Multiset<BackendBindings<?,?>> results = HashMultiset.create();
@@ -67,10 +71,12 @@ public class PauseServiceTest {
         }
         // of course there are but a few results (5), so it does not pause at all
         log.debug("Number of results: {}", results.size());
+        assertEquals(0, results.size());
     }
 
     @Test
     public void test_with_a_fedshop_rsa_query () throws RepositoryException {
+        Assumptions.assumeTrue(ServiceTest.endpointIsReachable("http://localhost", 3000, 2000));
         BlazegraphBackend useless = new BlazegraphBackend(IM4Blazegraph.triples9());
         String queryAsString = String.format("""
                 SELECT ?product ?label WHERE
