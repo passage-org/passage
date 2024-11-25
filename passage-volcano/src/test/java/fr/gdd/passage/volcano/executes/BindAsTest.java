@@ -49,7 +49,6 @@ public class BindAsTest {
                 List.of("Alice", "cat"), List.of("Alice", "dog"), List.of("Alice", "snake")));
     }
 
-    @Disabled("Bind is only for very simple assignments for now.")
     @Test
     public void a_bind_with_an_expression_to_evaluate () throws RepositoryException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
@@ -64,7 +63,6 @@ public class BindAsTest {
                 List.of("38")));
     }
 
-    @Disabled("ToString of a value that is built and does not really exist fails for now.")
     @Test
     public void function_in_bind () throws RepositoryException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9PlusLiterals());
@@ -77,9 +75,9 @@ public class BindAsTest {
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(3, results.size()); // no snake this time
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("animal", "number"),
-                List.of("snake", "13"),
-                List.of("dog", "11"),
-                List.of("cat", "11")));
+                List.of("snake", "12"),
+                List.of("dog", "10"),
+                List.of("cat", "10")));
 
     }
 }
