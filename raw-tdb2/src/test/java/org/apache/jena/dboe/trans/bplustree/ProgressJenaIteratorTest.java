@@ -2,13 +2,11 @@ package org.apache.jena.dboe.trans.bplustree;
 
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
-import fr.gdd.passage.commons.io.PassageOutput;
 import fr.gdd.passage.commons.iterators.BackendLazyIterator;
 import fr.gdd.passage.databases.inmemory.IM4Jena;
 import fr.gdd.passage.databases.persistent.Watdiv10M;
 import fr.gdd.raw.tdb2.ArtificialSkewedGraph;
 import fr.gdd.raw.tdb2.JenaBackend;
-import fr.gdd.raw.tdb2.SerializableRecord;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.jena.atlas.lib.tuple.Tuple;

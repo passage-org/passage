@@ -2,9 +2,6 @@ package fr.gdd.passage.databases.inmemory;
 
 import org.rdfhdt.hdt.hdt.HDT;
 import org.rdfhdt.hdt.hdt.HDTManager;
-import org.rdfhdt.hdt.options.HDTOptions;
-import org.rdfhdt.hdt.options.HDTOptionsBase;
-import org.rdfhdt.hdt.options.HDTOptionsKeys;
 import org.rdfhdt.hdt.options.HDTSpecification;
 import org.rdfhdt.hdt.triples.TripleString;
 

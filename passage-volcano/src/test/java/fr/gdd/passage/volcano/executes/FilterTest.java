@@ -67,4 +67,37 @@ public class FilterTest {
                 List.of("Alice", "snake")));
     }
 
+    @Test
+    public void filter_using_a_literal_integer () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9PlusLiterals());
+        String queryAsString = """
+                SELECT * WHERE {
+                       ?animal <http://letters> ?number
+                       FILTER (?number > 3)
+                }""";
+
+        var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
+        assertEquals(1, results.size());
+        // cat = 3 so filtered out
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("animal", "number"),
+                List.of("snake", "5")));
+    }
+
+    @Test
+    public void filter_using_a_literal_and_a_function () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9PlusLiterals());
+        String queryAsString = """
+                SELECT ?animal WHERE {
+                       ?person <http://own> ?animal
+                       FILTER (strlen(str(?animal)) <= 8+3)
+                }""";
+
+        var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
+        assertEquals(2, results.size()); // no snake this time
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("animal"),
+                List.of("dog"),
+                List.of("cat")));
+
+    }
+
 }

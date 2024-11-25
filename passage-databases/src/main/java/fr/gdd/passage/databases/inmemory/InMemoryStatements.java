@@ -34,6 +34,45 @@ public class InMemoryStatements {
             "<http://snake> <http://species> <http://reptile> ."
     );
 
+    public static final List<String> triples9PlusLiterals = Arrays.asList(
+            "<http://Alice> <http://address> <http://nantes> .",
+            "<http://Bob>   <http://address> <http://paris>  .",
+            "<http://Carol> <http://address> <http://nantes> .",
+
+            "<http://Alice> <http://own>     <http://cat> .",
+            "<http://Alice> <http://own>     <http://dog> .",
+            "<http://Alice> <http://own>     <http://snake> .",
+
+            "<http://cat>   <http://species> <http://feline> .",
+            "<http://dog>   <http://species> <http://canine> .",
+            "<http://snake> <http://species> <http://reptile> .",
+
+            "<http://cat>   <http://labeled>    \"cat\"@en .",
+            "<http://cat>   <http://endangered> \"false\"^^<http://www.w3.org/2001/XMLSchema#boolean> .",
+            "<http://cat>   <http://letters>    \"3\"^^<http://www.w3.org/2001/XMLSchema#integer> .",
+            "<http://snake> <http://letters>    \"5\"^^<http://www.w3.org/2001/XMLSchema#integer> ."
+    );
+
+    public static final List<String> triples9PlusLiteralsPlusStars = Arrays.asList(
+            "<http://Alice> <http://address> <http://nantes> .",
+            "<http://Bob>   <http://address> <http://paris>  .",
+            "<http://Carol> <http://address> <http://nantes> .",
+
+            "<http://Alice> <http://own>     <http://cat> .",
+            "<http://Alice> <http://own>     << <http://dog>  <http://species> <http://canine> >> .",
+            "<http://Alice> <http://own>     <http://snake> .",
+
+            "<http://cat>   <http://species> <http://feline> .",
+            "<http://snake> <http://species> <http://reptile> .",
+
+            "<< <http://cat> <http://endangered> \"false\"^^<http://www.w3.org/2001/XMLSchema#boolean> >> " +
+                    "  <http://labeled> " +
+                    "  << \"cat\"@en <http://letters> \"3\"^^<http://www.w3.org/2001/XMLSchema#integer> >> .",
+            "<http://dog>        <http://letters>    \"3\"^^<http://www.w3.org/2001/XMLSchema#integer> ."
+    );
+
+
+
     /* ********************************** GRAPHS ************************************** */
     // With NQuads, the graph is the fourth parameter.
 

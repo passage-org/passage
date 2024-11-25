@@ -16,9 +16,11 @@ import java.util.List;
  */
 public class IM4Jena {
 
-    public static Dataset triple3 () { return buildDataset(InMemoryStatements.triples3); } // simple
-    public static Dataset triple6 () { return buildDataset(InMemoryStatements.triples6); } // for optional
-    public static Dataset triple9 () { return buildDataset(InMemoryStatements.triples9); } // for random
+    public static Dataset triple3 () { return buildDataset(InMemoryStatements.triples3); }
+    public static Dataset triple6 () { return buildDataset(InMemoryStatements.triples6); }
+    public static Dataset triple9 () { return buildDataset(InMemoryStatements.triples9); }
+    public static Dataset triples9PlusLiterals () { return buildDataset(InMemoryStatements.triples9PlusLiterals); }
+    public static Dataset stars () { return buildDataset(InMemoryStatements.triples9PlusLiteralsPlusStars); }
 
     public static Dataset graph3 () { // called `InMemoryInstanceOfTDB2 before.
         Dataset built = buildDataset(InMemoryStatements.cities10);

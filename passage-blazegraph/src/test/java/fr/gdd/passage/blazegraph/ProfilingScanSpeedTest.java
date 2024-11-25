@@ -2,9 +2,9 @@ package fr.gdd.passage.blazegraph;
 
 import com.bigdata.rdf.internal.IV;
 import com.bigdata.rdf.spo.ISPO;
-import fr.gdd.passage.commons.iterators.BackendLazyIterator;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
+import fr.gdd.passage.commons.iterators.BackendLazyIterator;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;

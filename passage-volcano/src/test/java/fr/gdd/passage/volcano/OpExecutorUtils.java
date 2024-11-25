@@ -20,7 +20,7 @@ public class OpExecutorUtils {
         return executeWithPassage(queryAsString, new PassageExecutionContextBuilder().setBackend(backend).build());
     }
 
-    public static Multiset<BackendBindings<?,?>> executeWithPassage(String queryAsString, PassageExecutionContext ec) {
+    public static Multiset<BackendBindings<?,?>> executeWithPassage(String queryAsString, PassageExecutionContext<?,?> ec) {
         PassageOpExecutor<?,?> executor = new PassageOpExecutor<>(ec);
 
         Op query = Algebra.compile(QueryFactory.create(queryAsString));

@@ -1,7 +1,5 @@
 package fr.gdd.passage.commons.interfaces;
 
-import java.util.Random;
-
 /**
  * An iterator that enables performing random walks in the query.
  */

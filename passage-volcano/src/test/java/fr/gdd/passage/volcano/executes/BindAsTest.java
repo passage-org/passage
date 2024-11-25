@@ -63,4 +63,23 @@ public class BindAsTest {
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("count"),
                 List.of("38")));
     }
+
+    @Disabled("ToString of a value that is built and does not really exist fails for now.")
+    @Test
+    public void function_in_bind () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9PlusLiterals());
+        String queryAsString = """
+                SELECT ?animal ?number WHERE {
+                       ?person <http://own> ?animal
+                       BIND (strlen(str(?animal)) AS ?number)
+                }""";
+
+        var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
+        assertEquals(3, results.size()); // no snake this time
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("animal", "number"),
+                List.of("snake", "13"),
+                List.of("dog", "11"),
+                List.of("cat", "11")));
+
+    }
 }

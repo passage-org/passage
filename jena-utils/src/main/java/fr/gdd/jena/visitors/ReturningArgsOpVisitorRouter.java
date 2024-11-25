@@ -1,6 +1,5 @@
 package fr.gdd.jena.visitors;
 
-import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
 

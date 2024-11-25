@@ -8,7 +8,6 @@ import fr.gdd.passage.commons.generics.BackendOpExecutor;
 import fr.gdd.passage.commons.iterators.BackendIteratorOverInput;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.iterators.PausableIterator;
-import fr.gdd.passage.volcano.pause.Pause2Next;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpUnion;

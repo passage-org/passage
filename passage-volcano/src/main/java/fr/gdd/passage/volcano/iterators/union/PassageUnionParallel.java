@@ -8,7 +8,10 @@ import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpUnion;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.concurrent.*;
 
 /**

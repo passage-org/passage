@@ -2,13 +2,13 @@ package fr.gdd.raw.accumulators;
 
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.passage.commons.generics.BackendBindings;
-import fr.gdd.passage.commons.generics.BackendSaver;
 import fr.gdd.passage.commons.generics.BackendCache;
+import fr.gdd.passage.commons.generics.BackendSaver;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendAccumulator;
 import fr.gdd.passage.volcano.optimizers.CardinalityJoinOrdering;
-import fr.gdd.passage.volcano.transforms.Triples2BGP;
 import fr.gdd.passage.volcano.transforms.BGP2Triples;
+import fr.gdd.passage.volcano.transforms.Triples2BGP;
 import fr.gdd.raw.executor.RawConstants;
 import fr.gdd.raw.executor.RawOpExecutor;
 import fr.gdd.raw.iterators.RandomAggregator;

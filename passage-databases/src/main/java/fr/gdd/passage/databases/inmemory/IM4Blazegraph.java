@@ -3,7 +3,6 @@ package fr.gdd.passage.databases.inmemory;
 import com.bigdata.rdf.sail.BigdataSail;
 import com.bigdata.rdf.sail.BigdataSailRepository;
 import com.bigdata.rdf.sail.BigdataSailRepositoryConnection;
-import org.openrdf.query.algebra.Str;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFParseException;
@@ -21,9 +20,13 @@ import java.util.Properties;
  */
 public class IM4Blazegraph {
 
-    public static BigdataSail triples3 () { return getDataset(InMemoryStatements.triples3); } // simple
-    public static BigdataSail triples6 () { return getDataset(InMemoryStatements.triples6); } // for optional
-    public static BigdataSail triples9 () { return getDataset(InMemoryStatements.triples9); } // for random
+    public static BigdataSail triples3 () { return getDataset(InMemoryStatements.triples3); }
+    public static BigdataSail triples6 () { return getDataset(InMemoryStatements.triples6); }
+    public static BigdataSail triples9 () { return getDataset(InMemoryStatements.triples9); }
+    public static BigdataSail triples9PlusLiterals () { return getDataset(InMemoryStatements.triples9PlusLiterals); }
+
+    // for now, stars are not supported by Blazegraph. It needs a workaround.
+    // public static BigdataSail stars () { return getDataset(InMemoryStatements.triples9PlusLiteralsPlusStars); }
 
     public static BigdataSail graph3 () {
         List<String> graphs = new ArrayList<>();

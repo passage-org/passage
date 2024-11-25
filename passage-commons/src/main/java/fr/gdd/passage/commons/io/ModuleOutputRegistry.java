@@ -1,6 +1,5 @@
 package fr.gdd.passage.commons.io;
 
-import fr.gdd.passage.commons.io.ModuleOutputWriter;
 import org.apache.jena.riot.Lang;
 
 import java.util.HashMap;

@@ -1,13 +1,10 @@
 package fr.gdd.passage.commons.transforms;
 
-import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.jena.visitors.ReturningOpBaseVisitor;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.ARQConstants;
 import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.algebra.op.OpJoin;
-import org.apache.jena.sparql.algebra.op.OpProject;
 import org.apache.jena.sparql.algebra.op.OpQuad;
 import org.apache.jena.sparql.algebra.op.OpTriple;
 import org.apache.jena.sparql.core.Quad;

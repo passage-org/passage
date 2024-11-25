@@ -15,7 +15,6 @@ import com.bigdata.striterator.IKeyOrder;
 import fr.gdd.passage.commons.exceptions.UndefinedCode;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
-import org.apache.commons.collections4.iterators.EmptyIterator;
 
 import java.util.Arrays;
 import java.util.Objects;

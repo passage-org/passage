@@ -10,7 +10,6 @@ import org.apache.jena.dboe.base.record.Record;
 import org.apache.jena.dboe.base.record.RecordFactory;
 import org.apache.jena.dboe.base.record.RecordMapper;
 import org.apache.jena.graph.Node;
-import org.apache.jena.tdb2.lib.NodeLib;
 import org.apache.jena.tdb2.lib.TupleLib;
 import org.apache.jena.tdb2.store.NodeId;
 import org.apache.jena.util.iterator.NullIterator;

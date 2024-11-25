@@ -26,81 +26,28 @@ import java.util.Objects;
 public class BackendBind<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
 
     public static <ID,VALUE> IBackendBindsFactory<ID,VALUE> factory() {
-        return (context, input, extend) -> {
-            Backend<ID,VALUE,?> backend = context.getContext().get(BackendConstants.BACKEND);
-            BackendCache<ID,VALUE> cache = context.getContext().get(BackendConstants.CACHE);
-            BackendOpExecutor<ID,VALUE> executor = context.getContext().get(BackendConstants.EXECUTOR);
-            return new BackendBindsFactory<>(executor, input, extend, backend, cache, context);
-        };
+        return (context, input, extend) -> new BackendIteratorOverInput<>(context, input, extend, BackendBind::new);
     }
-
-    /* ************************** ITERATOR FOR EACH INPUT ************************** */
-
-    public static class BackendBindsFactory<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
-
-        final Iterator<BackendBindings<ID,VALUE>> input;
-        final ExecutionContext context;
-        final Backend<ID,VALUE,?> backend;
-        final BackendCache<ID,VALUE> cache;
-        final BackendOpExecutor<ID,VALUE> executor;
-        final OpExtend op;
-
-        Iterator<BackendBindings<ID,VALUE>> current;
-
-        public BackendBindsFactory(BackendOpExecutor<ID,VALUE> executor,
-                                   Iterator<BackendBindings<ID,VALUE>> input, OpExtend op,
-                                   Backend<ID,VALUE,?> backend, BackendCache<ID, VALUE> cache, ExecutionContext context) {
-            this.executor = executor;
-            this.backend = backend;
-            this.input = input;
-            this.cache = cache;
-            this.context = context;
-            this.op = op;
-        }
-
-        @Override
-        public boolean hasNext() {
-            if (Objects.isNull(current) && !input.hasNext()) return false;
-
-            if (Objects.nonNull(current) && current.hasNext()) return true;
-
-            while (Objects.isNull(current) && input.hasNext()) {
-                BackendBindings<ID, VALUE> inputBinding = input.next();
-                current = new BackendBind<>(executor, inputBinding, op, backend, cache, context);
-                if (!current.hasNext()) {
-                    current = null;
-                }
-            }
-
-            if (Objects.isNull(current)) return false;
-
-            return current.hasNext();
-        }
-
-        @Override
-        public BackendBindings<ID, VALUE> next() {
-            return current.next();
-        }
-    }
-
-    /* ******************************** ACTUAL ITERATOR ********************************* */
 
     final BackendBindings<ID,VALUE> input;
     final ExecutionContext context;
     final VarExprList exprs;
     final Backend<ID,VALUE,?> backend;
     final BackendCache<ID,VALUE> cache;
+    final BackendOpExecutor<ID,VALUE> executor;
+    final OpExtend bind;
 
     final Iterator<BackendBindings<ID,VALUE>> wrapped;
 
-    public BackendBind(BackendOpExecutor<ID,VALUE> executor, BackendBindings<ID,VALUE> input, OpExtend op,
-                       Backend<ID,VALUE,?> backend, BackendCache<ID, VALUE> cache, ExecutionContext context) {
-        this.exprs =  op.getVarExprList();
+    public BackendBind(ExecutionContext context, BackendBindings<ID,VALUE> input, OpExtend bind) {
         this.context = context;
-        this.backend = backend;
-        this.cache = cache;
+        this.executor = context.getContext().get(BackendConstants.EXECUTOR);
+        this.backend = context.getContext().get(BackendConstants.BACKEND);
+        this.cache = context.getContext().get(BackendConstants.CACHE);
+        this.exprs =  bind.getVarExprList();
         this.input = input;
-        this.wrapped = executor.visit(op.getSubOp(), Iter.of(input));
+        this.bind = bind;
+        this.wrapped = executor.visit(bind.getSubOp(), Iter.of(input));
     }
 
     @Override
@@ -121,6 +68,9 @@ public class BackendBind<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>
             // NodeValue nv = expr.eval(Binding.noParent, context); // basic expressions only
             BackendBindings.IdValueBackend<ID,VALUE> newBinding = new BackendBindings.IdValueBackend<ID,VALUE>()
                     .setBackend(backend);
+            NodeValue MEOW = expr.eval(current, null);
+
+
             if (expr.isVariable()) {
                 newBinding.setValue(b.getBinding(expr.asVar()).getValue());
             } else if (expr.isConstant()) {

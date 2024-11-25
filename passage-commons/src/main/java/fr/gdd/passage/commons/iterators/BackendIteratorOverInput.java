@@ -3,7 +3,6 @@ package fr.gdd.passage.commons.iterators;
 import fr.gdd.passage.commons.exceptions.NotFoundException;
 import fr.gdd.passage.commons.factories.IBackendIteratorFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
-import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
 import java.util.Iterator;

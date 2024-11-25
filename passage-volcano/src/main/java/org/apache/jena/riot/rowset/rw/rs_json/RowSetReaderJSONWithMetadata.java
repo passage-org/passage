@@ -8,7 +8,6 @@ import org.apache.jena.query.ARQ;
 import org.apache.jena.riot.lang.LabelToNode;
 import org.apache.jena.riot.resultset.ResultSetLang;
 import org.apache.jena.riot.rowset.RowSetReader;
-import org.apache.jena.riot.rowset.RowSetReaderFactory;
 import org.apache.jena.riot.rowset.RowSetReaderRegistry;
 import org.apache.jena.riot.rowset.rw.RowSetReaderJSONStreaming;
 import org.apache.jena.riot.system.ErrorHandlerFactory;
