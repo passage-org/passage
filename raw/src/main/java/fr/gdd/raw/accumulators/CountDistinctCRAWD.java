@@ -153,7 +153,7 @@ public class CountDistinctCRAWD<ID,VALUE> implements BackendAccumulator<ID, VALU
         log.debug("N̂: " + sumOfInversedProba/sampleSizeOfWJ);
         log.debug("Nb Total Scans: " + context.getContext().get(RawConstants.SCANS));
         Backend<ID,VALUE,?> backend = context.getContext().get(RawConstants.BACKEND);
-        return backend.getValue(String.format("\"%s\"^^%s", getValueAsDouble(), XSDDatatype.XSDdouble.getURI()));
+        return backend.getValue(String.format("\"%s\"^^<%s>", getValueAsDouble(), XSDDatatype.XSDdouble.getURI()));
     }
 
     public double getValueAsDouble () {

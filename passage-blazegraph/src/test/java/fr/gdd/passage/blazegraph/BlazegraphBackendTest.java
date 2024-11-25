@@ -60,7 +60,7 @@ public class BlazegraphBackendTest {
     @Test
     public void create_values_with_string_repr () throws RepositoryException {
         BlazegraphBackend bb = new BlazegraphBackend(IM4Blazegraph.triples9());
-        BigdataValue twelve = bb.getValue("12");
+        BigdataValue twelve = bb.getValue("\"12\"");
         assertInstanceOf(BigdataLiteral.class, twelve);
         assertEquals("\"12\"", twelve.toString());
         BigdataValue uri = bb.getValue("<https://uri>");

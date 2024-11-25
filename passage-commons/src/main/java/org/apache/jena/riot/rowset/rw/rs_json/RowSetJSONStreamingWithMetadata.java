@@ -1,5 +1,9 @@
 package org.apache.jena.riot.rowset.rw.rs_json;
 
+// Disclaimer: this is a slight modified version of Apache Jena's
+// RowSetJSONStreaming that reads a `metadata` field when it
+// exists.
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file

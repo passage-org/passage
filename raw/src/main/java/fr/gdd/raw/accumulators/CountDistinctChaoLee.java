@@ -141,7 +141,7 @@ public class CountDistinctChaoLee<ID,VALUE> implements BackendAccumulator<ID, VA
         log.debug("ChaoLee SampleSize: " + sampleSize);
         log.debug("Nb Total Scans: " + context.getContext().get(RawConstants.SCANS));
         Backend<ID,VALUE,?> backend = context.getContext().get(RawConstants.BACKEND);
-        return backend.getValue(String.format("\"%s\"^^%s", getValueAsDouble(), XSDDatatype.XSDdouble.getURI()));
+        return backend.getValue(String.format("\"%s\"^^<%s>", getValueAsDouble(), XSDDatatype.XSDdouble.getURI()));
     }
 
     public double getValueAsDouble () {

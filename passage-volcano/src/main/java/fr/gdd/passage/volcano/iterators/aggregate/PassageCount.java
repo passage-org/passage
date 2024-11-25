@@ -5,6 +5,7 @@ import fr.gdd.passage.commons.factories.IBackendCountsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.generics.BackendOpExecutor;
+import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendAccumulator;
 import fr.gdd.passage.commons.iterators.BackendIteratorOverInput;
 import fr.gdd.passage.volcano.PassageConstants;
@@ -44,6 +45,7 @@ public class PassageCount<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE
     }
 
     final BackendOpExecutor<ID,VALUE> executor;
+    final Backend<ID,VALUE,?> backend;
     final OpGroup opCount;
     final BackendBindings<ID,VALUE> input;
     final BackendBindings<ID,VALUE> keys;
@@ -55,6 +57,7 @@ public class PassageCount<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE
 
     public PassageCount(ExecutionContext context, BackendBindings<ID,VALUE> input, OpGroup opCount){
         this.context = (PassageExecutionContext<ID, VALUE>) context;
+        this.backend = this.context.backend;
         this.executor = context.getContext().get(BackendConstants.EXECUTOR); // TODO put it in context
         this.opCount = opCount;
         this.input = input;
@@ -111,8 +114,6 @@ public class PassageCount<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE
      * using the count. For instance `SELECT ((COUNT(*) + 12) AS ?count)…`.
      */
     public Op save(OpExtend parent, Op subop) {
-
-
         // It should save the current count value processed until there.
         BackendBindings<ID,VALUE> export = createBinding(var2accumulator);
 
@@ -161,7 +162,6 @@ public class PassageCount<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE
     private BackendBindings<ID,VALUE> createBinding(Pair<Var, BackendAccumulator<ID,VALUE>> var2acc) {
         BackendBindings<ID,VALUE> newBinding = new BackendBindings<>();
         newBinding.put(var2acc.getLeft(), new BackendBindings.IdValueBackend<ID,VALUE>()
-                .setBackend(context.getContext().get(BackendConstants.BACKEND))
                 .setValue(var2acc.getRight().getValue()));
         return newBinding;
     }

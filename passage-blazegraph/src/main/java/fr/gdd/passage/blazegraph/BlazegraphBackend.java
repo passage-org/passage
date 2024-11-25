@@ -1,15 +1,20 @@
 package fr.gdd.passage.blazegraph;
 
+import com.bigdata.bop.IVariableFactory;
 import com.bigdata.concurrent.TimeoutException;
 import com.bigdata.journal.Options;
 import com.bigdata.rdf.internal.IV;
+import com.bigdata.rdf.internal.IVUtility;
 import com.bigdata.rdf.internal.impl.TermId;
 import com.bigdata.rdf.internal.impl.uri.VocabURIByteIV;
-import com.bigdata.rdf.model.BigdataLiteral;
-import com.bigdata.rdf.model.BigdataValue;
+import com.bigdata.rdf.model.*;
+import com.bigdata.rdf.rio.ntriples.BigdataNTriplesParser;
+import com.bigdata.rdf.rio.ntriples.BigdataNTriplesParserFactory;
+import com.bigdata.rdf.rio.turtle.BigdataTurtleParser;
 import com.bigdata.rdf.sail.BigdataSail;
 import com.bigdata.rdf.sail.BigdataSailRepository;
 import com.bigdata.rdf.sail.BigdataSailRepositoryConnection;
+import com.bigdata.rdf.sail.sparql.Bigdata2ASTSPARQLParser;
 import com.bigdata.rdf.spo.ISPO;
 import com.bigdata.rdf.store.AbstractTripleStore;
 import com.bigdata.relation.accesspath.IAccessPath;
@@ -21,15 +26,30 @@ import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
 import fr.gdd.passage.commons.iterators.BackendLazyIterator;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.sparql.expr.NodeValue;
+import org.apache.jena.sparql.expr.nodevalue.*;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Value;
+import org.openrdf.model.ValueFactory;
+import org.openrdf.model.impl.LiteralImpl;
 import org.openrdf.model.impl.URIImpl;
+import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.query.*;
 import org.openrdf.repository.RepositoryException;
+import org.openrdf.rio.RDFFormat;
+import org.openrdf.rio.RDFParser;
+import org.openrdf.rio.Rio;
+import org.openrdf.rio.helpers.NTriplesParserSettings;
+import org.openrdf.rio.helpers.RDFHandlerBase;
+import org.openrdf.rio.rdfxml.RDFXMLParser;
 import org.openrdf.sail.SailException;
+import org.rdfhdt.hdt.rdf.RDFParserFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.StringReader;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Properties;
@@ -234,11 +254,16 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
 
     @Override
     public BigdataValue getValue(String valueAsString, int... type) {
-        if (valueAsString.startsWith("<") && valueAsString.endsWith(">")) {
-            return store.getValueFactory().asValue(new URIImpl(valueAsString));
-        } else {
-            return store.getValueFactory().createLiteral(valueAsString);
-        }
+        NodeValue nv = NodeValue.parse(valueAsString); // TODO parse immediately into BigdataValue
+        return switch (nv) {
+            case NodeValueNode ignored -> store.getValueFactory().asValue(new URIImpl(valueAsString));
+            case NodeValueInteger vint -> store.getValueFactory().createLiteral(vint.getInteger().intValue());
+            case NodeValueDouble vdouble -> store.getValueFactory().createLiteral(vdouble.getDouble());
+            case NodeValueBoolean vbool -> store.getValueFactory().createLiteral(vbool.getBoolean());
+            case NodeValueString vstr -> store.getValueFactory().createLiteral(vstr.asString());
+            case NodeValueDateTime vdate -> store.getValueFactory().createLiteral(vdate.getDateTime());
+            default -> throw new UnsupportedOperationException(nv.toString());
+        };
     }
 
     @Override

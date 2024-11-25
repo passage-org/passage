@@ -17,6 +17,7 @@ import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.expr.NodeValue;
 import org.apache.jena.sparql.expr.nodevalue.NodeValueInteger;
 import org.apache.jena.sparql.util.ExprUtils;
+import org.apache.jena.sparql.util.FmtUtils;
 
 import java.util.Iterator;
 import java.util.Objects;
