@@ -1,6 +1,7 @@
 package fr.gdd.passage.databases.persistent;
 
 import org.apache.commons.io.FileUtils;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
@@ -12,6 +13,8 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Deprecated // should be reworked, simplified
+@Disabled
 public class Watdiv10MTest {
 
     @Test

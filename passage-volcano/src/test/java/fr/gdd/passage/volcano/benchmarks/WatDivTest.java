@@ -22,7 +22,8 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Disabled(value = "Need the WatDiv dataset to work.")
+@Disabled("Need the WatDiv dataset to work.")
+@Deprecated
 public class WatDivTest {
 
     public static final String PATH = "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl";
