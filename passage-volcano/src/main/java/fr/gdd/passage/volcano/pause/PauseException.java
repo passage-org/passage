@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.iterators;
+package fr.gdd.passage.volcano.pause;
 
 import org.apache.jena.sparql.algebra.Op;
 

@@ -1,43 +1,30 @@
-package fr.gdd.passage.volcano.iterators;
+package fr.gdd.passage.volcano.spliterators;
 
 import fr.gdd.passage.commons.exceptions.NotFoundException;
-import fr.gdd.passage.commons.factories.IBackendQuadsFactory;
-import fr.gdd.passage.commons.factories.IBackendTriplesFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.generics.Substitutor;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
-import fr.gdd.passage.commons.iterators.BackendIteratorOverInput;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.PassageExecutionContext;
-import fr.gdd.passage.volcano.pause.PausableIterator;
+import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.pause.PauseException;
 import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.atlas.lib.tuple.TupleFactory;
-import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.algebra.op.*;
+import org.apache.jena.sparql.algebra.op.Op0;
+import org.apache.jena.sparql.algebra.op.OpQuad;
+import org.apache.jena.sparql.algebra.op.OpTriple;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
-import java.util.Iterator;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.Spliterator;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
-/**
- * The most default basic simple iterator that scans the dataset.
- */
-public class PassageScan<ID, VALUE> extends PausableIterator<ID,VALUE> implements Iterator<BackendBindings<ID, VALUE>>{
-
-    public static <ID,VALUE> IBackendTriplesFactory<ID,VALUE> triplesFactory() {
-        return (context, input, op) -> new BackendIteratorOverInput<>(context, input, (Op0) op, PassageScan::new);
-    }
-
-    public static <ID,VALUE> IBackendQuadsFactory<ID,VALUE> quadsFactory() {
-        return (context, input, op) -> new BackendIteratorOverInput<>(context, input, (Op0) op, PassageScan::new);
-    }
+public class PassageSplitScan<ID,VALUE> implements Spliterator<BackendBindings<ID,VALUE>> {
 
     /**
      * By default, this is based on execution time. However, developers can change it
@@ -53,16 +40,15 @@ public class PassageScan<ID, VALUE> extends PausableIterator<ID,VALUE> implement
 
     final PassageExecutionContext<ID,VALUE> context;
     final BackendBindings<ID,VALUE> input;
-    final Long limit;
+
     final Long offset;
+    Long limit;
 
     BackendIterator<ID, VALUE, Long> wrapped;
     Tuple<Var> vars; // needed to create bindings var -> value
     Long produced = 0L;
-    boolean consumed = true;
 
-    public PassageScan(ExecutionContext context, BackendBindings<ID,VALUE> input, Op0 tripleOrQuad) {
-        super((PassageExecutionContext<ID, VALUE>) context, tripleOrQuad);
+    public PassageSplitScan (ExecutionContext context, BackendBindings<ID,VALUE> input, Op0 tripleOrQuad) {
         this.context = (PassageExecutionContext<ID, VALUE>) context;
         this.backend = this.context.backend;
         this.cache = this.context.cache;
@@ -102,68 +88,73 @@ public class PassageScan<ID, VALUE> extends PausableIterator<ID,VALUE> implement
     }
 
     @Override
-    public boolean hasNext() {
+    public boolean tryAdvance(Consumer<? super BackendBindings<ID, VALUE>> action) {
         if (Objects.isNull(wrapped)) {return false;}
-        if (!consumed) {return true;}
         if (Objects.nonNull(limit) && produced >= limit) return false;
 
-        boolean result = wrapped.hasNext();
+        if (wrapped.hasNext()) { // actually iterates over the dataset
+            if (!context.paused.isPaused() && stopping.apply(context)) { // unless we must stop
+                // execution stops immediately, caught by {@link PassageRoot}
+                throw new PauseException(op);
+            }
 
-        if (result && !context.paused.isPaused() && stopping.apply(context)) {
-            // execution stops immediately, caught by {@link PassageRoot}
-            throw new PauseException(op);
+            // but if not pause, we create the new binding
+            produced += 1;
+            wrapped.next();
+            BackendBindings<ID, VALUE> newBinding = new BackendBindings<>();
+
+            if (Objects.nonNull(vars.get(SPOC.SUBJECT))) { // ugly x4
+                newBinding.put(vars.get(SPOC.SUBJECT), wrapped.getId(SPOC.SUBJECT), this.context.backend).setCode(vars.get(SPOC.SUBJECT), SPOC.SUBJECT);
+            }
+            if (Objects.nonNull(vars.get(SPOC.PREDICATE))) {
+                newBinding.put(vars.get(SPOC.PREDICATE), wrapped.getId(SPOC.PREDICATE), this.context.backend).setCode(vars.get(SPOC.PREDICATE), SPOC.PREDICATE);
+            }
+            if (Objects.nonNull(vars.get(SPOC.OBJECT))) {
+                newBinding.put(vars.get(SPOC.OBJECT), wrapped.getId(SPOC.OBJECT), this.context.backend).setCode(vars.get(SPOC.OBJECT), SPOC.OBJECT);
+            }
+            if (vars.len() > 3 && Objects.nonNull(vars.get(SPOC.GRAPH))) {
+                newBinding.put(vars.get(SPOC.GRAPH), wrapped.getId(SPOC.GRAPH), this.context.backend).setCode(vars.get(SPOC.GRAPH), SPOC.GRAPH);
+            }
+
+            action.accept(newBinding.setParent(input));
+            return true;
         }
 
-        consumed = !result;
-
-        return result;
+        return false;
     }
 
     @Override
-    public BackendBindings<ID, VALUE> next() {
-        consumed = true;
-        produced += 1;
-        wrapped.next();
-
-        ((AtomicLong) context.getContext().get(PassageConstants.SCANS)).getAndIncrement();
-
-        BackendBindings<ID, VALUE> newBinding = new BackendBindings<>();
-
-        if (Objects.nonNull(vars.get(SPOC.SUBJECT))) { // ugly x3
-            newBinding.put(vars.get(SPOC.SUBJECT), wrapped.getId(SPOC.SUBJECT), this.context.backend).setCode(vars.get(SPOC.SUBJECT), SPOC.SUBJECT);
+    public Spliterator<BackendBindings<ID, VALUE>> trySplit() {
+        long remaining = estimateSize();
+        if (remaining < 2) { return null; } // no split possible
+        // #1 limit the size of this split iterator
+        long start = Objects.isNull(offset) ? 0 : offset;
+        long splitIndex = start + produced + remaining / 2;
+        // #2 create another split iterator of removed size
+        PassageExecutionContext<ID,VALUE> newContext =
+                new PassageExecutionContextBuilder<ID,VALUE>()
+                        .setContext(context).build()
+                        .setOffset(splitIndex);
+        if (Objects.nonNull(this.limit)) {
+            newContext.setLimit(this.limit-splitIndex);
         }
-        if (Objects.nonNull(vars.get(SPOC.PREDICATE))) {
-            newBinding.put(vars.get(SPOC.PREDICATE), wrapped.getId(SPOC.PREDICATE), this.context.backend).setCode(vars.get(SPOC.PREDICATE), SPOC.PREDICATE);
-        }
-        if (Objects.nonNull(vars.get(SPOC.OBJECT))) {
-            newBinding.put(vars.get(SPOC.OBJECT), wrapped.getId(SPOC.OBJECT), this.context.backend).setCode(vars.get(SPOC.OBJECT), SPOC.OBJECT);
-        }
-        if (vars.len() > 3 && Objects.nonNull(vars.get(SPOC.GRAPH))) {
-            newBinding.put(vars.get(SPOC.GRAPH), wrapped.getId(SPOC.GRAPH), this.context.backend).setCode(vars.get(SPOC.GRAPH), SPOC.GRAPH);
-        }
+        this.limit = splitIndex - start;
 
-        return newBinding.setParent(input);
+        return new PassageSplitScan<>(newContext, input, op);
     }
 
-    public double cardinality(){
-        if (Objects.nonNull(wrapped) && this.wrapped.hasNext()) {
-            return this.wrapped.cardinality();
-        }
-        return 0.;
-    }
-
-    /**
-     * @return The Jena operator that summarizes the current state of this scan iterator.
-     * It is made of `Bind … As …` to save the state that created this iterator, plus the triple pattern
-     * itself unmoved, plus a slice operator that defines an offset.
-     * It returns `null` when the wrapped scan iterator does not have a next binding.
-     */
     @Override
-    public Op pause() {
-        if (!this.hasNext()) { return null; }
-
-        Op toSave = OpJoin.create(input.toOp(), op);
-        long newLimit = Objects.isNull(limit) || limit == Long.MIN_VALUE ? Long.MIN_VALUE : limit - produced;
-        return new OpSlice(toSave, wrapped.current(), newLimit);
+    public long estimateSize() {
+        if (Objects.isNull(wrapped)) return 0;
+        long start = Objects.isNull(offset) ? 0 : offset;
+        long cardinality = (long) wrapped.cardinality() - start;
+        long upperLimit = (Objects.isNull(limit)) ? cardinality : Math.min(cardinality, limit);
+        return upperLimit - produced;
     }
+
+    @Override
+    public int characteristics() {
+        return SUBSIZED | SIZED | NONNULL;
+    }
+
 }

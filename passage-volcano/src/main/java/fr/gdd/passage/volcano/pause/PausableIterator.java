@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.iterators;
+package fr.gdd.passage.volcano.pause;
 
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.PassageExecutionContext;

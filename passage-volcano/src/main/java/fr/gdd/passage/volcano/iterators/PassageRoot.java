@@ -1,6 +1,7 @@
 package fr.gdd.passage.volcano.iterators;
 
 import fr.gdd.passage.volcano.PassageConstants;
+import fr.gdd.passage.volcano.pause.PauseException;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
 import java.util.Iterator;
