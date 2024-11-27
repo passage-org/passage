@@ -2,8 +2,8 @@ package fr.gdd.passage.blazegraph;
 
 import com.bigdata.rdf.internal.IV;
 import com.google.common.collect.Multiset;
-import fr.gdd.passage.commons.interfaces.SPOC;
 import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
+import fr.gdd.passage.commons.interfaces.SPOC;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;

@@ -2,9 +2,9 @@ package org.apache.jena.dboe.trans.bplustree;
 
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
-import fr.gdd.raw.tdb2.datasets.TDB2InMemoryDatasetsFactory;
 import fr.gdd.raw.tdb2.JenaBackend;
 import fr.gdd.raw.tdb2.SerializableRecord;
+import fr.gdd.raw.tdb2.datasets.TDB2InMemoryDatasetsFactory;
 import org.apache.jena.graph.Node;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.tdb2.store.NodeId;

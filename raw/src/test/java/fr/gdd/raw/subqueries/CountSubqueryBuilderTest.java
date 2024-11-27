@@ -1,8 +1,8 @@
 package fr.gdd.raw.subqueries;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
-import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
+import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.raw.executor.RawConstants;
 import fr.gdd.raw.executor.RawOpExecutor;
 import org.apache.jena.query.Query;

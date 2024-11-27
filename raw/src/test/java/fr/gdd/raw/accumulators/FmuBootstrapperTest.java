@@ -1,9 +1,9 @@
 package fr.gdd.raw.accumulators;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.interfaces.Backend;
-import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.raw.executor.RawOpExecutor;
 import fr.gdd.raw.subqueries.CountSubqueryBuilder;
 import org.apache.jena.query.QueryFactory;

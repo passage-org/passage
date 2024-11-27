@@ -12,15 +12,10 @@ import org.apache.jena.sparql.algebra.op.OpExtend;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.core.VarExprList;
 import org.apache.jena.sparql.engine.ExecutionContext;
-import org.apache.jena.sparql.expr.E_Add;
 import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.expr.NodeValue;
-import org.apache.jena.sparql.expr.nodevalue.NodeValueInteger;
-import org.apache.jena.sparql.util.ExprUtils;
-import org.apache.jena.sparql.util.FmtUtils;
 
 import java.util.Iterator;
-import java.util.Objects;
 
 /**
  * `BIND (some_expr AS ?variable)` iterator. Most of the time, we evaluate simple

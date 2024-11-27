@@ -1,8 +1,8 @@
 package fr.gdd.raw.iterators;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
-import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
+import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.raw.RawOpExecutorUtils;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
