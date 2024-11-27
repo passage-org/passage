@@ -2,7 +2,7 @@ package fr.gdd.passage.volcano.executes;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
-import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,7 +22,7 @@ public class DistinctTest {
 
     @Test
     public void basic_trial_to_create_distinct_without_projected_variable() throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String query = "SELECT DISTINCT * WHERE { ?p <http://address> ?a }";
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
@@ -33,7 +33,7 @@ public class DistinctTest {
 
     @Test
     public void basic_trial_to_create_distinct_from_other_implemented_operators() throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String query = "SELECT DISTINCT ?a WHERE { ?p <http://address> ?a }";
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
@@ -44,7 +44,7 @@ public class DistinctTest {
 
     @Test
     public void distinct_of_bgp() throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String query = """
         SELECT DISTINCT ?address WHERE {
             ?person <http://address> ?address.
@@ -58,7 +58,7 @@ public class DistinctTest {
 
     @Test
     public void distinct_of_bgp_rewritten() throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String query = """
         SELECT DISTINCT ?address WHERE {
             {SELECT DISTINCT ?address ?person WHERE {

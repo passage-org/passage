@@ -3,7 +3,7 @@ package fr.gdd.raw.accumulators;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.interfaces.Backend;
-import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.raw.executor.RawOpExecutor;
 import fr.gdd.raw.subqueries.CountSubqueryBuilder;
 import org.apache.jena.query.QueryFactory;
@@ -28,7 +28,7 @@ class FmuBootstrapperTest {
 
     @Test
     public void on_a_single_triple_pattern () throws RepositoryException {
-        final Backend backend = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final Backend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
 
         final RawOpExecutor executor = new RawOpExecutor().setBackend(backend);
         final String queryAsString = "SELECT * WHERE {?s <http://address> ?o}";
@@ -50,7 +50,7 @@ class FmuBootstrapperTest {
     public void on_a_single_triple_pattern_with_variable_set () throws RepositoryException {
         // variable set meaning that its hardbound beforehand. It does not account
         // as a variable when examining the probability.
-        final Backend backend = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final Backend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
 
         final RawOpExecutor executor = new RawOpExecutor().setBackend(backend);
         final String queryAsString = "SELECT * WHERE {?s <http://address> ?o}";
@@ -74,7 +74,7 @@ class FmuBootstrapperTest {
     @Test
     public void single_tp_with_variable_set_but_different_values_for_it () throws RepositoryException {
         final Long LIMIT = 10L;
-        final Backend backend = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final Backend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
 
         final RawOpExecutor executor = new RawOpExecutor().setBackend(backend).setLimit(LIMIT);
         String queryAsString = "SELECT * WHERE {?s <http://address> ?o}";
@@ -106,7 +106,7 @@ class FmuBootstrapperTest {
     @Test
     public void two_tps_with_variable_set () throws RepositoryException {
         final long LIMIT_SCANS = 50L;
-        final Backend backend = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final Backend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
 
         RawOpExecutor executor = new RawOpExecutor().setBackend(backend).setLimit(LIMIT_SCANS);
         String queryAsString = "SELECT * WHERE {?s <http://address> ?c . ?s <http://own> ?a}";

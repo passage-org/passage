@@ -1,4 +1,4 @@
-package fr.gdd.passage.databases.persistent;
+package fr.gdd.passage.commons.datasets;
 
 import fr.gdd.passage.commons.interfaces.Backend;
 import org.apache.jena.sparql.algebra.Op;

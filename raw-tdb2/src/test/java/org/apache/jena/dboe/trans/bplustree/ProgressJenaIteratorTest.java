@@ -3,10 +3,9 @@ package org.apache.jena.dboe.trans.bplustree;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
 import fr.gdd.passage.commons.iterators.BackendLazyIterator;
-import fr.gdd.passage.databases.inmemory.IM4Jena;
-import fr.gdd.passage.databases.persistent.Watdiv10M;
 import fr.gdd.raw.tdb2.ArtificialSkewedGraph;
 import fr.gdd.raw.tdb2.JenaBackend;
+import fr.gdd.raw.tdb2.datasets.TDB2InMemoryDatasetsFactory;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.jena.atlas.lib.tuple.Tuple;
@@ -40,7 +39,7 @@ class ProgressJenaIteratorTest {
 
     @BeforeAll
     public static void initializeDB() {
-        dataset = IM4Jena.graph3();
+        dataset = TDB2InMemoryDatasetsFactory.graph3();
 
         backend = new JenaBackend(dataset);
         predicate = backend.getId("<http://www.geonames.org/ontology#parentCountry>");
@@ -62,7 +61,7 @@ class ProgressJenaIteratorTest {
         // converge towards a cardinality that is not good
         // [main] DEBUG fr.gdd.sage.arq.SageOptimizer - triple ?v0 @http://xmlns.com/foaf/familyName ?v1 => 64861 elements
         // [main] DEBUG fr.gdd.sage.arq.SageOptimizer - triple ?v0 @http://xmlns.com/foaf/givenName ?v2 => 68338 elements
-        new Watdiv10M(Optional.of("../target"));
+        // new Watdiv10M(Optional.of("../target"));
         JenaBackend backend = new JenaBackend("../target/watdiv10M");
         NodeId family = backend.getId("<http://xmlns.com/foaf/familyName>");
         NodeId given = backend.getId("<http://xmlns.com/foaf/givenName>");

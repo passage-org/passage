@@ -5,7 +5,7 @@ import com.google.common.collect.Multiset;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
-import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.query.MalformedQueryException;
@@ -28,7 +28,7 @@ public class PauseOptionalTest {
 
     @Test
     public void tp_with_optional_tp () throws RepositoryException {
-        BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                SELECT * WHERE {
                 ?person <http://address> ?address .
@@ -53,7 +53,7 @@ public class PauseOptionalTest {
 
     @Test
     public void tp_with_optional_tp_reverse_order () throws RepositoryException {
-        BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                SELECT * WHERE {
                 ?person <http://own> ?animal .
@@ -78,7 +78,7 @@ public class PauseOptionalTest {
 
     @Test
     public void bgp_of_3_tps_and_optional () throws RepositoryException {
-        BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                SELECT * WHERE {
                  ?person <http://address> ?address .
@@ -106,7 +106,7 @@ public class PauseOptionalTest {
 
     @Test
     public void bgp_of_3_tps_and_optional_of_optional () throws RepositoryException {
-        BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                SELECT * WHERE {
                  ?person <http://address> ?address .
@@ -135,7 +135,7 @@ public class PauseOptionalTest {
     @Disabled("Not truly a test.")
     @Test
     public void query_with_optional_where_project_filter_too_much () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
-        BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                 SELECT * WHERE
                 { { BIND(<http://Alice> AS ?person)

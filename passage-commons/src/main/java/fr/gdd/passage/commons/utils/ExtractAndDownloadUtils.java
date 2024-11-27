@@ -1,15 +1,8 @@
-package fr.gdd.passage.databases.persistent;
+package fr.gdd.passage.commons.utils;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.jena.query.Dataset;
-import org.apache.jena.tdb2.TDB2Factory;
-import org.apache.jena.tdb2.loader.DataLoader;
-import org.apache.jena.tdb2.loader.LoaderFactory;
-import org.apache.jena.tdb2.loader.base.LoaderOps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,84 +13,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * A general class that aims to ease the opening or creation of datasets to benchmark.
  */
-public class BenchmarkDataset {
-    static Logger log = LoggerFactory.getLogger(BenchmarkDataset.class);
+public class ExtractAndDownloadUtils {
+
+    private static final Logger log = LoggerFactory.getLogger(ExtractAndDownloadUtils.class);
 
     final static int DEFAULT_BUFFER_SIZE = 1024;
-
-    private String defaultDbPath;
-    private String dbName;
-    private String archiveName;
-    private String extractPath;
-    private String downloadURL;
-
-    public String dbPath_asStr;
-    private Path dirPath;
-    private Path dbPath;
-
-    public Path fullExtractPath;
-    public Path pathToArchive;
-
-    private List<String> whitelist;
-    private List<String> blacklist;
-
-    public List<String> queries;
-
-    public BenchmarkDataset(Optional<String> dbPath_opt,
-                            String defaultDbPath, String dbName, String archiveName, String extractPath,
-                            String downloadURL,
-                            List<String> whitelist, List<String> blacklist
-                            ) {
-        this.defaultDbPath = defaultDbPath;
-        this.dbName = dbName;
-        this.archiveName = archiveName;
-        this.extractPath = extractPath;
-        this.downloadURL = downloadURL;
-        this.dirPath = dbPath_opt.map(Paths::get).orElseGet(() -> Paths.get(defaultDbPath));
-
-        this.dbPath = Paths.get(dirPath.toString(), dbName);
-        this.dbPath_asStr = dbPath.toString();
-
-        this.whitelist = whitelist;
-        this.blacklist = blacklist;
-
-        this.pathToArchive = Paths.get(dirPath.toString(), archiveName);
-        this.fullExtractPath = Paths.get(dirPath.toString(), extractPath);
-    }
-
-    public void setQueries(String pathToQueries) throws IOException {
-        this.queries = Watdiv10M.getQueries(pathToQueries, this.blacklist).stream().map(Pair::getLeft).collect(Collectors.toList());
-    }
-
-    public List<String> getQueries() {
-        return this.queries;
-    }
-
-
-    public void create() throws IOException {
-        if (Files.exists(dbPath)) {
-            log.info("Database already exists, skipping creation.");
-        } else {
-            log.info("Database does not exist, creating it at {}…", dbPath.toAbsolutePath().toString());
-            download(pathToArchive, downloadURL);
-            extract(pathToArchive, fullExtractPath, whitelist);
-            FileUtils.deleteQuietly(pathToArchive.toFile());
-            ingest(dbPath, fullExtractPath, whitelist);
-            FileUtils.deleteDirectory(fullExtractPath.toFile());
-            log.info("Done with the database {}.", dbPath);
-        }
-
-        // log.info("Reading queries…");
-        // this.queries = getQueries(QUERIES_PATH, blacklist);
-
-        // categorizeQueries(queries);
-    }
 
     /**
      * Download the dataset from remote URL.
@@ -230,24 +154,5 @@ public class BenchmarkDataset {
 
     }
 
-    /**
-     * Ingest the whitelisted files in the Jena database.
-     * @param dbPath The path to the database.
-     * @param extractedPath The directory location of extracted files.
-     * @param whitelist The whitelisted files to ingest.
-     */
-    static public void ingest(Path dbPath, Path extractedPath, List<String> whitelist) {
-        log.info("Starting to ingest in a Jena TDB2 database. This may take even more time.");
-        Dataset dataset = TDB2Factory.connectDataset(dbPath.toString());
 
-        for (String whitelisted : whitelist) {
-            Path entryExtractPath = extractedPath.resolve(whitelisted);
-            // (TODO) model: default or union ?
-            DataLoader loader = LoaderFactory.parallelLoader(dataset.asDatasetGraph(), LoaderOps.outputToLog());
-            loader.startBulk();
-            loader.load(entryExtractPath.toAbsolutePath().toString());
-            loader.finishBulk();
-        }
-        log.info("Done ingesting…");
-    }
 }

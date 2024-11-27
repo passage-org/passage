@@ -1,4 +1,4 @@
-package fr.gdd.passage.databases.inmemory;
+package fr.gdd.passage.commons.utils;
 
 import java.util.Arrays;
 import java.util.List;

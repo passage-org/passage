@@ -5,7 +5,7 @@ import com.google.common.collect.Multiset;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
 import fr.gdd.passage.commons.iterators.BackendLazyIterator;
-import fr.gdd.passage.databases.inmemory.IM4Jena;
+import fr.gdd.raw.tdb2.datasets.TDB2InMemoryDatasetsFactory;
 import fr.gdd.raw.tdb2.ArtificialSkewedGraph;
 import fr.gdd.raw.tdb2.JenaBackend;
 import org.apache.jena.atlas.lib.tuple.Tuple;
@@ -31,7 +31,7 @@ public class RandomAccessInBTreeTest {
 
     @Test
     public void spo_in_small_dataset() {
-        JenaBackend backend = new JenaBackend(IM4Jena.triple9());
+        JenaBackend backend = new JenaBackend(TDB2InMemoryDatasetsFactory.triple9());
         BackendIterator<NodeId, Node, ?> it = backend.search(backend.any(), backend.any(), backend.any());
 
         Multiset<String> expected = HashMultiset.create();
@@ -54,7 +54,7 @@ public class RandomAccessInBTreeTest {
 
     @Test
     public void predicate_bounded_in_small_dataset() {
-        JenaBackend backend = new JenaBackend(IM4Jena.triple9());
+        JenaBackend backend = new JenaBackend(TDB2InMemoryDatasetsFactory.triple9());
         NodeId address = backend.getId("<http://address>");
         BackendIterator<NodeId, Node, ?> it = backend.search(backend.any(), address, backend.any());
 

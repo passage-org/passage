@@ -2,7 +2,7 @@ package fr.gdd.raw.subqueries;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;
-import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.raw.executor.RawConstants;
 import fr.gdd.raw.executor.RawOpExecutor;
 import org.apache.jena.query.Query;
@@ -28,7 +28,7 @@ class CountSubqueryBuilderTest {
 
     @Test
     public void small_rewriting_test_of_a_query_into_count () throws RepositoryException {
-        BlazegraphBackend backend = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
 
         String queryAsString = "SELECT * WHERE {?s <http://address> ?c . ?s <http://own> ?a}";
         String expectedAsString = String.format("""

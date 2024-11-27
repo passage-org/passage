@@ -19,13 +19,6 @@ target/
 *.pdf
 *.txt
 
-#### datasets #####
-datasets/
-watdiv10M/
-watdiv42M/
-#### generated queries ####
-sage-jena-benchmarks/queries/wdbench_opts_with_sage_plan/
-
 #### profiling ####
 *.profileconfig.json
 *.jfr

@@ -2,7 +2,7 @@ package fr.gdd.passage.volcano.executes;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
-import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
@@ -29,7 +29,7 @@ public class LimitTest {
 
     @Test
     public void when_limit_is_0_then_not_results_ofc () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c} LIMIT 0";
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
@@ -38,7 +38,7 @@ public class LimitTest {
 
     @Test
     public void very_simple_limit_on_a_small_triple_pattern () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c} LIMIT 1";
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
@@ -53,7 +53,7 @@ public class LimitTest {
 
     @Test
     public void overestimated_limit_for_tp () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c} LIMIT 42";
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
@@ -66,7 +66,7 @@ public class LimitTest {
 
     @Test
     public void limit_on_a_bgp () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c . ?p <http://own> ?a } LIMIT 1";
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
@@ -81,7 +81,7 @@ public class LimitTest {
 
     @Test
     public void limit_as_a_nested_subquery () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
             SELECT * WHERE {
                 ?p <http://address> ?c .
@@ -104,7 +104,7 @@ public class LimitTest {
 
     @Test
     public void limit_offset_on_simple_triple_pattern () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c} LIMIT 1";
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
         assertEquals(1, results.size()); // either Bob, Alice, or Carol.
@@ -125,7 +125,7 @@ public class LimitTest {
 
     @Test
     public void limit_offset_in_bgp_but_on_tp () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
             SELECT * WHERE {
                 ?p <http://address> ?c .
@@ -137,7 +137,7 @@ public class LimitTest {
 
     @Test
     public void limit_offset_on_bgp_should_work_now () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryA = """
             SELECT * WHERE {
                 ?p <http://address> ?c .
@@ -173,7 +173,7 @@ public class LimitTest {
 
     @Test
     public void should_take_into_account_the_compatibility_of_input () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
             SELECT * WHERE {
                 <http://Bob> <http://address> ?c.
@@ -189,7 +189,7 @@ public class LimitTest {
 
     @Test
     public void make_sure_that_the_limit_offset_is_not_applies_to_each_tp_in_bgp () throws RepositoryException, QueryEvaluationException, MalformedQueryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                 SELECT * WHERE {
                     ?a <http://species> ?s. # nantes
@@ -211,7 +211,7 @@ public class LimitTest {
 
     @Test
     public void offset_alone_on_bgp () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                 SELECT * WHERE {
                     ?p <http://address> ?c .
@@ -227,7 +227,7 @@ public class LimitTest {
 
     @Test
     public void offset_alone_on_bgp_above_nb_results () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                 SELECT * WHERE {
                     ?p <http://address> ?c .

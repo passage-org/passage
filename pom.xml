@@ -21,7 +21,6 @@
   <modules>
     <module>jena-utils</module>
     <module>passage-commons</module>
-    <module>passage-databases</module>
     <module>passage-blazegraph</module>
     <!-- <module>passage-hdt</module> --> <!-- uncomment when issue_#7 is solved --> 
     <module>passage-volcano</module>
@@ -69,11 +68,6 @@
       <dependency>
         <groupId>fr.gdd</groupId>
         <artifactId>passage-commons</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>fr.gdd</groupId>
-        <artifactId>passage-databases</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

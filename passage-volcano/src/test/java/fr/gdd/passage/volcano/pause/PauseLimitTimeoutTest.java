@@ -5,7 +5,7 @@ import com.google.common.collect.Multiset;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
-import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,7 +30,7 @@ public class PauseLimitTimeoutTest {
 
     @Test
     public void test_with_pause_on_simple_tp () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c} LIMIT 2";
 
         int nbContinuations = -1;
@@ -52,7 +52,7 @@ public class PauseLimitTimeoutTest {
 
     @Test
     public void test_with_pause_on_simple_bgp_inside () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c . ?p <http://own> ?a } LIMIT 2";
 
         int nbContinuations = -1;
@@ -74,7 +74,7 @@ public class PauseLimitTimeoutTest {
 
     @Test
     public void test_with_pause_with_limit_in_the_bgp () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                 SELECT * WHERE {
                     ?p <http://address> ?c .
@@ -100,7 +100,7 @@ public class PauseLimitTimeoutTest {
 
     @Test
     public void make_sure_that_the_limit_offset_is_not_applies_to_each_tp_in_bgp () throws RepositoryException, QueryEvaluationException, MalformedQueryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                 SELECT * WHERE {
                     ?a <http://species> ?s. # nantes
@@ -126,7 +126,7 @@ public class PauseLimitTimeoutTest {
 
     @Test
     public void limit_offset_on_a_bgp () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                 SELECT * WHERE {
                     ?p <http://address> ?c.

@@ -2,7 +2,7 @@ package fr.gdd.raw.iterators;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
-import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.raw.RawOpExecutorUtils;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -21,7 +21,7 @@ public class RandomCountTest {
 
     @Test
     public void count_of_simple_triple_pattern () throws RepositoryException {
-        BlazegraphBackend backend = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = "SELECT (COUNT(*) AS ?c) WHERE {<http://Alice> ?p ?o}";
 
         var results = RawOpExecutorUtils.executeWithRaw(queryAsString, backend, 1L);
@@ -35,7 +35,7 @@ public class RandomCountTest {
 
     @Test
     public void count_of_carthesian_product_bgp () throws RepositoryException {
-        BlazegraphBackend backend = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
             SELECT (COUNT(*) AS ?c) WHERE {
                 <http://Alice> ?p ?o .
@@ -49,7 +49,7 @@ public class RandomCountTest {
 
     @Test
     public void count_of_bgp () throws RepositoryException {
-        BlazegraphBackend backend = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
             SELECT (COUNT(*) AS ?c) WHERE {
                 ?person <http://own> ?animal .
@@ -64,7 +64,7 @@ public class RandomCountTest {
 
     @Test
     public void count_of_bgp_that_may_fail () throws RepositoryException {
-        BlazegraphBackend backend = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = "SELECT (COUNT(*) AS ?c) WHERE {?person <http://address> ?location . ?person <http://own> ?animal}";
 
         // ~3 since only Alice has animals. Choosing a person that has no animal
@@ -82,7 +82,7 @@ public class RandomCountTest {
     @Disabled("Not handle yet, should thrown until handled properly…")
     @Test
     public void count_with_group_on_simple_tp () throws RepositoryException {
-        BlazegraphBackend backend = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = "SELECT ?p (COUNT(*) AS ?c) ?p WHERE {?s ?p ?o} GROUP BY ?p";
 
         var results = RawOpExecutorUtils.executeWithRaw(queryAsString, backend, 10000L);

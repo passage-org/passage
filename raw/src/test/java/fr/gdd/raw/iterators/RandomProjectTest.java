@@ -2,7 +2,7 @@ package fr.gdd.raw.iterators;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
-import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.raw.RawOpExecutorUtils;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
@@ -24,7 +24,7 @@ public class RandomProjectTest {
 
     @Test
     public void simple_project_on_spo () throws RepositoryException { // as per usual
-        BlazegraphBackend backend = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = "SELECT ?s WHERE {?s ?p ?o}";
         // Multiset<String> results = execute(queryAsString, new JenaBackend(dataset), 100L);
         // assertEquals(6, results.elementSet().size()); // Alice repeated 4 times

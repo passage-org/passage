@@ -1,20 +1,25 @@
-package fr.gdd.passage.databases.inmemory;
+package fr.gdd.raw.tdb2.datasets;
 
+import fr.gdd.passage.commons.utils.InMemoryStatements;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.ReadWrite;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.tdb2.TDB2Factory;
+import org.apache.jena.tdb2.loader.DataLoader;
+import org.apache.jena.tdb2.loader.LoaderFactory;
+import org.apache.jena.tdb2.loader.base.LoaderOps;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.List;
 
 /**
  * Provides datasets of Apache Jena's TDB2.
  */
-public class IM4Jena {
+public class TDB2InMemoryDatasetsFactory {
 
     public static Dataset triple3 () { return buildDataset(InMemoryStatements.triples3); }
     public static Dataset triple6 () { return buildDataset(InMemoryStatements.triples6); }
@@ -62,6 +67,26 @@ public class IM4Jena {
         dataset.commit();
         dataset.end();
         dataset.close();
+    }
+
+
+    /**
+     * Ingest the whitelisted files in the Jena database.
+     * @param dbPath The path to the database.
+     * @param extractedPath The directory location of extracted files.
+     * @param whitelist The whitelisted files to ingest.
+     */
+    static public void ingest(Path dbPath, Path extractedPath, List<String> whitelist) {
+        Dataset dataset = TDB2Factory.connectDataset(dbPath.toString());
+
+        for (String whitelisted : whitelist) {
+            Path entryExtractPath = extractedPath.resolve(whitelisted);
+            // (TODO) model: default or union ?
+            DataLoader loader = LoaderFactory.parallelLoader(dataset.asDatasetGraph(), LoaderOps.outputToLog());
+            loader.startBulk();
+            loader.load(entryExtractPath.toAbsolutePath().toString());
+            loader.finishBulk();
+        }
     }
 
 }

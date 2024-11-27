@@ -2,7 +2,7 @@ package fr.gdd.passage.volcano.executes;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
-import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,7 +22,7 @@ public class QuadTest {
 
     @Test
     public void a_simple_quad_pattern_with_bounded_graph () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.graph3());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.graph3());
         String queryAsString = "SELECT * WHERE {GRAPH <http://Alice> {?p <http://address> ?c}}";
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
@@ -33,7 +33,7 @@ public class QuadTest {
 
     @Test
     public void a_simple_quad_pattern_with_unknown_graph () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.graph3());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.graph3());
         String queryAsString = "SELECT * WHERE {GRAPH <http://David> {?p <http://address> ?c}}";
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
@@ -42,7 +42,7 @@ public class QuadTest {
 
     @Test
     public void a_simple_quad_pattern_with_variable_for_graph () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.graph3());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.graph3());
         String queryAsString = "SELECT * WHERE {GRAPH ?g {?p <http://address> ?c}}";
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
@@ -57,7 +57,7 @@ public class QuadTest {
 
     @Test
     public void multiple_graphs_are_joined () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.graph3());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.graph3());
         String queryAsString = """
                 SELECT * WHERE {
                     GRAPH <http://Alice> {?p <http://own> ?a}.
@@ -74,7 +74,7 @@ public class QuadTest {
 
     @Test
     public void a_graph_with_bgp_inside () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.graph3());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.graph3());
         String queryAsString = """
                 SELECT * WHERE {
                     GRAPH <http://Alice> {

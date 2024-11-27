@@ -2,7 +2,7 @@ package fr.gdd.raw.iterators;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
-import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.raw.RawOpExecutorUtils;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
@@ -20,7 +20,7 @@ public class RandomQuadTest {
 
     @Test
     public void quad_that_does_not_exist () throws RepositoryException {
-        BlazegraphBackend backend = new BlazegraphBackend(IM4Blazegraph.graph3());
+        BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.graph3());
         String queryAsStringA = "SELECT * WHERE { GRAPH <http://Alice> {?s <http://does_not_exist> ?a } }";
 
         // must set a timeout or it runs to the infinity, because no scan can be performed
@@ -36,7 +36,7 @@ public class RandomQuadTest {
 
     @Test
     public void quad_in_single_graph () throws RepositoryException {
-        BlazegraphBackend backend = new BlazegraphBackend(IM4Blazegraph.graph3());
+        BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.graph3());
         String queryAsString = "SELECT * WHERE { GRAPH <http://Alice> {?s <http://own> ?a } }";
 
         var results = RawOpExecutorUtils.executeWithRaw(queryAsString, backend, 1000L);
@@ -51,7 +51,7 @@ public class RandomQuadTest {
 
     @Test
     public void quad_in_single_graph_but_variable () throws RepositoryException {
-        BlazegraphBackend backend = new BlazegraphBackend(IM4Blazegraph.graph3());
+        BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.graph3());
         String queryAsString = "SELECT * WHERE { GRAPH ?g {?s <http://own> ?a } }";
 
         var results = RawOpExecutorUtils.executeWithRaw(queryAsString, backend, 1000L);
@@ -66,7 +66,7 @@ public class RandomQuadTest {
 
     @Test
     public void quad_pattern_with_two_tps_but_work_only_with_2_graphs () throws RepositoryException {
-        BlazegraphBackend backend = new BlazegraphBackend(IM4Blazegraph.graph3());
+        BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.graph3());
         String queryAsString = "SELECT * WHERE { GRAPH ?g {?s <http://own> ?a . ?a <http://species> ?s} }";
 
         var results = RawOpExecutorUtils.executeWithRaw(queryAsString, backend, 1000L, 1000L);
@@ -76,7 +76,7 @@ public class RandomQuadTest {
 
     @Test
     public void quad_pattern_with_two_graphs_joined () throws RepositoryException {
-        BlazegraphBackend backend = new BlazegraphBackend(IM4Blazegraph.graph3());
+        BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.graph3());
         String queryAsString = """
             SELECT * WHERE {
                 GRAPH ?gA {?p <http://own> ?a }
@@ -95,7 +95,7 @@ public class RandomQuadTest {
 
     @Test
     public void quad_pattern_that_may_fail_whp () throws RepositoryException {
-        BlazegraphBackend backend = new BlazegraphBackend(IM4Blazegraph.graph3());
+        BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.graph3());
         String queryAsString = """
             SELECT ?p WHERE {
                 GRAPH <http://Alice> {?s ?pred ?o}

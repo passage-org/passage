@@ -2,7 +2,7 @@ package fr.gdd.passage.volcano.optimizers;
 
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
-import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.volcano.transforms.BGP2Triples;
 import fr.gdd.passage.volcano.transforms.PartitionRoot;
 import org.apache.jena.query.QueryFactory;
@@ -20,7 +20,7 @@ public class PartitionRootTest {
 
     @Test
     public void basic_triple_pattern_creates_a_union () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c}";
 
         Op queryAsOp = Algebra.compile(QueryFactory.create(queryAsString));
@@ -41,7 +41,7 @@ public class PartitionRootTest {
 
     @Test
     public void triple_pattern_without_thread_available () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c}";
 
         Op queryAsOp = Algebra.compile(QueryFactory.create(queryAsString));
@@ -54,7 +54,7 @@ public class PartitionRootTest {
 
     @Test
     public void bgp_only_partition_the_root () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String tp1 = "?p <http://address> ?c";
         String tp2 = "?p <http://own> ?a";
 

@@ -2,7 +2,7 @@ package fr.gdd.passage.volcano.executes;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
-import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,7 +22,7 @@ public class ProjectTest {
 
     @Test
     public void bgp_of_1_tp () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = "SELECT ?p WHERE {?p <http://address> ?c}";
 
         var results = OpExecutorUtils.executeWithPassage(queryAsString, blazegraph);
@@ -35,7 +35,7 @@ public class ProjectTest {
 
     @Test
     public void bgp_of_2_tp () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                SELECT ?p WHERE {
                 ?p <http://address> <http://nantes> .

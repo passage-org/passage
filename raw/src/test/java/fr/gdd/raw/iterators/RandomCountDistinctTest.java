@@ -2,7 +2,7 @@ package fr.gdd.raw.iterators;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
-import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.raw.RawOpExecutorUtils;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -23,7 +23,7 @@ public class RandomCountDistinctTest {
     @Disabled("Timeout does not seem to work.")
     @Test
     public void count_distinct_of_simple_triple_pattern () throws RepositoryException {
-        BlazegraphBackend backend = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = "SELECT (COUNT(DISTINCT ?p) AS ?c) WHERE {?p <http://own> ?a}";
 
         var results = RawOpExecutorUtils.executeWithRaw(queryAsString, backend, 1, 1000);

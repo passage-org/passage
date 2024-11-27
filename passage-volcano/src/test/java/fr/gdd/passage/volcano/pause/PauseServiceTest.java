@@ -4,7 +4,7 @@ import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;
-import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.executes.ServiceTest;
 import fr.gdd.passage.volcano.iterators.PassageService;
@@ -39,7 +39,7 @@ public class PauseServiceTest {
     @Test
     public void a_simple_spo_on_a_remote_passage_endpoint () throws RepositoryException {
         Assumptions.assumeTrue(ServiceTest.endpointIsReachable("http://localhost", 3000, 2000));
-        BlazegraphBackend useless = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend useless = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = String.format("SELECT * WHERE { SERVICE <%s> { {?s ?p ?o} } }",
                 endpoint("http://www.vendor0.fr/"));
 
@@ -57,7 +57,7 @@ public class PauseServiceTest {
     @Test
     public void an_spo_with_an_input_to_send () throws RepositoryException {
         Assumptions.assumeTrue(ServiceTest.endpointIsReachable("http://localhost", 3000, 2000));
-        BlazegraphBackend useless = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend useless = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = String.format("""
                 SELECT * WHERE {
                     BIND (<http://www.vendor0.fr/ProductType916> AS ?s)
@@ -77,7 +77,7 @@ public class PauseServiceTest {
     @Test
     public void test_with_a_fedshop_rsa_query () throws RepositoryException {
         Assumptions.assumeTrue(ServiceTest.endpointIsReachable("http://localhost", 3000, 2000));
-        BlazegraphBackend useless = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend useless = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = String.format("""
                 SELECT ?product ?label WHERE
                   {   {   {   {   {   {   { SERVICE SILENT <%s>

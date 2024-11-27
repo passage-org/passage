@@ -5,7 +5,7 @@ import com.google.common.collect.Multiset;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
-import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,7 +28,7 @@ public class PauseQuadTimeoutTest {
 
     @Test
     public void empty_quad_pattern () throws RepositoryException {
-        BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.graph3());
+        BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.graph3());
         String queryAsString = """
             SELECT * WHERE {
                 GRAPH <http://Alice> { ?p <http://not_known> ?c }
@@ -45,7 +45,7 @@ public class PauseQuadTimeoutTest {
 
     @Test
     public void simple_pause_during_simple_quad_pattern () throws RepositoryException {
-        BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.graph3());
+        BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.graph3());
         String queryAsString = """
             SELECT * WHERE {
                 GRAPH <http://Alice> { ?p <http://own> ?a }
@@ -69,7 +69,7 @@ public class PauseQuadTimeoutTest {
 
     @Test
     public void multiple_graphs_are_joined_and_paused () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.graph3());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.graph3());
         String queryAsString = """
                 SELECT * WHERE {
                     GRAPH <http://Alice> {?p <http://own> ?a}.
@@ -94,7 +94,7 @@ public class PauseQuadTimeoutTest {
 
     @Test
     public void bgp_with_3_tps_that_preempt () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.graph3());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.graph3());
         String queryAsString = """
                SELECT * WHERE {
                 GRAPH ?g1 {?p <http://own> ?a .}

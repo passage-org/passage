@@ -1,7 +1,7 @@
 package fr.gdd.raw.tdb2;
 
 import fr.gdd.passage.commons.interfaces.BackendIterator;
-import fr.gdd.passage.databases.inmemory.IM4Jena;
+import fr.gdd.raw.tdb2.datasets.TDB2InMemoryDatasetsFactory;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.jena.atlas.lib.Bytes;
 import org.apache.jena.ext.xerces.impl.dv.util.Base64;
@@ -20,7 +20,7 @@ class SerializableRecordTest {
 
     @Test
     public void serialize_then_deserialize_a_record() {
-        Dataset dataset = IM4Jena.graph3();
+        Dataset dataset = TDB2InMemoryDatasetsFactory.graph3();
 
         JenaBackend backend = new JenaBackend(dataset);
         NodeId predicate = backend.getId("<http://www.geonames.org/ontology#parentCountry>");

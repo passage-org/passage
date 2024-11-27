@@ -1,8 +1,9 @@
-package fr.gdd.passage.databases.inmemory;
+package fr.gdd.passage.blazegraph.datasets;
 
 import com.bigdata.rdf.sail.BigdataSail;
 import com.bigdata.rdf.sail.BigdataSailRepository;
 import com.bigdata.rdf.sail.BigdataSailRepositoryConnection;
+import fr.gdd.passage.commons.utils.InMemoryStatements;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFParseException;
@@ -16,9 +17,10 @@ import java.util.List;
 import java.util.Properties;
 
 /**
- * Provides the same datasets for blazegraph.
+ * Provides small datasets for blazegraph that are ideal to create some
+ * unit tests.
  */
-public class IM4Blazegraph {
+public class BlazegraphInMemoryDatasetsFactory {
 
     public static BigdataSail triples3 () { return getDataset(InMemoryStatements.triples3); }
     public static BigdataSail triples6 () { return getDataset(InMemoryStatements.triples6); }

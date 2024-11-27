@@ -2,7 +2,7 @@ package fr.gdd.passage.volcano.executes;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
-import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,7 +21,7 @@ public class ValuesTest {
 
     @Test
     public void undef_in_values () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String query = "SELECT * WHERE {  VALUES ?p { UNDEF } }";
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
@@ -30,7 +30,7 @@ public class ValuesTest {
 
     @Test
     public void values_with_a_term_that_does_not_exist_in_database () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String query = "SELECT * WHERE {  VALUES ?p { <http://does_not_exist> } }";
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
@@ -40,7 +40,7 @@ public class ValuesTest {
 
     @Test
     public void values_with_a_term_that_does_not_exist_put_in_tp () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String query = """
                 SELECT * WHERE {
                     VALUES ?p { <http://does_not_exist> }
@@ -53,7 +53,7 @@ public class ValuesTest {
 
     @Test
     public void simple_values_with_nothing_else () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String query = "SELECT * WHERE { VALUES ?p { <http://Alice> }  }";
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
@@ -63,7 +63,7 @@ public class ValuesTest {
 
     @Test
     public void simple_values_with_only_one_variable_value () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String query = """
             SELECT * WHERE {
                 VALUES ?p { <http://Alice> }
@@ -78,7 +78,7 @@ public class ValuesTest {
 
     @Test
     public void simple_values_with_only_one_variable_but_multiple_values () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String query = """
             SELECT * WHERE {
                 VALUES ?p { <http://Alice> <http://Bob> }
@@ -94,7 +94,7 @@ public class ValuesTest {
 
     @Test
     public void values_that_do_not_exist () throws RepositoryException { // TODO
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String query = """
             SELECT * WHERE {
                 VALUES ?p { <http://Alice> <http://Bob> <http://Coralie>}
@@ -110,7 +110,7 @@ public class ValuesTest {
 
     @Test
     public void an_empty_values() throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String query = """
             SELECT * WHERE {
                 VALUES ?p { }
@@ -124,7 +124,7 @@ public class ValuesTest {
 
     @Test
     public void value_in_the_middle() throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String query = """
             SELECT * WHERE {
                 ?p2 <http://address> ?c
@@ -141,7 +141,7 @@ public class ValuesTest {
 
     @Test
     public void caerthesian_product_with_values () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String query = """
             SELECT * WHERE {
                 ?person <http://address> ?city

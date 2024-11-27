@@ -2,7 +2,7 @@ package fr.gdd.passage.volcano.optimizers;
 
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
-import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.volcano.iterators.PassageScan;
 import fr.gdd.passage.volcano.transforms.*;
 import org.apache.jena.query.QueryFactory;
@@ -25,7 +25,7 @@ public class CardinalityJoinOrderingTest {
 
     @Test
     public void empty_triple_pattern_is_first () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                 SELECT * WHERE {
                     ?p <http://address> ?c .
@@ -47,7 +47,7 @@ public class CardinalityJoinOrderingTest {
 
     @Test
     public void a_single_triple_pattern_stays_this_way_ofc () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c}";
         Op original = Algebra.compile(QueryFactory.create(queryAsString));
         Op reordered = new CardinalityJoinOrdering<>(blazegraph).visit(original);
@@ -56,7 +56,7 @@ public class CardinalityJoinOrderingTest {
 
     @Test
     public void a_single_triple_pattern_with_project_stays_this_way_ofc () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = "SELECT ?p WHERE {?p <http://address> ?c}";
         Op original = Algebra.compile(QueryFactory.create(queryAsString));
         Op reordered = new CardinalityJoinOrdering<>(blazegraph).visit(original);
@@ -65,7 +65,7 @@ public class CardinalityJoinOrderingTest {
 
     @Test
     public void two_triple_patterns_stay_sorted () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
         SELECT * WHERE {
             ?p <http://address> <http://nantes> . # card 2
@@ -80,7 +80,7 @@ public class CardinalityJoinOrderingTest {
 
     @Test
     public void two_triple_patterns_are_inverted () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String expectedQueryAsString = """
         SELECT * WHERE {
             ?p <http://address> <http://nantes> . # card 2
@@ -102,7 +102,7 @@ public class CardinalityJoinOrderingTest {
 
     @Test
     public void cartesian_product_still_takes_smaller_first () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String expectedQueryAsString = """
         SELECT * WHERE {
             ?person <http://address> <http://nantes> . # card 2
@@ -124,7 +124,7 @@ public class CardinalityJoinOrderingTest {
 
     @Test
     public void with_optional_we_keep_it_there_for_now_but_still_want_to_know_if_cartesian_product () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
         SELECT * WHERE {
             ?person <http://address> ?city . # card 3
@@ -140,7 +140,7 @@ public class CardinalityJoinOrderingTest {
 
     @Test
     public void optional_with_cartesian_product () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
         SELECT * WHERE {
             ?person <http://address> ?city . # card 3
@@ -164,7 +164,7 @@ public class CardinalityJoinOrderingTest {
 
     @Test
     public void quad_patterns_are_being_ordered_using_graph_cardinalities () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.graph3());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.graph3());
         String queryAsString = """
         SELECT * WHERE {
             GRAPH <http://Alice> {

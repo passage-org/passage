@@ -2,7 +2,7 @@ package fr.gdd.passage.volcano.executes;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
-import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +27,7 @@ public class CountTest {
 
     @Test
     public void simple_count_on_a_single_triple_pattern() throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String query = "SELECT (COUNT(*) AS ?count) { ?p <http://address> ?c }";
 
         var results = OpExecutorUtils.executeWithPassage(query, blazegraph);
@@ -38,7 +38,7 @@ public class CountTest {
 
     @Test
     public void count_of_something_that_does_not_exist_is_zero() throws RepositoryException, QueryEvaluationException, MalformedQueryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String query = "SELECT (COUNT(*) AS ?count) { ?p <http://does_not_exist> ?c }";
 
         var expected = blazegraph.executeQuery(query);
@@ -53,7 +53,7 @@ public class CountTest {
 
     @Test
     public void variable_undefined_in_subquery () throws RepositoryException, QueryEvaluationException, MalformedQueryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String query = "SELECT (COUNT(?undefined) AS ?count) { ?p <http://address> ?c }";
 
         var expected = blazegraph.executeQuery(query);
@@ -66,7 +66,7 @@ public class CountTest {
 
     @Test
     public void count_in_bgp_without_results () throws RepositoryException, QueryEvaluationException, MalformedQueryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String query = """
             SELECT (COUNT(*) AS ?count) {
                 VALUES ?c { <http://washington> }
@@ -84,7 +84,7 @@ public class CountTest {
 
     @Test
     public void count_on_a_specific_variable_but_still_tp() throws RepositoryException, QueryEvaluationException, MalformedQueryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String query = "SELECT (COUNT(?p) AS ?count) { ?p <http://address> ?c }";
 
         var expected = blazegraph.executeQuery(query);
@@ -98,7 +98,7 @@ public class CountTest {
 
     @Test
     public void count_in_optional_so_everything_does_not_count() throws RepositoryException, QueryEvaluationException, MalformedQueryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String query = """
             SELECT (COUNT(?a) AS ?count) {
                 ?p <http://address> ?c
@@ -118,7 +118,7 @@ public class CountTest {
         // The sub-query does not project `p`, so it should probably be a carthesian
         // product, unless the variable `p` is projected in the sub-query. However,
         // it requires a `GROUP BY`, which is then difficult to implement for continuations.
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String query = """
             SELECT * WHERE {
                 ?p <http://address> ?c .
@@ -137,7 +137,7 @@ public class CountTest {
 
     @Test
     public void count_with_bound_variables_projected_this_time_by_the_count () throws RepositoryException, QueryEvaluationException, MalformedQueryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String query = """
             SELECT * WHERE {
                 ?p <http://address> ?c .
@@ -156,7 +156,7 @@ public class CountTest {
     @Test
     public void count_with_group_by_at_the_top () throws RepositoryException, QueryEvaluationException, MalformedQueryException {
         // For now, it throws because GROUP BY needs DISTINCT on keys when they are not bounded by the environment.
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String query = """
                 SELECT ?p (COUNT(*) AS ?nbAnimals) WHERE {
                     ?p <http://address> ?c .
@@ -172,7 +172,7 @@ public class CountTest {
     @Disabled("Not implemented yet when multiple COUNTs in a single (sub-)query.")
     @Test
     public void multiple_counts_in_a_single_aggregate () throws RepositoryException, QueryEvaluationException, MalformedQueryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String query = """
             SELECT (COUNT(?p) AS ?pCount) (COUNT(?animal) AS ?aCount) WHERE {
                 ?p <http://own> ?animal
@@ -191,7 +191,7 @@ public class CountTest {
     @Disabled("Not implemented yet when multiple COUNTs in a single (sub-)query.")
     @Test
     public void multiple_counts_in_a_single_aggregate_with_optional () throws RepositoryException, QueryEvaluationException, MalformedQueryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String query = """
             SELECT (COUNT(?p) AS ?pCount) (COUNT(?a) AS ?aCount) WHERE {
                 ?p <http://address> ?c

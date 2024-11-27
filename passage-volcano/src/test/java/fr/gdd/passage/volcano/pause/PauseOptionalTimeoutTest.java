@@ -5,7 +5,7 @@ import com.google.common.collect.Multiset;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
-import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -35,7 +35,7 @@ public class PauseOptionalTimeoutTest {
 
     @Test
     public void create_a_bgp_query_and_pause_at_each_scan() throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                SELECT * WHERE {
                 ?p <http://address> ?l .
@@ -59,7 +59,7 @@ public class PauseOptionalTimeoutTest {
 
     @Test
     public void tp_with_optional_tp_reverse_order () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                SELECT * WHERE {
                 ?person <http://own> ?animal .
@@ -81,7 +81,7 @@ public class PauseOptionalTimeoutTest {
 
     @Test
     public void intermediate_query_that_should_return_one_triple () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                 SELECT * WHERE {
                   { SELECT * WHERE { ?person  <http://own>  ?animal } OFFSET 2 }
@@ -105,7 +105,7 @@ public class PauseOptionalTimeoutTest {
 
     @Test
     public void bgp_of_3_tps_and_optional () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                SELECT * WHERE {
                  ?person <http://address> ?address .
@@ -133,7 +133,7 @@ public class PauseOptionalTimeoutTest {
 
     @Test
     public void bgp_of_3_tps_and_optional_of_optional () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                SELECT * WHERE {
                  ?person <http://address> ?address .
@@ -162,7 +162,7 @@ public class PauseOptionalTimeoutTest {
     @Disabled("Not really a meaningful test.")
     @Test
     public void intermediate_query_should_run () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                 SELECT * WHERE { {
                     BIND(<http://Alice> AS ?person)

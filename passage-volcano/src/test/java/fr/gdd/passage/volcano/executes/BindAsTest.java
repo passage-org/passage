@@ -2,11 +2,10 @@ package fr.gdd.passage.volcano.executes;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
-import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
 
@@ -22,7 +21,7 @@ public class BindAsTest {
 
     @Test
     public void create_a_bind_for_nothing () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                SELECT * WHERE {
                 BIND (<http://Someone> AS ?p)
@@ -36,7 +35,7 @@ public class BindAsTest {
 
     @Test
     public void create_a_bind_and_execute_a_tp () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                SELECT * WHERE {
                 BIND (<http://Alice> AS ?p)
@@ -51,7 +50,7 @@ public class BindAsTest {
 
     @Test
     public void a_bind_with_an_expression_to_evaluate () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                SELECT * WHERE {
                 BIND (12+30-2*2 AS ?count)
@@ -65,7 +64,7 @@ public class BindAsTest {
 
     @Test
     public void function_in_bind () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9PlusLiterals());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9PlusLiterals());
         String queryAsString = """
                 SELECT ?animal ?number WHERE {
                        ?person <http://own> ?animal

@@ -5,7 +5,7 @@ import com.google.common.collect.Multiset;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
-import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.benchmarks.WatDivTest;
 import fr.gdd.passage.volcano.iterators.PassageScan;
@@ -40,7 +40,7 @@ public class PauseBGPTimeoutTest {
 
     @Test
     public void create_a_simple_query_and_pause_at_each_scan () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c}";
 
         Multiset<BackendBindings<?,?>> results = HashMultiset.create();
@@ -57,7 +57,7 @@ public class PauseBGPTimeoutTest {
 
     @Test
     public void create_a_bgp_query_and_pause_at_each_scan () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                SELECT * WHERE {
                 ?p <http://address> <http://nantes> .
@@ -78,7 +78,7 @@ public class PauseBGPTimeoutTest {
 
     @Test
     public void bgp_that_was_a_problem_with_quads () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.graph3());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.graph3());
         String queryAsString = """
                 SELECT * WHERE {
                     ?p <http://own> ?a.
@@ -102,7 +102,7 @@ public class PauseBGPTimeoutTest {
 
     @Test
     public void create_a_3tps_bgp_query_and_pause_at_each_and_every_scan () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                SELECT * WHERE {
                 ?p <http://own> ?a .

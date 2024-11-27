@@ -1,7 +1,7 @@
 package fr.gdd.passage.volcano.pause;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
-import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.volcano.benchmarks.WatDivTest;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Disabled;
@@ -22,7 +22,7 @@ public class PauseBGPTest {
 
     @Test
     public void create_a_simple_query_and_pause_at_each_result () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c}";
 
         int sum = 0;
@@ -37,7 +37,7 @@ public class PauseBGPTest {
 
     @Test
     public void create_a_bgp_query_and_pause_at_each_result () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                SELECT * WHERE {
                 ?p <http://address> <http://nantes> .
@@ -56,7 +56,7 @@ public class PauseBGPTest {
 
     @Test
     public void create_a_bgp_query_and_pause_at_each_result_but_different_order () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                SELECT * WHERE {
                 ?p <http://own> ?a .
@@ -75,7 +75,7 @@ public class PauseBGPTest {
 
     @Test
     public void bgp_with_3_tps_that_preempt () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                SELECT * WHERE {
                 ?p <http://own> ?a .

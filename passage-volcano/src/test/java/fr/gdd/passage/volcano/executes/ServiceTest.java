@@ -3,7 +3,7 @@ package fr.gdd.passage.volcano.executes;
 import com.google.common.collect.Multiset;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;
-import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.junit.jupiter.api.Assumptions;
@@ -35,7 +35,7 @@ public class ServiceTest {
     @Test
     public void fails_because_the_remote_service_does_not_exist() throws RepositoryException {
         Assumptions.assumeFalse(endpointIsReachable("http://endpoint_that_does_not_exist/", 80, 2000));
-        BlazegraphBackend useless = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend useless = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                   SELECT * WHERE { SERVICE <http://endpoint_that_does_not_exist/> { {?s ?p ?o} } }""";
 
@@ -48,7 +48,7 @@ public class ServiceTest {
     @Test
     public void fails_because_the_remote_service_port_is_not_answering() throws RepositoryException, IOException {
         Assumptions.assumeFalse(endpointIsReachable("http://localhost", 9999, 2000));
-        BlazegraphBackend useless = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend useless = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                   SELECT * WHERE { SERVICE <http://localhost:9999> { {?s ?p ?o} } }""";
 
@@ -60,7 +60,7 @@ public class ServiceTest {
     @Test
     public void fails_because_the_remote_service_sends_error() throws RepositoryException {
         Assumptions.assumeTrue(endpointIsReachable("http://localhost", 3000, 2000));
-        BlazegraphBackend useless = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend useless = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = String.format("""
                   SELECT * WHERE { SERVICE <%s> { {?s ?p ?o} } }""",
                 endpoint("meow"));
@@ -75,7 +75,7 @@ public class ServiceTest {
     @Test
     public void a_simple_spo_on_a_remote_passage_endpoint () throws RepositoryException {
         Assumptions.assumeTrue(endpointIsReachable("http://localhost", 3000, 2000));
-        BlazegraphBackend useless = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend useless = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = String.format("""
                 SELECT * WHERE { SERVICE <%s> { {?s ?p ?o} } }""",
                 endpoint("http://www.vendor0.fr/"));
@@ -87,7 +87,7 @@ public class ServiceTest {
     @Test
     public void an_spo_with_an_input_to_send () throws RepositoryException {
         Assumptions.assumeTrue(endpointIsReachable("http://localhost", 3000, 2000));
-        BlazegraphBackend useless = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend useless = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = String.format("""
                 SELECT * WHERE {
                     BIND (<http://www.vendor0.fr/ProductType916> AS ?s)

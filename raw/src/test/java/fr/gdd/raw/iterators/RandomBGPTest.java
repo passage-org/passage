@@ -2,7 +2,7 @@ package fr.gdd.raw.iterators;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
-import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.raw.RawOpExecutorUtils;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
@@ -20,7 +20,7 @@ public class RandomBGPTest {
 
     @Test
     public void select_all_from_simple_spo () throws RepositoryException { // as per usual
-        BlazegraphBackend backend = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = "SELECT * WHERE {?s ?p ?o}";
         // Multiset<String> results = execute(queryAsString, new JenaBackend(dataset), 100L);
         // assertEquals(9, results.elementSet().size());
@@ -45,7 +45,7 @@ public class RandomBGPTest {
 
     @Test
     public void simple_triple_pattern () throws RepositoryException {
-        BlazegraphBackend backend = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = "SELECT * WHERE {?s <http://address> ?o}";
 
         var results = RawOpExecutorUtils.executeWithRaw(queryAsString, backend , 1000L);
@@ -60,7 +60,7 @@ public class RandomBGPTest {
 
     @Test
     public void simple_bgp() throws RepositoryException {
-        BlazegraphBackend backend = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = "SELECT * WHERE {?s <http://address> ?c . ?s <http://own> ?a}";
         // Multiset<String> results = execute(queryAsString, new JenaBackend(dataset), 100L);
         // assertEquals(3, results.elementSet().size());
@@ -77,7 +77,7 @@ public class RandomBGPTest {
 
     @Test
     public void simple_bgp_of_3_tps() throws RepositoryException {
-        BlazegraphBackend backend = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c . ?p <http://own> ?a . ?a <http://species> ?s}";
         // Multiset<String> results = execute(queryAsString, new JenaBackend(dataset), 100L);
         // assertEquals(3, results.elementSet().size());

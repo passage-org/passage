@@ -10,7 +10,7 @@ import com.google.common.collect.Multiset;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
 import fr.gdd.passage.commons.iterators.BackendLazyIterator;
-import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -59,7 +59,7 @@ public class BlazegraphBackendTest {
 
     @Test
     public void create_values_with_string_repr () throws RepositoryException {
-        BlazegraphBackend bb = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         BigdataValue twelve = bb.getValue("\"12\"");
         assertInstanceOf(BigdataLiteral.class, twelve);
         assertEquals("\"12\"", twelve.toString());
@@ -71,7 +71,7 @@ public class BlazegraphBackendTest {
 
     @Test
     public void create_a_simple_pet_dataset () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
-        BlazegraphBackend bb = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
 
         // There is nothing but the default ~30ish triples inside.
         Multiset<BindingSet> results = bb.executeQuery("SELECT * WHERE {?s <http://address> ?o}");
@@ -91,7 +91,7 @@ public class BlazegraphBackendTest {
 
     @Test
     public void creating_simple_iterators () throws RepositoryException {
-        BlazegraphBackend bb = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
 
         IV address = bb.getId("<http://address>", SPOC.PREDICATE);
         IV own = bb.getId("<http://own>", SPOC.PREDICATE);
@@ -108,7 +108,7 @@ public class BlazegraphBackendTest {
 
     @Test
     public void creating_simple_random () throws RepositoryException {
-        BlazegraphBackend bb = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         IV address = bb.getId("<http://address>", SPOC.PREDICATE);
         BackendLazyIterator<IV, BigdataValue, Long> li = (BackendLazyIterator<IV, BigdataValue, Long>) bb.search(bb.any(), address, bb.any());
 
@@ -135,7 +135,7 @@ public class BlazegraphBackendTest {
 
     @Test
     public void skipping_some_elements_from_triple_patterns () throws RepositoryException {
-        BlazegraphBackend bb = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         IV address = bb.getId("<http://address>", SPOC.PREDICATE);
 
         executeSimpleTPWithSkip(bb, bb.any(), address, bb.any(), 0, 3);
@@ -147,7 +147,7 @@ public class BlazegraphBackendTest {
 
     @Test
     public void getting_cardinalities_from_triple_patterns () throws RepositoryException {
-        BlazegraphBackend bb = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         IV address = bb.getId("<http://address>", SPOC.PREDICATE);
         IV own = bb.getId("<http://own>", SPOC.PREDICATE);
         IV species = bb.getId("<http://species>", SPOC.PREDICATE);

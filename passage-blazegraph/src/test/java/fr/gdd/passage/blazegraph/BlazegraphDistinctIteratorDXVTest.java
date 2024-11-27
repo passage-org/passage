@@ -3,7 +3,7 @@ package fr.gdd.passage.blazegraph;
 import com.bigdata.rdf.internal.IV;
 import com.google.common.collect.Multiset;
 import fr.gdd.passage.commons.interfaces.SPOC;
-import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -29,7 +29,7 @@ public class BlazegraphDistinctIteratorDXVTest {
 
     @Test
     public void get_distinct_s_over_a_simple_triple_pattern() throws RepositoryException {
-        BlazegraphBackend bb = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
 
         IV address = bb.getId("<http://address>", SPOC.PREDICATE);
         IV any = bb.any();
@@ -74,7 +74,7 @@ public class BlazegraphDistinctIteratorDXVTest {
 //
     @Test
     public void retrieve_the_offset_of_simple_triple_pattern () throws RepositoryException {
-        BlazegraphBackend bb = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
 
         IV address = bb.getId("<http://address>", SPOC.PREDICATE);
         IV any = bb.any();
@@ -99,7 +99,7 @@ public class BlazegraphDistinctIteratorDXVTest {
 
     @Test
     public void skip_to_internal_offset_simple_triple_pattern () throws RepositoryException {
-        BlazegraphBackend bb = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
 
         IV address = bb.getId("<http://address>", SPOC.PREDICATE);
         IV any = bb.any();
@@ -135,7 +135,7 @@ public class BlazegraphDistinctIteratorDXVTest {
 
     @Test
     public void skipping_above_max_offset_should_return_no_result() throws RepositoryException {
-        BlazegraphBackend bb = new BlazegraphBackend(IM4Blazegraph.triples9());
+        BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
 
         IV address = bb.getId("<http://address>", SPOC.PREDICATE);
         IV any = bb.any();

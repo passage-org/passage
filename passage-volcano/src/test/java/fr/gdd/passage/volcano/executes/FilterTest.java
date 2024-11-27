@@ -2,7 +2,7 @@ package fr.gdd.passage.volcano.executes;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
-import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,7 +21,7 @@ public class FilterTest {
 
     @Test
     public void simple_tp_filtered_by_one_var () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
         SELECT * WHERE {
             ?person <http://address> ?address
@@ -36,7 +36,7 @@ public class FilterTest {
 
     @Test
     public void simple_tp_filtered_by_two_vars () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
         SELECT * WHERE {
             ?person <http://address> ?address
@@ -52,7 +52,7 @@ public class FilterTest {
 
     @Test
     public void filter_bgp_of_2_tp () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                SELECT * WHERE {
                 ?p <http://address> ?c .
@@ -69,7 +69,7 @@ public class FilterTest {
 
     @Test
     public void filter_using_a_literal_integer () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9PlusLiterals());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9PlusLiterals());
         String queryAsString = """
                 SELECT * WHERE {
                        ?animal <http://letters> ?number
@@ -85,7 +85,7 @@ public class FilterTest {
 
     @Test
     public void filter_using_a_literal_and_a_function () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9PlusLiterals());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9PlusLiterals());
         String queryAsString = """
                 SELECT ?animal WHERE {
                        ?person <http://own> ?animal

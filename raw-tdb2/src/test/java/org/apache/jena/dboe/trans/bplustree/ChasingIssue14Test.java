@@ -2,7 +2,7 @@ package org.apache.jena.dboe.trans.bplustree;
 
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
-import fr.gdd.passage.databases.inmemory.IM4Jena;
+import fr.gdd.raw.tdb2.datasets.TDB2InMemoryDatasetsFactory;
 import fr.gdd.raw.tdb2.JenaBackend;
 import fr.gdd.raw.tdb2.SerializableRecord;
 import org.apache.jena.graph.Node;
@@ -39,7 +39,7 @@ public class ChasingIssue14Test {
 
     @BeforeAll
     public static void initializeDB() {
-        dataset = IM4Jena.triple3();
+        dataset = TDB2InMemoryDatasetsFactory.triple3();
         backend = new JenaBackend(dataset);
 
         any = backend.any();

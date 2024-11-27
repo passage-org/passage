@@ -4,7 +4,7 @@ import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
 import fr.gdd.passage.commons.io.PassageInput;
 import fr.gdd.passage.commons.io.PassageOutput;
-import fr.gdd.passage.databases.inmemory.IM4Jena;
+import fr.gdd.raw.tdb2.datasets.TDB2InMemoryDatasetsFactory;
 import fr.gdd.raw.tdb2.JenaBackend;
 import fr.gdd.raw.tdb2.SerializableRecord;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -35,7 +35,7 @@ public class PreemptJenaIteratorTest {
 
     @BeforeAll
     public static void initializeDB() {
-        dataset = IM4Jena.graph3();
+        dataset = TDB2InMemoryDatasetsFactory.graph3();
 
         backend = new JenaBackend(dataset);
         predicate = backend.getId("<http://www.geonames.org/ontology#parentCountry>");

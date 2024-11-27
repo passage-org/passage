@@ -2,7 +2,7 @@ package fr.gdd.passage.volcano.pause;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.interfaces.Backend;
-import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
@@ -21,7 +21,7 @@ public class PauseDistinctTest {
 
     @Test
     public void tp_distinct_where_every_value_is_distinct_anyway() throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = "SELECT DISTINCT * WHERE { ?p <http://address> ?a }";
 
         int nbResults = executeAll(queryAsString, blazegraph);
@@ -30,7 +30,7 @@ public class PauseDistinctTest {
 
     @Test
     public void tp_with_projected_so_duplicates_must_be_removed() throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = "SELECT DISTINCT ?a WHERE { ?p <http://address> ?a }";
         // without any specific saving, the operator will forget about previously produced
         // ?a -> Nantes, and produce it again, hence failing to provide a correct distinct
@@ -42,7 +42,7 @@ public class PauseDistinctTest {
 
     @Test
     public void bgp_with_projected_so_duplicates_must_be_removed() throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(IM4Blazegraph.triples9());
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
         SELECT DISTINCT ?address WHERE {
             ?person <http://address> ?address .
