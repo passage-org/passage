@@ -99,9 +99,9 @@ class PassageSplitScanTest {
                 Var.alloc("a")));
 
         Multiset<BackendBindings<?,?>> results = HashMultiset.create();
-        StreamSupport.stream(new PassageSplitScan<>(context, new BackendBindings<>(), tp1), true)
-                .forEach((mu)-> StreamSupport.stream(new PassageSplitScan<>(context, mu, tp2), true)
-                        .forEach((mu2)-> StreamSupport.stream(new PassageSplitScan<>(context, mu2, tp3), true)
+        StreamSupport.stream(new PassageSplitScan<>(context, new BackendBindings<>(), tp1), false)
+                .forEach((mu)-> StreamSupport.stream(new PassageSplitScan<>(context, mu, tp2), false)
+                        .forEach((mu2)-> StreamSupport.stream(new PassageSplitScan<>(context, mu2, tp3), false)
                                 .forEach(results::add)));
         log.debug("{}", results);
         // enumerate all predicates `po` of alice for each animal: 4x3

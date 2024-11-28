@@ -11,15 +11,21 @@ import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.pause.PauseException;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.atlas.lib.tuple.TupleFactory;
 import org.apache.jena.sparql.algebra.op.Op0;
 import org.apache.jena.sparql.algebra.op.OpQuad;
+import org.apache.jena.sparql.algebra.op.OpTable;
 import org.apache.jena.sparql.algebra.op.OpTriple;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ExecutionContext;
+import org.apache.jena.sparql.util.VarUtils;
 
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -81,6 +87,12 @@ public class PassageSplitScan<ID,VALUE> implements Spliterator<BackendBindings<I
             this.wrapped = null;
         }
 
+        if (Objects.nonNull(wrapped)) {
+            if (!wrapped.hasNext()) {
+                wrapped = null;
+            }
+        }
+
         this.deadline = this.context.getDeadline();
         this.limit = this.context.getLimit();
         this.offset = this.context.getOffset();
@@ -89,7 +101,13 @@ public class PassageSplitScan<ID,VALUE> implements Spliterator<BackendBindings<I
 
     @Override
     public boolean tryAdvance(Consumer<? super BackendBindings<ID, VALUE>> action) {
-        if (Objects.isNull(wrapped)) {return false;}
+        if (Objects.isNull(wrapped)) {
+            var prodAndCons = getProducedConsumed(input, op);
+            if (!prodAndCons.getRight().isEmpty()) {
+                throw new BackjumpException(prodAndCons.getRight());
+            }
+            return false;
+        }
         if (Objects.nonNull(limit) && produced >= limit) return false;
 
         if (wrapped.hasNext()) { // actually iterates over the dataset
@@ -116,7 +134,15 @@ public class PassageSplitScan<ID,VALUE> implements Spliterator<BackendBindings<I
                 newBinding.put(vars.get(SPOC.GRAPH), wrapped.getId(SPOC.GRAPH), this.context.backend).setCode(vars.get(SPOC.GRAPH), SPOC.GRAPH);
             }
 
-            action.accept(newBinding.setParent(input));
+            try {
+                action.accept(newBinding.setParent(input));
+            } catch (BackjumpException bje) {
+                var prodAncCons = getProducedConsumed(input, op);
+                if (prodAncCons.getLeft().stream().noneMatch(bje.problematicVariables::contains)) {
+                    throw bje; // forward the exception
+                }
+                // return false;
+            }
             return true;
         }
 
@@ -155,6 +181,34 @@ public class PassageSplitScan<ID,VALUE> implements Spliterator<BackendBindings<I
     @Override
     public int characteristics() {
         return SUBSIZED | SIZED | NONNULL;
+    }
+
+    /* *********************************** UTILS ************************************ */
+
+    private static <ID,VALUE,OP> Pair<Set<Var>, Set<Var>> getProducedConsumed (BackendBindings<ID,VALUE> input, OP op) {
+        Set<Var> producedVars = switch (op) {
+            case OpTriple triple -> {
+                Set<Var> _producedVars = VarUtils.getVars(triple.getTriple());
+                _producedVars.removeAll(input.variables());
+                yield _producedVars;
+
+            }
+            case OpTable table -> {
+                Set<Var> _producedVars = new HashSet<>(table.getTable().getVars());
+                _producedVars.removeAll(input.variables());
+                yield _producedVars;
+            }
+            default -> Set.of();
+        };
+        Set<Var> consumedVars = switch (op) {
+            case OpTriple triple -> {
+                Set<Var> _consumedVars = VarUtils.getVars(triple.getTriple());
+                _consumedVars.removeAll(producedVars);
+                yield _consumedVars;
+            }
+            default -> Set.of();
+        };
+        return new ImmutablePair<>(producedVars, consumedVars);
     }
 
 }
