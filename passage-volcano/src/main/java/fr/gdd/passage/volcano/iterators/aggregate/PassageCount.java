@@ -131,7 +131,7 @@ public class PassageCount<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE
             }
 
             String binding = export.getBinding(varRenamed).getString(); // substr because it has ""
-            binding = binding.substring(1, binding.length()-1); // ugly af
+            // binding = binding.substring(1, binding.length()-1); // ugly af
 
             NodeValueInteger oldValue = new NodeValueInteger(0);
             if (exprList.getExpr(varFullName) instanceof E_Add add) {

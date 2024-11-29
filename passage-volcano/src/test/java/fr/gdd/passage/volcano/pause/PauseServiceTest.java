@@ -38,7 +38,7 @@ public class PauseServiceTest {
 
     @Test
     public void a_simple_spo_on_a_remote_passage_endpoint () throws RepositoryException {
-        Assumptions.assumeTrue(ServiceTest.endpointIsReachable("http://localhost", 3000, 2000));
+        // Assumptions.assumeTrue(ServiceTest.endpointIsReachable("http://localhost", 3000, 2000));
         BlazegraphBackend useless = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = String.format("SELECT * WHERE { SERVICE <%s> { {?s ?p ?o} } }",
                 endpoint("http://www.vendor0.fr/"));

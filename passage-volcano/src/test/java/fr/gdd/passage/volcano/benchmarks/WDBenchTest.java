@@ -11,9 +11,10 @@ import org.slf4j.LoggerFactory;
 @Deprecated
 public class WDBenchTest {
 
-    public final static String PATH = "/Users/nedelec-b-2/Desktop/Projects/temp/wdbench-blaze/wdbench-blaze.jnl";
     private final static Logger log = LoggerFactory.getLogger(WDBenchTest.class);
-    static BlazegraphBackend wdbenchBlazegraph;
+
+    public final static String PATH = "/Users/nedelec-b-2/Desktop/Projects/temp/wdbench-blaze/wdbench-blaze.jnl";
+    public static BlazegraphBackend wdbenchBlazegraph;
 
     static {
         try {

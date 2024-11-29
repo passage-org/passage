@@ -5,16 +5,21 @@ import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.transforms.*;
 import org.apache.jena.sparql.algebra.Op;
+import org.apache.jena.sparql.algebra.OpAsQuery;
 import org.apache.jena.sparql.algebra.Transformer;
 import org.apache.jena.sparql.algebra.optimize.TransformFilterPlacement;
 import org.apache.jena.sparql.algebra.optimize.TransformMergeBGPs;
 import org.apache.jena.sparql.algebra.optimize.TransformPattern2Join;
 import org.apache.jena.sparql.algebra.optimize.TransformSimplify;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Create the plan that will be used by the Executor afterward.
  */
 public class PassageOptimizer<ID,VALUE> {
+
+    private static final Logger log = LoggerFactory.getLogger(PassageOptimizer.class);
 
     final Backend<ID,VALUE,Long> backend;
     final BackendCache<ID,VALUE> cache;
@@ -42,6 +47,8 @@ public class PassageOptimizer<ID,VALUE> {
         toOptimize = Transformer.transform(new TransformPattern2Join(), toOptimize);
         toOptimize = Transformer.transform(new TransformSimplify(), toOptimize);
         // toOptimize = ReturningOpVisitorRouter.visit(new Subqueries2LeftOfJoins(), toOptimize);
+
+        log.debug("Optimized: {}", OpAsQuery.asQuery(toOptimize).toString());
         return toOptimize;
     }
 

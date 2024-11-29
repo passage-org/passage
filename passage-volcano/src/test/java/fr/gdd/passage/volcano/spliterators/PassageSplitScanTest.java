@@ -1,5 +1,6 @@
 package fr.gdd.passage.volcano.spliterators;
 
+import com.google.common.collect.ConcurrentHashMultiset;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
@@ -12,12 +13,14 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.algebra.op.OpTriple;
 import org.apache.jena.sparql.core.Var;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.concurrent.ForkJoinPool;
 import java.util.stream.StreamSupport;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -30,7 +33,7 @@ class PassageSplitScanTest {
     @BeforeEach
     public void make_sure_we_dont_stop () { PassageSplitScan.stopping = (e) -> false; }
 
-    @Test
+    @RepeatedTest(100)
     public void a_simple_test_of_triple_pattern () throws RepositoryException {
         BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         var context = new PassageExecutionContextBuilder().setBackend(backend).build();
@@ -41,8 +44,12 @@ class PassageSplitScanTest {
                 Var.alloc("a")));
         var it = new PassageSplitScan<>(context, new BackendBindings<>(), tp);
 
-        Multiset<BackendBindings<?,?>> results = HashMultiset.create();
-        StreamSupport.stream(it, true).forEach(results::add);
+        Multiset<BackendBindings<?, ?>> results = ConcurrentHashMultiset.create();
+        try (ForkJoinPool customPool = new ForkJoinPool(4)) {
+            customPool.submit(() ->
+                StreamSupport.stream(it, true).forEach(results::add)
+            ).join();
+        }
         log.debug("{}", results);
         assertEquals(3, results.size());
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("s", "a"),
@@ -51,7 +58,7 @@ class PassageSplitScanTest {
                 List.of("Alice", "snake")));
     }
 
-    @Test
+    @RepeatedTest(100)
     public void a_simple_test_of_bgp () throws RepositoryException {
         BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         var context = new PassageExecutionContextBuilder().setBackend(backend).build();
@@ -66,10 +73,15 @@ class PassageSplitScanTest {
                 NodeFactory.createURI("http://own"),
                 Var.alloc("a")));
 
-        Multiset<BackendBindings<?,?>> results = HashMultiset.create();
-        StreamSupport.stream(new PassageSplitScan<>(context, new BackendBindings<>(), tp1), true)
-                .forEach((mu)-> StreamSupport.stream(new PassageSplitScan<>(context, mu, tp2), true)
-                        .forEach(results::add));
+        Multiset<BackendBindings<?,?>> results = ConcurrentHashMultiset.create();
+
+        try (ForkJoinPool customPool = new ForkJoinPool(4)) {
+            customPool.submit(() ->
+                    StreamSupport.stream(new PassageSplitScan<>(context, new BackendBindings<>(), tp1), true)
+                            .forEach((mu) -> StreamSupport.stream(new PassageSplitScan<>(context, mu, tp2), true)
+                                    .forEach(results::add))
+            ).join();
+        }
         log.debug("{}", results);
         assertEquals(3, results.size());
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("s", "a", "c"),
@@ -78,8 +90,8 @@ class PassageSplitScanTest {
                 List.of("Alice", "snake", "nantes")));
     }
 
-    @Test
-    public void a_first_backjump_test () throws RepositoryException {
+    @RepeatedTest(100)
+    public void a_first_backjump_test_where_tp3_throws_catch_by_tp1 () throws RepositoryException {
         BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         var context = new PassageExecutionContextBuilder().setBackend(backend).build();
 
@@ -98,13 +110,17 @@ class PassageSplitScanTest {
                 NodeFactory.createURI("http://own"),
                 Var.alloc("a")));
 
-        Multiset<BackendBindings<?,?>> results = HashMultiset.create();
-        StreamSupport.stream(new PassageSplitScan<>(context, new BackendBindings<>(), tp1), false)
-                .forEach((mu)-> StreamSupport.stream(new PassageSplitScan<>(context, mu, tp2), false)
-                        .forEach((mu2)-> StreamSupport.stream(new PassageSplitScan<>(context, mu2, tp3), false)
-                                .forEach(results::add)));
+        Multiset<BackendBindings<?,?>> results = ConcurrentHashMultiset.create();
+        try (ForkJoinPool customPool = new ForkJoinPool(10)) {
+            customPool.submit( () -> StreamSupport.stream(new PassageSplitScan<>(context, new BackendBindings<>(), tp1), true)
+                    .forEach((mu)-> StreamSupport.stream(new PassageSplitScan<>(context, mu, tp2), true)
+                        .forEach((mu2)-> StreamSupport.stream(new PassageSplitScan<>(context, mu2, tp3), true)
+                                .forEach(results::add))))
+                    .join();
+        }
         log.debug("{}", results);
         // enumerate all predicates `po` of alice for each animal: 4x3
         assertEquals(12, results.size());
     }
+
 }
