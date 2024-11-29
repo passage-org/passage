@@ -5,13 +5,11 @@ import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.transforms.DefaultGraphUriQueryModifier;
 import fr.gdd.passage.volcano.PassageExecutionContext;
-import fr.gdd.passage.volcano.iterators.PassageRoot;
+import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpJoin;
 import org.apache.jena.sparql.algebra.op.OpTriple;
-import org.apache.jena.sparql.engine.ExecutionContext;
 
-import java.util.Iterator;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -37,7 +35,8 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
 
     @Override
     public Stream<BackendBindings<ID, VALUE>> visit(OpTriple triple, BackendBindings<ID, VALUE> input) {
-        return StreamSupport.stream(new PassageSplitScan<>(context, input, triple), true);
+        var meow = new PassageExecutionContextBuilder().setContext(context);
+        return StreamSupport.stream(new PassageSplitScan<>(meow.build().setLimit(null).setOffset(0L), input, triple), true);
     }
 
     @Override

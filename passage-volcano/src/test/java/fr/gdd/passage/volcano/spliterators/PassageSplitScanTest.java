@@ -20,11 +20,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.StreamSupport;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class PassageSplitScanTest {
 
@@ -32,6 +32,82 @@ class PassageSplitScanTest {
 
     @BeforeEach
     public void make_sure_we_dont_stop () { PassageSplitScan.stopping = (e) -> false; }
+
+
+    @Test
+    public void correct_offset_limits_for_split_tps () throws RepositoryException {
+        BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+        var context = new PassageExecutionContextBuilder().setBackend(backend).build();
+
+        OpTriple tp = new OpTriple(Triple.create(
+                Var.alloc("s"),
+                NodeFactory.createURI("http://own"),
+                Var.alloc("a")));
+
+        context.setOffset(1L);
+
+        var it = new PassageSplitScan<>(context, new BackendBindings<>(), tp);
+        PassageSplitScan it2 = (PassageSplitScan) it.trySplit();
+
+        assertEquals(1, it.offset);
+        assertEquals(1, it.estimateSize());
+        assertEquals(1, it.limit);
+
+        assertEquals(2, it2.offset);
+        assertEquals(1, it2.estimateSize());
+        assertNull(it2.limit);
+
+        // same but because we advanced in production
+        context.setOffset(0L);
+        var it3 = new PassageSplitScan<>(context, new BackendBindings<>(), tp);
+        it3.tryAdvance((a) -> {log.debug("skip {}", a);});
+        PassageSplitScan it4 = (PassageSplitScan) it3.trySplit();
+        assertEquals(1, it3.offset);
+        assertEquals(1, it3.estimateSize());
+        assertEquals(1, it3.limit);
+
+        assertEquals(2, it4.offset);
+        assertEquals(1, it4.estimateSize());
+        assertNull(it4.limit);
+    }
+
+    @Test
+    public void split_of_split() throws RepositoryException {
+        BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+        var context = new PassageExecutionContextBuilder().setBackend(backend).build();
+
+        OpTriple tp = new OpTriple(Triple.create(
+                NodeFactory.createURI("http://Alice"),
+                Var.alloc("p"),
+                Var.alloc("o")));
+
+        // context.setOffset(0L);
+
+        // nantes ]/ cat / dog / snake
+        var it1 = new PassageSplitScan<>(context, new BackendBindings<>(), tp);
+        var it2 = (PassageSplitScan) it1.trySplit();
+
+        assertEquals(4, it1.estimateSize() + it2.estimateSize());
+        log.debug("it1 offset {}", it1.offset);
+        log.debug("it2 offset {}", it2.offset);
+        var it3 = (PassageSplitScan) it1.trySplit();
+        assertEquals(4, it3.estimateSize() + it1.estimateSize() + it2.estimateSize());
+        log.debug("it1 offset {}", it1.offset);
+        log.debug("it3 offset {}", it3.offset);
+        log.debug("it2 offset {}", it2.offset);
+        var it4 = (PassageSplitScan) it2.trySplit();
+        assertEquals(4, it3.estimateSize() + it1.estimateSize() + it2.estimateSize() + it4.estimateSize());
+        log.debug("it1 offset {}", it1.offset);
+        log.debug("it3 offset {}", it3.offset);
+        log.debug("it2 offset {}", it2.offset);
+        log.debug("it4 offset {}", it4.offset);
+        it1.forEachRemaining(e -> log.debug("1: {}", e.toString()));
+        it3.forEachRemaining(e -> log.debug("3: {}", e.toString()));
+        it2.forEachRemaining(e -> log.debug("2: {}", e.toString()));
+        it4.forEachRemaining(e -> log.debug("4: {}", e.toString()));
+    }
+
+
 
     @RepeatedTest(100)
     public void a_simple_test_of_triple_pattern () throws RepositoryException {
@@ -42,12 +118,12 @@ class PassageSplitScanTest {
                 Var.alloc("s"),
                 NodeFactory.createURI("http://own"),
                 Var.alloc("a")));
-        var it = new PassageSplitScan<>(context, new BackendBindings<>(), tp);
 
         Multiset<BackendBindings<?, ?>> results = ConcurrentHashMultiset.create();
         try (ForkJoinPool customPool = new ForkJoinPool(4)) {
             customPool.submit(() ->
-                StreamSupport.stream(it, true).forEach(results::add)
+                StreamSupport.stream(new PassageSplitScan<>(context, new BackendBindings<>(), tp), true)
+                        .forEach(results::add)
             ).join();
         }
         log.debug("{}", results);

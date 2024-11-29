@@ -73,7 +73,7 @@ public class OpExecutorUtils {
         Op query = Algebra.compile(QueryFactory.create(queryAsString));
 
         AtomicLong nbResults = new AtomicLong();
-        try (ForkJoinPool customPool = new ForkJoinPool(10)) {
+        try (ForkJoinPool customPool = new ForkJoinPool(1)) {
             customPool.submit( () -> executor.execute(query).forEach(ignored -> nbResults.getAndIncrement()) )
                     .join();
         }

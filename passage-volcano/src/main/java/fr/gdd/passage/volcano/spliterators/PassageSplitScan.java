@@ -7,12 +7,9 @@ import fr.gdd.passage.commons.generics.Substitutor;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
-import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.pause.PauseException;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.atlas.lib.tuple.TupleFactory;
 import org.apache.jena.sparql.algebra.op.Op0;
@@ -32,27 +29,28 @@ import java.util.function.Function;
 
 public class PassageSplitScan<ID,VALUE> implements Spliterator<BackendBindings<ID,VALUE>> {
 
+    public static boolean BACKJUMP = true;
+
     /**
      * By default, this is based on execution time. However, developers can change it
      * e.g., for testing purposes.
      */
-    public static Function<ExecutionContext, Boolean> stopping = (ec) ->
-            System.currentTimeMillis() >= ec.getContext().getLong(PassageConstants.DEADLINE, Long.MAX_VALUE);
-
-    final Backend<ID,VALUE,Long> backend;
-    final BackendCache<ID,VALUE> cache;
-    final Long deadline;
-    final Op0 op;
+    public static Function<PassageExecutionContext, Boolean> stopping = (ec) ->
+            System.currentTimeMillis() >= ec.getDeadline();
 
     final PassageExecutionContext<ID,VALUE> context;
     final BackendBindings<ID,VALUE> input;
+    final Backend<ID,VALUE,Long> backend;
+    final BackendCache<ID,VALUE> cache;
+    final Op0 op;
+    Set<Var> producedVars;
+    Set<Var> consumedVars;
 
-    final Long offset;
+    Long offset;
     Long limit;
 
     BackendIterator<ID, VALUE, Long> wrapped;
     Tuple<Var> vars; // needed to create bindings var -> value
-    Long produced = 0L;
 
     public PassageSplitScan (ExecutionContext context, BackendBindings<ID,VALUE> input, Op0 tripleOrQuad) {
         this.context = (PassageExecutionContext<ID, VALUE>) context;
@@ -93,22 +91,24 @@ public class PassageSplitScan<ID,VALUE> implements Spliterator<BackendBindings<I
             }
         }
 
-        this.deadline = this.context.getDeadline();
-        this.limit = this.context.getLimit();
-        this.offset = this.context.getOffset();
-        if (Objects.nonNull(wrapped) && Objects.nonNull(offset) && offset > 0) wrapped.skip(offset); // quick skip
+
+        if (BACKJUMP && Objects.isNull(wrapped)) { // no throw, no backjump overhead TODO in execution context
+            getLazyProducedConsumed(input);
+            // throws immediately if there are no results, no need to try advance
+            if (!consumedVars.isEmpty()) {
+                throw new BackjumpException(consumedVars);
+            }
+        }
+
+        this.limit = this.context.getLimit(); // if null, stays null
+        this.offset = Objects.nonNull(this.context.getOffset()) ? this.context.getOffset() : 0;
+        if (Objects.nonNull(wrapped) && offset > 0) wrapped.skip(offset); // quick skip
     }
 
     @Override
     public boolean tryAdvance(Consumer<? super BackendBindings<ID, VALUE>> action) {
-        if (Objects.isNull(wrapped)) {
-            var prodAndCons = getProducedConsumed(input, op);
-            if (!prodAndCons.getRight().isEmpty()) {
-                throw new BackjumpException(prodAndCons.getRight());
-            }
-            return false;
-        }
-        if (Objects.nonNull(limit) && produced >= limit) return false;
+        if (Objects.isNull(wrapped)) return false;
+        if (Objects.nonNull(limit) && limit == 0) return false; // we produced all
 
         if (wrapped.hasNext()) { // actually iterates over the dataset
             if (!context.paused.isPaused() && stopping.apply(context)) { // unless we must stop
@@ -117,7 +117,8 @@ public class PassageSplitScan<ID,VALUE> implements Spliterator<BackendBindings<I
             }
 
             // but if not pause, we create the new binding
-            produced += 1;
+            offset += 1;
+            if (Objects.nonNull(limit)) { limit -= 1 ; }
             wrapped.next();
             BackendBindings<ID, VALUE> newBinding = new BackendBindings<>();
 
@@ -137,11 +138,10 @@ public class PassageSplitScan<ID,VALUE> implements Spliterator<BackendBindings<I
             try {
                 action.accept(newBinding.setParent(input));
             } catch (BackjumpException bje) {
-                var prodAncCons = getProducedConsumed(input, op);
-                if (prodAncCons.getLeft().stream().noneMatch(bje.problematicVariables::contains)) {
+                getLazyProducedConsumed(input);
+                if (producedVars.stream().noneMatch(bje.problematicVariables::contains)) {
                     throw bje; // forward the exception
                 }
-                // return false;
             }
             return true;
         }
@@ -154,28 +154,27 @@ public class PassageSplitScan<ID,VALUE> implements Spliterator<BackendBindings<I
         long remaining = estimateSize();
         if (remaining < 2) { return null; } // no split possible
         // #1 limit the size of this split iterator
-        long start = Objects.isNull(offset) ? 0 : offset;
-        long splitIndex = start + produced + remaining / 2;
+        long splitIndex = offset + remaining / 2;
         // #2 create another split iterator of removed size
         PassageExecutionContext<ID,VALUE> newContext =
                 new PassageExecutionContextBuilder<ID,VALUE>()
                         .setContext(context).build()
                         .setOffset(splitIndex);
+
         if (Objects.nonNull(this.limit)) {
-            newContext.setLimit(this.limit-splitIndex);
+            newContext.setLimit(offset + remaining - splitIndex);
         }
-        this.limit = splitIndex - start;
+
+        this.limit = splitIndex - offset; // not (- produced) since we don't reset produced
 
         return new PassageSplitScan<>(newContext, input, op);
     }
 
     @Override
-    public long estimateSize() {
+    public long estimateSize() { // what is left right now
         if (Objects.isNull(wrapped)) return 0;
-        long start = Objects.isNull(offset) ? 0 : offset;
-        long cardinality = (long) wrapped.cardinality() - start;
-        long upperLimit = (Objects.isNull(limit)) ? cardinality : Math.min(cardinality, limit);
-        return upperLimit - produced;
+        long cardinality = (long) wrapped.cardinality();
+        return  (Objects.isNull(limit)) ? cardinality - offset : Math.min(cardinality - offset, limit);
     }
 
     @Override
@@ -185,8 +184,9 @@ public class PassageSplitScan<ID,VALUE> implements Spliterator<BackendBindings<I
 
     /* *********************************** UTILS ************************************ */
 
-    private static <ID,VALUE,OP> Pair<Set<Var>, Set<Var>> getProducedConsumed (BackendBindings<ID,VALUE> input, OP op) {
-        Set<Var> producedVars = switch (op) {
+    private void getLazyProducedConsumed(BackendBindings<ID,VALUE> input) {
+        if (Objects.nonNull(this.producedVars)) { return ; }
+        this.producedVars = switch (op) {
             case OpTriple triple -> {
                 Set<Var> _producedVars = VarUtils.getVars(triple.getTriple());
                 _producedVars.removeAll(input.variables());
@@ -200,7 +200,7 @@ public class PassageSplitScan<ID,VALUE> implements Spliterator<BackendBindings<I
             }
             default -> Set.of();
         };
-        Set<Var> consumedVars = switch (op) {
+        this.consumedVars = switch (op) {
             case OpTriple triple -> {
                 Set<Var> _consumedVars = VarUtils.getVars(triple.getTriple());
                 _consumedVars.removeAll(producedVars);
@@ -208,7 +208,6 @@ public class PassageSplitScan<ID,VALUE> implements Spliterator<BackendBindings<I
             }
             default -> Set.of();
         };
-        return new ImmutablePair<>(producedVars, consumedVars);
     }
 
 }

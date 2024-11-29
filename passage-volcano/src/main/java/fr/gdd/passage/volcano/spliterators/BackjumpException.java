@@ -13,7 +13,7 @@ public class BackjumpException extends RuntimeException {
     public final Set<Var> problematicVariables;
 
     public BackjumpException(Set<Var> problematicVariables){
-        super("Issue on variables: " + problematicVariables.toString());
+        super(null, null, false, false);
         this.problematicVariables = problematicVariables;
     }
 
