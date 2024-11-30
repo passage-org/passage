@@ -8,7 +8,9 @@ public class PassageConstants {
     public static final String sageSymbolPrefix = "passage";
 
     static public final Symbol LOADER = allocVariableSymbol("Loader");
+    @Deprecated
     static public final Symbol SAVER = allocVariableSymbol("Saver");
+    static public final Symbol OP2ITS = allocVariableSymbol("OP2ITS");
 
     static public final Symbol TIMEOUT = allocConstantSymbol("Timeout"); // max duration of execution
     static public final Symbol DEADLINE = allocConstantSymbol("Deadline"); // when to stop execution

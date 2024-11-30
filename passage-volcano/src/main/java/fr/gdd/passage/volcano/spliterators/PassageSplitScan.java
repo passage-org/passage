@@ -3,15 +3,20 @@ package fr.gdd.passage.volcano.spliterators;
 import fr.gdd.passage.commons.exceptions.NotFoundException;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendCache;
+import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.generics.Substitutor;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
+import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.pause.PauseException;
 import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.atlas.lib.tuple.TupleFactory;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Node_Variable;
+import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.Op0;
 import org.apache.jena.sparql.algebra.op.OpQuad;
 import org.apache.jena.sparql.algebra.op.OpTable;
@@ -24,10 +29,11 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.Spliterator;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class PassageSplitScan<ID,VALUE> implements Spliterator<BackendBindings<ID,VALUE>> {
+public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> implements Spliterator<BackendBindings<ID,VALUE>> {
 
     public static boolean BACKJUMP = true;
 
@@ -53,6 +59,7 @@ public class PassageSplitScan<ID,VALUE> implements Spliterator<BackendBindings<I
     Tuple<Var> vars; // needed to create bindings var -> value
 
     public PassageSplitScan (ExecutionContext context, BackendBindings<ID,VALUE> input, Op0 tripleOrQuad) {
+        super((PassageExecutionContext<ID, VALUE>) context, tripleOrQuad);
         this.context = (PassageExecutionContext<ID, VALUE>) context;
         this.backend = this.context.backend;
         this.cache = this.context.cache;
@@ -93,6 +100,7 @@ public class PassageSplitScan<ID,VALUE> implements Spliterator<BackendBindings<I
 
 
         if (BACKJUMP && Objects.isNull(wrapped)) { // no throw, no backjump overhead TODO in execution context
+            unregister();
             getLazyProducedConsumed(input);
             // throws immediately if there are no results, no need to try advance
             if (!consumedVars.isEmpty()) {
@@ -120,6 +128,7 @@ public class PassageSplitScan<ID,VALUE> implements Spliterator<BackendBindings<I
             offset += 1;
             if (Objects.nonNull(limit)) { limit -= 1 ; }
             wrapped.next();
+            ((AtomicLong) context.getContext().get(PassageConstants.SCANS)).getAndIncrement(); // TODO in context
             BackendBindings<ID, VALUE> newBinding = new BackendBindings<>();
 
             if (Objects.nonNull(vars.get(SPOC.SUBJECT))) { // ugly x4
@@ -140,12 +149,14 @@ public class PassageSplitScan<ID,VALUE> implements Spliterator<BackendBindings<I
             } catch (BackjumpException bje) {
                 getLazyProducedConsumed(input);
                 if (producedVars.stream().noneMatch(bje.problematicVariables::contains)) {
+                    unregister();
                     throw bje; // forward the exception
                 }
             }
             return true;
         }
 
+        unregister();
         return false;
     }
 
@@ -179,7 +190,14 @@ public class PassageSplitScan<ID,VALUE> implements Spliterator<BackendBindings<I
 
     @Override
     public int characteristics() {
-        return SUBSIZED | SIZED | NONNULL;
+        return SUBSIZED | SIZED | NONNULL | IMMUTABLE;
+    }
+
+    /* *********************************** PAUSE ************************************ */
+
+    @Override
+    public Op pause() {
+        return super.pause();
     }
 
     /* *********************************** UTILS ************************************ */
@@ -191,7 +209,14 @@ public class PassageSplitScan<ID,VALUE> implements Spliterator<BackendBindings<I
                 Set<Var> _producedVars = VarUtils.getVars(triple.getTriple());
                 _producedVars.removeAll(input.variables());
                 yield _producedVars;
-
+            }
+            case OpQuad quad -> {
+                Set<Var> _producedVars = VarUtils.getVars(quad.getQuad().asTriple());
+                if (quad.getQuad().getGraph() instanceof Var _v) {
+                    _producedVars.add(_v);
+                }
+                _producedVars.removeAll(input.variables());
+                yield _producedVars;
             }
             case OpTable table -> {
                 Set<Var> _producedVars = new HashSet<>(table.getTable().getVars());

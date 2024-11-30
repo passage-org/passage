@@ -7,6 +7,7 @@ import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.optimizers.PassageOptimizer;
 import fr.gdd.passage.volcano.pause.PassagePaused;
 import fr.gdd.passage.volcano.pause.Pause2Next;
+import fr.gdd.passage.volcano.spliterators.Op2Spliterators;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
@@ -21,7 +22,12 @@ public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
     public final Backend<ID,VALUE,Long> backend;
     public BackendCache<ID,VALUE> cache;
     public final PassageOptimizer<ID,VALUE> optimizer;
+
+    @Deprecated
     public BackendSaver<ID,VALUE,Long> saver;
+
+    public Op2Spliterators<ID,VALUE> op2its;
+
     public final PassagePaused paused;
     public Op query;
     Long limit; // null is no limit
@@ -31,6 +37,8 @@ public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
     public PassageExecutionContext(ExecutionContext context) {
         super(context);
         this.backend = context.getContext().get(BackendConstants.BACKEND);
+        context.getContext().setIfUndef(PassageConstants.OP2ITS, new Op2Spliterators<>());
+        this.op2its = context.getContext().get(PassageConstants.OP2ITS);
         context.getContext().setIfUndef(PassageConstants.SCANS, new AtomicLong(0L));
         context.getContext().setIfUndef(PassageConstants.SERVICE_CALLS, new AtomicLong(0L));
         context.getContext().setIfUndef(BackendConstants.CACHE, new BackendCache<>(backend));
