@@ -18,6 +18,7 @@ public class PassageExecutionContextBuilder<ID,VALUE> {
     private Long timeout = Long.MAX_VALUE;
     private Long maxScans = Long.MAX_VALUE;
     private Boolean forceOrder = false;
+    private Integer maxParallel = 1; // not parallel by default
 
     public PassageExecutionContext<ID,VALUE> build() {
         ExecutionContext ec = Objects.isNull(context) ?
@@ -40,6 +41,8 @@ public class PassageExecutionContextBuilder<ID,VALUE> {
         ec.getContext().setIfUndef(PassageConstants.MAX_SCANS, maxScans);
 
         ec.getContext().setIfUndef(PassageConstants.FORCE_ORDER, forceOrder);
+
+        ec.getContext().setIfUndef(PassageConstants.MAX_PARALLELISM, maxParallel);
 
         return new PassageExecutionContext<>(ec);
     }
@@ -77,4 +80,13 @@ public class PassageExecutionContextBuilder<ID,VALUE> {
         return this;
     }
 
+    public PassageExecutionContextBuilder<ID,VALUE> setMaxParallel(Integer maxParallel) {
+        if (Objects.nonNull(maxParallel)) {
+            if (maxParallel < 1) {
+                throw new RuntimeException("Max parallel must be a positive integer.");
+            }
+            this.maxParallel = maxParallel;
+        }
+        return this;
+    }
 }

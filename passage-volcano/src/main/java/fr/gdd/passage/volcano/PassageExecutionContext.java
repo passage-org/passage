@@ -26,7 +26,8 @@ public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
     @Deprecated
     public BackendSaver<ID,VALUE,Long> saver;
 
-    public Op2Spliterators<ID,VALUE> op2its;
+    public final Op2Spliterators<ID,VALUE> op2its;
+    public final Integer maxParallelism;
 
     public final PassagePaused paused;
     public Op query;
@@ -34,11 +35,13 @@ public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
     Long offset; // null is no offset
     final Long deadline;
 
+
     public PassageExecutionContext(ExecutionContext context) {
         super(context);
         this.backend = context.getContext().get(BackendConstants.BACKEND);
         context.getContext().setIfUndef(PassageConstants.OP2ITS, new Op2Spliterators<>());
         this.op2its = context.getContext().get(PassageConstants.OP2ITS);
+        this.maxParallelism = context.getContext().get(PassageConstants.MAX_PARALLELISM);
         context.getContext().setIfUndef(PassageConstants.SCANS, new AtomicLong(0L));
         context.getContext().setIfUndef(PassageConstants.SERVICE_CALLS, new AtomicLong(0L));
         context.getContext().setIfUndef(BackendConstants.CACHE, new BackendCache<>(backend));

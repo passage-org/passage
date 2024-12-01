@@ -12,6 +12,8 @@ public class PassageConstants {
     static public final Symbol SAVER = allocVariableSymbol("Saver");
     static public final Symbol OP2ITS = allocVariableSymbol("OP2ITS");
 
+    static public final Symbol MAX_PARALLELISM = allocConstantSymbol("MaxParallelism"); // the thread pool size for the execution stream
+
     static public final Symbol TIMEOUT = allocConstantSymbol("Timeout"); // max duration of execution
     static public final Symbol DEADLINE = allocConstantSymbol("Deadline"); // when to stop execution
     static public final Symbol SCANS = allocVariableSymbol("Scans"); // current number of scans

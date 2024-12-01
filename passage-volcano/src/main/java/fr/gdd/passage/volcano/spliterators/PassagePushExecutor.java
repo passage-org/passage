@@ -43,7 +43,7 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
         context.setQuery(root); // mandatory to be saved later on
         // With a timeout condition, we need to create a catch that wraps the
         // whole process.
-        try (ForkJoinPool customPool = new ForkJoinPool(4)) { // TODO parallelism factor is a parameter
+        try (ForkJoinPool customPool = new ForkJoinPool(context.maxParallelism)) {
             customPool.submit(() -> {
                 try {
                     this.visit(_root, new BackendBindings<>()).forEach(consumer);
@@ -64,7 +64,7 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
     @Override
     public Stream<BackendBindings<ID, VALUE>> visit(OpTriple triple, BackendBindings<ID, VALUE> input) {
         var meow = new PassageExecutionContextBuilder<ID,VALUE>().setContext(context); // TODO better handling of context
-        return StreamSupport.stream(new PassageSplitScan<>(meow.build().setLimit(null).setOffset(0L), input, triple), true);
+        return StreamSupport.stream(new PassageSplitScan<>(meow.build().setLimit(null).setOffset(0L), input, triple), this.context.maxParallelism > 1);
     }
 
     @Override

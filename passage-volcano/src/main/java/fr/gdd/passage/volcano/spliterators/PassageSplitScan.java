@@ -3,7 +3,6 @@ package fr.gdd.passage.volcano.spliterators;
 import fr.gdd.passage.commons.exceptions.NotFoundException;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendCache;
-import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.generics.Substitutor;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
@@ -14,8 +13,6 @@ import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.pause.PauseException;
 import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.atlas.lib.tuple.TupleFactory;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Node_Variable;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.core.Var;
@@ -199,7 +196,12 @@ public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> im
         Op toSave = OpJoin.create(input.toOp(), op);
         // update LIMIT and OFFSET
         long newLimit = Objects.isNull(limit) ? Long.MIN_VALUE : limit;
-        return new OpSlice(toSave, offset, newLimit);
+        long newOffset = Objects.isNull(offset) || offset == 0 ? Long.MIN_VALUE : offset; // to simplify the query
+        if (newLimit == Long.MIN_VALUE && newOffset == Long.MIN_VALUE) {
+            return toSave;
+        } else { // if either LIMIT or OFFSET, we need to create a subquery
+            return new OpSlice(toSave, newOffset, newLimit);
+        }
     }
 
     /* *********************************** UTILS ************************************ */
