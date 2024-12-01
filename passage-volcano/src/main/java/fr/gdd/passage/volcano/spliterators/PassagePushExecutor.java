@@ -21,19 +21,18 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
         Stream<BackendBindings<ID, VALUE>>, // output
         BackendBindings<ID, VALUE>> { // input
 
-    final PassageExecutionContext context;
+    final PassageExecutionContext<ID,VALUE> context;
 
-    public PassagePushExecutor (PassageExecutionContext context) {
+    public PassagePushExecutor (PassageExecutionContext<ID,VALUE> context) {
         this.context = context;
         this.context.getContext().set(BackendConstants.EXECUTOR, this);
     }
 
+    @Deprecated // should not be used
     public Stream<BackendBindings<ID, VALUE>> execute(Op root) {
         root = context.optimizer.optimize(root);
         root = new DefaultGraphUriQueryModifier(context).visit(root);
         context.setQuery(root); // mandatory to be saved later on
-        // Only need a root that will catch the timeout exception to state that
-        // the iterator does not have next.
         return this.visit(root, new BackendBindings<>());
     }
 
