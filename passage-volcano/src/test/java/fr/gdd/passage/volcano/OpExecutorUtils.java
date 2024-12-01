@@ -55,8 +55,10 @@ public class OpExecutorUtils {
 
         Multiset<BackendBindings<?,?>> results = ConcurrentHashMultiset.create();
         try (ForkJoinPool customPool = new ForkJoinPool(10)) {
-            customPool.submit( () -> executor.execute(query).forEach(results::add) )
-                    .join();
+            customPool.submit( () -> executor.execute(query).forEach(result -> {
+                        log.debug("{}", result);
+                        results.add(result);
+            })).join();
         }
         return results;
     }

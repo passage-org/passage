@@ -9,7 +9,7 @@ import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.benchmarks.WDBenchTest;
-import fr.gdd.passage.volcano.benchmarks.WatDivTest;
+import fr.gdd.passage.volcano.iterators.PassageScan;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
@@ -30,45 +30,29 @@ import java.util.stream.StreamSupport;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class PassageSplitJoinTest {
+public class PassageSplitUnionTest {
 
-    private final static Logger log = LoggerFactory.getLogger(PassageSplitJoinTest.class);
+    private final static Logger log = LoggerFactory.getLogger(PassageSplitUnionTest.class);
 
+    @BeforeEach
     public void make_sure_we_dont_stop () { PassageSplitScan.stopping = (e) -> false; }
 
-    @RepeatedTest(100)
-    public void bgp_of_2_tps () throws RepositoryException {
+    @Test
+    public void execute_a_simple_union () throws RepositoryException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                SELECT * WHERE {
-                ?p <http://address> <http://nantes> .
-                ?p <http://own> ?a .
+                {?p  <http://own>  ?a}
+                UNION
+                {?p  <http://address> ?a}
                }""";
 
         var results = OpExecutorUtils.executeWithPush(queryAsString, blazegraph);
-        assertEquals(3, results.size()); // Alice, Alice, and Alice.
+        log.debug("{}", results);
+        assertEquals(6, results.size()); // 3 triples + 3 triples
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
-                List.of("Alice", "dog"),
-                List.of("Alice", "cat"),
-                List.of("Alice", "snake")));
-    }
-
-    @RepeatedTest(100)
-    public void bgp_of_3_tps () throws RepositoryException {
-        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
-        String queryAsString = """
-               SELECT * WHERE {
-                ?p <http://address> <http://nantes> .
-                ?p <http://own> ?a .
-                ?a <http://species> ?s
-               }""";
-
-        var results = OpExecutorUtils.executeWithPush(queryAsString, blazegraph);
-        assertEquals(3, results.size()); // Alice->own->cat,dog,snake
-        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a", "s"),
-                List.of("Alice", "dog", "canine"),
-                List.of("Alice", "cat", "feline"),
-                List.of("Alice", "snake", "reptile")));
+                List.of("Alice", "snake"), List.of("Alice", "dog"), List.of("Alice", "cat"),
+                List.of("Alice", "nantes"), List.of("Bob", "paris"), List.of("Carol", "nantes")));
     }
 
     /* *************************** BIG DATASETS ******************************** */

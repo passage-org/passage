@@ -10,6 +10,7 @@ import fr.gdd.passage.volcano.pause.PauseException;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpJoin;
 import org.apache.jena.sparql.algebra.op.OpTriple;
+import org.apache.jena.sparql.algebra.op.OpUnion;
 
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
@@ -36,29 +37,33 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
         return this.visit(root, new BackendBindings<>());
     }
 
-    public void execute(Op root, Consumer<BackendBindings<ID, VALUE>> consumer) {
+    public Op execute(Op root, Consumer<BackendBindings<ID, VALUE>> consumer) {
+        root = context.optimizer.optimize(root);
+        final Op _root = new DefaultGraphUriQueryModifier(context).visit(root);
+        context.setQuery(root); // mandatory to be saved later on
         // With a timeout condition, we need to create a catch that wraps the
         // whole process.
         try (ForkJoinPool customPool = new ForkJoinPool(4)) { // TODO parallelism factor is a parameter
             customPool.submit(() -> {
                 try {
-                    execute(root).forEach(consumer);
+                    this.visit(_root, new BackendBindings<>()).forEach(consumer);
                 } catch (PauseException pe) {
                     // TODO test if there are multiple PauseException catch.
                     //      The best scenario would be that children continue
                     //      their execution until throwing. So when join is called
                     //      they are all stopped in a consistent state.
-                    System.out.println("Meow");
+                    System.out.println("Stop !");
                 }
             }).join();
         }
+        return new Pause2ContinuationQuery<ID,VALUE>(context.op2its).visit(_root);
     }
 
     /* *********************************** OPERATORS ************************************* */
 
     @Override
     public Stream<BackendBindings<ID, VALUE>> visit(OpTriple triple, BackendBindings<ID, VALUE> input) {
-        var meow = new PassageExecutionContextBuilder().setContext(context);
+        var meow = new PassageExecutionContextBuilder<ID,VALUE>().setContext(context); // TODO better handling of context
         return StreamSupport.stream(new PassageSplitScan<>(meow.build().setLimit(null).setOffset(0L), input, triple), true);
     }
 
@@ -67,4 +72,8 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
          return this.visit(join.getLeft(), input).flatMap(b -> this.visit(join.getRight(), b));
     }
 
+    @Override
+    public Stream<BackendBindings<ID, VALUE>> visit(OpUnion union, BackendBindings<ID, VALUE> input) {
+        return Stream.concat(this.visit(union.getLeft(), input), this.visit(union.getRight(), input));
+    }
 }

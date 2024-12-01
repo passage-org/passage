@@ -17,10 +17,7 @@ import org.apache.jena.atlas.lib.tuple.TupleFactory;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Node_Variable;
 import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.algebra.op.Op0;
-import org.apache.jena.sparql.algebra.op.OpQuad;
-import org.apache.jena.sparql.algebra.op.OpTable;
-import org.apache.jena.sparql.algebra.op.OpTriple;
+import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.util.VarUtils;
@@ -197,7 +194,12 @@ public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> im
 
     @Override
     public Op pause() {
-        return super.pause();
+        if (Objects.nonNull(limit) && limit == 0) return null; // done
+        // save the whole context
+        Op toSave = OpJoin.create(input.toOp(), op);
+        // update LIMIT and OFFSET
+        long newLimit = Objects.isNull(limit) ? Long.MIN_VALUE : limit;
+        return new OpSlice(toSave, offset, newLimit);
     }
 
     /* *********************************** UTILS ************************************ */

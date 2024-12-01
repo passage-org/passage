@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class PassageSplitScanTest {
 
-    private static final Logger log = LoggerFactory.getLogger(PassageSplitScan.class);
+    private static final Logger log = LoggerFactory.getLogger(PassageSplitScanTest.class);
 
     @BeforeEach
     public void make_sure_we_dont_stop () { PassageSplitScan.stopping = (e) -> false; }

@@ -48,7 +48,12 @@ public class PassageOptimizer<ID,VALUE> {
         toOptimize = Transformer.transform(new TransformSimplify(), toOptimize);
         // toOptimize = ReturningOpVisitorRouter.visit(new Subqueries2LeftOfJoins(), toOptimize);
 
-        log.debug("Optimized: {}", OpAsQuery.asQuery(toOptimize).toString());
+        try {
+            log.debug("Optimized: {}", OpAsQuery.asQuery(toOptimize).toString());
+        } catch (Exception e) {
+            // nothing but:
+            // TODO OpQuad are not handled, but OpQuadPatterns are, so we should replace the former by the latter
+        }
         return toOptimize;
     }
 
