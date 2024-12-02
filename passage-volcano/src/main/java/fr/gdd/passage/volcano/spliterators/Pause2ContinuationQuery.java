@@ -27,6 +27,7 @@ public class Pause2ContinuationQuery<ID,VALUE> extends ReturningOpVisitor<Op> {
     @Override
     public Op visit(OpTriple triple) {
         Set<PausableSpliterator<ID,VALUE>> its = op2its.get(triple);
+        // Set<PausableSpliterator<ID,VALUE>> its = Set.of(op2its.get(triple));
 
         if (Objects.isNull(its) || its.isEmpty()) return null;
 

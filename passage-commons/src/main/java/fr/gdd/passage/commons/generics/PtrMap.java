@@ -10,20 +10,20 @@ import java.util.List;
 /**
  * Hash on keys then compare pointers of keys. It's meant to increase search
  * speed using hash, then retrieve the exact value using pointers.
- *  * @param <F> Key type.
- *  * @param <T> Value type.
+ *  * @param <K> Key type.
+ *  * @param <V> Value type.
  */
-public class PtrMap<F, T> {
+public class PtrMap<K, V> implements IPtrMap<K, V> {
 
-    HashMap<F, ArrayList<Pair<F, T>>> map = new HashMap<>();
+    HashMap<K, ArrayList<Pair<K, V>>> map = new HashMap<>();
     int size = 0;
 
-    public PtrMap<F, T> put (F key, T val) {
+    public PtrMap<K, V> put (K key, V val) {
         if (!map.containsKey(key)) {
             map.put(key, new ArrayList<>());
         }
 
-        ArrayList<Pair<F, T>> values = map.get(key);
+        ArrayList<Pair<K, V>> values = map.get(key);
         if (values.stream().filter(p -> p.getLeft() == key).toList().isEmpty()) {
             values.add(new ImmutablePair<>(key, val));
             ++size;
@@ -34,9 +34,9 @@ public class PtrMap<F, T> {
         return this;
     }
 
-    public PtrMap<F, T> remove (F key) {
+    public PtrMap<K, V> remove (K key) {
         if (map.containsKey(key)) {
-            ArrayList<Pair<F, T>> values = map.get(key);
+            ArrayList<Pair<K, V>> values = map.get(key);
             values.removeIf(p -> p.getLeft() == key);
             --size;
             if (values.isEmpty()) {
@@ -50,10 +50,10 @@ public class PtrMap<F, T> {
         return this.size;
     }
 
-    public T get (F key) {
+    public V get (K key) {
         if (map.containsKey(key)) {
-            ArrayList<Pair<F, T>> values = map.get(key);
-            List<Pair<F, T>> result = values.stream().filter(p -> p.getLeft() == key).toList();
+            ArrayList<Pair<K, V>> values = map.get(key);
+            List<Pair<K, V>> result = values.stream().filter(p -> p.getLeft() == key).toList();
             if (!result.isEmpty()) {
                 return result.getFirst().getRight();
             }

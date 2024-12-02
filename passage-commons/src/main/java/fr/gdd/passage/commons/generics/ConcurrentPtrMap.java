@@ -1,46 +1,44 @@
 package fr.gdd.passage.commons.generics;
 
 import com.google.common.collect.ConcurrentHashMultiset;
-import org.apache.commons.lang3.concurrent.ConcurrentUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.stream.Collectors;
 
 /**
  * Hash on keys then compare pointers of keys. It's meant to increase search
  * speed using hash, then retrieve the exact value using pointers.
- *  * @param <F> Key type.
- *  * @param <T> Value type.
+ *  * @param <K> Key type.
+ *  * @param <V> Value type.
  */
-public class ConcurrentPtrMap<F, T> {
+public class ConcurrentPtrMap<K, V> implements IPtrMap<K,V> {
 
-    ConcurrentHashMap<F, ConcurrentHashMultiset<Pair<F, T>>> map = new ConcurrentHashMap<>();
+    final ConcurrentHashMap<K, ConcurrentHashMultiset<Pair<K, V>>> map = new ConcurrentHashMap<>();
     int size = 0;
 
-    public ConcurrentPtrMap<F, T> put (F key, T val) {
+    public ConcurrentPtrMap<K, V> put (K key, V val) {
         map.putIfAbsent(key, ConcurrentHashMultiset.create());
 
-        ConcurrentHashMultiset<Pair<F, T>> values = map.get(key);
+        ConcurrentHashMultiset<Pair<K, V>> values = map.get(key);
         if (values.stream().filter(p -> p.getLeft() == key).toList().isEmpty()) {
             values.add(new ImmutablePair<>(key, val));
             ++size;
         } else {
-            map.put(key, ConcurrentHashMultiset.create(values.stream().map(p -> p.getLeft() == key ? new ImmutablePair<>(key, val) : p).toList()));
+            map.put(key, ConcurrentHashMultiset.create(
+                    values.stream()
+                            .map(p -> p.getLeft() == key ? new ImmutablePair<>(key, val) : p)
+                            .collect(Collectors.toList())));
         }
 
         return this;
     }
 
-    public ConcurrentPtrMap<F, T> remove (F key) {
+    public ConcurrentPtrMap<K, V> remove (K key) {
         if (map.containsKey(key)) {
-            ConcurrentHashMultiset<Pair<F, T>> values = map.get(key);
+            ConcurrentHashMultiset<Pair<K, V>> values = map.get(key);
             values.removeIf(p -> p.getLeft() == key);
             --size;
             if (values.isEmpty()) {
@@ -54,10 +52,10 @@ public class ConcurrentPtrMap<F, T> {
         return this.size;
     }
 
-    public T get (F key) {
+    public V get (K key) {
         if (map.containsKey(key)) {
-            ConcurrentHashMultiset<Pair<F, T>> values = map.get(key);
-            List<Pair<F, T>> result = values.stream().filter(p -> p.getLeft() == key).toList();
+            ConcurrentHashMultiset<Pair<K, V>> values = map.get(key);
+            List<Pair<K, V>> result = values.stream().filter(p -> p.getLeft() == key).toList();
             if (!result.isEmpty()) {
                 return result.getFirst().getRight();
             }

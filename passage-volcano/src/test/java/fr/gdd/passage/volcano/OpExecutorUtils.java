@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Iterator;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 public class OpExecutorUtils {
@@ -42,10 +43,47 @@ public class OpExecutorUtils {
         return bindings;
     }
 
+    public static long countWithPassage(String queryAsString, Backend<?,?,?> backend) {
+        return countWithPassage(queryAsString, new PassageExecutionContextBuilder().setBackend(backend).build());
+    }
+
+    public static long countWithPassage(String queryAsString, PassageExecutionContext<?,?> ec) {
+        PassageOpExecutor<?,?> executor = new PassageOpExecutor<>(ec);
+
+        Op query = Algebra.compile(QueryFactory.create(queryAsString));
+        Iterator<? extends BackendBindings<?, ?>> iterator = executor.execute(query);
+
+        long count = 0;
+        while (iterator.hasNext()) {
+            BackendBindings<?,?> ignored = iterator.next();
+            count += 1;
+        }
+        return count;
+    }
+
     /* ************************************************************************** */
 
     public static Multiset<BackendBindings<?,?>> executeWithPush(String queryAsString, Backend<?,?,?> backend) {
-        return executeWithPush(queryAsString, new PassageExecutionContextBuilder().setBackend(backend).build());
+        return executeWithPush(queryAsString, new PassageExecutionContextBuilder().
+                setBackend(backend)
+                .build());
+    }
+
+    public static Multiset<BackendBindings<?,?>> executeWithPush(String queryAsString, Backend<?,?,?> backend,
+                                                                 int maxParallel) {
+        return executeWithPush(queryAsString, new PassageExecutionContextBuilder()
+                .setBackend(backend)
+                .setMaxParallel(maxParallel)
+                .build());
+    }
+
+    public static Multiset<BackendBindings<?,?>> executeWithPush(String queryAsString, Backend<?,?,?> backend,
+                                                                 int maxParallel,
+                                                                 Consumer<BackendBindings<?,?>> consumer) {
+        return executeWithPush(queryAsString, new PassageExecutionContextBuilder()
+                .setBackend(backend)
+                .setMaxParallel(maxParallel)
+                .build(), consumer);
     }
 
     public static Multiset<BackendBindings<?,?>> executeWithPush(String queryAsString, PassageExecutionContext<?,?> ec) {
@@ -54,33 +92,22 @@ public class OpExecutorUtils {
         Op query = Algebra.compile(QueryFactory.create(queryAsString));
 
         Multiset<BackendBindings<?,?>> results = ConcurrentHashMultiset.create();
-        try (ForkJoinPool customPool = new ForkJoinPool(10)) {
-            customPool.submit( () -> executor.execute(query).forEach(result -> {
-                        log.debug("{}", result);
-                        results.add(result);
-            })).join();
-        }
+        executor.execute(query, result -> {
+            log.debug("{}", result);
+            results.add(result);
+        });
+
         return results;
     }
 
-    /* ********************************************************************* */
-
-    public static long countWithPush(String queryAsString, Backend<?,?,?> backend) {
-        return countWithPush(queryAsString, new PassageExecutionContextBuilder().setBackend(backend).build());
-    }
-
-    public static long countWithPush(String queryAsString, PassageExecutionContext<?,?> ec) {
+    public static Multiset<BackendBindings<?,?>> executeWithPush(String queryAsString, PassageExecutionContext<?,?> ec, Consumer<BackendBindings<?,?>> consumer) {
         PassagePushExecutor<?,?> executor = new PassagePushExecutor<>(ec);
 
         Op query = Algebra.compile(QueryFactory.create(queryAsString));
 
-        AtomicLong nbResults = new AtomicLong();
-        try (ForkJoinPool customPool = new ForkJoinPool(1)) {
-            customPool.submit( () -> executor.execute(query).forEach(ignored -> nbResults.getAndIncrement()) )
-                    .join();
-        }
-        return nbResults.get();
+        Multiset<BackendBindings<?,?>> results = ConcurrentHashMultiset.create();
+        executor.execute(query,consumer::accept);
+        return results;
     }
-
 
 }

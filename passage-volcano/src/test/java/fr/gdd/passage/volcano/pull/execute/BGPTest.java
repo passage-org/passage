@@ -6,10 +6,7 @@ import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.benchmarks.WatDivTest;
 import fr.gdd.passage.volcano.iterators.PassageScan;
-import org.junit.jupiter.api.Assumptions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
@@ -164,13 +161,12 @@ public class BGPTest {
         log.info("{}", sum);
     }
 
-    @Disabled("Time consuming.")
-    @Test
-    public void on_watdiv_conjunctive_query_10124 () throws RepositoryException, SailException {
+    @RepeatedTest(5) // TODO put this in dedicated to test of benchmarks
+    public void on_watdiv_conjunctive_query_10124 () {
         Assumptions.assumeTrue(Path.of(WatDivTest.PATH).toFile().exists());
-        BlazegraphBackend watdivBlazegraph = new BlazegraphBackend(WatDivTest.PATH);
+        BlazegraphBackend watdiv = WatDivTest.watdivBlazegraph;
 
-        String query0 = """
+        String query10124 = """
                 SELECT * WHERE {
                         ?v1 <http://www.geonames.org/ontology#parentCountry> ?v2.
                         ?v3 <http://purl.org/ontology/mo/performed_in> ?v1.
@@ -181,9 +177,19 @@ public class BGPTest {
                 }
                 """;
 
-        int sum = OpExecutorUtils.executeWithPassage(query0, watdivBlazegraph).size();
+        int sum = OpExecutorUtils.executeWithPassage(query10124, watdiv).size();
 
         assertEquals(117, sum);
     }
 
+    @RepeatedTest(5) // TODO put this in dedicated to test of benchmarks
+    public void basic_spo() {
+        Assumptions.assumeTrue(Path.of(WatDivTest.PATH).toFile().exists());
+        BlazegraphBackend watdiv = WatDivTest.watdivBlazegraph;
+
+        String query10124 = "SELECT * WHERE { ?s ?p ?o }";
+
+        long sum = OpExecutorUtils.countWithPassage(query10124, watdiv);
+        log.debug("Number of results: {}", sum);
+    }
 }

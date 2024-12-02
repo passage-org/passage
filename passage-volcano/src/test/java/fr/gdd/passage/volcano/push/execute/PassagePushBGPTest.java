@@ -9,6 +9,7 @@ import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.benchmarks.WDBenchTest;
+import fr.gdd.passage.volcano.benchmarks.WatDivTest;
 import fr.gdd.passage.volcano.spliterators.PassageSplitScan;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
@@ -16,28 +17,69 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.algebra.op.OpTriple;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ExecutionContext;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.openrdf.repository.RepositoryException;
-import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.StreamSupport;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class PassageSplitJoinTest {
+public class PassagePushBGPTest {
 
-    private final static Logger log = LoggerFactory.getLogger(PassageSplitJoinTest.class);
+    private final static Logger log = LoggerFactory.getLogger(PassagePushBGPTest.class);
 
     public void make_sure_we_dont_stop () { PassageSplitScan.stopping = (e) -> false; }
 
-    @RepeatedTest(100)
-    public void bgp_of_2_tps () throws RepositoryException {
+    @ParameterizedTest
+    @ValueSource(ints = {1,2,5,10})
+    public void a_tp_with_an_unknown_value (int maxParallelism) throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+        String queryAsString = "SELECT * WHERE {?p <http://does_not_exist> ?c}";
+
+        var results = OpExecutorUtils.executeWithPush(queryAsString, blazegraph, maxParallelism);
+        assertEquals(0, results.size());
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {1,2,5,10})
+    public void a_bgp_with_an_unknown_value (int maxParallelism) throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+        String queryAsString = "SELECT * WHERE {?p <http://address> ?c . ?p <http://does_not_exist> ?c}";
+
+        var results = OpExecutorUtils.executeWithPush(queryAsString, blazegraph, maxParallelism);
+        assertEquals(0, results.size());
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {1,2,5,10})
+    public void bgp_of_1_tp (int maxParallelism) throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+        String queryAsString = "SELECT * WHERE {?p <http://address> ?c}";
+
+        var results = OpExecutorUtils.executeWithPush(queryAsString, blazegraph, maxParallelism);
+        assertEquals(3, results.size()); // Bob, Alice, and Carol.
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "c"),
+                List.of("Alice", "nantes"),
+                List.of("Bob", "paris"),
+                List.of("Carol", "nantes")));
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {1,2,5,10})
+    public void bgp_of_2_tps (int maxParallelism) throws RepositoryException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                SELECT * WHERE {
@@ -45,7 +87,7 @@ public class PassageSplitJoinTest {
                 ?p <http://own> ?a .
                }""";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, blazegraph);
+        var results = OpExecutorUtils.executeWithPush(queryAsString, blazegraph, maxParallelism);
         assertEquals(3, results.size()); // Alice, Alice, and Alice.
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                 List.of("Alice", "dog"),
@@ -53,8 +95,9 @@ public class PassageSplitJoinTest {
                 List.of("Alice", "snake")));
     }
 
-    @RepeatedTest(100)
-    public void bgp_of_3_tps () throws RepositoryException {
+    @ParameterizedTest
+    @ValueSource(ints = {1,2,5,10})
+    public void bgp_of_3_tps (int maxParallelism) throws RepositoryException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                SELECT * WHERE {
@@ -63,7 +106,7 @@ public class PassageSplitJoinTest {
                 ?a <http://species> ?s
                }""";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, blazegraph);
+        var results = OpExecutorUtils.executeWithPush(queryAsString, blazegraph, maxParallelism);
         assertEquals(3, results.size()); // Alice->own->cat,dog,snake
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a", "s"),
                 List.of("Alice", "dog", "canine"),
@@ -73,10 +116,11 @@ public class PassageSplitJoinTest {
 
     /* *************************** BIG DATASETS ******************************** */
 
-    @Disabled // TODO
+    @Disabled // TODO put it in dedicated tests using benchmarks
     @Test
-    public void query_358 () {
-        final BlazegraphBackend blazegraph = WDBenchTest.wdbenchBlazegraph;
+    public void testing_a_query_on_wdbench () {
+        Assumptions.assumeTrue(Path.of(WDBenchTest.PATH).toFile().exists());
+        final BlazegraphBackend wdbench = WDBenchTest.wdbenchBlazegraph;
 
 //        String query358AsString = """
 //                SELECT * WHERE {
@@ -96,16 +140,17 @@ public class PassageSplitJoinTest {
                   ?x4 <http://www.wikidata.org/prop/direct/P4614> ?x3 . #tp4
                 }""";
 
-        var results = OpExecutorUtils.executeWithPush(query646, blazegraph);
+        var results = OpExecutorUtils.executeWithPush(query646, wdbench);
         log.debug("{}", results);
     }
 
-    @Test
-    public void query_watdiv () throws RepositoryException, SailException {
-        Assumptions.assumeTrue(Path.of("C:\\Users\\brice\\Downloads\\watdiv10m-blaze\\watdiv10M.jnl").toFile().exists());
-        BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("C:\\Users\\brice\\Downloads\\watdiv10m-blaze\\watdiv10M.jnl");
+    @Disabled // TODO put it in dedicated tests using benchmarks
+    @RepeatedTest(5)
+    public void query_watdiv_on_10124 () {
+        Assumptions.assumeTrue(Path.of(WatDivTest.PATH).toFile().exists());
+        BlazegraphBackend watdiv = WatDivTest.watdivBlazegraph;
 
-        String query0 = """
+        String query10124 = """
                     SELECT * WHERE {
                             ?v1 <http://www.geonames.org/ontology#parentCountry> ?v2.
                             ?v3 <http://purl.org/ontology/mo/performed_in> ?v1.
@@ -117,16 +162,30 @@ public class PassageSplitJoinTest {
                     """;
 
         PassageSplitScan.BACKJUMP = false;
-        var results = OpExecutorUtils.executeWithPush(query0, watdivBlazegraph);
+        var results = OpExecutorUtils.executeWithPush(query10124, watdiv, 10);
 
         assertEquals(117, results.size());
     }
 
+    @Disabled // TODO put it in dedicated benchmarking tool
+    @RepeatedTest(5)
+    public void spo_on_watdiv () {
+        Assumptions.assumeTrue(Path.of(WatDivTest.PATH).toFile().exists());
+        BlazegraphBackend watdiv = WatDivTest.watdivBlazegraph;
+        String spo = "SELECT * WHERE {?s ?p ?o}";
+        PassageSplitScan.BACKJUMP = false;
+
+        LongAdder results = new LongAdder();
+        OpExecutorUtils.executeWithPush(spo, watdiv, 10, result -> results.increment());
+        log.debug("Number of results: {}", results.longValue());
+    }
+
+    @Disabled // TODO put it in dedicated tests using benchmarks
     @Test
-    public void query_watdiv_hand_written () throws RepositoryException, SailException {
-        Assumptions.assumeTrue(Path.of("C:\\Users\\brice\\Downloads\\watdiv10m-blaze\\watdiv10M.jnl").toFile().exists());
-        BlazegraphBackend backend = new BlazegraphBackend("C:\\Users\\brice\\Downloads\\watdiv10m-blaze\\watdiv10M.jnl");
-        var c = new PassageExecutionContextBuilder().setBackend(backend).build();
+    public void query_watdiv_hand_written () {
+        Assumptions.assumeTrue(Path.of(WatDivTest.PATH).toFile().exists());
+        BlazegraphBackend watdiv = WatDivTest.watdivBlazegraph;
+        var c = new PassageExecutionContextBuilder().setBackend(watdiv).build();
 
         // SELECT  * WHERE {
         //    ?v1 <http://www.geonames.org/ontology#parentCountry>  ?v2 .
@@ -157,12 +216,12 @@ public class PassageSplitJoinTest {
         Multiset<BackendBindings<?,?>> results = ConcurrentHashMultiset.create();
         try (ForkJoinPool customPool = new ForkJoinPool(10)) {
             customPool.submit( () ->
-                            StreamSupport.stream(new PassageSplitScan<>(meow(c), new BackendBindings<>(), tp1), true)
-                                    .forEach((mu1)-> StreamSupport.stream(new PassageSplitScan<>(meow(c), mu1, tp2), true)
-                                            .forEach((mu2)-> StreamSupport.stream(new PassageSplitScan<>(meow(c), mu2, tp3), true)
-                                                    .forEach((mu3)-> StreamSupport.stream(new PassageSplitScan<>(meow(c), mu3, tp4), true)
-                                                            .forEach((mu4)-> StreamSupport.stream(new PassageSplitScan<>(meow(c), mu4, tp5), true)
-                                                                    .forEach((mu5)-> StreamSupport.stream(new PassageSplitScan<>(meow(c), mu5, tp6), true)
+                            StreamSupport.stream(new PassageSplitScan<>(reset(c), new BackendBindings<>(), tp1), true)
+                                    .forEach((mu1)-> StreamSupport.stream(new PassageSplitScan<>(reset(c), mu1, tp2), true)
+                                            .forEach((mu2)-> StreamSupport.stream(new PassageSplitScan<>(reset(c), mu2, tp3), true)
+                                                    .forEach((mu3)-> StreamSupport.stream(new PassageSplitScan<>(reset(c), mu3, tp4), true)
+                                                            .forEach((mu4)-> StreamSupport.stream(new PassageSplitScan<>(reset(c), mu4, tp5), true)
+                                                                    .forEach((mu5)-> StreamSupport.stream(new PassageSplitScan<>(reset(c), mu5, tp6), true)
                                                                             .forEach(results::add)))))))
                     .join();
         }
@@ -171,8 +230,7 @@ public class PassageSplitJoinTest {
         assertEquals(117, results.size());
     }
 
-
-    static ExecutionContext meow(ExecutionContext context) {
+    static ExecutionContext reset(ExecutionContext context) {
        return new PassageExecutionContextBuilder().setContext(context).build().setLimit(null).setOffset(0L);
     }
 }

@@ -5,7 +5,6 @@ import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.transforms.DefaultGraphUriQueryModifier;
 import fr.gdd.passage.volcano.PassageExecutionContext;
-import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.pause.PauseException;
 import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.sparql.algebra.Op;
@@ -14,9 +13,7 @@ import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.expr.NodeValue;
 
-import java.util.Objects;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -66,8 +63,7 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
 
     @Override
     public Stream<BackendBindings<ID, VALUE>> visit(OpTriple triple, BackendBindings<ID, VALUE> input) {
-        var meow = new PassageExecutionContextBuilder<ID,VALUE>().setContext(context); // TODO better handling of context
-        return StreamSupport.stream(new PassageSplitScan<>(meow.build().setLimit(null).setOffset(0L), input, triple), this.context.maxParallelism > 1);
+        return StreamSupport.stream(new PassageSplitScan<>(context, input, triple), this.context.maxParallelism > 1);
     }
 
     @Override
@@ -104,8 +100,6 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
         throw new UnsupportedOperationException("OpTable different than join identity are not handled yet.");
     }
 
-
-    AtomicInteger produced = new AtomicInteger();
     @Override
     public Stream<BackendBindings<ID, VALUE>> visit(OpSlice slice, BackendBindings<ID, VALUE> input) {
         return new PassagePushLimitOffset<>(context, input, slice).stream();

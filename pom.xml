@@ -103,6 +103,12 @@
         <version>${junit.version}</version>
         <scope>test</scope>
       </dependency>
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-params</artifactId>
+        <version>${junit.version}</version>
+        <scope>test</scope>
+      </dependency>
       <dependency> <!-- because blazegraph uses junit4 while we use junit5… -->
         <groupId>org.junit.vintage</groupId>
         <artifactId>junit-vintage-engine</artifactId>
