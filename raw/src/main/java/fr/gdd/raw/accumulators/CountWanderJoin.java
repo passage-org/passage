@@ -6,7 +6,6 @@ import fr.gdd.passage.commons.generics.BackendSaver;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendAccumulator;
 import fr.gdd.raw.executor.RawConstants;
-import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.function.FunctionEnv;
@@ -67,7 +66,7 @@ public class CountWanderJoin<ID, VALUE> implements BackendAccumulator<ID,VALUE> 
     @Override
     public VALUE getValue() {
         Backend<ID,VALUE,?> backend = context.getContext().get(RawConstants.BACKEND);
-        return backend.getValue(String.format("\"%s\"^^%s", getValueAsDouble(), XSDDatatype.XSDdouble.getURI()));
+        return backend.getValue(String.valueOf(getValueAsDouble()));
     }
 
     public double getValueAsDouble () {
