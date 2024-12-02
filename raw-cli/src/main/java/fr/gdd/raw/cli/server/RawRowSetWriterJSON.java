@@ -166,7 +166,7 @@ public class RawRowSetWriterJSON implements RowSetWriter {
                         }
                     }
 
-                    rowSet.getResultVars().add(MAPPING_PROBABILITY);
+                    if(!rowSet.getResultVars().contains(MAPPING_PROBABILITY)) rowSet.getResultVars().add(MAPPING_PROBABILITY);
 
                     bb.add(MAPPING_PROBABILITY, NodeFactory.createLiteral(String.valueOf(probas.get(i)), XSDDatatype.XSDdouble));
 
