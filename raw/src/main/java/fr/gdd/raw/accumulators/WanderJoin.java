@@ -53,6 +53,6 @@ public class WanderJoin<ID, VALUE> extends ReturningOpVisitor<Double> {
         if (table.isJoinIdentity()) {
             return 1.;
         }
-        throw new UnsupportedOperationException("Tables are not handled properly yet…");
+        return table.getTable().size() == 0 ? 0.0 : 1.0 / table.getTable().size();
     }
 }

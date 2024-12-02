@@ -3,12 +3,8 @@ package fr.gdd.raw.cli;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.interfaces.Backend;
-import fr.gdd.passage.commons.io.ExtensibleRowSetWriterJSON;
 import fr.gdd.passage.commons.io.ModuleOutputRegistry;
-import fr.gdd.raw.cli.server.RawOpExecutorFactory;
-import fr.gdd.raw.cli.server.RawOperation;
-import fr.gdd.raw.cli.server.RawQueryEngine;
-import fr.gdd.raw.cli.server.RawOutputWriterJSON;
+import fr.gdd.raw.cli.server.*;
 import fr.gdd.raw.executor.RawConstants;
 import org.apache.jena.fuseki.auth.Auth;
 import org.apache.jena.fuseki.main.FusekiServer;
@@ -163,7 +159,7 @@ public class RawServerCLI {
 
         // set globally but the dedicated writter of sage only comes into
         // play when some variables exist in the execution context.
-        RowSetWriterRegistry.register(ResultSetLang.RS_JSON, ExtensibleRowSetWriterJSON.factory);
+        RowSetWriterRegistry.register(ResultSetLang.RS_JSON, RawRowSetWriterJSON.factory);
         ModuleOutputRegistry.register(ResultSetLang.RS_JSON, new RawOutputWriterJSON());
 
         // FusekiModules.add(new SageModule());

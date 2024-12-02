@@ -12,17 +12,14 @@ import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.iterators.BackendBind;
 import fr.gdd.passage.commons.iterators.BackendFilter;
 import fr.gdd.passage.commons.iterators.BackendProject;
+import fr.gdd.passage.commons.transforms.DefaultGraphUriQueryModifier;
 import fr.gdd.passage.volcano.optimizers.CardinalityJoinOrdering;
 import fr.gdd.passage.volcano.transforms.BGP2Triples;
 import fr.gdd.passage.volcano.transforms.Graph2Quads;
 import fr.gdd.passage.volcano.transforms.Triples2BGP;
-import fr.gdd.passage.commons.transforms.DefaultGraphUriQueryModifier;
 import fr.gdd.raw.accumulators.AccumulatorFactory;
 import fr.gdd.raw.budgeting.NaiveBudgeting;
-import fr.gdd.raw.iterators.ProjectIterator;
-import fr.gdd.raw.iterators.RandomAggregator;
-import fr.gdd.raw.iterators.RandomRoot;
-import fr.gdd.raw.iterators.RandomScanFactory;
+import fr.gdd.raw.iterators.*;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.algebra.Algebra;
@@ -51,7 +48,7 @@ public class RawOpExecutor<ID, VALUE> extends BackendOpExecutor<ID, VALUE> { // 
         // TODO default execution context to unburden this class
 
         super(context, BackendProject.factory(), RandomScanFactory.tripleFactory(),
-                RandomScanFactory.quadFactory(), new BackendNestedLoopJoinFactory<>(), null, null,
+                RandomScanFactory.quadFactory(), new BackendNestedLoopJoinFactory<>(), null, RandomValues.factory(),
                 BackendBind.factory(), BackendFilter.factory(), null,
                 null, null, null);
         this.execCxt = context;
@@ -65,7 +62,7 @@ public class RawOpExecutor<ID, VALUE> extends BackendOpExecutor<ID, VALUE> { // 
         // that `setBackend` is called, or it will throw at runtime.
 
         super(new ExecutionContext(DatasetFactory.empty().asDatasetGraph()), BackendProject.factory(), RandomScanFactory.tripleFactory(),
-                RandomScanFactory.quadFactory(), new BackendNestedLoopJoinFactory<>(), null, null,
+                RandomScanFactory.quadFactory(), new BackendNestedLoopJoinFactory<>(), null, RandomValues.factory(),
                 BackendBind.factory(), BackendFilter.factory(), null,
                 null, null, null);
 
@@ -190,7 +187,7 @@ public class RawOpExecutor<ID, VALUE> extends BackendOpExecutor<ID, VALUE> { // 
     public Iterator<BackendBindings<ID, VALUE>> visit(OpTable table, Iterator<BackendBindings<ID, VALUE>> input) {
         if (table.isJoinIdentity())
             return input;
-        throw new UnsupportedOperationException("TODO: VALUES…"); // TODO
+        return new RandomValues<>(context, input, table);
     }
 
     @Override
