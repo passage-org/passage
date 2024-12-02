@@ -7,12 +7,16 @@ import fr.gdd.passage.commons.transforms.DefaultGraphUriQueryModifier;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.pause.PauseException;
+import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.algebra.op.OpJoin;
-import org.apache.jena.sparql.algebra.op.OpTriple;
-import org.apache.jena.sparql.algebra.op.OpUnion;
+import org.apache.jena.sparql.algebra.op.*;
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.expr.Expr;
+import org.apache.jena.sparql.expr.NodeValue;
 
+import java.util.Objects;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -25,7 +29,7 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
 
     public PassagePushExecutor (PassageExecutionContext<ID,VALUE> context) {
         this.context = context;
-        this.context.getContext().set(BackendConstants.EXECUTOR, this);
+        this.context.getContext().set(BackendConstants.EXECUTOR, this); // TODO, let a super do the job
     }
 
     @Deprecated // should not be used
@@ -55,7 +59,7 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
                 }
             }).join();
         }
-        return new Pause2ContinuationQuery<ID,VALUE>(context.op2its).visit(_root);
+        return new Pause2ContinuationQuery<>(context.op2its).visit(_root);
     }
 
     /* *********************************** OPERATORS ************************************* */
@@ -75,4 +79,36 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
     public Stream<BackendBindings<ID, VALUE>> visit(OpUnion union, BackendBindings<ID, VALUE> input) {
         return Stream.concat(this.visit(union.getLeft(), input), this.visit(union.getRight(), input));
     }
+
+    @Override
+    public Stream<BackendBindings<ID, VALUE>> visit(OpExtend extend, BackendBindings<ID, VALUE> input) {
+        return this.visit(extend.getSubOp(), input).map(i -> {
+            BackendBindings<ID, VALUE> b = new BackendBindings<ID, VALUE>().setParent(i);
+            for (Var v : extend.getVarExprList().getVars()) {
+                Expr expr = extend.getVarExprList().getExpr(v);
+                BackendBindings.IdValueBackend<ID, VALUE> newBinding = new BackendBindings.IdValueBackend<ID, VALUE>()
+                        .setBackend(context.backend);
+                NodeValue newValue = expr.eval(i, context);
+                newBinding.setString(NodeFmtLib.strNT(newValue.asNode()));
+                b.put(v, newBinding);
+            }
+            return b;
+        });
+    }
+
+    @Override
+    public Stream<BackendBindings<ID, VALUE>> visit(OpTable table, BackendBindings<ID, VALUE> input) {
+        if (table.isJoinIdentity()) {
+            return Stream.of(input);
+        }
+        throw new UnsupportedOperationException("OpTable different than join identity are not handled yet.");
+    }
+
+
+    AtomicInteger produced = new AtomicInteger();
+    @Override
+    public Stream<BackendBindings<ID, VALUE>> visit(OpSlice slice, BackendBindings<ID, VALUE> input) {
+        return new PassagePushLimitOffset<>(context, input, slice).stream();
+    }
+
 }

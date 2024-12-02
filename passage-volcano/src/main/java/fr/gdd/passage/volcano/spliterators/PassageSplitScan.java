@@ -29,7 +29,7 @@ import java.util.function.Function;
 
 public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> implements Spliterator<BackendBindings<ID,VALUE>> {
 
-    public static boolean BACKJUMP = true;
+    public static boolean BACKJUMP = false; // TODO in Execution context
 
     /**
      * By default, this is based on execution time. However, developers can change it
@@ -170,7 +170,7 @@ public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> im
             newContext.setLimit(offset + remaining - splitIndex);
         }
 
-        this.limit = splitIndex - offset; // not (- produced) since we don't reset produced
+        this.limit = splitIndex - offset;
 
         return new PassageSplitScan<>(newContext, input, op);
     }
@@ -239,4 +239,12 @@ public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> im
         };
     }
 
+
+    public Long getOffset() {
+        return offset;
+    }
+
+    public Long getLimit() {
+        return limit;
+    }
 }
