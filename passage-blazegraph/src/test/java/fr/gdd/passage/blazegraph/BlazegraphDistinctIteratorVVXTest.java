@@ -28,7 +28,7 @@ public class BlazegraphDistinctIteratorVVXTest {
     private static final Logger log = LoggerFactory.getLogger(BlazegraphDistinctIteratorVVXTest.class);
 
     @Test
-    public void get_distinct_s_over_a_simple_triple_pattern() throws RepositoryException {
+    public void get_distinct_s_over_a_simple_triple_pattern() throws RepositoryException, SailException {
         BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
 
         IV address = bb.getId("<http://address>", SPOC.PREDICATE);
@@ -50,7 +50,7 @@ public class BlazegraphDistinctIteratorVVXTest {
     }
 
     @Test
-    public void get_distinct_s_over_a_simple_triple_pattern_with_duplicates() throws RepositoryException {
+    public void get_distinct_s_over_a_simple_triple_pattern_with_duplicates() throws RepositoryException, SailException {
         BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
 
         IV address = bb.getId("<http://address>", SPOC.PREDICATE);
@@ -72,7 +72,7 @@ public class BlazegraphDistinctIteratorVVXTest {
     }
 
     @Test
-    public void throws_when_trying_to_get_access_to_not_distinct() throws RepositoryException {
+    public void throws_when_trying_to_get_access_to_not_distinct() throws RepositoryException, SailException {
         BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
 
         IV address = bb.getId("<http://address>", SPOC.PREDICATE);
@@ -95,7 +95,7 @@ public class BlazegraphDistinctIteratorVVXTest {
 
 
     @Test
-    public void retrieve_the_offset_of_simple_triple_pattern () throws RepositoryException {
+    public void retrieve_the_offset_of_simple_triple_pattern () throws RepositoryException, SailException {
         BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
 
         IV address = bb.getId("<http://address>", SPOC.PREDICATE);
@@ -120,7 +120,7 @@ public class BlazegraphDistinctIteratorVVXTest {
     }
 
     @Test
-    public void skip_to_internal_offset_simple_triple_pattern () throws RepositoryException {
+    public void skip_to_internal_offset_simple_triple_pattern () throws RepositoryException, SailException {
         BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
 
         IV address = bb.getId("<http://address>", SPOC.PREDICATE);
@@ -156,7 +156,7 @@ public class BlazegraphDistinctIteratorVVXTest {
     }
 
     @Test
-    public void skipping_above_max_offset_should_return_no_result() throws RepositoryException {
+    public void skipping_above_max_offset_should_return_no_result() throws RepositoryException, SailException {
         BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
 
         IV address = bb.getId("<http://address>", SPOC.PREDICATE);
@@ -189,7 +189,7 @@ public class BlazegraphDistinctIteratorVVXTest {
     /* ******************************** ON BIG DATASETS *************************************** */
 
     @Test
-    public void get_distinct_s_over_a_triple_pattern_with_lot_of_values () throws RepositoryException, QueryEvaluationException, MalformedQueryException {
+    public void get_distinct_s_over_a_triple_pattern_with_lot_of_values () throws RepositoryException, QueryEvaluationException, MalformedQueryException, SailException {
         Assumptions.assumeTrue(Objects.nonNull(BlazegraphBackendTest.watdiv));
         BlazegraphBackend bb = BlazegraphBackendTest.watdiv;
 
@@ -217,6 +217,7 @@ public class BlazegraphDistinctIteratorVVXTest {
         log.debug("Ours: Took {}ms to get {} distinct results", elapsed, nbResults);
 
         assertEquals(results.size(), nbResults);
+        bb.close();
     }
 
 
@@ -249,6 +250,7 @@ public class BlazegraphDistinctIteratorVVXTest {
         log.debug("Ours: Took {}ms to get {} distinct results", elapsed, nbResults);
 
         assertEquals(results.size(), nbResults);
+        bb.close();
     }
 
 

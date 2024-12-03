@@ -11,6 +11,7 @@ import org.openrdf.query.BindingSet;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.repository.RepositoryException;
+import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +29,7 @@ public class BlazegraphDistinctIteratorDXVTest {
     private static final Logger log = LoggerFactory.getLogger(BlazegraphDistinctIteratorDXVTest.class);
 
     @Test
-    public void get_distinct_s_over_a_simple_triple_pattern() throws RepositoryException {
+    public void get_distinct_s_over_a_simple_triple_pattern() throws RepositoryException, SailException {
         BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
 
         IV address = bb.getId("<http://address>", SPOC.PREDICATE);
@@ -73,7 +74,7 @@ public class BlazegraphDistinctIteratorDXVTest {
 //
 //
     @Test
-    public void retrieve_the_offset_of_simple_triple_pattern () throws RepositoryException {
+    public void retrieve_the_offset_of_simple_triple_pattern () throws RepositoryException, SailException {
         BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
 
         IV address = bb.getId("<http://address>", SPOC.PREDICATE);
@@ -98,7 +99,7 @@ public class BlazegraphDistinctIteratorDXVTest {
     }
 
     @Test
-    public void skip_to_internal_offset_simple_triple_pattern () throws RepositoryException {
+    public void skip_to_internal_offset_simple_triple_pattern () throws RepositoryException, SailException {
         BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
 
         IV address = bb.getId("<http://address>", SPOC.PREDICATE);
@@ -134,7 +135,7 @@ public class BlazegraphDistinctIteratorDXVTest {
     }
 
     @Test
-    public void skipping_above_max_offset_should_return_no_result() throws RepositoryException {
+    public void skipping_above_max_offset_should_return_no_result() throws RepositoryException, SailException {
         BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
 
         IV address = bb.getId("<http://address>", SPOC.PREDICATE);

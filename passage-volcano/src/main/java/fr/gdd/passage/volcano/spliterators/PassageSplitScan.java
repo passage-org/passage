@@ -35,7 +35,7 @@ public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> im
      * By default, this is based on execution time. However, developers can change it
      * e.g., for testing purposes.
      */
-    public static Function<PassageExecutionContext, Boolean> stopping = (ec) ->
+    public volatile static Function<PassageExecutionContext, Boolean> stopping = (ec) ->
             System.currentTimeMillis() >= ec.getDeadline();
 
     final PassageExecutionContext<ID,VALUE> context;
@@ -91,7 +91,6 @@ public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> im
                 wrapped = null;
             }
         }
-
 
         if (BACKJUMP && Objects.isNull(wrapped)) { // no throw, no backjump overhead TODO in execution context
             unregister();

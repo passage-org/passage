@@ -7,7 +7,7 @@ import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.spliterators.PassageSplitScan;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.openrdf.query.MalformedQueryException;
@@ -25,6 +25,7 @@ public class PushLimitOffsetTest {
 
     private final static Logger log = LoggerFactory.getLogger(PushLimitOffsetTest.class);
 
+    @BeforeEach
     public void make_sure_we_dont_stop () { PassageSplitScan.stopping = (e) -> false; }
 
     @ParameterizedTest

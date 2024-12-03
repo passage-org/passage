@@ -58,7 +58,7 @@ public class BlazegraphBackendTest {
     /* ************************************************************************* */
 
     @Test
-    public void create_values_with_string_repr () throws RepositoryException {
+    public void create_values_with_string_repr () throws RepositoryException, SailException {
         BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         BigdataValue twelve = bb.getValue("\"12\"");
         assertInstanceOf(BigdataLiteral.class, twelve);
@@ -70,7 +70,7 @@ public class BlazegraphBackendTest {
     }
 
     @Test
-    public void create_a_simple_pet_dataset () throws QueryEvaluationException, MalformedQueryException, RepositoryException {
+    public void create_a_simple_pet_dataset () throws QueryEvaluationException, MalformedQueryException, RepositoryException, SailException {
         BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
 
         // There is nothing but the default ~30ish triples inside.
@@ -90,7 +90,7 @@ public class BlazegraphBackendTest {
     }
 
     @Test
-    public void creating_simple_iterators () throws RepositoryException {
+    public void creating_simple_iterators () throws RepositoryException, SailException {
         BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
 
         IV address = bb.getId("<http://address>", SPOC.PREDICATE);
@@ -107,7 +107,7 @@ public class BlazegraphBackendTest {
     }
 
     @Test
-    public void creating_simple_random () throws RepositoryException {
+    public void creating_simple_random () throws RepositoryException, SailException {
         BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         IV address = bb.getId("<http://address>", SPOC.PREDICATE);
         BackendLazyIterator<IV, BigdataValue, Long> li = (BackendLazyIterator<IV, BigdataValue, Long>) bb.search(bb.any(), address, bb.any());
@@ -134,7 +134,7 @@ public class BlazegraphBackendTest {
     }
 
     @Test
-    public void skipping_some_elements_from_triple_patterns () throws RepositoryException {
+    public void skipping_some_elements_from_triple_patterns () throws RepositoryException, SailException {
         BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         IV address = bb.getId("<http://address>", SPOC.PREDICATE);
 
@@ -143,10 +143,12 @@ public class BlazegraphBackendTest {
         executeSimpleTPWithSkip(bb, bb.any(), address, bb.any(), 2, 1);
         executeSimpleTPWithSkip(bb, bb.any(), address, bb.any(), 3, 0);
         executeSimpleTPWithSkip(bb, bb.any(), address, bb.any(), 18, 0);
+
+        bb.close();
     }
 
     @Test
-    public void getting_cardinalities_from_triple_patterns () throws RepositoryException {
+    public void getting_cardinalities_from_triple_patterns () throws RepositoryException, SailException {
         BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         IV address = bb.getId("<http://address>", SPOC.PREDICATE);
         IV own = bb.getId("<http://own>", SPOC.PREDICATE);
@@ -157,6 +159,8 @@ public class BlazegraphBackendTest {
         assertEquals(3, getCardinality(bb, bb.any(), own, bb.any()));
         assertEquals(3, getCardinality(bb, bb.any(), species, bb.any()));
         assertEquals(2, getCardinality(bb, bb.any(), bb.any(), nantes));
+
+        bb.close();
     }
 
     @Disabled
@@ -171,6 +175,7 @@ public class BlazegraphBackendTest {
                     ?v2 <http://schema.org/eligibleRegion> ?v8 .
                     ?v2 <http://purl.org/goodrelations/includes> ?v3 .
                 }""");
+        bb.close();
     }
 
     @Test

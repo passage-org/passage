@@ -16,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
+import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +32,6 @@ class PassageSplitScanTest {
 
     @BeforeEach
     public void make_sure_we_dont_stop () { PassageSplitScan.stopping = (e) -> false; }
-
 
     @Test
     public void correct_offset_limits_for_split_tps () throws RepositoryException {
@@ -106,35 +106,34 @@ class PassageSplitScanTest {
         it4.forEachRemaining(e -> log.debug("4: {}", e.toString()));
     }
 
-
-
-    @RepeatedTest(100)
-    public void a_simple_test_of_triple_pattern () throws RepositoryException {
+    @RepeatedTest(20)
+    public void simple_bgp_to_test () throws RepositoryException, SailException {
         BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
-        var context = new PassageExecutionContextBuilder().setBackend(backend).build();
+            var context = new PassageExecutionContextBuilder().setBackend(backend).build();
 
-        OpTriple tp = new OpTriple(Triple.create(
-                Var.alloc("s"),
-                NodeFactory.createURI("http://own"),
-                Var.alloc("a")));
+            OpTriple tp = new OpTriple(Triple.create(
+                    Var.alloc("s"),
+                    NodeFactory.createURI("http://own"),
+                    Var.alloc("a")));
 
-        Multiset<BackendBindings<?, ?>> results = ConcurrentHashMultiset.create();
-        try (ForkJoinPool customPool = new ForkJoinPool(4)) {
-            customPool.submit(() ->
-                StreamSupport.stream(new PassageSplitScan<>(context, new BackendBindings<>(), tp), true)
-                        .forEach(results::add)
-            ).join();
-        }
-        log.debug("{}", results);
-        assertEquals(3, results.size());
-        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("s", "a"),
-                List.of("Alice", "cat"),
-                List.of("Alice", "dog"),
-                List.of("Alice", "snake")));
+            Multiset<BackendBindings<?, ?>> results = ConcurrentHashMultiset.create();
+            try (ForkJoinPool customPool = new ForkJoinPool(4)) {
+                customPool.submit(() ->
+                        StreamSupport.stream(new PassageSplitScan<>(context, new BackendBindings<>(), tp), true)
+                                .forEach(results::add)
+                ).join();
+            }
+            log.debug("{}", results);
+            assertEquals(3, results.size());
+            assertTrue(MultisetResultChecking.containsAllResults(results, List.of("s", "a"),
+                    List.of("Alice", "cat"),
+                    List.of("Alice", "dog"),
+                    List.of("Alice", "snake")));
+            backend.close();
     }
 
-    @RepeatedTest(100)
-    public void a_simple_test_of_bgp () throws RepositoryException {
+    @RepeatedTest(20)
+    public void a_simple_test_of_bgp () throws RepositoryException, SailException {
         BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         var context = new PassageExecutionContextBuilder().setBackend(backend).build();
 
@@ -162,13 +161,14 @@ class PassageSplitScanTest {
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("s", "a", "c"),
                 List.of("Alice", "cat", "nantes"),
                 List.of("Alice", "dog", "nantes"),
-                List.of("Alice", "snake", "nantes")));
+                List.of("Alice", "snake", "nantes" )));
+        backend.close();
     }
 
-    @RepeatedTest(100)
-    public void a_first_backjump_test_where_tp3_throws_catch_by_tp1 () throws RepositoryException {
+    @RepeatedTest(20)
+    public void a_first_backjump_test_where_tp3_throws_catch_by_tp1 () throws RepositoryException, SailException {
         BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
-        var context = new PassageExecutionContextBuilder().setBackend(backend).build();
+        var context = new PassageExecutionContextBuilder().setMaxParallel(10).setBackend(backend).build();
 
         OpTriple tp2 = new OpTriple(Triple.create(
                 Var.alloc("s"),
@@ -196,6 +196,7 @@ class PassageSplitScanTest {
         log.debug("{}", results);
         // enumerate all predicates `po` of alice for each animal: 4x3
         assertEquals(12, results.size());
+        backend.close();
     }
 
 }

@@ -45,13 +45,15 @@ import java.util.Set;
  * triple patterns: iterators that can skip ranges of triples efficiently, or
  * return random triples uniformly at random.
  */
-public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
+public class BlazegraphBackend implements Backend<IV, BigdataValue, Long>, AutoCloseable{
 
     private final static Logger log = LoggerFactory.getLogger(BlazegraphBackend.class);
 
-    AbstractTripleStore store;
-    BigdataSailRepository repository;
-    BigdataSailRepositoryConnection connection;
+    final AbstractTripleStore store;
+    final BigdataSailRepository repository;
+    final BigdataSailRepositoryConnection connection;
+    final BigdataSail sail;
+
 
     public BlazegraphBackend() throws SailException, RepositoryException {
         System.setProperty("com.bigdata.Banner.quiet", "true"); // banner is annoying, sorry blazegraph
@@ -60,7 +62,7 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
         props.put(BigdataSail.Options.DELETE_ON_CLOSE, "true");
         props.put(BigdataSail.Options.DELETE_ON_EXIT, "true");
 
-        final BigdataSail sail = new BigdataSail(props);
+        this.sail = new BigdataSail(props);
         this.repository = new BigdataSailRepository(sail);
         sail.initialize();
         this.connection = repository.getReadOnlyConnection();
@@ -73,7 +75,7 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
         final Properties props = new Properties();
         props.put(Options.FILE, path);
 
-        final BigdataSail sail = new BigdataSail(props);
+        this.sail = new BigdataSail(props);
         this.repository = new BigdataSailRepository(sail);
         sail.initialize();
         this.connection = repository.getReadOnlyConnection();
@@ -87,12 +89,14 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
         System.setProperty("com.bigdata.Banner.quiet", "true"); // banner is annoying, sorry blazegraph
         this.repository = new BigdataSailRepository(sail);
         this.connection = repository.getReadOnlyConnection();
-        store = connection.getTripleStore();
+        this.store = connection.getTripleStore();
+        this.sail = sail;
     }
 
-    public void close() throws RepositoryException {
+    @Override
+    public void close() throws RepositoryException, SailException {
         connection.close();
-        store = null;
+        sail.shutDown();
     }
 
     @Override

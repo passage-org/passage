@@ -72,6 +72,7 @@ public class BlazegraphInMemoryDatasetsFactory {
             }
 
             connection.commit();
+            connection.close();
         } catch (RepositoryException | IOException | RDFParseException e) {
             throw new RuntimeException(e);
         }
