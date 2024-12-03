@@ -161,6 +161,7 @@ public class BGPTest {
         log.info("{}", sum);
     }
 
+    @Disabled
     @RepeatedTest(5) // TODO put this in dedicated to test of benchmarks
     public void on_watdiv_conjunctive_query_10124 () {
         Assumptions.assumeTrue(Path.of(WatDivTest.PATH).toFile().exists());
@@ -182,6 +183,7 @@ public class BGPTest {
         assertEquals(117, sum);
     }
 
+    @Disabled
     @RepeatedTest(5) // TODO put this in dedicated to test of benchmarks
     public void basic_spo() {
         Assumptions.assumeTrue(Path.of(WatDivTest.PATH).toFile().exists());

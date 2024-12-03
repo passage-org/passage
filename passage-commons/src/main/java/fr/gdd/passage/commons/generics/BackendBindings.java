@@ -120,15 +120,23 @@ public class BackendBindings<ID, VALUE> implements Binding {
     /**
      * Creates a new BackendBinding that copies the one as argument but only keep
      * the designated variables. Useful for projections.
-     * @param copy The backend binding to copy from.
+     * @param toCopy The backend binding to copy from.
      * @param varsToKeep The variables to keep from the backend binding.
      */
-    public BackendBindings (BackendBindings<ID,VALUE> copy, List<Var> varsToKeep) {
+    public BackendBindings (BackendBindings<ID,VALUE> toCopy, List<Var> varsToKeep) {
         for (Var v: varsToKeep) {
-            if (copy.contains(v)) {
-                this.put(v, copy.getBinding(v));
+            if (toCopy.contains(v)) {
+                this.put(v, toCopy.getBinding(v));
             }
         }
+        this.parent = null; // self-contained
+    }
+
+    public BackendBindings (BackendBindings<ID,VALUE> toCopy) {
+        for (Var v: toCopy.variables()) {
+            this.put(v, toCopy.getBinding(v));
+        }
+        this.parent = null; // self-contained
     }
 
     public BackendBindings<ID, VALUE> setParent(BackendBindings<ID, VALUE> parent) {
@@ -254,7 +262,9 @@ public class BackendBindings<ID, VALUE> implements Binding {
             IdValueBackend<ID,VALUE> valThis = this.getBinding(v);
             IdValueBackend<ID,VALUE> valOther = other.getBinding(v);
             if (Objects.nonNull(valOther) && Objects.nonNull(valThis)) {
-                return valOther.getString().equals(valThis.getString()); // compared as string
+                if (!valOther.getString().equals(valThis.getString())) { // compared as string
+                    return false;
+                }
             }
         }
         return true;

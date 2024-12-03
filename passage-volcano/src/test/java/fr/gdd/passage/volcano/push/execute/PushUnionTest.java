@@ -30,9 +30,9 @@ import java.util.stream.StreamSupport;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class PassageSplitUnionTest {
+public class PushUnionTest {
 
-    private final static Logger log = LoggerFactory.getLogger(PassageSplitUnionTest.class);
+    private final static Logger log = LoggerFactory.getLogger(PushUnionTest.class);
 
     @BeforeEach
     public void make_sure_we_dont_stop () { PassageSplitScan.stopping = (e) -> false; }

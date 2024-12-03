@@ -9,19 +9,17 @@ import org.apache.jena.sparql.algebra.op.OpSlice;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
 import java.util.Objects;
-import java.util.Spliterator;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Stream;
 
-public class PassagePushLimitOffset<ID,VALUE> extends PausableSpliterator<ID,VALUE> implements Spliterator<BackendBindings<ID,VALUE>> {
+public class PassagePushLimitOffset<ID,VALUE> extends PausableSpliterator<ID,VALUE> {
 
     final PassageExecutionContext<ID,VALUE> context;
     final Stream<BackendBindings<ID,VALUE>> wrapped;
     final OpSlice slice;
     final PassagePushExecutor<ID,VALUE> executor;
 
-    final AtomicLong produced = new AtomicLong();
+    final LongAdder produced = new LongAdder();
 
     public PassagePushLimitOffset(ExecutionContext context, BackendBindings<ID,VALUE> input, OpSlice slice) {
         super((PassageExecutionContext<ID, VALUE>) context, slice);
@@ -36,14 +34,17 @@ public class PassagePushLimitOffset<ID,VALUE> extends PausableSpliterator<ID,VAL
                             .setOffset(slice.getStart()));
             // skip and offset should be handled in the sub-executor
             this.wrapped = newExecutor.visit(slice.getSubOp(), new BackendBindings<>())
-                    .map(i -> i.isCompatible(input) ? input.setParent(i) : null)
+                    // TODO multiple parents instead of copy? (add layers of visibility)
+                    .map(i -> i.isCompatible(input) ? new BackendBindings<>(i).setParent(input) : null)
+                    // we don't count as it will be done in the subquery
                     .filter(Objects::nonNull);
         } else { // but sometimes, operators do not provide efficient skips, so we can stay in this context
             this.wrapped = executor.visit(slice.getSubOp(), new BackendBindings<>())
                     .skip(slice.getStart() == Long.MIN_VALUE ? 0 : slice.getStart())
                     .limit(slice.getLength() == Long.MIN_VALUE ? Long.MAX_VALUE : slice.getLength())
-                    .peek(i -> produced.getAndIncrement())
-                    .map(i -> i.isCompatible(input) ? input.setParent(i) : null)
+                    .peek(i -> produced.increment())
+                    // TODO multiple parents instead of copy? (add layers of visibility)
+                    .map(i -> i.isCompatible(input) ? new BackendBindings<>(i).setParent(input) : null)
                     .filter(Objects::nonNull);
         }
     }
@@ -52,26 +53,4 @@ public class PassagePushLimitOffset<ID,VALUE> extends PausableSpliterator<ID,VAL
         return this.wrapped;
     }
 
-
-    /* ****************************** SPLITERATOR **************************** */
-
-    @Override
-    public boolean tryAdvance(Consumer<? super BackendBindings<ID, VALUE>> action) {
-        return this.wrapped.spliterator().tryAdvance(action);
-    }
-
-    @Override
-    public Spliterator<BackendBindings<ID, VALUE>> trySplit() {
-        return this.wrapped.spliterator().trySplit();
-    }
-
-    @Override
-    public long estimateSize() {
-        return Long.MAX_VALUE;
-    }
-
-    @Override
-    public int characteristics() {
-        return this.wrapped.spliterator().characteristics();
-    }
 }

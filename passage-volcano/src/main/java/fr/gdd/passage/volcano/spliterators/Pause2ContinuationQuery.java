@@ -4,6 +4,7 @@ import fr.gdd.jena.utils.FlattenUnflatten;
 import fr.gdd.jena.visitors.ReturningOpVisitor;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpJoin;
+import org.apache.jena.sparql.algebra.op.OpSlice;
 import org.apache.jena.sparql.algebra.op.OpTriple;
 import org.apache.jena.sparql.algebra.op.OpUnion;
 
@@ -70,5 +71,11 @@ public class Pause2ContinuationQuery<ID,VALUE> extends ReturningOpVisitor<Op> {
         }
 
         return FlattenUnflatten.unflattenUnion(Arrays.asList(left, right));
+    }
+
+    @Override
+    public Op visit(OpSlice slice) {
+        // TODO 
+        return null;
     }
 }

@@ -22,27 +22,56 @@ import org.slf4j.LoggerFactory;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class PassagePauseSplitJoinTest {
+public class PausePushUnionTest {
 
-    private static final Logger log = LoggerFactory.getLogger(PassagePauseSplitJoinTest.class);
+    private static final Logger log = LoggerFactory.getLogger(PausePushUnionTest.class);
 
     @BeforeEach
     public void stop_every_scan() { PassageSplitScan.stopping =
-            (ec) -> ((AtomicLong) ec.getContext().get(PassageConstants.SCANS)).get() >= 3; }
+            (ec) -> ((AtomicLong) ec.getContext().get(PassageConstants.SCANS)).get() >= 1; }
 
     @RepeatedTest(1)
-    public void create_a_bgp_query_and_pause_at_each_result () throws RepositoryException {
+    public void union_of_two_simple_triple_patterns () throws RepositoryException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String queryAsString = """
                SELECT * WHERE {
-                ?p <http://address> <http://nantes> .
-                ?p <http://own> ?a .
+                {?p  <http://own>  ?a}
+                UNION
+                {?p  <http://address> ?a}
                }""";
 
         Op query = Algebra.compile(QueryFactory.create(queryAsString));
 
         Multiset<BackendBindings<?,?>> results = ConcurrentHashMultiset.create();
-        PassagePushExecutor<?,?> executor = new PassagePushExecutor<>(new PassageExecutionContextBuilder().setBackend(blazegraph).build());
+        PassagePushExecutor<?,?> executor = new PassagePushExecutor<>(new PassageExecutionContextBuilder()
+                .setBackend(blazegraph)
+                .build());
+
+        Op paused = executor.execute(query, results::add);
+        log.debug("{}", results);
+        if (Objects.nonNull(paused)) {
+            log.debug("{}", OpAsQuery.asQuery(paused).toString());
+        }
+    }
+
+    @RepeatedTest(1)
+    public void union_with_a_bgp () throws RepositoryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+        String queryAsString = """
+               SELECT * WHERE {
+                {?p  <http://own>  ?a}
+                UNION
+                {?p  <http://address> ?address .
+                 ?p  <http://own> ?a }
+               }""";
+
+        Op query = Algebra.compile(QueryFactory.create(queryAsString));
+
+        Multiset<BackendBindings<?,?>> results = ConcurrentHashMultiset.create();
+        PassagePushExecutor<?,?> executor = new PassagePushExecutor<>(new PassageExecutionContextBuilder()
+                .setBackend(blazegraph)
+                .setMaxParallel(1)
+                .build());
 
         Op paused = executor.execute(query, results::add);
         log.debug("{}", results);

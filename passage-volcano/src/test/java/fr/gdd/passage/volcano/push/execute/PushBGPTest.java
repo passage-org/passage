@@ -30,16 +30,15 @@ import org.slf4j.LoggerFactory;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.StreamSupport;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class PassagePushBGPTest {
+public class PushBGPTest {
 
-    private final static Logger log = LoggerFactory.getLogger(PassagePushBGPTest.class);
+    private final static Logger log = LoggerFactory.getLogger(PushBGPTest.class);
 
     public void make_sure_we_dont_stop () { PassageSplitScan.stopping = (e) -> false; }
 
