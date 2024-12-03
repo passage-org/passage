@@ -3,7 +3,7 @@ package fr.gdd.passage.cli.server;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
-import fr.gdd.passage.volcano.PassageOpExecutor;
+import fr.gdd.passage.volcano.pull.PassagePullExecutor;
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.algebra.Op;
@@ -34,11 +34,11 @@ public class PassageOpExecutorFactory implements OpExecutorFactory {
 
     public static class OpExecutorWrapper extends OpExecutor {
 
-        final PassageOpExecutor executor;
+        final PassagePullExecutor executor;
 
         public OpExecutorWrapper(ExecutionContext ec) {
             super(ec);
-            executor = new PassageOpExecutor<>(new PassageExecutionContextBuilder<>()
+            executor = new PassagePullExecutor<>(new PassageExecutionContextBuilder<>()
                     .setTimeout(ec.getContext().get(PassageConstants.TIMEOUT))
                     .setContext(ec)
                     .build());
@@ -61,9 +61,9 @@ public class PassageOpExecutorFactory implements OpExecutorFactory {
     public static class BindingWrapper implements QueryIterator {
 
         final Iterator<BackendBindings> wrapped;
-        final PassageOpExecutor executor;
+        final PassagePullExecutor executor;
 
-        public BindingWrapper(Iterator<BackendBindings> wrapped, PassageOpExecutor executor) {
+        public BindingWrapper(Iterator<BackendBindings> wrapped, PassagePullExecutor executor) {
             this.wrapped = wrapped;
             this.executor = executor;
         }

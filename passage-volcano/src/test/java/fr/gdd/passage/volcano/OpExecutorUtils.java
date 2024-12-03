@@ -5,19 +5,16 @@ import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.interfaces.Backend;
-import fr.gdd.passage.volcano.spliterators.PassagePushExecutor;
+import fr.gdd.passage.volcano.pull.PassagePullExecutor;
+import fr.gdd.passage.volcano.push.PassagePushExecutor;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
-import org.checkerframework.checker.units.qual.C;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 public class OpExecutorUtils {
 
@@ -28,7 +25,7 @@ public class OpExecutorUtils {
     }
 
     public static Multiset<BackendBindings<?,?>> executeWithPassage(String queryAsString, PassageExecutionContext<?,?> ec) {
-        PassageOpExecutor<?,?> executor = new PassageOpExecutor<>(ec);
+        PassagePullExecutor<?,?> executor = new PassagePullExecutor<>(ec);
 
         Op query = Algebra.compile(QueryFactory.create(queryAsString));
         Iterator<? extends BackendBindings<?, ?>> iterator = executor.execute(query);
@@ -48,7 +45,7 @@ public class OpExecutorUtils {
     }
 
     public static long countWithPassage(String queryAsString, PassageExecutionContext<?,?> ec) {
-        PassageOpExecutor<?,?> executor = new PassageOpExecutor<>(ec);
+        PassagePullExecutor<?,?> executor = new PassagePullExecutor<>(ec);
 
         Op query = Algebra.compile(QueryFactory.create(queryAsString));
         Iterator<? extends BackendBindings<?, ?>> iterator = executor.execute(query);

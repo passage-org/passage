@@ -6,8 +6,8 @@ import fr.gdd.passage.commons.generics.BackendSaver;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.optimizers.PassageOptimizer;
 import fr.gdd.passage.volcano.pause.PassagePaused;
-import fr.gdd.passage.volcano.pause.Pause2Next;
-import fr.gdd.passage.volcano.spliterators.Op2Spliterators;
+import fr.gdd.passage.volcano.pull.Pause2Next;
+import fr.gdd.passage.volcano.push.Op2Spliterators;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.engine.ExecutionContext;
 

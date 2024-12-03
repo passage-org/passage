@@ -1,16 +1,14 @@
-package fr.gdd.passage.volcano.spliterators;
+package fr.gdd.passage.volcano.push;
 
 import fr.gdd.passage.commons.generics.ConcurrentPtrMap;
 import fr.gdd.passage.commons.generics.IPtrMap;
 import fr.gdd.passage.commons.generics.PtrMap;
+import fr.gdd.passage.volcano.push.streams.PausableSpliterator;
 import org.apache.jena.sparql.algebra.Op;
 import org.eclipse.jetty.util.ConcurrentHashSet;
 
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * Register the actual physical operators for a logical operator. Since

@@ -1,6 +1,6 @@
 package fr.gdd.passage.cli.server;
 
-import fr.gdd.passage.volcano.PassageOpExecutor;
+import fr.gdd.passage.volcano.pull.PassagePullExecutor;
 import org.apache.jena.query.Query;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.core.DatasetGraph;
@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Instead of relying on {@link QueryEngineTDB} to
- * call our {@link PassageOpExecutor}, we create and register our engine. We add a necessary
+ * call our {@link PassagePullExecutor}, we create and register our engine. We add a necessary
  * counter in top of the execution pipeline.
  */
 public class PassageQueryEngine extends QueryEngineBase {

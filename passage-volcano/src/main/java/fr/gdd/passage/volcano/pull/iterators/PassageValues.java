@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.iterators;
+package fr.gdd.passage.volcano.pull.iterators;
 
 import com.google.common.collect.Lists;
 import fr.gdd.passage.commons.exceptions.NotFoundException;

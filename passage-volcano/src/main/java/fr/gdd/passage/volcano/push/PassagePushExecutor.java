@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.spliterators;
+package fr.gdd.passage.volcano.push;
 
 import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
 import fr.gdd.passage.commons.generics.BackendBindings;
@@ -6,6 +6,8 @@ import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.transforms.DefaultGraphUriQueryModifier;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.pause.PauseException;
+import fr.gdd.passage.volcano.push.streams.PassagePushLimitOffset;
+import fr.gdd.passage.volcano.push.streams.PassageSplitScan;
 import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
@@ -105,4 +107,8 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
         return new PassagePushLimitOffset<>(context, input, slice).stream();
     }
 
+    @Override
+    public Stream<BackendBindings<ID, VALUE>> visit(OpProject project, BackendBindings<ID, VALUE> input) {
+        return this.visit(project.getSubOp(), input).map(i -> new BackendBindings<>(i, project.getVars()));
+    }
 }

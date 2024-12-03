@@ -4,7 +4,7 @@ import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
-import fr.gdd.passage.volcano.PassageOpExecutor;
+import fr.gdd.passage.volcano.pull.PassagePullExecutor;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.sail.SailException;
 import picocli.CommandLine;
@@ -167,7 +167,7 @@ public class PassageCLI {
                         .setForceOrder(passageOptions.forceOrder)
                         .build();
 
-                PassageOpExecutor executor = new PassageOpExecutor(context);
+                PassagePullExecutor executor = new PassagePullExecutor(context);
 
                 long start = System.currentTimeMillis();
                 Iterator<BackendBindings> iterator = executor.execute(queryToRun);

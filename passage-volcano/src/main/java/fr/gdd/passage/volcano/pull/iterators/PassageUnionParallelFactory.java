@@ -1,9 +1,9 @@
-package fr.gdd.passage.volcano.iterators.union;
+package fr.gdd.passage.volcano.pull.iterators;
 
 import fr.gdd.passage.commons.factories.IBackendUnionsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.PassageConstants;
-import fr.gdd.passage.volcano.pause.Pause2Next;
+import fr.gdd.passage.volcano.pull.Pause2Next;
 import org.apache.jena.sparql.algebra.op.OpUnion;
 import org.apache.jena.sparql.engine.ExecutionContext;
 

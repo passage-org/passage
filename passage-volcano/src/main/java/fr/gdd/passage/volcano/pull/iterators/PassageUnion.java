@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.iterators.union;
+package fr.gdd.passage.volcano.pull.iterators;
 
 import fr.gdd.jena.utils.FlattenUnflatten;
 import fr.gdd.passage.commons.factories.IBackendUnionsFactory;

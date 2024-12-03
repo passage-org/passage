@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.iterators.aggregate;
+package fr.gdd.passage.volcano.pull.iterators;
 
 import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.passage.commons.factories.IBackendCountsFactory;
@@ -10,7 +10,7 @@ import fr.gdd.passage.commons.interfaces.BackendAccumulator;
 import fr.gdd.passage.commons.iterators.BackendIteratorOverInput;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.PassageExecutionContext;
-import fr.gdd.passage.volcano.pause.Pause2Next;
+import fr.gdd.passage.volcano.pull.Pause2Next;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.atlas.iterator.Iter;
@@ -74,8 +74,8 @@ public class PassageCount<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE
 
         for (ExprAggregator agg : opCount.getAggregators() ) {
             BackendAccumulator<ID,VALUE> passageCount = switch (agg.getAggregator()) {
-                case AggCount ignored -> new PassageAccCount<>(context, opCount);
-                case AggCountVar ignored -> new PassageAccCount<>(context, opCount);
+                case AggCount ignored -> new PassageCountAccumulator<>(context, opCount);
+                case AggCountVar ignored -> new PassageCountAccumulator<>(context, opCount);
                 default -> throw new UnsupportedOperationException("The aggregator is not supported.");
             };
             Var v = agg.getVar();

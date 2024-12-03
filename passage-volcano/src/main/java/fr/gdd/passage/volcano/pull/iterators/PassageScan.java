@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.iterators;
+package fr.gdd.passage.volcano.pull.iterators;
 
 import fr.gdd.passage.commons.exceptions.NotFoundException;
 import fr.gdd.passage.commons.factories.IBackendQuadsFactory;

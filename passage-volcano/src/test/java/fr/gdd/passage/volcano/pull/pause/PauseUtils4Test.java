@@ -5,7 +5,7 @@ import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
-import fr.gdd.passage.volcano.PassageOpExecutor;
+import fr.gdd.passage.volcano.pull.PassagePullExecutor;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.sparql.engine.ExecutionContext;
@@ -41,7 +41,7 @@ public class PauseUtils4Test {
      * @return The preempted query after one result.
      */
     public static <ID, VALUE> Pair<Integer, String> executeQuery(String queryAsString, Backend<ID, VALUE, Long> backend, Long limit) {
-        PassageOpExecutor<ID, VALUE> executor = new PassageOpExecutor<>(
+        PassagePullExecutor<ID, VALUE> executor = new PassagePullExecutor<>(
                 new PassageExecutionContextBuilder<ID,VALUE>()
                         .setBackend(backend)
                         .build().setMaxResults(limit)); // As if it was within the query…
@@ -57,7 +57,7 @@ public class PauseUtils4Test {
     }
 
     public static <ID, VALUE> Pair<Integer, String> executeQueryWithTimeout(String queryAsString, Backend<ID, VALUE, Long> backend, Long timeout) {
-        PassageOpExecutor<ID, VALUE> executor = new PassageOpExecutor<>(
+        PassagePullExecutor<ID, VALUE> executor = new PassagePullExecutor<>(
                 new PassageExecutionContextBuilder<ID,VALUE>()
                         .setBackend(backend)
                         .setTimeout(timeout)
@@ -75,7 +75,7 @@ public class PauseUtils4Test {
 
 
     public static <ID,VALUE> String executeQuery(String queryAsString, Backend<ID,VALUE,Long> backend, Multiset<BackendBindings<?,?>> results) {
-        PassageOpExecutor<ID, VALUE> executor = new PassageOpExecutor<>(
+        PassagePullExecutor<ID, VALUE> executor = new PassagePullExecutor<>(
                 new PassageExecutionContextBuilder<ID,VALUE>()
                         .setBackend(backend)
                         .build());
@@ -91,7 +91,7 @@ public class PauseUtils4Test {
     }
 
     public static <ID,VALUE> String executeQuery(String queryAsString, Backend<ID,VALUE,Long> backend, Multiset<BackendBindings<?,?>> results, long limit) {
-        PassageOpExecutor<ID, VALUE> executor = new PassageOpExecutor<>(
+        PassagePullExecutor<ID, VALUE> executor = new PassagePullExecutor<>(
                 new PassageExecutionContextBuilder<ID,VALUE>()
                         .setBackend(backend)
                         .build().setMaxResults(limit));

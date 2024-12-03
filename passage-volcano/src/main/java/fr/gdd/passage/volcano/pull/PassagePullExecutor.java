@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano;
+package fr.gdd.passage.volcano.pull;
 
 import fr.gdd.passage.commons.factories.BackendNestedLoopJoinFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
@@ -7,10 +7,11 @@ import fr.gdd.passage.commons.iterators.BackendBind;
 import fr.gdd.passage.commons.iterators.BackendFilter;
 import fr.gdd.passage.commons.iterators.BackendProject;
 import fr.gdd.passage.commons.transforms.DefaultGraphUriQueryModifier;
-import fr.gdd.passage.volcano.iterators.*;
-import fr.gdd.passage.volcano.iterators.aggregate.PassageCount;
-import fr.gdd.passage.volcano.iterators.limitoffset.PassageLimitOffsetFactory;
-import fr.gdd.passage.volcano.iterators.union.PassageUnion;
+import fr.gdd.passage.volcano.PassageExecutionContext;
+import fr.gdd.passage.volcano.pull.iterators.PassageCount;
+import fr.gdd.passage.volcano.pull.iterators.PassageLimitOffsetFactory;
+import fr.gdd.passage.volcano.pull.iterators.PassageUnion;
+import fr.gdd.passage.volcano.pull.iterators.*;
 import org.apache.jena.sparql.algebra.Op;
 
 import java.util.Iterator;
@@ -21,11 +22,11 @@ import java.util.Iterator;
  * That's why it does not extend `OpExecutor` since the latter
  * works on `QueryIterator` that returns `Binding` that provides `Node`.
  */
-public class PassageOpExecutor<ID,VALUE> extends BackendOpExecutor<ID,VALUE> {
+public class PassagePullExecutor<ID,VALUE> extends BackendOpExecutor<ID,VALUE> {
 
     public final PassageExecutionContext<ID,VALUE> context;
 
-    public PassageOpExecutor(PassageExecutionContext<ID,VALUE> context) {
+    public PassagePullExecutor(PassageExecutionContext<ID,VALUE> context) {
         super(context, BackendProject.factory(), PassageScan.triplesFactory(),
                 PassageScan.quadsFactory(), new BackendNestedLoopJoinFactory<>(), PassageUnion.factory(), PassageValues.factory(),
                 BackendBind.factory(), BackendFilter.factory(), PassageDistinct.factory(),

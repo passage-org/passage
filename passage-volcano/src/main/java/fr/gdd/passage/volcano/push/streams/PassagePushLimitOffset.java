@@ -1,9 +1,10 @@
-package fr.gdd.passage.volcano.spliterators;
+package fr.gdd.passage.volcano.push.streams;
 
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.volcano.PassageExecutionContext;
-import fr.gdd.passage.volcano.iterators.limitoffset.CanBeSkipped;
+import fr.gdd.passage.volcano.CanBeSkipped;
+import fr.gdd.passage.volcano.push.PassagePushExecutor;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpSlice;
 import org.apache.jena.sparql.engine.ExecutionContext;

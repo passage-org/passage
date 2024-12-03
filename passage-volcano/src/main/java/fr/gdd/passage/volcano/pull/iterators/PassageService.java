@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.iterators;
+package fr.gdd.passage.volcano.pull.iterators;
 
 import fr.gdd.passage.commons.factories.IBackendServicesFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;

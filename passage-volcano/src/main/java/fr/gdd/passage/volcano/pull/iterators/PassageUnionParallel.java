@@ -1,8 +1,8 @@
-package fr.gdd.passage.volcano.iterators.union;
+package fr.gdd.passage.volcano.pull.iterators;
 
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.PassageExecutionContext;
-import fr.gdd.passage.volcano.PassageOpExecutor;
+import fr.gdd.passage.volcano.pull.PassagePullExecutor;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpUnion;
@@ -71,7 +71,7 @@ public class PassageUnionParallel<ID,VALUE> implements Iterator<BackendBindings<
                     .clone()
                     .setQuery(subOp);
 
-            PassageOpExecutor<ID,VALUE> executor = new PassageOpExecutor<>(executionContext);
+            PassagePullExecutor<ID,VALUE> executor = new PassagePullExecutor<>(executionContext);
             Iterator<BackendBindings<ID,VALUE>> iterator = executor.visit(subOp, Iter.of(new BackendBindings<>()));
 
             while (iterator.hasNext()) {

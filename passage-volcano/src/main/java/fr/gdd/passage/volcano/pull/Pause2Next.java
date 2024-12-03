@@ -1,15 +1,15 @@
-package fr.gdd.passage.volcano.pause;
+package fr.gdd.passage.volcano.pull;
 
 import fr.gdd.jena.utils.FlattenUnflatten;
 import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.generics.BackendSaver;
-import fr.gdd.passage.volcano.iterators.*;
-import fr.gdd.passage.volcano.iterators.aggregate.PassageCount;
-import fr.gdd.passage.volcano.iterators.limitoffset.CanBeSkipped;
-import fr.gdd.passage.volcano.iterators.limitoffset.PassageLimitOffsetFactory;
-import fr.gdd.passage.volcano.iterators.union.PassageUnion;
+import fr.gdd.passage.volcano.pull.iterators.PassageCount;
+import fr.gdd.passage.volcano.CanBeSkipped;
+import fr.gdd.passage.volcano.pull.iterators.PassageLimitOffsetFactory;
+import fr.gdd.passage.volcano.pull.iterators.PassageUnion;
+import fr.gdd.passage.volcano.pull.iterators.*;
 import fr.gdd.passage.volcano.transforms.Quad2Pattern;
 import fr.gdd.passage.volcano.transforms.Subqueries2LeftOfJoins;
 import fr.gdd.passage.volcano.transforms.Triples2BGP;

@@ -7,7 +7,7 @@ import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.pull.execute.ServiceTest;
-import fr.gdd.passage.volcano.iterators.PassageService;
+import fr.gdd.passage.volcano.pull.iterators.PassageService;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;

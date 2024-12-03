@@ -10,7 +10,7 @@ import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.benchmarks.WDBenchTest;
 import fr.gdd.passage.volcano.benchmarks.WatDivTest;
-import fr.gdd.passage.volcano.spliterators.PassageSplitScan;
+import fr.gdd.passage.volcano.push.streams.PassageSplitScan;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;

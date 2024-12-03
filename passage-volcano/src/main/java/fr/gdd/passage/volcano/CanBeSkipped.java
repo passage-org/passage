@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.iterators.limitoffset;
+package fr.gdd.passage.volcano;
 
 import fr.gdd.jena.visitors.ReturningOpVisitor;
 import org.apache.jena.sparql.algebra.Op;

@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.spliterators;
+package fr.gdd.passage.volcano.push.streams;
 
 import fr.gdd.passage.commons.exceptions.NotFoundException;
 import fr.gdd.passage.commons.generics.BackendBindings;

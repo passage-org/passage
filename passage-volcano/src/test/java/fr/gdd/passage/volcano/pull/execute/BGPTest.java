@@ -5,7 +5,7 @@ import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.benchmarks.WatDivTest;
-import fr.gdd.passage.volcano.iterators.PassageScan;
+import fr.gdd.passage.volcano.pull.iterators.PassageScan;
 import org.junit.jupiter.api.*;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.sail.SailException;

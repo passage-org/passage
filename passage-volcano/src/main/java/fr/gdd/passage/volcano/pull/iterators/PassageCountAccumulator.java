@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.iterators.aggregate;
+package fr.gdd.passage.volcano.pull.iterators;
 
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 /**
  * In charge of counting.
  */
-public class PassageAccCount<ID,VALUE> implements BackendAccumulator<ID,VALUE> {
+public class PassageCountAccumulator<ID,VALUE> implements BackendAccumulator<ID,VALUE> {
 
     final ExecutionContext context;
     final OpGroup opCount;
@@ -24,7 +24,7 @@ public class PassageAccCount<ID,VALUE> implements BackendAccumulator<ID,VALUE> {
 
     Integer value = 0;
 
-    public PassageAccCount(ExecutionContext context, OpGroup opCount) {
+    public PassageCountAccumulator(ExecutionContext context, OpGroup opCount) {
         this.context = context;
         this.opCount = opCount;
         this.vars = opCount.getAggregators().stream().filter(ea -> Objects.nonNull(ea.getAggregator().getExprList()))

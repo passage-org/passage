@@ -1,12 +1,10 @@
-package fr.gdd.passage.volcano.spliterators;
+package fr.gdd.passage.volcano.push;
 
 import fr.gdd.jena.utils.FlattenUnflatten;
 import fr.gdd.jena.visitors.ReturningOpVisitor;
+import fr.gdd.passage.volcano.push.streams.PausableSpliterator;
 import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.algebra.op.OpJoin;
-import org.apache.jena.sparql.algebra.op.OpSlice;
-import org.apache.jena.sparql.algebra.op.OpTriple;
-import org.apache.jena.sparql.algebra.op.OpUnion;
+import org.apache.jena.sparql.algebra.op.*;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -76,6 +74,18 @@ public class Pause2ContinuationQuery<ID,VALUE> extends ReturningOpVisitor<Op> {
     @Override
     public Op visit(OpSlice slice) {
         // TODO 
+        return null;
+    }
+
+    @Override
+    public Op visit(OpExtend extend) {
+        // TODO
+        return null;
+    }
+
+    @Override
+    public Op visit(OpProject project) {
+        // TODO
         return null;
     }
 }
