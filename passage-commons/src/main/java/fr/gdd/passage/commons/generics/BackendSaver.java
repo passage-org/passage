@@ -5,6 +5,7 @@ import fr.gdd.passage.commons.interfaces.Backend;
 import org.apache.jena.sparql.algebra.Op;
 
 import java.io.Serializable;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 
 /**
@@ -22,7 +23,7 @@ public class BackendSaver<ID,VALUE,OFFSET extends Serializable> extends Returnin
     final Op root; // origin
 
     // most important: during execution, the iterators that matter are saved within this structure.
-    final PtrMap<Op, Iterator<BackendBindings<ID, VALUE>>> op2it = new PtrMap<>();
+    final IdentityHashMap<Op, Iterator<BackendBindings<ID, VALUE>>> op2it = new IdentityHashMap<>();
 
     public BackendSaver(Backend<ID,VALUE,OFFSET> backend, Op root) {
         this.backend = backend;

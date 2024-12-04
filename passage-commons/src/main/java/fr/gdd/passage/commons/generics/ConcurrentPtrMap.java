@@ -2,15 +2,14 @@ package fr.gdd.passage.commons.generics;
 
 import com.google.common.collect.ConcurrentHashMultiset;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.jena.atlas.iterator.Iter;
+import org.apache.jena.atlas.lib.IdentityFinishCollector;
 
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Hash on keys then compare pointers of keys. It's meant to increase search
@@ -18,23 +17,23 @@ import java.util.stream.Collectors;
  *  * @param <K> Key type.
  *  * @param <V> Value type.
  */
-public class ConcurrentPtrMap<K, V> implements IPtrMap<K,V> {
+public class ConcurrentPtrMap<K, V> {
 
     final ConcurrentHashMap<K, ConcurrentHashMultiset<ImmutablePair<K, V>>> map = new ConcurrentHashMap<>();
     int size = 0;
 
     public ConcurrentPtrMap<K, V> put (K key, V val) {
-        map.putIfAbsent(key, ConcurrentHashMultiset.create());
+        ConcurrentHashMultiset<ImmutablePair<K, V>> values = map.putIfAbsent(key, ConcurrentHashMultiset.create());
 
-        ConcurrentHashMultiset<ImmutablePair<K, V>> values = map.get(key);
-        if (values.stream().filter(p -> p.getLeft() == key).toList().isEmpty()) {
+        if (Objects.isNull(values)) { values = map.get(key); }
+
+        var alreadyExists = values.stream().filter(p -> p.getLeft() == key).toList();
+        if (alreadyExists.isEmpty()) { // not in the list of pairs, should add it
             values.add(new ImmutablePair<>(key, val));
             ++size;
-        } else {
-            map.put(key, ConcurrentHashMultiset.create(
-                    values.stream()
-                            .map(p -> p.getLeft() == key ? new ImmutablePair<>(key, val) : p)
-                            .collect(Collectors.toList())));
+        } else { // Already in the list of pairs, should replace it. Should not happen though
+            values.remove(alreadyExists.getFirst()); // -1
+            values.add(new ImmutablePair<>(key, val)); // +1 = 0
         }
 
         return this;
@@ -45,9 +44,9 @@ public class ConcurrentPtrMap<K, V> implements IPtrMap<K,V> {
             ConcurrentHashMultiset<ImmutablePair<K, V>> values = map.get(key);
             values.removeIf(p -> p.getLeft() == key);
             --size;
-            if (values.isEmpty()) {
-                map.remove(key);
-            }
+            //            if (values.isEmpty()) {
+            //                map.remove(key);
+            //            }
         }
         return this;
     }
@@ -67,12 +66,11 @@ public class ConcurrentPtrMap<K, V> implements IPtrMap<K,V> {
         return null;
     }
 
-    public V putIfAbsent(K key, V val) {
-        var newSet = ConcurrentHashMultiset.create(Arrays.asList(ImmutablePair.of(key, val)));
-        var nullIfAbs = map.putIfAbsent(key, newSet);
-        if (Objects.nonNull(nullIfAbs)) {
-            nullIfAbs.add(ImmutablePair.of(key, val));
-        }
-        return val;
+    public void computeIfPresent(K key, Consumer<ConcurrentHashMultiset<ImmutablePair<K,V>>> func) {
+        map.putIfAbsent(key, ConcurrentHashMultiset.create()); // cannot be removed
+        map.computeIfPresent(key, (k,v) -> { // then, atomic
+            func.accept(v);
+            return v;
+        });
     }
 }
