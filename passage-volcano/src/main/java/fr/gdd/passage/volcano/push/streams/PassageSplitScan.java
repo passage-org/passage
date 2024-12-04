@@ -108,8 +108,8 @@ public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> im
 
     @Override
     public boolean tryAdvance(Consumer<? super BackendBindings<ID, VALUE>> action) {
-        if (Objects.isNull(wrapped)) return false;
-        if (Objects.nonNull(limit) && limit == 0) return false; // we produced all
+        if (Objects.isNull(wrapped)) { unregister(); return false; }
+        if (Objects.nonNull(limit) && limit == 0) { unregister(); return false; } // we produced all
 
         if (wrapped.hasNext()) { // actually iterates over the dataset
             if (!context.paused.isPaused() && stopping.apply(context)) { // unless we must stop

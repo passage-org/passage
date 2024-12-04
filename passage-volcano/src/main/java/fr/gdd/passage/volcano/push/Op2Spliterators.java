@@ -1,5 +1,6 @@
 package fr.gdd.passage.volcano.push;
 
+import com.google.common.collect.ConcurrentHashMultiset;
 import fr.gdd.passage.commons.generics.ConcurrentPtrMap;
 import fr.gdd.passage.commons.generics.IPtrMap;
 import fr.gdd.passage.commons.generics.PtrMap;
@@ -7,8 +8,7 @@ import fr.gdd.passage.volcano.push.streams.PausableSpliterator;
 import org.apache.jena.sparql.algebra.Op;
 import org.eclipse.jetty.util.ConcurrentHashSet;
 
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Register the actual physical operators for a logical operator. Since
@@ -18,8 +18,8 @@ import java.util.Set;
 public class Op2Spliterators<ID,VALUE> {
 
     // ugly, we keep two data structures dedicated to keep track of physical operators
-    final IPtrMap<Op, Set<PausableSpliterator<ID,VALUE>>> op2its;
-    final IPtrMap<Op, PausableSpliterator<ID,VALUE>> op2it;
+    final ConcurrentPtrMap<Op, ConcurrentHashMultiset<PausableSpliterator<ID,VALUE>>> op2its;
+    final PtrMap<Op, PausableSpliterator<ID,VALUE>> op2it;
     final boolean isParallel;
 
     public Op2Spliterators(boolean isParallel) {
@@ -32,10 +32,9 @@ public class Op2Spliterators<ID,VALUE> {
         if (!isParallel) {
             this.op2it.put(op, it);
         } else {
-            if (Objects.isNull(this.op2its.get(op))) {
-                this.op2its.put(op, new ConcurrentHashSet<>());
-            }
-            this.op2its.get(op).add(it);
+            ConcurrentHashMultiset<PausableSpliterator<ID,VALUE>> chm = ConcurrentHashMultiset.create();
+            chm = this.op2its.putIfAbsent(op, chm);
+            chm.add(it);
         }
     }
 
@@ -49,7 +48,7 @@ public class Op2Spliterators<ID,VALUE> {
 
     public Set<PausableSpliterator<ID,VALUE>> get(Op op) {
         if (isParallel) {
-            return this.op2its.get(op);
+            return this.op2its.get(op).elementSet();
         } else {
             // `Set.of` but should not be often
             return Objects.nonNull(this.op2it.get(op)) ? Set.of(this.op2it.get(op)): Set.of();

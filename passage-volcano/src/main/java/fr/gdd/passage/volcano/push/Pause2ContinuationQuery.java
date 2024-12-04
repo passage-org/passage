@@ -1,7 +1,10 @@
 package fr.gdd.passage.volcano.push;
 
 import fr.gdd.jena.utils.FlattenUnflatten;
+import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.jena.visitors.ReturningOpVisitor;
+import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
+import fr.gdd.passage.volcano.CanBeSkipped;
 import fr.gdd.passage.volcano.push.streams.PausableSpliterator;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
@@ -73,19 +76,35 @@ public class Pause2ContinuationQuery<ID,VALUE> extends ReturningOpVisitor<Op> {
 
     @Override
     public Op visit(OpSlice slice) {
-        // TODO 
-        return null;
+        Op subop = this.visit(slice.getSubOp());
+        if (new CanBeSkipped().visit((Op) slice)) {
+            return Objects.isNull(subop) ? null : subop;
+        } else {
+            Set<PausableSpliterator<ID,VALUE>> its = op2its.get(slice);
+            if (Objects.isNull(its) || its.isEmpty()) return null;
+            return its.stream().map(PausableSpliterator::pause).reduce(null,
+                    (l, r) -> Objects.isNull(l) ? r : OpUnion.create(l, r));
+        }
     }
 
     @Override
     public Op visit(OpExtend extend) {
-        // TODO
-        return null;
+        Op subop = this.visit(extend.getSubOp());
+        // TODO subop can be null because done, but should return done
+        return Objects.isNull(subop) ? null : OpCloningUtil.clone(extend, subop);
     }
 
     @Override
     public Op visit(OpProject project) {
-        // TODO
-        return null;
+        Op subop =  ReturningOpVisitorRouter.visit(this, project.getSubOp());
+        return Objects.isNull(subop) ? null : OpCloningUtil.clone(project, subop);
+    }
+
+    @Override
+    public Op visit(OpTable table) {
+        if (table.isJoinIdentity()) {
+            return null;
+        }
+        throw new UnsupportedOperationException("Not implemented yet");
     }
 }

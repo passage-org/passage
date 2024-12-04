@@ -10,10 +10,12 @@ import fr.gdd.passage.volcano.push.PassagePushExecutor;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
+import org.apache.jena.sparql.algebra.OpAsQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 public class OpExecutorUtils {
@@ -107,4 +109,20 @@ public class OpExecutorUtils {
         return results;
     }
 
+
+    public static <ID,VALUE> String executeWithPushPause(String queryAsString, Backend<ID,VALUE,Long> backend, Consumer<BackendBindings<?,?>> consumer, int maxParallel) {
+        PassagePushExecutor<ID, VALUE> executor = new PassagePushExecutor<>(
+                new PassageExecutionContextBuilder<ID,VALUE>()
+                        .setBackend(backend)
+                        .setMaxParallel(maxParallel)
+                        .build());
+        Op query = Algebra.compile(QueryFactory.create(queryAsString));
+
+        Multiset<BackendBindings<?,?>> results = ConcurrentHashMultiset.create();
+        Op paused = executor.execute(query, (i) -> {
+            log.debug("{}", i);
+            consumer.accept(i);
+        });
+        return Objects.nonNull(paused) ? OpAsQuery.asQuery(paused).toString() : null;
+    }
 }

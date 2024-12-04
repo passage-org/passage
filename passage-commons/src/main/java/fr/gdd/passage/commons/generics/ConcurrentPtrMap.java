@@ -3,8 +3,12 @@ package fr.gdd.passage.commons.generics;
 import com.google.common.collect.ConcurrentHashMultiset;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.jena.atlas.iterator.Iter;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -16,13 +20,13 @@ import java.util.stream.Collectors;
  */
 public class ConcurrentPtrMap<K, V> implements IPtrMap<K,V> {
 
-    final ConcurrentHashMap<K, ConcurrentHashMultiset<Pair<K, V>>> map = new ConcurrentHashMap<>();
+    final ConcurrentHashMap<K, ConcurrentHashMultiset<ImmutablePair<K, V>>> map = new ConcurrentHashMap<>();
     int size = 0;
 
     public ConcurrentPtrMap<K, V> put (K key, V val) {
         map.putIfAbsent(key, ConcurrentHashMultiset.create());
 
-        ConcurrentHashMultiset<Pair<K, V>> values = map.get(key);
+        ConcurrentHashMultiset<ImmutablePair<K, V>> values = map.get(key);
         if (values.stream().filter(p -> p.getLeft() == key).toList().isEmpty()) {
             values.add(new ImmutablePair<>(key, val));
             ++size;
@@ -38,7 +42,7 @@ public class ConcurrentPtrMap<K, V> implements IPtrMap<K,V> {
 
     public ConcurrentPtrMap<K, V> remove (K key) {
         if (map.containsKey(key)) {
-            ConcurrentHashMultiset<Pair<K, V>> values = map.get(key);
+            ConcurrentHashMultiset<ImmutablePair<K, V>> values = map.get(key);
             values.removeIf(p -> p.getLeft() == key);
             --size;
             if (values.isEmpty()) {
@@ -54,12 +58,21 @@ public class ConcurrentPtrMap<K, V> implements IPtrMap<K,V> {
 
     public V get (K key) {
         if (map.containsKey(key)) {
-            ConcurrentHashMultiset<Pair<K, V>> values = map.get(key);
-            List<Pair<K, V>> result = values.stream().filter(p -> p.getLeft() == key).toList();
+            ConcurrentHashMultiset<ImmutablePair<K, V>> values = map.get(key);
+            List<ImmutablePair<K, V>> result = values.stream().filter(p -> p.getLeft() == key).toList();
             if (!result.isEmpty()) {
                 return result.getFirst().getRight();
             }
         }
         return null;
+    }
+
+    public V putIfAbsent(K key, V val) {
+        var newSet = ConcurrentHashMultiset.create(Arrays.asList(ImmutablePair.of(key, val)));
+        var nullIfAbs = map.putIfAbsent(key, newSet);
+        if (Objects.nonNull(nullIfAbs)) {
+            nullIfAbs.add(ImmutablePair.of(key, val));
+        }
+        return val;
     }
 }

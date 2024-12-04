@@ -54,7 +54,7 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
                     //      The best scenario would be that children continue
                     //      their execution until throwing. So when join is called
                     //      they are all stopped in a consistent state.
-                    System.out.println("Stop !");
+                    System.out.println("Stop !"); // TODO remove this stop
                 }
             }).join();
         }
