@@ -16,7 +16,11 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.algebra.op.OpTriple;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ExecutionContext;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
@@ -34,12 +38,11 @@ public class PushUnionTest {
 
     private final static Logger log = LoggerFactory.getLogger(PushUnionTest.class);
 
-    @BeforeEach
-    public void make_sure_we_dont_stop () { PassageSplitScan.stopping = (e) -> false; }
-
-    @Test
-    public void execute_a_simple_union () throws RepositoryException {
+    @ParameterizedTest
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    public void execute_a_simple_union (PassageExecutionContextBuilder builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+        builder.setBackend(blazegraph);
         String queryAsString = """
                SELECT * WHERE {
                 {?p  <http://own>  ?a}
@@ -53,6 +56,7 @@ public class PushUnionTest {
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                 List.of("Alice", "snake"), List.of("Alice", "dog"), List.of("Alice", "cat"),
                 List.of("Alice", "nantes"), List.of("Bob", "paris"), List.of("Carol", "nantes")));
+        blazegraph.close();
     }
 
     /* *************************** BIG DATASETS ******************************** */
@@ -100,7 +104,6 @@ public class PushUnionTest {
                     }
                     """;
 
-        PassageSplitScan.BACKJUMP = false;
         var results = OpExecutorUtils.executeWithPush(query0, watdivBlazegraph);
 
         assertEquals(117, results.size());
@@ -137,7 +140,6 @@ public class PushUnionTest {
         OpTriple tp5 = new OpTriple(Triple.create( Var.alloc("v0"), p5, Var.alloc("v5")));
         OpTriple tp6 = new OpTriple(Triple.create( Var.alloc("v0"), p6, Var.alloc("v0")));
 
-        PassageSplitScan.BACKJUMP = true;
         Multiset<BackendBindings<?,?>> results = ConcurrentHashMultiset.create();
         try (ForkJoinPool customPool = new ForkJoinPool(10)) {
             customPool.submit( () ->

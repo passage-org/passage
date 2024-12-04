@@ -45,7 +45,7 @@ public class CardinalityJoinOrdering<ID,VALUE> extends ReturningArgsOpVisitor<
         this.fakeContext = new PassageExecutionContextBuilder<ID,VALUE>().setBackend(backend).build().setQuery(null);
     }
 
-    public CardinalityJoinOrdering(Backend<ID,VALUE,?> backend, BackendCache<ID,VALUE> cache) {
+    public CardinalityJoinOrdering(Backend backend, BackendCache<ID,VALUE> cache) {
         this.fakeContext = new PassageExecutionContextBuilder<ID,VALUE>().setBackend(backend).build().setCache(cache).setQuery(null);
     }
 

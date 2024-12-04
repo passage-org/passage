@@ -7,7 +7,6 @@ import fr.gdd.passage.commons.generics.Substitutor;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
-import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.pause.PauseException;
@@ -23,13 +22,10 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.Spliterator;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> implements Spliterator<BackendBindings<ID,VALUE>> {
-
-    public static boolean BACKJUMP = false; // TODO in Execution context
 
     /**
      * By default, this is based on execution time. However, developers can change it

@@ -1,13 +1,11 @@
 package fr.gdd.passage.volcano.push.execute;
 
-import com.bigdata.rdf.internal.IV;
 import com.google.common.collect.ConcurrentHashMultiset;
 import com.google.common.collect.Multiset;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
-import fr.gdd.passage.volcano.InstanceProviderForTests;
 import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.benchmarks.WDBenchTest;
@@ -19,12 +17,12 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.algebra.op.OpTriple;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ExecutionContext;
-import org.junit.Ignore;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.openrdf.query.Binding;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
@@ -42,9 +40,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class PushBGPTest {
 
     private final static Logger log = LoggerFactory.getLogger(PushBGPTest.class);
-
-    @BeforeEach
-    public void make_sure_we_dont_stop () { PassageSplitScan.stopping = (e) -> false; }
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
@@ -174,7 +169,6 @@ public class PushBGPTest {
                     }
                     """;
 
-        PassageSplitScan.BACKJUMP = false;
         var results = OpExecutorUtils.executeWithPush(query10124, watdiv, 10);
 
         assertEquals(117, results.size());
@@ -186,7 +180,6 @@ public class PushBGPTest {
         Assumptions.assumeTrue(Path.of(WatDivTest.PATH).toFile().exists());
         BlazegraphBackend watdiv = WatDivTest.watdivBlazegraph;
         String spo = "SELECT * WHERE {?s ?p ?o}";
-        PassageSplitScan.BACKJUMP = false;
 
         LongAdder results = new LongAdder();
         OpExecutorUtils.executeWithPush(spo, watdiv, 10, result -> results.increment());
@@ -225,7 +218,6 @@ public class PushBGPTest {
         OpTriple tp5 = new OpTriple(Triple.create( Var.alloc("v0"), p5, Var.alloc("v5")));
         OpTriple tp6 = new OpTriple(Triple.create( Var.alloc("v0"), p6, Var.alloc("v0")));
 
-        PassageSplitScan.BACKJUMP = true;
         Multiset<BackendBindings<?,?>> results = ConcurrentHashMultiset.create();
         try (ForkJoinPool customPool = new ForkJoinPool(10)) {
             customPool.submit( () ->
