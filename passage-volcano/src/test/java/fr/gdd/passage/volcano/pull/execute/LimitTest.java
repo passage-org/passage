@@ -202,7 +202,7 @@ public class LimitTest {
         var expected = blazegraph.executeQuery(queryAsString);
         log.debug("Expected: {}", expected);
 
-        PassageExecutionContext ec = new PassageExecutionContextBuilder().setBackend(blazegraph).setForceOrder(true).build();
+        PassageExecutionContext ec = new PassageExecutionContextBuilder().setBackend(blazegraph).forceOrder().build();
         var results = OpExecutorUtils.executeWithPassage(queryAsString, ec);
         assertEquals(1, results.size()); // should be 1, (processed multiple times without optimization)
         assertTrue(MultisetResultChecking.containsResult(results, List.of("p", "a", "s"),

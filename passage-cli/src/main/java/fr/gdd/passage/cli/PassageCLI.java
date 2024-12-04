@@ -164,7 +164,7 @@ public class PassageCLI {
                         .setBackend(backend)
                         .setMaxScans(passageOptions.limit)
                         .setTimeout(passageOptions.timeout)
-                        .setForceOrder(passageOptions.forceOrder)
+                        .forceOrder(passageOptions.forceOrder)
                         .build();
 
                 PassagePullExecutor executor = new PassagePullExecutor(context);

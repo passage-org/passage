@@ -27,6 +27,7 @@ public class PassageConstants {
     static public final Symbol PAUSED = allocVariableSymbol("Paused"); // is the execution paused/stopped.
 
     static public final Symbol FORCE_ORDER = allocConstantSymbol("ForceOrder");
+    static public final Symbol BACKJUMP = allocConstantSymbol("Backjump");
 
     /* ********************************************************************** */
 

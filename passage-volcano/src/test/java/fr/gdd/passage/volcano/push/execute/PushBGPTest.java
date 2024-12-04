@@ -1,11 +1,13 @@
 package fr.gdd.passage.volcano.push.execute;
 
+import com.bigdata.rdf.internal.IV;
 import com.google.common.collect.ConcurrentHashMultiset;
 import com.google.common.collect.Multiset;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
+import fr.gdd.passage.volcano.InstanceProviderForTests;
 import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.benchmarks.WDBenchTest;
@@ -17,10 +19,14 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.algebra.op.OpTriple;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ExecutionContext;
+import org.junit.Ignore;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.openrdf.query.Binding;
 import org.openrdf.repository.RepositoryException;
+import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,61 +47,70 @@ public class PushBGPTest {
     public void make_sure_we_dont_stop () { PassageSplitScan.stopping = (e) -> false; }
 
     @ParameterizedTest
-    @ValueSource(ints = {1,2,5,10})
-    public void a_tp_with_an_unknown_value (int maxParallelism) throws RepositoryException {
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    public void a_tp_with_an_unknown_value (PassageExecutionContextBuilder builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+        builder.setBackend(blazegraph);
         String queryAsString = "SELECT * WHERE {?p <http://does_not_exist> ?c}";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, blazegraph, maxParallelism);
+        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
         assertEquals(0, results.size());
+        blazegraph.close();
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {1,2,5,10})
-    public void a_bgp_with_an_unknown_value (int maxParallelism) throws RepositoryException {
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    public void a_bgp_with_an_unknown_value (PassageExecutionContextBuilder builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+        builder.setBackend(blazegraph);
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c . ?p <http://does_not_exist> ?c}";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, blazegraph, maxParallelism);
+        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
         assertEquals(0, results.size());
+        blazegraph.close();
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {1,2,5,10})
-    public void bgp_of_1_tp (int maxParallelism) throws RepositoryException {
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    public void bgp_of_1_tp (PassageExecutionContextBuilder builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+        builder.setBackend(blazegraph);
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c}";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, blazegraph, maxParallelism);
+        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
         assertEquals(3, results.size()); // Bob, Alice, and Carol.
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "c"),
                 List.of("Alice", "nantes"),
                 List.of("Bob", "paris"),
                 List.of("Carol", "nantes")));
+        blazegraph.close();
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {1,2,5,10})
-    public void bgp_of_2_tps (int maxParallelism) throws RepositoryException {
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    public void bgp_of_2_tps (PassageExecutionContextBuilder builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+        builder.setBackend(blazegraph);
         String queryAsString = """
                SELECT * WHERE {
                 ?p <http://address> <http://nantes> .
                 ?p <http://own> ?a .
                }""";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, blazegraph, maxParallelism);
+        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
         assertEquals(3, results.size()); // Alice, Alice, and Alice.
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                 List.of("Alice", "dog"),
                 List.of("Alice", "cat"),
                 List.of("Alice", "snake")));
+        blazegraph.close();
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {1,2,5,10})
-    public void bgp_of_3_tps (int maxParallelism) throws RepositoryException {
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    public void bgp_of_3_tps (PassageExecutionContextBuilder builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+        builder.setBackend(blazegraph);
         String queryAsString = """
                SELECT * WHERE {
                 ?p <http://address> <http://nantes> .
@@ -103,12 +118,13 @@ public class PushBGPTest {
                 ?a <http://species> ?s
                }""";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, blazegraph, maxParallelism);
+        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
         assertEquals(3, results.size()); // Alice->own->cat,dog,snake
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a", "s"),
                 List.of("Alice", "dog", "canine"),
                 List.of("Alice", "cat", "feline"),
                 List.of("Alice", "snake", "reptile")));
+        blazegraph.close();
     }
 
     /* *************************** BIG DATASETS ******************************** */

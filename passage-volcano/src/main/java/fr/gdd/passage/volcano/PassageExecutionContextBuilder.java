@@ -17,8 +17,9 @@ public class PassageExecutionContextBuilder<ID,VALUE> {
 
     private Long timeout = Long.MAX_VALUE;
     private Long maxScans = Long.MAX_VALUE;
-    private Boolean forceOrder = false;
     private Integer maxParallel = 1; // not parallel by default
+    private Boolean forceOrder = false;
+    private Boolean backjump = false;
 
     public PassageExecutionContext<ID,VALUE> build() {
         ExecutionContext ec = Objects.isNull(context) ?
@@ -43,6 +44,7 @@ public class PassageExecutionContextBuilder<ID,VALUE> {
         ec.getContext().setIfUndef(PassageConstants.FORCE_ORDER, forceOrder);
 
         ec.getContext().setIfUndef(PassageConstants.MAX_PARALLELISM, maxParallel);
+        ec.getContext().setIfUndef(PassageConstants.BACKJUMP, backjump);
 
         return new PassageExecutionContext<>(ec);
     }
@@ -59,10 +61,13 @@ public class PassageExecutionContextBuilder<ID,VALUE> {
         return this;
     }
 
-    public PassageExecutionContextBuilder<ID,VALUE> setForceOrder(Boolean forceOrder) {
-        if (Objects.nonNull(forceOrder)) {
-            this.forceOrder = forceOrder;
-        }
+    public PassageExecutionContextBuilder<ID,VALUE> forceOrder() {
+        this.forceOrder = true;
+        return this;
+    }
+
+    public PassageExecutionContextBuilder<ID,VALUE> backjump() {
+        this.backjump = true;
         return this;
     }
 
@@ -88,5 +93,13 @@ public class PassageExecutionContextBuilder<ID,VALUE> {
             this.maxParallel = maxParallel;
         }
         return this;
+    }
+
+    @Override
+    public String toString() {
+        return (Objects.nonNull(timeout) && timeout!=Long.MAX_VALUE ? " timeout=" + timeout : "") +
+                (Objects.nonNull(maxScans) && maxScans!=Long.MAX_VALUE ? " scans ≤ " + maxScans : "") +
+                (forceOrder ? " forceOrder ": "") +
+                " parallel ≤ " + maxParallel;
     }
 }

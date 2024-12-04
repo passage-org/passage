@@ -234,7 +234,7 @@ public class PushLimitOffsetTest {
         log.debug("Expected: {}", expected);
 
         PassageExecutionContext<?,?> ec = new PassageExecutionContextBuilder().setBackend(blazegraph)
-                .setForceOrder(true)
+                .forceOrder()
                 .setMaxParallel(maxParallel)
                 .build();
         var results = OpExecutorUtils.executeWithPush(queryAsString, ec);

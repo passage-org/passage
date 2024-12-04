@@ -35,14 +35,21 @@ public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
     Long offset; // null is no offset
     final Long deadline;
 
+    public final Long maxScans;
+    public final AtomicLong scans;
+    public final Boolean backjump;
+
 
     public PassageExecutionContext(ExecutionContext context) {
         super(context);
+        this.backjump = context.getContext().get(PassageConstants.BACKJUMP);
+        this.maxScans = context.getContext().get(PassageConstants.MAX_SCANS);
         this.backend = context.getContext().get(BackendConstants.BACKEND);
         this.maxParallelism = context.getContext().get(PassageConstants.MAX_PARALLELISM);
         context.getContext().setIfUndef(PassageConstants.OP2ITS, new Op2Spliterators<>(maxParallelism > 1));
         this.op2its = context.getContext().get(PassageConstants.OP2ITS);
-        context.getContext().setIfUndef(PassageConstants.SCANS, new AtomicLong(0L));
+        context.getContext().setIfUndef(PassageConstants.SCANS, new AtomicLong());
+        this.scans = context.getContext().get(PassageConstants.SCANS);
         context.getContext().setIfUndef(PassageConstants.SERVICE_CALLS, new AtomicLong(0L));
         context.getContext().setIfUndef(BackendConstants.CACHE, new BackendCache<>(backend));
         this.cache = context.getContext().get(BackendConstants.CACHE);

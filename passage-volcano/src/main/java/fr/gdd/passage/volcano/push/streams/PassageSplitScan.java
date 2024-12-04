@@ -36,7 +36,7 @@ public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> im
      * e.g., for testing purposes.
      */
     public volatile static Function<PassageExecutionContext, Boolean> stopping = (ec) ->
-            System.currentTimeMillis() >= ec.getDeadline();
+            System.currentTimeMillis() >= ec.getDeadline() || ec.scans.get() >= ec.maxScans;
 
     final PassageExecutionContext<ID,VALUE> context;
     final BackendBindings<ID,VALUE> input;
@@ -92,7 +92,7 @@ public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> im
             }
         }
 
-        if (BACKJUMP && Objects.isNull(wrapped)) { // no throw, no backjump overhead TODO in execution context
+        if (this.context.backjump && Objects.isNull(wrapped)) { // no throw, no overhead
             unregister();
             getLazyProducedConsumed(input);
             // throws immediately if there are no results, no need to try advance
@@ -121,7 +121,7 @@ public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> im
             offset += 1;
             if (Objects.nonNull(limit)) { limit -= 1 ; }
             wrapped.next();
-            ((AtomicLong) context.getContext().get(PassageConstants.SCANS)).getAndIncrement(); // TODO in context
+            this.context.scans.getAndIncrement();
             BackendBindings<ID, VALUE> newBinding = new BackendBindings<>();
 
             if (Objects.nonNull(vars.get(SPOC.SUBJECT))) { // ugly x4

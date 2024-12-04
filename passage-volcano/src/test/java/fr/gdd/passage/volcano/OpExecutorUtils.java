@@ -109,20 +109,18 @@ public class OpExecutorUtils {
         return results;
     }
 
-
-    public static <ID,VALUE> String executeWithPushPause(String queryAsString, Backend<ID,VALUE,Long> backend, Consumer<BackendBindings<?,?>> consumer, int maxParallel) {
-        PassagePushExecutor<ID, VALUE> executor = new PassagePushExecutor<>(
-                new PassageExecutionContextBuilder<ID,VALUE>()
-                        .setBackend(backend)
-                        .setMaxParallel(maxParallel)
-                        .build());
-        Op query = Algebra.compile(QueryFactory.create(queryAsString));
-
-        Multiset<BackendBindings<?,?>> results = ConcurrentHashMultiset.create();
-        Op paused = executor.execute(query, (i) -> {
-            log.debug("{}", i);
-            consumer.accept(i);
-        });
-        return Objects.nonNull(paused) ? OpAsQuery.asQuery(paused).toString() : null;
+    public static <ID,VALUE> Multiset<BackendBindings<ID,VALUE>> executeWithPush(String queryAsString, PassageExecutionContextBuilder<ID,VALUE> builder) {
+        Multiset<BackendBindings<ID,VALUE>> results = ConcurrentHashMultiset.create();
+        while (Objects.nonNull(queryAsString)) {
+            PassagePushExecutor<ID, VALUE> executor = new PassagePushExecutor<>(builder.build());
+            Op query = Algebra.compile(QueryFactory.create(queryAsString));
+            log.debug(queryAsString);
+            Op paused = executor.execute(query, (i) -> {
+                log.debug("{}", i);
+                results.add(i);
+            });
+            queryAsString = Objects.nonNull(paused) ? OpAsQuery.asQuery(paused).toString() : null;
+        }
+        return results;
     }
 }
