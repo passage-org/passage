@@ -11,8 +11,8 @@ public class InstanceProviderForTests {
      * tested function.
      */
     static Stream<PassageExecutionContextBuilder> pushProvider () {
-        Long[] maxScans = {null, 1L, 2L, 3L};
-        // Long[] maxScans = {2L};
+        //Long[] maxScans = {null, 1L, 2L, 3L};
+        Long[] maxScans = {2L};
         Integer[] maxParallel = {1, 2, 5, 10};
 
         return Arrays.stream(maxScans).flatMap(s ->

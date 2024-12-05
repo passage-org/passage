@@ -2,10 +2,13 @@ package fr.gdd.passage.volcano.push.streams;
 
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
+import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.CanBeSkipped;
 import fr.gdd.passage.volcano.push.PassagePushExecutor;
+import fr.gdd.passage.volcano.push.Pause2ContinuationQuery;
 import org.apache.jena.sparql.algebra.Op;
+import org.apache.jena.sparql.algebra.op.OpJoin;
 import org.apache.jena.sparql.algebra.op.OpSlice;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
@@ -17,6 +20,7 @@ public class PassagePushLimitOffset<ID,VALUE> extends PausableSpliterator<ID,VAL
 
     final PassageExecutionContext<ID,VALUE> context;
     final Stream<BackendBindings<ID,VALUE>> wrapped;
+    final BackendBindings<ID,VALUE> input;
     final OpSlice slice;
     final PassagePushExecutor<ID,VALUE> executor;
 
@@ -27,6 +31,7 @@ public class PassagePushLimitOffset<ID,VALUE> extends PausableSpliterator<ID,VAL
         this.context =  (PassageExecutionContext<ID, VALUE>) context;
         this.executor = context.getContext().get(BackendConstants.EXECUTOR);
         this.slice = slice;
+        this.input = input;
 
         if (new CanBeSkipped().visit((Op) slice)) {
             PassagePushExecutor<ID,VALUE> newExecutor = new PassagePushExecutor<>(
@@ -54,4 +59,17 @@ public class PassagePushLimitOffset<ID,VALUE> extends PausableSpliterator<ID,VAL
         return this.wrapped;
     }
 
+    @Override
+    public Op pause() {
+        if (slice.getLength()!=Long.MIN_VALUE && produced.longValue() >= slice.getLength()) { return null; }
+        long pausedLimit = slice.getLength() == Long.MIN_VALUE ? Long.MIN_VALUE : slice.getLength() - produced.longValue();
+        long pausedOffset = produced.longValue() == 0 ? slice.getStart() : slice.getStart() - produced.longValue();
+        Op inside = new Pause2ContinuationQuery<>(context.getContext().get(PassageConstants.OP2ITS)).visit(slice.getSubOp());
+        if (Objects.isNull(inside)) { return null; }
+        if (new CanBeSkipped().visit((Op) slice)) {
+            return OpJoin.create(input.toOp(), inside);
+        } else {
+            return OpJoin.create(input.toOp(), new OpSlice(inside, pausedOffset, pausedLimit));
+        }
+    }
 }

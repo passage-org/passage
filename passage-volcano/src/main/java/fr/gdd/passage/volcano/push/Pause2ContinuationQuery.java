@@ -76,15 +76,10 @@ public class Pause2ContinuationQuery<ID,VALUE> extends ReturningOpVisitor<Op> {
 
     @Override
     public Op visit(OpSlice slice) {
-        Op subop = this.visit(slice.getSubOp());
-        if (new CanBeSkipped().visit((Op) slice)) {
-            return Objects.isNull(subop) ? null : subop;
-        } else {
-            Set<PausableSpliterator<ID,VALUE>> its = op2its.get(slice);
-            if (Objects.isNull(its) || its.isEmpty()) return null;
-            return its.stream().map(PausableSpliterator::pause).reduce(null,
-                    (l, r) -> Objects.isNull(l) ? r : OpUnion.create(l, r));
-        }
+        Set<PausableSpliterator<ID,VALUE>> its = op2its.get(slice);
+        if (Objects.isNull(its) || its.isEmpty()) return null;
+        return its.stream().map(PausableSpliterator::pause).reduce(null,
+                (l, r) -> Objects.isNull(l) ? r : OpUnion.create(l, r));
     }
 
     @Override
