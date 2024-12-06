@@ -1,13 +1,11 @@
 package fr.gdd.passage.commons.interfaces;
 
-import java.io.Serializable;
-
 /**
  * An iterator over a backend that enables pausing/resuming query
  * execution. Its internal identifiers are of type `ID`, and it can
  * resume its execution using type `SKIP`.
  */
-public abstract class BackendIterator<ID, VALUE, SKIP extends Serializable> implements PreemptIterator<SKIP>, RandomIterator {
+public abstract class BackendIterator<ID, VALUE> implements PreemptIterator, RandomIterator {
 
     /**
      * @param code Typically, for basic scan operator, the code would
@@ -53,5 +51,7 @@ public abstract class BackendIterator<ID, VALUE, SKIP extends Serializable> impl
      * iterators.
      */
     public abstract void reset();
+
+    public void skip(long to) {throw new UnsupportedOperationException("Cannot efficiently skip.");}
 
 }

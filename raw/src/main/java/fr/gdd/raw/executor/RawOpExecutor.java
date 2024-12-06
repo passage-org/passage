@@ -43,7 +43,7 @@ import java.util.Iterator;
 public class RawOpExecutor<ID, VALUE> extends BackendOpExecutor<ID, VALUE> { // output
 
     final ExecutionContext execCxt;
-    Backend<ID, VALUE, ?> backend;
+    Backend<ID, VALUE> backend;
     BackendCache<ID, VALUE> cache;
 
 
@@ -100,7 +100,7 @@ public class RawOpExecutor<ID, VALUE> extends BackendOpExecutor<ID, VALUE> { // 
         return this;
     }
 
-    public RawOpExecutor<ID,VALUE> setBackend(Backend<ID,VALUE,?> backend) {
+    public RawOpExecutor<ID,VALUE> setBackend(Backend<ID,VALUE> backend) {
         this.backend = backend;
         execCxt.getContext().set(RawConstants.BACKEND, backend);
         execCxt.getContext().setIfUndef(RawConstants.CACHE, new BackendCache<>(this.backend));
@@ -129,7 +129,7 @@ public class RawOpExecutor<ID, VALUE> extends BackendOpExecutor<ID, VALUE> { // 
         return this;
     }
 
-    public Backend<ID, VALUE, ?> getBackend() {
+    public Backend<ID, VALUE> getBackend() {
         return backend;
     }
     public ExecutionContext getExecutionContext() {

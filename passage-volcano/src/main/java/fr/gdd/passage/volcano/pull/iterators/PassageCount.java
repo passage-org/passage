@@ -45,7 +45,7 @@ public class PassageCount<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE
     }
 
     final BackendOpExecutor<ID,VALUE> executor;
-    final Backend<ID,VALUE,?> backend;
+    final Backend<ID,VALUE> backend;
     final OpGroup opCount;
     final BackendBindings<ID,VALUE> input;
     final BackendBindings<ID,VALUE> keys;

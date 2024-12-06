@@ -2,9 +2,7 @@ package fr.gdd.passage.volcano.push;
 
 import com.google.common.collect.ConcurrentHashMultiset;
 import fr.gdd.passage.commons.generics.ConcurrentIdentityHashMap;
-import fr.gdd.passage.commons.generics.ConcurrentPtrMap;
 import fr.gdd.passage.volcano.push.streams.PausableSpliterator;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.jena.sparql.algebra.Op;
 
 import java.util.IdentityHashMap;

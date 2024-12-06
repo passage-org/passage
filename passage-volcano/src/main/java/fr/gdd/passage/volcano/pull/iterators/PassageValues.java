@@ -42,7 +42,7 @@ public class PassageValues<ID,VALUE> extends PausableIterator<ID,VALUE> implemen
     }
 
     final PassageExecutionContext<ID,VALUE> context;
-    final Backend<ID,VALUE,?> backend;
+    final Backend<ID,VALUE> backend;
     final BackendCache<ID,VALUE> cache;
     final List<BackendBindings<ID,VALUE>> values;
     final BackendBindings<ID,VALUE> current;

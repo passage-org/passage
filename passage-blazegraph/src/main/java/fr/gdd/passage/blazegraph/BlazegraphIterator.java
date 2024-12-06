@@ -26,7 +26,7 @@ import java.util.Random;
  * It can also generate random (uniform) triples matching the triple
  * pattern efficiently.
  */
-public class BlazegraphIterator extends BackendIterator<IV, BigdataValue, Long> {
+public class BlazegraphIterator extends BackendIterator<IV, BigdataValue> {
     public static ThreadLocal<Random> RNG = ThreadLocal.withInitial(() -> {
         // Seed can be derived from a common seed or generated uniquely per thread
         long seed = System.nanoTime() + Thread.currentThread().threadId();
@@ -54,7 +54,7 @@ public class BlazegraphIterator extends BackendIterator<IV, BigdataValue, Long> 
         this.tupleIterator = (ITupleIterator<?>) iindex.rangeIterator(min, max);
     }
 
-    public Long current() {
+    public long current() {
         return this.offset;
     }
 
@@ -101,7 +101,7 @@ public class BlazegraphIterator extends BackendIterator<IV, BigdataValue, Long> 
     }
 
     @Override
-    public Long previous() {
+    public long previous() {
         return this.offset-1;
     }
 
@@ -112,7 +112,7 @@ public class BlazegraphIterator extends BackendIterator<IV, BigdataValue, Long> 
     }
 
     @Override
-    public void skip(Long to) {
+    public void skip(long to) {
         if (to == 0) { // Nothing to do
             return;
         }

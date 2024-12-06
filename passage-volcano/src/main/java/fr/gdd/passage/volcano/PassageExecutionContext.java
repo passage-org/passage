@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
 
-    public final Backend<ID,VALUE,Long> backend;
+    public final Backend<ID,VALUE> backend;
     public BackendCache<ID,VALUE> cache;
     public final PassageOptimizer<ID,VALUE> optimizer;
 

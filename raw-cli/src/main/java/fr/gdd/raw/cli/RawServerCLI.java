@@ -143,7 +143,7 @@ public class RawServerCLI {
      * @param ui The path to the ui.
      * @return A fuseki server not yet running.
      */
-    static FusekiServer buildServer(String name, Backend<?, ?, Long> backend,
+    static FusekiServer buildServer(String name, Backend<?, ?> backend,
                                     Long timeout,
                                     Integer port,
                                     String ui,

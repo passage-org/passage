@@ -110,7 +110,7 @@ public class BlazegraphBackendTest {
     public void creating_simple_random () throws RepositoryException, SailException {
         BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         IV address = bb.getId("<http://address>", SPOC.PREDICATE);
-        BackendLazyIterator<IV, BigdataValue, Long> li = (BackendLazyIterator<IV, BigdataValue, Long>) bb.search(bb.any(), address, bb.any());
+        BackendLazyIterator<IV, BigdataValue> li = (BackendLazyIterator<IV, BigdataValue>) bb.search(bb.any(), address, bb.any());
 
         Multiset<BindingSet> results = HashMultiset.create();
         for (int i = 0; i < 10_000; ++i) {
@@ -190,19 +190,19 @@ public class BlazegraphBackendTest {
         final var p_3 = watdiv.getId("<http://schema.org/eligibleRegion>", SPOC.PREDICATE);
         final var p_4 = watdiv.getId("<http://purl.org/goodrelations/includes>", SPOC.PREDICATE);
 
-        BackendIterator<IV, BigdataValue, Long> i_1 = watdiv.search(any, p_1, o_1);
+        BackendIterator<IV, BigdataValue> i_1 = watdiv.search(any, p_1, o_1);
 
         long nbElements = 0;
 
         while (i_1.hasNext()) {
             i_1.next();
-            BackendIterator<IV, BigdataValue, Long> i_2 = watdiv.search(i_1.getId(SPOC.SUBJECT), p_2, any);
+            BackendIterator<IV, BigdataValue> i_2 = watdiv.search(i_1.getId(SPOC.SUBJECT), p_2, any);
             while (i_2.hasNext()) {
                 i_2.next();
-                BackendIterator<IV, BigdataValue, Long> i_3 = watdiv.search(any, p_3, i_2.getId(SPOC.OBJECT));
+                BackendIterator<IV, BigdataValue> i_3 = watdiv.search(any, p_3, i_2.getId(SPOC.OBJECT));
                 while (i_3.hasNext()) {
                     i_3.next();
-                    BackendIterator<IV, BigdataValue, Long> i_4 = watdiv.search(i_3.getId(SPOC.SUBJECT), p_4, any);
+                    BackendIterator<IV, BigdataValue> i_4 = watdiv.search(i_3.getId(SPOC.SUBJECT), p_4, any);
                     while (i_4.hasNext()) {
                         i_4.next();
                         nbElements += 1;
@@ -251,7 +251,7 @@ public class BlazegraphBackendTest {
      * in the augmented btree.
      */
     public Multiset<BindingSet> executeSimpleTP(BlazegraphBackend bb, IV s, IV p, IV o, long expectedNb) {
-        BackendIterator<IV, BigdataValue, Long> it = bb.search(s, p, o);
+        BackendIterator<IV, BigdataValue> it = bb.search(s, p, o);
         Multiset<BindingSet> results = HashMultiset.create();
         while (it.hasNext()) {
             it.next();
@@ -264,12 +264,12 @@ public class BlazegraphBackendTest {
         }
         assertEquals(expectedNb, results.size());
         // cardinality should be exact without deletions in btree
-        assertEquals(expectedNb, ((BackendLazyIterator<?,?,?>) it).cardinality());
+        assertEquals(expectedNb, ((BackendLazyIterator<?,?>) it).cardinality());
         return results;
     }
 
     public Multiset<BindingSet> executeSimpleTPWithSkip(BlazegraphBackend bb, IV s, IV p, IV o, long skip, long expectedNb) {
-        BackendIterator<IV, BigdataValue, Long> it = bb.search(s, p, o);
+        BackendIterator<IV, BigdataValue> it = bb.search(s, p, o);
         BlazegraphIterator bit = (BlazegraphIterator) ((BackendLazyIterator)it).getWrapped();
         bit.skip(skip);
         Multiset<BindingSet> results = HashMultiset.create();
@@ -284,12 +284,12 @@ public class BlazegraphBackendTest {
             results.add(bs);
         }
         assertEquals(expectedNb, results.size());
-        assertEquals(expectedNb, Math.max(0, ((BackendLazyIterator<?,?,?>) it).cardinality() - skip));
+        assertEquals(expectedNb, Math.max(0, ((BackendLazyIterator<?,?>) it).cardinality() - skip));
         return results;
     }
 
     public long getCardinality(BlazegraphBackend bb, IV s, IV p, IV o) {
-        BackendIterator<IV, BigdataValue, Long> it = bb.search(s, p, o);
+        BackendIterator<IV, BigdataValue> it = bb.search(s, p, o);
         return (long) it.cardinality();
     }
 

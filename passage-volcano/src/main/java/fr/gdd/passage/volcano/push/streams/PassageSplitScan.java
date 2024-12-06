@@ -36,7 +36,7 @@ public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> im
 
     final PassageExecutionContext<ID,VALUE> context;
     final BackendBindings<ID,VALUE> input;
-    final Backend<ID,VALUE,Long> backend;
+    final Backend<ID,VALUE> backend;
     final BackendCache<ID,VALUE> cache;
     final Op0 op;
     Set<Var> producedVars;
@@ -45,7 +45,7 @@ public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> im
     Long offset;
     Long limit;
 
-    BackendIterator<ID, VALUE, Long> wrapped;
+    BackendIterator<ID, VALUE> wrapped;
     Tuple<Var> vars; // needed to create bindings var -> value
 
     public PassageSplitScan (ExecutionContext context, BackendBindings<ID,VALUE> input, Op0 tripleOrQuad) {

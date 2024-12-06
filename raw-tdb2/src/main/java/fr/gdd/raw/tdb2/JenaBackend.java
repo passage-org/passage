@@ -23,7 +23,7 @@ import java.util.Objects;
 /**
  * TDB2 Jena Backend implementation of the interface `Backend`.
  **/
-public class JenaBackend implements Backend<NodeId, Node, SerializableRecord> {
+public class JenaBackend implements Backend<NodeId, Node> {
 
     Dataset dataset;
     DatasetGraphTDB graph;
@@ -80,13 +80,13 @@ public class JenaBackend implements Backend<NodeId, Node, SerializableRecord> {
     /* ****************************************************************************************** */
 
     @Override
-    public BackendIterator<NodeId, Node, SerializableRecord> search(final NodeId s, final NodeId p, final NodeId o) {
+    public BackendIterator<NodeId, Node> search(final NodeId s, final NodeId p, final NodeId o) {
         Tuple<NodeId> pattern = TupleFactory.tuple(s, p, o);
         return new BackendLazyIterator<>(this, preemptableTripleTupleTable.preemptFind(pattern));
     }
 
     @Override
-    public BackendIterator<NodeId, Node, SerializableRecord> search(final NodeId s, final NodeId p, final NodeId o, final NodeId c) {
+    public BackendIterator<NodeId, Node> search(final NodeId s, final NodeId p, final NodeId o, final NodeId c) {
         Tuple<NodeId> pattern = TupleFactory.tuple(c, s, p, o);
         return new BackendLazyIterator<>(this, preemptableQuadTupleTable.preemptFind(pattern));
     }

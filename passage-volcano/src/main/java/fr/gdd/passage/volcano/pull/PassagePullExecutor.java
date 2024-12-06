@@ -8,9 +8,6 @@ import fr.gdd.passage.commons.iterators.BackendFilter;
 import fr.gdd.passage.commons.iterators.BackendProject;
 import fr.gdd.passage.commons.transforms.DefaultGraphUriQueryModifier;
 import fr.gdd.passage.volcano.PassageExecutionContext;
-import fr.gdd.passage.volcano.pull.iterators.PassageCount;
-import fr.gdd.passage.volcano.pull.iterators.PassageLimitOffsetFactory;
-import fr.gdd.passage.volcano.pull.iterators.PassageUnion;
 import fr.gdd.passage.volcano.pull.iterators.*;
 import org.apache.jena.sparql.algebra.Op;
 

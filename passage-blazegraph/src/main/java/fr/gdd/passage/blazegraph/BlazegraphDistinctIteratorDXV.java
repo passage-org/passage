@@ -34,7 +34,7 @@ import java.util.Set;
  * distinct ?p , O, ?s
  * distinct ?o , S, ?p
  */
-public class BlazegraphDistinctIteratorDXV extends BackendIterator<IV, BigdataValue, Long> {
+public class BlazegraphDistinctIteratorDXV extends BackendIterator<IV, BigdataValue> {
 
     final AbstractTripleStore store;
     // final IIndex iindex;
@@ -161,7 +161,7 @@ public class BlazegraphDistinctIteratorDXV extends BackendIterator<IV, BigdataVa
      *                   it is the offset of the internal scan iterator.
      */
     @Override
-    public void skip(Long internalTo) {
+    public void skip(long internalTo) {
         if (internalTo <= 0) { return; } // do nothing
 
         try {
@@ -175,7 +175,7 @@ public class BlazegraphDistinctIteratorDXV extends BackendIterator<IV, BigdataVa
     }
 
     @Override
-    public Long current() {
+    public long current() {
         if (Objects.isNull(current)) return 0L;
 
         IPredicate<ISPO> predicate = store.getSPORelation().getPredicate(
@@ -192,7 +192,7 @@ public class BlazegraphDistinctIteratorDXV extends BackendIterator<IV, BigdataVa
     }
 
     @Override
-    public Long previous() {
+    public long previous() {
         // could be supported by keeping it in memory,
         // but flemme for now…
         throw new UnsupportedOperationException();

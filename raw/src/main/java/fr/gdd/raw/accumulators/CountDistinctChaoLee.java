@@ -35,7 +35,7 @@ public class CountDistinctChaoLee<ID,VALUE> implements BackendAccumulator<ID, VA
     private final static Logger log = LoggerFactory.getLogger(CountDistinctChaoLee.class);
 
     final ExecutionContext context;
-    final Backend<ID,VALUE,?> backend;
+    final Backend<ID,VALUE> backend;
     final OpGroup group;
     final BackendCache<ID,VALUE> cache;
 
@@ -140,7 +140,7 @@ public class CountDistinctChaoLee<ID,VALUE> implements BackendAccumulator<ID, VA
         log.debug("BigN SampleSize: " + bigN.sampleSize);
         log.debug("ChaoLee SampleSize: " + sampleSize);
         log.debug("Nb Total Scans: " + context.getContext().get(RawConstants.SCANS));
-        Backend<ID,VALUE,?> backend = context.getContext().get(RawConstants.BACKEND);
+        Backend<ID,VALUE> backend = context.getContext().get(RawConstants.BACKEND);
         return backend.getValue(String.format("\"%s\"^^<%s>", getValueAsDouble(), XSDDatatype.XSDdouble.getURI()));
     }
 

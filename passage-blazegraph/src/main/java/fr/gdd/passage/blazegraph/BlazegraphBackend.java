@@ -45,7 +45,7 @@ import java.util.Set;
  * triple patterns: iterators that can skip ranges of triples efficiently, or
  * return random triples uniformly at random.
  */
-public class BlazegraphBackend implements Backend<IV, BigdataValue, Long>, AutoCloseable{
+public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseable {
 
     private final static Logger log = LoggerFactory.getLogger(BlazegraphBackend.class);
 
@@ -100,23 +100,23 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long>, AutoC
     }
 
     @Override
-    public BackendIterator<IV, BigdataValue, Long> search(IV s, IV p, IV o) {
+    public BackendIterator<IV, BigdataValue> search(IV s, IV p, IV o) {
         return new BackendLazyIterator<>(this,new BlazegraphIterator(store, s, p, o, null));
     }
 
     @Override
-    public BackendIterator<IV, BigdataValue, Long> search(IV s, IV p, IV o, IV c) {
+    public BackendIterator<IV, BigdataValue> search(IV s, IV p, IV o, IV c) {
         return new BackendLazyIterator<>(this,new BlazegraphIterator(store, s, p, o, c));
     }
 
     @Override
-    public BackendIterator<IV, BigdataValue, Long> searchDistinct(IV s, IV p, IV o, Set<Integer> codes) {
+    public BackendIterator<IV, BigdataValue> searchDistinct(IV s, IV p, IV o, Set<Integer> codes) {
         // TODO add laziness
         return BlazegraphDistinctIteratorFactory.get(store, s, p, o, null, codes);
     }
 
     @Override
-    public BackendIterator<IV, BigdataValue, Long> searchDistinct(IV s, IV p, IV o, IV c, Set<Integer> codes) {
+    public BackendIterator<IV, BigdataValue> searchDistinct(IV s, IV p, IV o, IV c, Set<Integer> codes) {
         // TODO add laziness
         return BlazegraphDistinctIteratorFactory.get(store, s, p, o, c, codes);
     }

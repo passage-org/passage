@@ -33,7 +33,7 @@ import java.util.Set;
  * distinct ?o, P, ?s
  * distinct ?s, O, ?p
  */
-public class BlazegraphDistinctIteratorXDV extends BackendIterator<IV, BigdataValue, Long> {
+public class BlazegraphDistinctIteratorXDV extends BackendIterator<IV, BigdataValue> {
 
     final AbstractTripleStore store;
     final IAccessPath<ISPO> accessPath;
@@ -201,7 +201,7 @@ public class BlazegraphDistinctIteratorXDV extends BackendIterator<IV, BigdataVa
      *                   it is the offset of the internal scan iterator.
      */
     @Override
-    public void skip(Long internalTo) {
+    public void skip(long internalTo) {
         if (internalTo == 0) { // Nothing to do
             return;
         }
@@ -221,13 +221,13 @@ public class BlazegraphDistinctIteratorXDV extends BackendIterator<IV, BigdataVa
     }
 
     @Override
-    public Long current() {
+    public long current() {
         if (Objects.isNull(currentValue)) return 0L;
         return iindex.rangeCount(min, currentValue.getKey());
     }
 
     @Override
-    public Long previous() {
+    public long previous() {
         // could be supported by keeping it in memory,
         // but flemme for now…
         throw new UnsupportedOperationException();

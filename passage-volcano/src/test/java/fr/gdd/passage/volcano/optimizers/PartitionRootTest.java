@@ -15,7 +15,7 @@ import org.openrdf.repository.RepositoryException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Disabled("WiP.")
-@Deprecated // TODO
+@Deprecated // TODO probably will be removed in favor of the push iterator model
 public class PartitionRootTest {
 
     @Test

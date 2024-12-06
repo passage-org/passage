@@ -14,11 +14,11 @@ import java.util.Objects;
  */
 public class BackendCache<ID,VALUE> {
 
-    final Backend<ID,VALUE,?> backend;
+    final Backend<ID,VALUE> backend;
 
     Map<Node, ID> node2id = new HashMap<>();
 
-    public BackendCache(Backend<ID,VALUE,?> backend) {
+    public BackendCache(Backend<ID,VALUE> backend) {
         this.backend = backend;
     }
 

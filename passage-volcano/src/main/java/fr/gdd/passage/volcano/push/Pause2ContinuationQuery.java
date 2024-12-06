@@ -3,8 +3,6 @@ package fr.gdd.passage.volcano.push;
 import fr.gdd.jena.utils.FlattenUnflatten;
 import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.jena.visitors.ReturningOpVisitor;
-import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
-import fr.gdd.passage.volcano.CanBeSkipped;
 import fr.gdd.passage.volcano.push.streams.PausableSpliterator;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
@@ -29,11 +27,17 @@ public class Pause2ContinuationQuery<ID,VALUE> extends ReturningOpVisitor<Op> {
     @Override
     public Op visit(OpTriple triple) {
         Set<PausableSpliterator<ID,VALUE>> its = op2its.get(triple);
-        // Set<PausableSpliterator<ID,VALUE>> its = Set.of(op2its.get(triple));
-
         if (Objects.isNull(its) || its.isEmpty()) return null;
-
         // unionize the lot of triple iterators
+        return its.stream().map(PausableSpliterator::pause).reduce(null,
+                (l, r) -> Objects.isNull(l) ? r : OpUnion.create(l, r));
+    }
+
+    @Override
+    public Op visit(OpQuad quad) {
+        Set<PausableSpliterator<ID,VALUE>> its = op2its.get(quad);
+        if (Objects.isNull(its) || its.isEmpty()) return null;
+        // unionize the lot of quads iterators
         return its.stream().map(PausableSpliterator::pause).reduce(null,
                 (l, r) -> Objects.isNull(l) ? r : OpUnion.create(l, r));
     }
@@ -83,6 +87,20 @@ public class Pause2ContinuationQuery<ID,VALUE> extends ReturningOpVisitor<Op> {
     }
 
     @Override
+    public Op visit(OpTable table) {
+        if (table.isJoinIdentity()) {
+            return null; // nothing to save
+        }
+        // otherwise values
+        Set<PausableSpliterator<ID,VALUE>> its = op2its.get(table);
+        if (Objects.isNull(its) || its.isEmpty()) return null;
+        return its.stream().map(PausableSpliterator::pause).reduce(null,
+                (l, r) -> Objects.isNull(l) ? r : OpUnion.create(l, r));
+    }
+
+    /* **************** UNARY OPERATORS WITHOUT INTERNAL STATES ******************* */
+
+    @Override
     public Op visit(OpExtend extend) {
         Op subop = this.visit(extend.getSubOp());
         // TODO subop can be null because done, but should return done
@@ -91,15 +109,13 @@ public class Pause2ContinuationQuery<ID,VALUE> extends ReturningOpVisitor<Op> {
 
     @Override
     public Op visit(OpProject project) {
-        Op subop =  ReturningOpVisitorRouter.visit(this, project.getSubOp());
+        Op subop = this.visit(project.getSubOp());
         return Objects.isNull(subop) ? null : OpCloningUtil.clone(project, subop);
     }
 
     @Override
-    public Op visit(OpTable table) {
-        if (table.isJoinIdentity()) {
-            return null;
-        }
-        throw new UnsupportedOperationException("Not implemented yet");
+    public Op visit(OpFilter filter) {
+        Op subop = this.visit(filter.getSubOp());
+        return Objects.isNull(subop) ? null : OpCloningUtil.clone(filter, subop);
     }
 }

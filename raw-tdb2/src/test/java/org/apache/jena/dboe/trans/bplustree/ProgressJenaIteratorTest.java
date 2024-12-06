@@ -69,12 +69,12 @@ class ProgressJenaIteratorTest {
         PreemptJenaIterator.NB_WALKS = 200000;
 
         var it = backend.search(backend.any(), given, backend.any());
-        ProgressJenaIterator casted = (ProgressJenaIterator) ((BackendLazyIterator<?,?,?>)it).iterator;
+        ProgressJenaIterator casted = (ProgressJenaIterator) ((BackendLazyIterator<?,?>)it).iterator;
         log.info("Expected 69970, got {}.", casted.cardinality());
         assertTrue(66000 < casted.cardinality(Integer.MAX_VALUE) && casted.cardinality(Integer.MAX_VALUE) < 74000);
 
         it = backend.search(backend.any(), family, backend.any());
-        casted = (ProgressJenaIterator) ((BackendLazyIterator<?,?,?>)it).iterator;
+        casted = (ProgressJenaIterator) ((BackendLazyIterator<?,?>)it).iterator;
         log.info("Expected 69970, got {}.", casted.cardinality());
         assertTrue(66000 < casted.cardinality(Integer.MAX_VALUE) && casted.cardinality(Integer.MAX_VALUE) < 74000);
     }
@@ -93,38 +93,38 @@ class ProgressJenaIteratorTest {
 
         NodeId price = backend.getId("<http://purl.org/goodrelations/price>");
         var it = backend.search(backend.any(), price, backend.any());
-        ProgressJenaIterator casted = (ProgressJenaIterator) ((BackendLazyIterator<?,?,?>) it).iterator;
+        ProgressJenaIterator casted = (ProgressJenaIterator) ((BackendLazyIterator<?,?>) it).iterator;
         assertEquals(240000, casted.cardinality(Integer.MAX_VALUE));
         log.info("Expected 240000, got {}.", casted.cardinality(200000));
 
         NodeId eligible = backend.getId("<http://schema.org/eligibleQuantity>");
         it = backend.search(backend.any(), eligible, backend.any());
-        casted = (ProgressJenaIterator) ((BackendLazyIterator<?,?,?>) it).iterator;
+        casted = (ProgressJenaIterator) ((BackendLazyIterator<?,?>) it).iterator;
         assertEquals(90000, casted.cardinality(Integer.MAX_VALUE));
         log.info("Expected 90000, got {}.", casted.cardinality(200000));
 
         NodeId text = backend.getId("<http://schema.org/text>");
         it = backend.search(backend.any(), text, backend.any());
-        casted = (ProgressJenaIterator) ((BackendLazyIterator<?,?,?>) it).iterator;
+        casted = (ProgressJenaIterator) ((BackendLazyIterator<?,?>) it).iterator;
         assertEquals(7476, casted.cardinality(Integer.MAX_VALUE));
         log.info("Expected 7476, got {}.", casted.cardinality(200000));
 
         NodeId include = backend.getId("<http://purl.org/goodrelations/includes>");
         it = backend.search(backend.any(), include, backend.any());
-        casted = (ProgressJenaIterator) ((BackendLazyIterator<?,?,?>) it).iterator;
+        casted = (ProgressJenaIterator) ((BackendLazyIterator<?,?>) it).iterator;
         assertEquals(90000, casted.cardinality(Integer.MAX_VALUE));
         log.info("Expected 90000, got {}.", casted.cardinality(200000));
 
         NodeId valid = backend.getId("<http://purl.org/goodrelations/validThrough>");
         it = backend.search(backend.any(), valid, backend.any());
-        casted = (ProgressJenaIterator) ((BackendLazyIterator<?,?,?>) it).iterator;
+        casted = (ProgressJenaIterator) ((BackendLazyIterator<?,?>) it).iterator;
         assertEquals(36346, casted.cardinality(Integer.MAX_VALUE));
         log.info("Expected 36346, got {}.", casted.cardinality(200000));
 
         NodeId region = backend.getId("<http://schema.org/eligibleRegion>");
         NodeId country21 = backend.getId("<http://db.uwaterloo.ca/~galuc/wsdbm/Country21>");
         it = backend.search(backend.any(), region, country21);
-        casted = (ProgressJenaIterator) ((BackendLazyIterator<?,?,?>) it).iterator;
+        casted = (ProgressJenaIterator) ((BackendLazyIterator<?,?>) it).iterator;
         assertEquals(2613, casted.cardinality(Integer.MAX_VALUE));
         log.info("Expected 2613, got {}.", casted.cardinality(200000));
     }
@@ -136,33 +136,33 @@ class ProgressJenaIteratorTest {
 
         NodeId price = backend.getId("<http://purl.org/goodrelations/price>");
         var it = backend.search(backend.any(), price, backend.any());
-        ProgressJenaIterator casted = (ProgressJenaIterator) ((BackendLazyIterator<?,?,?>) it).iterator;
+        ProgressJenaIterator casted = (ProgressJenaIterator) ((BackendLazyIterator<?,?>) it).iterator;
         assertEquals(240000, casted.getTreeOfCardinality().sum);
 
         NodeId eligible = backend.getId("<http://schema.org/eligibleQuantity>");
         it = backend.search(backend.any(), eligible,backend.any());
-        casted =(ProgressJenaIterator)((BackendLazyIterator<?,?,?>)it).iterator;
+        casted =(ProgressJenaIterator)((BackendLazyIterator<?,?>)it).iterator;
         assertEquals(90000, casted.getTreeOfCardinality().sum);
 
         NodeId text = backend.getId("<http://schema.org/text>");
         it = backend.search(backend.any(),text,backend.any());
-        casted =(ProgressJenaIterator)((BackendLazyIterator<?,?,?>)it).iterator;
+        casted =(ProgressJenaIterator)((BackendLazyIterator<?,?>)it).iterator;
         assertEquals(7476, casted.getTreeOfCardinality().sum);
 
         NodeId include = backend.getId("<http://purl.org/goodrelations/includes>");
         it = backend.search(backend.any(),include,backend.any());
-        casted =(ProgressJenaIterator)((BackendLazyIterator<?,?,?>)it).iterator;
+        casted =(ProgressJenaIterator)((BackendLazyIterator<?,?>)it).iterator;
         assertEquals(90000, casted.getTreeOfCardinality().sum);
 
         NodeId valid = backend.getId("<http://purl.org/goodrelations/validThrough>");
         it = backend.search(backend.any(),valid,backend.any());
-        casted =(ProgressJenaIterator)((BackendLazyIterator<?,?,?>)it).iterator;
+        casted =(ProgressJenaIterator)((BackendLazyIterator<?,?>)it).iterator;
         assertEquals(36346, casted.getTreeOfCardinality().sum);
 
         NodeId region = backend.getId("<http://schema.org/eligibleRegion>");
         NodeId country21 = backend.getId("<http://db.uwaterloo.ca/~galuc/wsdbm/Country21>");
         it = backend.search(backend.any(),region,country21);
-        casted =(ProgressJenaIterator)((BackendLazyIterator<?,?,?>)it).iterator;
+        casted =(ProgressJenaIterator)((BackendLazyIterator<?,?>)it).iterator;
         assertEquals(2613, casted.getTreeOfCardinality().sum);
     }
 
@@ -177,16 +177,16 @@ class ProgressJenaIteratorTest {
         // min and the max.
         ProgressJenaIterator.NB_WALKS = 1000;
         JenaBackend backend = new JenaBackend("../target/watdiv10M");
-        ProgressJenaIterator it = (ProgressJenaIterator) ((BackendLazyIterator<?,?,?>)backend.search(backend.any(), backend.any(), backend.any())).iterator;
+        ProgressJenaIterator it = (ProgressJenaIterator) ((BackendLazyIterator<?,?>)backend.search(backend.any(), backend.any(), backend.any())).iterator;
         HashMap<Tuple<NodeId>, ImmutableTriple<Double, Double, Double>> recordToProba = new HashMap<>();
 
         log.debug("Start random sampling…");
         for (int i = 0; i < 100_000; ++i) {
             var rWp = it.getRandomSPOWithProbability();
             Tuple<NodeId> ids = rWp.getLeft();
-            BackendLazyIterator<?,?,?> s = (BackendLazyIterator<?,?,?>)backend.search(ids.get(0), backend.any(), backend.any());
+            BackendLazyIterator<?,?> s = (BackendLazyIterator<?,?>)backend.search(ids.get(0), backend.any(), backend.any());
             ProgressJenaIterator sR = (ProgressJenaIterator) s.iterator;
-            BackendLazyIterator<?,?,?> o = (BackendLazyIterator<?,?,?>)backend.search(backend.any(), backend.any(), ids.get(2));
+            BackendLazyIterator<?,?> o = (BackendLazyIterator<?,?>)backend.search(backend.any(), backend.any(), ids.get(2));
             ProgressJenaIterator oR = (ProgressJenaIterator) o.iterator;
             recordToProba.put(ids, new ImmutableTriple<>(rWp.getRight(), oR.cardinality(), sR.cardinality()));
         }
@@ -220,7 +220,7 @@ class ProgressJenaIteratorTest {
         ProgressJenaIterator.NB_WALKS = 1000;
         final double DISTINCT_SUBJECT = 521_585.;
         JenaBackend backend = new JenaBackend("../target/watdiv10M");
-        BackendLazyIterator<?,?,?> spo = (BackendLazyIterator<?,?,?>)backend.search(backend.any(), backend.any(), backend.any());
+        BackendLazyIterator<?,?> spo = (BackendLazyIterator<?,?>)backend.search(backend.any(), backend.any(), backend.any());
         ProgressJenaIterator spoR = (ProgressJenaIterator) spo.iterator;
 
         int sampleSize = 10_000;
@@ -231,7 +231,7 @@ class ProgressJenaIteratorTest {
                 var rWp = spoR.getUniformRandomSPO();
                 Tuple<NodeId> ids = rWp;
                 // LazyIterator o = (LazyIterator) backend.search(backend.any(), backend.any(), ids.get(2));
-                BackendLazyIterator<?,?,?> o = (BackendLazyIterator<?,?,?>) backend.search(ids.get(0), backend.any(), backend.any());
+                BackendLazyIterator<?,?> o = (BackendLazyIterator<?,?>) backend.search(ids.get(0), backend.any(), backend.any());
                 ProgressJenaIterator oR = (ProgressJenaIterator) o.iterator;
                 sum += 1. / oR.cardinality(); // since uniform, the formula is simpler
             }
@@ -254,7 +254,7 @@ class ProgressJenaIteratorTest {
         final double DISTINCT_SUBJECT = 521585.;
         JenaBackend backend = new JenaBackend("../target/watdiv10M");
 
-        ProgressJenaIterator it = (ProgressJenaIterator) ((BackendLazyIterator<?,?,?>) backend.search(backend.any(), backend.any(), backend.any())).iterator;
+        ProgressJenaIterator it = (ProgressJenaIterator) ((BackendLazyIterator<?,?>) backend.search(backend.any(), backend.any(), backend.any())).iterator;
 
         List<ImmutablePair<Double, Double>> sampleWithProbaAndCard = new ArrayList<>();
 
@@ -263,7 +263,7 @@ class ProgressJenaIteratorTest {
         for (int i = 0; i < SAMPLE_SIZE; ++i) {
             var rWp = it.getRandomSPOWithProbability();
             Tuple<NodeId> ids = rWp.getLeft();
-            BackendLazyIterator<?,?,?> s = (BackendLazyIterator<?,?,?>) backend.search(ids.get(0), backend.any(), backend.any());
+            BackendLazyIterator<?,?> s = (BackendLazyIterator<?,?>) backend.search(ids.get(0), backend.any(), backend.any());
             ProgressJenaIterator sR = (ProgressJenaIterator) s.iterator; // to get Fi
             sampleWithProbaAndCard.add(new ImmutablePair<>(rWp.getRight(), sR.count()));
         }
@@ -295,7 +295,7 @@ class ProgressJenaIteratorTest {
         NodeId is_a = backend.getId("<http://is_a>", SPOC.PREDICATE);
         NodeId prof = backend.getId("<http://Prof>", SPOC.OBJECT);
 
-        ProgressJenaIterator pIsAProf = (ProgressJenaIterator)((BackendLazyIterator<?,?,?>) backend.search(backend.any(), is_a, prof)).iterator;
+        ProgressJenaIterator pIsAProf = (ProgressJenaIterator)((BackendLazyIterator<?,?>) backend.search(backend.any(), is_a, prof)).iterator;
         Map<Record, Integer> record2Count = new HashMap<>();
         for (int i = 0; i < SAMPLE_SIZE; ++i) {
             Record record = pIsAProf.getUniformRandom();
@@ -340,7 +340,7 @@ class ProgressJenaIteratorTest {
         NodeId teaches = backend.getId("<http://teaches>", SPOC.PREDICATE);
         NodeId belongs_to = backend.getId("<http://belongs_to>", SPOC.PREDICATE);
 
-        ProgressJenaIterator spo = (ProgressJenaIterator)((BackendLazyIterator<?,?,?>) backend.search(backend.any(), backend.any(), backend.any())).iterator;
+        ProgressJenaIterator spo = (ProgressJenaIterator)((BackendLazyIterator<?,?>) backend.search(backend.any(), backend.any(), backend.any())).iterator;
         double cardinality = spo.count();
         double estimated = spo.cardinality();
         double relativeErr = Math.abs(cardinality- estimated)/cardinality;
@@ -348,15 +348,15 @@ class ProgressJenaIteratorTest {
 
         log.info("Running the full query to capture exact data…");
         double total = 0.;
-        BackendIterator<NodeId, Node, ?> pIsAProfIt = backend.search(backend.any(), is_a, prof);
+        BackendIterator<NodeId, Node> pIsAProfIt = backend.search(backend.any(), is_a, prof);
         Map<NodeId, Double> group2cardinality = new HashMap<>();
         while (pIsAProfIt.hasNext()) {
             pIsAProfIt.next();
             // ?p teaches ?s
-            BackendIterator<NodeId, Node, ?> pTeachesSIt = backend.search(pIsAProfIt.getId(SPOC.SUBJECT), teaches, backend.any());
+            BackendIterator<NodeId, Node> pTeachesSIt = backend.search(pIsAProfIt.getId(SPOC.SUBJECT), teaches, backend.any());
             while (pTeachesSIt.hasNext()) {
                 pTeachesSIt.next();
-                BackendIterator<NodeId, Node, ?> sBelongsToGIt = backend.search(pTeachesSIt.getId(SPOC.OBJECT), belongs_to, backend.any());
+                BackendIterator<NodeId, Node> sBelongsToGIt = backend.search(pTeachesSIt.getId(SPOC.OBJECT), belongs_to, backend.any());
                 while (sBelongsToGIt.hasNext()){
                     sBelongsToGIt.next();
                     total += 1; // Counting the total to get the exact |N|

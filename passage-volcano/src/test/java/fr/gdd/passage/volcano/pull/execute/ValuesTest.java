@@ -93,7 +93,7 @@ public class ValuesTest {
     }
 
     @Test
-    public void values_that_do_not_exist () throws RepositoryException { // TODO
+    public void values_that_do_not_exist () throws RepositoryException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String query = """
             SELECT * WHERE {
@@ -140,7 +140,7 @@ public class ValuesTest {
     }
 
     @Test
-    public void caerthesian_product_with_values () throws RepositoryException {
+    public void carthesian_product_with_values () throws RepositoryException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         String query = """
             SELECT * WHERE {

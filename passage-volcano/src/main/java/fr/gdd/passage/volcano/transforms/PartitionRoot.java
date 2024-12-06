@@ -23,10 +23,10 @@ import java.util.List;
  */
 public class PartitionRoot<ID,VALUE> extends ReturningOpVisitor<Op> {
 
-    final Backend<ID,VALUE,Long> backend;
+    final Backend<ID,VALUE> backend;
     final Integer nbThreads;
 
-    public PartitionRoot(Backend<ID,VALUE,Long> backend, Integer nbThreads) {
+    public PartitionRoot(Backend<ID,VALUE> backend, Integer nbThreads) {
         this.backend = backend;
         this.nbThreads = nbThreads;
     }

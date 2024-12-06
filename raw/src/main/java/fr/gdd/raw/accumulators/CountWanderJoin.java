@@ -66,7 +66,7 @@ public class CountWanderJoin<ID, VALUE> implements BackendAccumulator<ID,VALUE> 
 
     @Override
     public VALUE getValue() {
-        Backend<ID,VALUE,?> backend = context.getContext().get(RawConstants.BACKEND);
+        Backend<ID,VALUE> backend = context.getContext().get(RawConstants.BACKEND);
         return backend.getValue(String.format("\"%s\"^^<%s>", getValueAsDouble(), XSDDatatype.XSDdouble.getURI()));
     }
 

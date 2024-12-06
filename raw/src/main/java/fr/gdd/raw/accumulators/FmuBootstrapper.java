@@ -38,13 +38,13 @@ import java.util.Set;
  */
 public class FmuBootstrapper<ID,VALUE> extends ReturningArgsOpVisitor<Double, Set<Var>> {
 
-    final Backend<ID,VALUE,?> backend;
+    final Backend<ID,VALUE> backend;
     final BackendCache<ID,VALUE> cache;
     final BackendBindings<ID,VALUE> bindings;
 
     BackendCache<ID,VALUE> dedicatedCache;
 
-    public FmuBootstrapper(Backend<ID,VALUE,?> backend, BackendCache<ID,VALUE> cache, BackendBindings<ID,VALUE> bindings) {
+    public FmuBootstrapper(Backend<ID,VALUE> backend, BackendCache<ID,VALUE> cache, BackendBindings<ID,VALUE> bindings) {
         this.backend = backend;
         this.cache = cache;
         this.bindings = bindings;

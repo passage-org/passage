@@ -50,7 +50,7 @@ public class BackendBindings<ID, VALUE> implements Binding {
         VALUE value = null;
         String asString = null;
         Integer code = null;
-        Backend<ID, VALUE, ?> backend = null;
+        Backend<ID, VALUE> backend = null;
 
         public IdValueBackend<ID, VALUE> setString(String asString) {
             this.asString = asString;
@@ -72,7 +72,7 @@ public class BackendBindings<ID, VALUE> implements Binding {
             return this;
         }
 
-        public IdValueBackend<ID, VALUE> setBackend(Backend<ID, VALUE, ?> backend) {
+        public IdValueBackend<ID, VALUE> setBackend(Backend<ID, VALUE> backend) {
             this.backend = backend;
             return this;
         }
@@ -112,9 +112,11 @@ public class BackendBindings<ID, VALUE> implements Binding {
 
     public BackendBindings () {}
 
-    public BackendBindings (QuerySolution solution) {
+    public BackendBindings (QuerySolution solution, Backend<ID,VALUE> backend) {
         solution.varNames().forEachRemaining(v -> put(Var.alloc(v),
-                new IdValueBackend<ID,VALUE>().setString(NodeFmtLib.str(solution.get(v).asNode(), null))));
+                new IdValueBackend<ID,VALUE>()
+                        .setBackend(backend)
+                        .setString(NodeFmtLib.str(solution.get(v).asNode(), null)))); // TODO context
     }
 
     /**
@@ -154,7 +156,7 @@ public class BackendBindings<ID, VALUE> implements Binding {
         return this;
     }
 
-    public BackendBindings<ID, VALUE> put(Var var, ID id, Backend<ID, VALUE, ?> backend) {
+    public BackendBindings<ID, VALUE> put(Var var, ID id, Backend<ID, VALUE> backend) {
         var2binding.put(var, new IdValueBackend<ID, VALUE>().setBackend(backend).setId(id));
         return this;
     }

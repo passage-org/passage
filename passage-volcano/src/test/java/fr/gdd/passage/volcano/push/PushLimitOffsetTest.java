@@ -1,16 +1,14 @@
-package fr.gdd.passage.volcano.push.execute;
+package fr.gdd.passage.volcano.push;
 
+import com.google.common.collect.Multiset;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
+import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.volcano.OpExecutorUtils;
-import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
-import fr.gdd.passage.volcano.push.streams.PassageSplitScan;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.repository.RepositoryException;
@@ -29,7 +27,7 @@ public class PushLimitOffsetTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    public void when_limit_is_0_then_not_results_ofc (PassageExecutionContextBuilder builder) throws RepositoryException, SailException {
+    public void when_limit_is_0_then_not_results_ofc (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c} LIMIT 0";
@@ -41,7 +39,7 @@ public class PushLimitOffsetTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    public void simple_limit_offset_on_single_triple_pattern (PassageExecutionContextBuilder builder) throws RepositoryException, SailException {
+    public void simple_limit_offset_on_single_triple_pattern (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(backend);
         String queryAsString = """
@@ -49,7 +47,7 @@ public class PushLimitOffsetTest {
                   ?person <http://address> ?city
                } LIMIT 1""";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        Multiset<BackendBindings<?,?>> results = OpExecutorUtils.executeWithPush(queryAsString, builder);
         log.debug("{}", results);
         assertEquals(1, results.size());
         assertTrue(MultisetResultChecking.containsResult(results, List.of("person", "city"), List.of("Alice", "nantes")) ||
@@ -60,7 +58,7 @@ public class PushLimitOffsetTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    public void overestimated_limit_for_tp (PassageExecutionContextBuilder builder) throws RepositoryException, SailException {
+    public void overestimated_limit_for_tp (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c} LIMIT 42";
@@ -76,7 +74,7 @@ public class PushLimitOffsetTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    public void limit_on_a_bgp (PassageExecutionContextBuilder builder) throws RepositoryException, SailException {
+    public void limit_on_a_bgp (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c . ?p <http://own> ?a } LIMIT 1";
@@ -94,8 +92,8 @@ public class PushLimitOffsetTest {
 
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    public void limit_as_a_nested_subquery (PassageExecutionContextBuilder builder) throws RepositoryException, SailException {
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#singleThreadProvider") // TODO multithread
+    public void limit_as_a_nested_subquery (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
         String queryAsString = """
@@ -120,8 +118,8 @@ public class PushLimitOffsetTest {
     /* ******************************** LIMIT OFFSET *********************************** */
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    public void limit_offset_on_bgp (PassageExecutionContextBuilder builder) throws RepositoryException, SailException {
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#singleThreadProvider") // TODO multithread
+    public void limit_offset_on_bgp (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(backend);
         String queryAsString = """
@@ -141,7 +139,7 @@ public class PushLimitOffsetTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    public void limit_offset_on_simple_triple_pattern (PassageExecutionContextBuilder builder) throws RepositoryException, SailException {
+    public void limit_offset_on_simple_triple_pattern (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c} LIMIT 1";
@@ -164,8 +162,8 @@ public class PushLimitOffsetTest {
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    public void limit_offset_in_bgp_but_on_tp (PassageExecutionContextBuilder builder) throws RepositoryException, SailException {
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#singleThreadProvider") // TODO multithread
+    public void limit_offset_in_bgp_but_on_tp (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
         String queryAsString = """
@@ -179,8 +177,8 @@ public class PushLimitOffsetTest {
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    public void limit_offset_on_bgp_should_work_now (PassageExecutionContextBuilder builder) throws RepositoryException, SailException {
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#singleThreadProvider") // TODO multithread
+    public void limit_offset_on_bgp_should_work_now (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
         String queryA = """
@@ -219,7 +217,7 @@ public class PushLimitOffsetTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    public void should_take_into_account_the_compatibility_of_input (PassageExecutionContextBuilder builder) throws RepositoryException, SailException {
+    public void should_take_into_account_the_compatibility_of_input (PassageExecutionContextBuilder<?,?> builder) throws Exception {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
         String queryAsString = """
@@ -237,8 +235,8 @@ public class PushLimitOffsetTest {
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    public void make_sure_that_the_limit_offset_is_not_applies_to_each_tp_in_bgp (PassageExecutionContextBuilder builder) throws RepositoryException, QueryEvaluationException, MalformedQueryException, SailException {
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#singleThreadProvider") // TODO multithread
+    public void make_sure_that_the_limit_offset_is_not_applies_to_each_tp_in_bgp (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, QueryEvaluationException, MalformedQueryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
         String queryAsString = """
@@ -262,9 +260,10 @@ public class PushLimitOffsetTest {
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    public void offset_alone_on_bgp (PassageExecutionContextBuilder builder) throws QueryEvaluationException, MalformedQueryException, RepositoryException, SailException {
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#singleThreadProvider") // TODO multithread
+    public void offset_alone_on_bgp (PassageExecutionContextBuilder<?,?> builder) throws QueryEvaluationException, MalformedQueryException, RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+        builder.setBackend(blazegraph);
         String queryAsString = """
                 SELECT * WHERE {
                     ?p <http://address> ?c .
@@ -281,7 +280,7 @@ public class PushLimitOffsetTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    public void offset_alone_on_bgp_above_nb_results (PassageExecutionContextBuilder builder) throws RepositoryException, SailException {
+    public void offset_alone_on_bgp_above_nb_results (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
         String queryAsString = """

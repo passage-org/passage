@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.push.execute;
+package fr.gdd.passage.volcano.push;
 
 import com.google.common.collect.ConcurrentHashMultiset;
 import com.google.common.collect.Multiset;
@@ -12,7 +12,6 @@ import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.algebra.op.OpTriple;
 import org.apache.jena.sparql.core.Var;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
@@ -30,13 +29,10 @@ class PassageSplitScanTest {
 
     private static final Logger log = LoggerFactory.getLogger(PassageSplitScanTest.class);
 
-    @BeforeEach
-    public void make_sure_we_dont_stop () { PassageSplitScan.stopping = (e) -> false; }
-
     @Test
     public void correct_offset_limits_for_split_tps () throws RepositoryException {
         BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
-        var context = new PassageExecutionContextBuilder().setBackend(backend).build();
+        var context = new PassageExecutionContextBuilder<>().setBackend(backend).build();
 
         OpTriple tp = new OpTriple(Triple.create(
                 Var.alloc("s"),

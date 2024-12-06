@@ -1,12 +1,10 @@
-package fr.gdd.passage.volcano.push.execute;
+package fr.gdd.passage.volcano.push;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
-import fr.gdd.passage.volcano.push.streams.PassageSplitScan;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.openrdf.repository.RepositoryException;
@@ -21,7 +19,7 @@ public class PushBindAsTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    public void create_a_bind_for_nothing (PassageExecutionContextBuilder builder) throws RepositoryException, SailException {
+    public void create_a_bind_for_nothing (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
         String queryAsString = """
@@ -38,7 +36,7 @@ public class PushBindAsTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    public void create_a_bind_and_execute_a_tp (PassageExecutionContextBuilder builder) throws RepositoryException, SailException {
+    public void create_a_bind_and_execute_a_tp (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
         String queryAsString = """
@@ -56,7 +54,7 @@ public class PushBindAsTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    public void a_bind_with_an_expression_to_evaluate (PassageExecutionContextBuilder builder) throws RepositoryException, SailException {
+    public void a_bind_with_an_expression_to_evaluate (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
         String queryAsString = """
@@ -73,7 +71,7 @@ public class PushBindAsTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    public void function_in_bind (PassageExecutionContextBuilder builder) throws RepositoryException, SailException {
+    public void function_in_bind (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9PlusLiterals());
         builder.setBackend(blazegraph);
         String queryAsString = """

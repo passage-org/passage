@@ -23,7 +23,7 @@ public class RawOpExecutorUtils {
      * @param limit The number of scans to perform.
      * @return The random solutions mappings.
      */
-    public static <ID,VALUE> Multiset<String> execute(String queryAsString, Backend<ID,VALUE,?> backend, Long limit) {
+    public static <ID,VALUE> Multiset<String> execute(String queryAsString, Backend<ID,VALUE> backend, Long limit) {
         Op query = Algebra.compile(QueryFactory.create(queryAsString));
 
         RawOpExecutor<ID,VALUE> executor = new RawOpExecutor<ID,VALUE>()
@@ -61,7 +61,7 @@ public class RawOpExecutorUtils {
     }
 
     public static <ID,VALUE> Multiset<BackendBindings<?,?>> executeWithRaw(String queryAsString,
-                                                                           Backend<ID,VALUE,?> backend,
+                                                                           Backend<ID,VALUE> backend,
                                                                            long limit) {
         Op query = Algebra.compile(QueryFactory.create(queryAsString));
 
@@ -81,7 +81,7 @@ public class RawOpExecutorUtils {
     }
 
     public static <ID,VALUE> Multiset<BackendBindings<?,?>> executeWithRaw(String queryAsString,
-                                                                           Backend<ID,VALUE,?> backend,
+                                                                           Backend<ID,VALUE> backend,
                                                                            long limit, long timeout) {
         Op query = Algebra.compile(QueryFactory.create(queryAsString));
 

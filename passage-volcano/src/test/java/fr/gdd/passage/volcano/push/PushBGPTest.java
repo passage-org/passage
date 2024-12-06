@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.push.execute;
+package fr.gdd.passage.volcano.push;
 
 import com.google.common.collect.ConcurrentHashMultiset;
 import com.google.common.collect.Multiset;
@@ -43,7 +43,23 @@ public class PushBGPTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    public void a_tp_with_an_unknown_value (PassageExecutionContextBuilder builder) throws RepositoryException, SailException {
+    public void a_literal_at_predicate_position (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+        builder.setBackend(blazegraph);
+        String queryAsString = """
+                SELECT * WHERE {
+                    VALUES ?predicate { "12" }
+                    ?p ?predicate ?c
+                }""";
+
+        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        assertEquals(0, results.size());
+        blazegraph.close();
+    }
+
+    @ParameterizedTest
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    public void a_tp_with_an_unknown_value (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
         String queryAsString = "SELECT * WHERE {?p <http://does_not_exist> ?c}";
@@ -55,7 +71,7 @@ public class PushBGPTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    public void a_bgp_with_an_unknown_value (PassageExecutionContextBuilder builder) throws RepositoryException, SailException {
+    public void a_bgp_with_an_unknown_value (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c . ?p <http://does_not_exist> ?c}";
@@ -67,7 +83,47 @@ public class PushBGPTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    public void bgp_of_1_tp (PassageExecutionContextBuilder builder) throws RepositoryException, SailException {
+    void an_unknown_value_at_first_but_then_known (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+        builder.setBackend(blazegraph);
+        String queryAsString = """
+                SELECT * WHERE {
+                    VALUES ?predicate { <http://does_not_exist> <http://address> }
+                    ?p ?predicate ?c}
+                """;
+
+        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        assertEquals(3, results.size());
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "predicate", "c"),
+                List.of("Alice", "address", "nantes"),
+                List.of("Bob", "address", "paris"),
+                List.of("Carol", "address", "nantes")));
+        blazegraph.close();
+    }
+
+    @ParameterizedTest
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    void an_unknown_value_at_first_but_then_known_but_known_first (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+        builder.setBackend(blazegraph);
+        String queryAsString = """
+                SELECT * WHERE {
+                    VALUES ?predicate { <http://address> <http://does_not_exist> }
+                    ?p ?predicate ?c}
+                """;
+
+        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        assertEquals(3, results.size());
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "predicate", "c"),
+                List.of("Alice", "address", "nantes"),
+                List.of("Bob", "address", "paris"),
+                List.of("Carol", "address", "nantes")));
+        blazegraph.close();
+    }
+
+    @ParameterizedTest
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    public void bgp_of_1_tp (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c}";
@@ -83,7 +139,7 @@ public class PushBGPTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    public void bgp_of_2_tps (PassageExecutionContextBuilder builder) throws RepositoryException, SailException {
+    public void bgp_of_2_tps (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
         String queryAsString = """
@@ -103,7 +159,7 @@ public class PushBGPTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    public void bgp_of_3_tps (PassageExecutionContextBuilder builder) throws RepositoryException, SailException {
+    public void bgp_of_3_tps (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
         String queryAsString = """
@@ -191,7 +247,7 @@ public class PushBGPTest {
     public void query_watdiv_hand_written () {
         Assumptions.assumeTrue(Path.of(WatDivTest.PATH).toFile().exists());
         BlazegraphBackend watdiv = WatDivTest.watdivBlazegraph;
-        var c = new PassageExecutionContextBuilder().setBackend(watdiv).build();
+        var c = new PassageExecutionContextBuilder<>().setBackend(watdiv).build();
 
         // SELECT  * WHERE {
         //    ?v1 <http://www.geonames.org/ontology#parentCountry>  ?v2 .
@@ -236,6 +292,6 @@ public class PushBGPTest {
     }
 
     static ExecutionContext reset(ExecutionContext context) {
-       return new PassageExecutionContextBuilder().setContext(context).build().setLimit(null).setOffset(0L);
+        return new PassageExecutionContextBuilder<>().setContext(context).build().setLimit(null).setOffset(0L);
     }
 }

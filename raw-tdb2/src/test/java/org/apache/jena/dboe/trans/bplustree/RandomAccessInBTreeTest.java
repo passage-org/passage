@@ -32,7 +32,7 @@ public class RandomAccessInBTreeTest {
     @Test
     public void spo_in_small_dataset() {
         JenaBackend backend = new JenaBackend(TDB2InMemoryDatasetsFactory.triple9());
-        BackendIterator<NodeId, Node, ?> it = backend.search(backend.any(), backend.any(), backend.any());
+        BackendIterator<NodeId, Node> it = backend.search(backend.any(), backend.any(), backend.any());
 
         Multiset<String> expected = HashMultiset.create();
         while (it.hasNext()) {
@@ -56,7 +56,7 @@ public class RandomAccessInBTreeTest {
     public void predicate_bounded_in_small_dataset() {
         JenaBackend backend = new JenaBackend(TDB2InMemoryDatasetsFactory.triple9());
         NodeId address = backend.getId("<http://address>");
-        BackendIterator<NodeId, Node, ?> it = backend.search(backend.any(), address, backend.any());
+        BackendIterator<NodeId, Node> it = backend.search(backend.any(), address, backend.any());
 
         Multiset<String> results = HashMultiset.create();
         for (int i = 0; i < 1000; ++i) {

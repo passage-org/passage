@@ -28,8 +28,8 @@ public class RandomScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE
 
     final ExecutionContext context;
     final Op0 tripleOrQuad;
-    final BackendIterator<ID, VALUE, ?> iterator;
-    final Backend<ID, VALUE, ?> backend;
+    final BackendIterator<ID, VALUE> iterator;
+    final Backend<ID, VALUE> backend;
     final Tuple<Var> vars;
 
     public RandomScan(ExecutionContext context, Op0 opTripleOrQuad, Tuple<ID> spo) {

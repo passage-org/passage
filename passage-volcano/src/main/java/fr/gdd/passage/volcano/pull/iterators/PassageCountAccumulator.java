@@ -43,7 +43,7 @@ public class PassageCountAccumulator<ID,VALUE> implements BackendAccumulator<ID,
 
     @Override
     public VALUE getValue() {
-        Backend<ID,VALUE,?> backend = context.getContext().get(BackendConstants.BACKEND);
+        Backend<ID,VALUE> backend = context.getContext().get(BackendConstants.BACKEND);
         return backend.getValue(String.format("\"%s\"^^<http://www.w3.org/2001/XMLSchema#integer>", value));
     }
 }

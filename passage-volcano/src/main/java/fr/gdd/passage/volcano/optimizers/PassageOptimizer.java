@@ -21,11 +21,11 @@ public class PassageOptimizer<ID,VALUE> {
 
     private static final Logger log = LoggerFactory.getLogger(PassageOptimizer.class);
 
-    final Backend<ID,VALUE,Long> backend;
+    final Backend<ID,VALUE> backend;
     final BackendCache<ID,VALUE> cache;
     boolean forceOrder = false;
 
-    public PassageOptimizer(Backend<ID,VALUE,Long> backend, BackendCache<ID,VALUE> cache) {
+    public PassageOptimizer(Backend<ID,VALUE> backend, BackendCache<ID,VALUE> cache) {
         this.backend = backend;
         this.cache = cache;
     }

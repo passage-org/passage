@@ -5,17 +5,15 @@ import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
 
-import java.io.Serializable;
-
 /**
  * An iterator that enable retrieving values from the dictionary. Once
  * retrieved, the value is cached and only gets erased when the
  * underlying identifier changes.
  */
-public class BackendLazyIterator<ID, VALUE, SKIP extends Serializable> extends BackendIterator<ID, VALUE, SKIP> {
+public class BackendLazyIterator<ID, VALUE> extends BackendIterator<ID, VALUE> {
 
-    public BackendIterator<ID, VALUE, SKIP> iterator;
-    private final Backend<ID, VALUE, SKIP> backend;
+    public BackendIterator<ID, VALUE> iterator;
+    private final Backend<ID, VALUE> backend;
 
     private boolean subject_has_changed = true;
     private boolean predicate_has_changed = true;
@@ -37,7 +35,7 @@ public class BackendLazyIterator<ID, VALUE, SKIP extends Serializable> extends B
     private String object = null;
     private String context = null;
 
-    public BackendLazyIterator(Backend<ID, VALUE, SKIP> backend, BackendIterator<ID, VALUE, SKIP> wrapped) {
+    public BackendLazyIterator(Backend<ID, VALUE> backend, BackendIterator<ID, VALUE> wrapped) {
         this.backend = backend;
         this.iterator = wrapped;
     }
@@ -136,17 +134,17 @@ public class BackendLazyIterator<ID, VALUE, SKIP extends Serializable> extends B
     }
 
     @Override
-    public SKIP current() {
+    public long current() {
         return iterator.current();
     }
 
     @Override
-    public SKIP previous() {
+    public long previous() {
         return iterator.previous();
     }
 
     @Override
-    public void skip(SKIP to) {
+    public void skip(long to) {
         iterator.skip(to);
     }
 
@@ -168,7 +166,7 @@ public class BackendLazyIterator<ID, VALUE, SKIP extends Serializable> extends B
     /**
      * @return The wrapped iterator.
      */
-    public BackendIterator<ID, VALUE, SKIP> getWrapped() {
+    public BackendIterator<ID, VALUE> getWrapped() {
         return this.iterator;
     }
 }

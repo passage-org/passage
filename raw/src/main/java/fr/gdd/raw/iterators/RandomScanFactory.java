@@ -20,7 +20,7 @@ import java.util.Iterator;
 
 public class RandomScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE>> {
 
-    final Backend<ID, VALUE, ?> backend;
+    final Backend<ID, VALUE> backend;
     final Iterator<BackendBindings<ID, VALUE>> input;
     final ExecutionContext context;
     final Op0 opTripleOrQuad;

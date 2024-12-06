@@ -26,7 +26,7 @@ class SerializableRecordTest {
         NodeId predicate = backend.getId("<http://www.geonames.org/ontology#parentCountry>");
         NodeId any = backend.any();
 
-        BackendIterator<NodeId, Node, SerializableRecord> it = backend.search(any, predicate, any);
+        BackendIterator<NodeId, Node> it = backend.search(any, predicate, any);
         it.next();
         it.next();
         SerializableRecord sr = it.current();

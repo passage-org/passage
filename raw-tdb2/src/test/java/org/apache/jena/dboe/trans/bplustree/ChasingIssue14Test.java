@@ -60,7 +60,7 @@ public class ChasingIssue14Test {
     public void has_next_does_not_move_the_cursor() {
         // important to figure out since some backend move their cursor on
         // `hasNext` and `next` is only to produce the value.
-        BackendIterator<NodeId, Node, SerializableRecord> it1 = backend.search(any, named, any);
+        BackendIterator<NodeId, Node> it1 = backend.search(any, named, any);
         for (int i = 0; i < 100; ++i) { // only has 2 items yet can call hasNext 100 times
             assert (it1.hasNext());
         }
@@ -75,7 +75,7 @@ public class ChasingIssue14Test {
     @Test
     public void stopping_at_each_step_of_2_triples_with_singleton_and_null() {
         // SELECT * WHERE { ?person <named> ?name . ?name <owns> ?animal }
-        BackendIterator<NodeId, Node, SerializableRecord> it1 = backend.search(any, named, any);
+        BackendIterator<NodeId, Node> it1 = backend.search(any, named, any);
 
         // even at very first we stop… (despite in normal run, would not be possible)
         SerializableRecord saved_it1 = it1.current();
@@ -85,7 +85,7 @@ public class ChasingIssue14Test {
         assertEquals(bob, it1.getId(SPOC.OBJECT));
 
         // also save at very first it2 before its `next`
-        BackendIterator<NodeId, Node, SerializableRecord> it2 = backend.search(bob, owns, any);
+        BackendIterator<NodeId, Node> it2 = backend.search(bob, owns, any);
         saved_it1 = it1.previous();
         SerializableRecord saved_it2 = it2.current();
         it1 = backend.search(any, named, any);

@@ -1,28 +1,25 @@
 package fr.gdd.passage.commons.interfaces;
 
-import java.io.Serializable;
-
 /**
  * Interface that states a scan iterator can pause/resume its
  * execution.
- * @param <SKIP> The serializable type that is provided and used pause/resume.
  */
-public interface PreemptIterator<SKIP extends Serializable> {
+public interface PreemptIterator {
 
     /**
      * Goes to the targeted element directly.
      * @param to The cursor location to skip to.
      */
-    void skip(final SKIP to);
+    void skip(final long to);
 
     /**
      * @return The current offset that allows skipping.
      */
-    SKIP current();
+    long current();
 
     /**
      * @return The previous offset that allows skipping.
      */
-    SKIP previous();
+    long previous();
 
 }

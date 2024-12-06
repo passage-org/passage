@@ -36,7 +36,7 @@ public class CountSubqueryBuilder<ID,VALUE> extends ReturningOpBaseVisitor {
 
     Var resultVar; // to retrieve the result in the COUNT subquery, if need be
 
-    public CountSubqueryBuilder (Backend<ID,VALUE,?> backend, BackendBindings<ID, VALUE> bindings, Set<Var> vars) {
+    public CountSubqueryBuilder (Backend<ID,VALUE> backend, BackendBindings<ID, VALUE> bindings, Set<Var> vars) {
         this.bindings = bindings;
         this.vars = vars;
         this.cache = new BackendCache<>(backend);

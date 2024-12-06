@@ -12,7 +12,7 @@ import java.util.Objects;
  */
 public class PassageExecutionContextBuilder<ID,VALUE> {
 
-    private Backend<ID,VALUE,Long> backend;
+    private Backend<ID,VALUE> backend;
     private ExecutionContext context;
 
     private Long timeout = Long.MAX_VALUE;
@@ -49,7 +49,7 @@ public class PassageExecutionContextBuilder<ID,VALUE> {
         return new PassageExecutionContext<>(ec);
     }
 
-    public PassageExecutionContextBuilder<ID,VALUE> setBackend(Backend<ID,VALUE,Long> backend) {
+    public PassageExecutionContextBuilder<ID,VALUE> setBackend(Backend backend) {
         this.backend = backend;
         return this;
     }

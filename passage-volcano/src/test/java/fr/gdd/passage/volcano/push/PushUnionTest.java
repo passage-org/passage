@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.push.execute;
+package fr.gdd.passage.volcano.push;
 
 import com.google.common.collect.ConcurrentHashMultiset;
 import com.google.common.collect.Multiset;
@@ -40,7 +40,7 @@ public class PushUnionTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    public void execute_a_simple_union (PassageExecutionContextBuilder builder) throws RepositoryException, SailException {
+    public void execute_a_simple_union (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
         String queryAsString = """
@@ -59,9 +59,45 @@ public class PushUnionTest {
         blazegraph.close();
     }
 
+    @ParameterizedTest
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    public void union_with_a_bgp (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+        builder.setBackend(blazegraph);
+        String queryAsString = """
+               SELECT * WHERE {
+                {?p  <http://own>  ?a}
+                UNION
+                {?p  <http://address> ?address .
+                 ?p  <http://own> ?a }
+               }""";
+
+        var results = OpExecutorUtils.executeWithPush(queryAsString, blazegraph);
+        log.debug("{}", results);
+        assertEquals(6, results.size()); // Alice x6
+        blazegraph.close();
+    }
+
+    @ParameterizedTest
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    public void create_an_simple_union_with_bgp_inside(PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+        builder.setBackend(blazegraph);
+        String queryAsString = """
+               SELECT * WHERE {
+                {?p <http://own> ?a . ?a <http://species> ?s } UNION { ?p <http://address> <http://nantes> }
+               }""";
+
+        var results = OpExecutorUtils.executeWithPush(queryAsString, blazegraph);
+        log.debug("{}", results);
+        assertEquals(5, results.size()); // Alice * 3 + Alice + Carol
+        blazegraph.close();
+    }
+
+
     /* *************************** BIG DATASETS ******************************** */
 
-    @Disabled // TODO
+    @Disabled // TODO put this in test dedicated to benchmarking units
     @Test
     public void query_358 () {
         final BlazegraphBackend blazegraph = WDBenchTest.wdbenchBlazegraph;
@@ -159,6 +195,6 @@ public class PushUnionTest {
 
 
     static ExecutionContext meow(ExecutionContext context) {
-       return new PassageExecutionContextBuilder().setContext(context).build().setLimit(null).setOffset(0L);
+        return new PassageExecutionContextBuilder<>().setContext(context).build().setLimit(null).setOffset(0L);
     }
 }

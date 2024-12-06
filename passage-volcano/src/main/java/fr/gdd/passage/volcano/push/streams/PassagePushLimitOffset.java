@@ -2,9 +2,9 @@ package fr.gdd.passage.volcano.push.streams;
 
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
+import fr.gdd.passage.volcano.CanBeSkipped;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.PassageExecutionContext;
-import fr.gdd.passage.volcano.CanBeSkipped;
 import fr.gdd.passage.volcano.push.PassagePushExecutor;
 import fr.gdd.passage.volcano.push.Pause2ContinuationQuery;
 import org.apache.jena.sparql.algebra.Op;

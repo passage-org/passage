@@ -19,13 +19,13 @@ import java.util.Iterator;
  */
 public class BackendSaver<ID,VALUE,OFFSET extends Serializable> extends ReturningOpVisitor<Op> {
 
-    final Backend<ID,VALUE,OFFSET> backend;
+    final Backend<ID,VALUE> backend;
     final Op root; // origin
 
     // most important: during execution, the iterators that matter are saved within this structure.
     final IdentityHashMap<Op, Iterator<BackendBindings<ID, VALUE>>> op2it = new IdentityHashMap<>();
 
-    public BackendSaver(Backend<ID,VALUE,OFFSET> backend, Op root) {
+    public BackendSaver(Backend<ID,VALUE> backend, Op root) {
         this.backend = backend;
         this.root = root;
     }

@@ -32,7 +32,7 @@ public class BackendBind<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>
     final BackendBindings<ID,VALUE> input;
     final ExecutionContext context;
     final VarExprList exprs;
-    final Backend<ID,VALUE,?> backend;
+    final Backend<ID,VALUE> backend;
     final BackendCache<ID,VALUE> cache;
     final BackendOpExecutor<ID,VALUE> executor;
     final OpExtend bind;

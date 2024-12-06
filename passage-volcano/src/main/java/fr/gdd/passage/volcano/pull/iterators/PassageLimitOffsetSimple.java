@@ -4,7 +4,6 @@ import fr.gdd.passage.commons.factories.BackendNestedLoopJoinFactory;
 import fr.gdd.passage.commons.generics.BackendOpExecutor;
 import fr.gdd.passage.commons.iterators.BackendBind;
 import fr.gdd.passage.commons.iterators.BackendProject;
-import fr.gdd.passage.volcano.pull.iterators.PassageScan;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
 /**

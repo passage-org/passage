@@ -2,7 +2,6 @@ package org.apache.jena.dboe.trans.bplustree;
 
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
-import fr.gdd.raw.tdb2.SerializableRecord;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.atlas.lib.tuple.Tuple;
@@ -22,7 +21,7 @@ import java.util.Random;
  * An iterator that allows measuring the estimated progress of execution, i.e.,
  * the number of explored elements over the estimated number to explore.
  */
-public abstract class ProgressJenaIterator extends BackendIterator<NodeId, Node, SerializableRecord> {
+public abstract class ProgressJenaIterator extends BackendIterator<NodeId, Node> {
 
     public static Random rng = new Random(12); // random seed is accessible
     private final static Pair<Record, Double> NOTFOUND = new ImmutablePair<>(null, 0.);

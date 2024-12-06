@@ -35,7 +35,7 @@ public class PassageInput<SKIP extends Serializable> implements Serializable {
     /**
      * Compiled execution may require a shared backend to work.
      **/
-    transient Backend<?, ?, SKIP> backend;
+    transient Backend<?, ?> backend;
 
     /* ********************************************************************* */
 
@@ -46,7 +46,7 @@ public class PassageInput<SKIP extends Serializable> implements Serializable {
         return this;
     }
 
-    public PassageInput<SKIP> setBackend(Backend<?, ?, SKIP> backend) {
+    public PassageInput<SKIP> setBackend(Backend<?, ?> backend) {
         this.backend = backend;
         return this;
     }
@@ -84,7 +84,7 @@ public class PassageInput<SKIP extends Serializable> implements Serializable {
 
     /* ******************************************************************* */
     
-    public Backend<?, ?, SKIP> getBackend() {
+    public Backend<?, ?> getBackend() {
         return backend;
     }
 

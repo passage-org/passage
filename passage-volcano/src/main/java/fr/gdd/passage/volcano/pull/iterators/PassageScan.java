@@ -46,7 +46,7 @@ public class PassageScan<ID, VALUE> extends PausableIterator<ID,VALUE> implement
     public static Function<ExecutionContext, Boolean> stopping = (ec) ->
             System.currentTimeMillis() >= ec.getContext().getLong(PassageConstants.DEADLINE, Long.MAX_VALUE);
 
-    final Backend<ID,VALUE,Long> backend;
+    final Backend<ID,VALUE> backend;
     final BackendCache<ID,VALUE> cache;
     final Long deadline;
     final Op0 op;
@@ -56,7 +56,7 @@ public class PassageScan<ID, VALUE> extends PausableIterator<ID,VALUE> implement
     final Long limit;
     final Long offset;
 
-    BackendIterator<ID, VALUE, Long> wrapped;
+    BackendIterator<ID, VALUE> wrapped;
     Tuple<Var> vars; // needed to create bindings var -> value
     Long produced = 0L;
     boolean consumed = true;

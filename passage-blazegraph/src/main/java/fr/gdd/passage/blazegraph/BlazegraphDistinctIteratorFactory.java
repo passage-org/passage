@@ -19,9 +19,9 @@ import java.util.Set;
  */
 public class BlazegraphDistinctIteratorFactory {
 
-    public static BackendIterator<IV, BigdataValue, Long> get (AbstractTripleStore store,
-                                                               IV s, IV p, IV o, IV c,
-                                                               Set<Integer> codes) {
+    public static BackendIterator<IV, BigdataValue> get (AbstractTripleStore store,
+                                                         IV s, IV p, IV o, IV c,
+                                                         Set<Integer> codes) {
         IV[] ivs = new IV[] {s, p, o, c};
         // #1 we look for the proper index to use first
         for (int i = 0; i < ivs.length; ++i) {

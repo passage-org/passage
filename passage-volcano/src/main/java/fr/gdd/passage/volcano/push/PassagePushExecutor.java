@@ -7,7 +7,9 @@ import fr.gdd.passage.commons.transforms.DefaultGraphUriQueryModifier;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.pause.PauseException;
 import fr.gdd.passage.volcano.push.streams.PassagePushLimitOffset;
+import fr.gdd.passage.volcano.push.streams.PassagePushValues;
 import fr.gdd.passage.volcano.push.streams.PassageSplitScan;
+import org.apache.jena.query.ResultSetFactory;
 import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
@@ -15,6 +17,8 @@ import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.expr.NodeValue;
 
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -69,6 +73,11 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
     }
 
     @Override
+    public Stream<BackendBindings<ID, VALUE>> visit(OpQuad quad, BackendBindings<ID, VALUE> input) {
+        return StreamSupport.stream(new PassageSplitScan<>(context, input, quad), this.context.maxParallelism > 1);
+    }
+
+    @Override
     public Stream<BackendBindings<ID, VALUE>> visit(OpJoin join, BackendBindings<ID, VALUE> input) {
          return this.visit(join.getLeft(), input).flatMap(b -> this.visit(join.getRight(), b));
     }
@@ -99,7 +108,7 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
         if (table.isJoinIdentity()) {
             return Stream.of(input);
         }
-        throw new UnsupportedOperationException("OpTable different than join identity are not handled yet.");
+        return new PassagePushValues<>(context, input, table).getStream();
     }
 
     @Override
@@ -110,5 +119,10 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
     @Override
     public Stream<BackendBindings<ID, VALUE>> visit(OpProject project, BackendBindings<ID, VALUE> input) {
         return this.visit(project.getSubOp(), input).map(i -> new BackendBindings<>(i, project.getVars()));
+    }
+
+    @Override
+    public Stream<BackendBindings<ID, VALUE>> visit(OpFilter filter, BackendBindings<ID, VALUE> input) {
+        return this.visit(filter.getSubOp(), input).filter(i -> filter.getExprs().isSatisfied(i, this.context));
     }
 }

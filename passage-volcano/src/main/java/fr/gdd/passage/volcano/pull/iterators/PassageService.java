@@ -102,7 +102,7 @@ public class PassageService<ID,VALUE> extends PausableIterator<ID,VALUE> impleme
     @Override
     public BackendBindings<ID, VALUE> next() {
         ((AtomicLong) context.getContext().get(PassageConstants.SERVICE_CALLS)).getAndIncrement();
-        return new BackendBindings<ID,VALUE>(wrapped.next()).setParent(input);
+        return new BackendBindings<>(wrapped.next(), context.backend).setParent(input);
     }
 
     @Override

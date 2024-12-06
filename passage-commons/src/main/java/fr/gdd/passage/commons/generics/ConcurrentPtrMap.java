@@ -2,14 +2,11 @@ package fr.gdd.passage.commons.generics;
 
 import com.google.common.collect.ConcurrentHashMultiset;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.jena.atlas.lib.IdentityFinishCollector;
 
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * Hash on keys then compare pointers of keys. It's meant to increase search

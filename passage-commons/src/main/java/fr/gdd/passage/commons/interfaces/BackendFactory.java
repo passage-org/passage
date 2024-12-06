@@ -8,6 +8,6 @@ import java.nio.file.Path;
  */
 public interface BackendFactory<ID,VALUE,SKIP extends Serializable> {
 
-    Backend<ID,VALUE,SKIP> get(Path path);
+    Backend<ID,VALUE> get(Path path);
 
 }

@@ -7,6 +7,7 @@ import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.pull.PassagePullExecutor;
 import fr.gdd.passage.volcano.push.PassagePushExecutor;
+import fr.gdd.passage.volcano.transforms.Quad2Pattern;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
@@ -22,7 +23,7 @@ public class OpExecutorUtils {
 
     private static final Logger log = LoggerFactory.getLogger(OpExecutorUtils.class);
 
-    public static Multiset<BackendBindings<?,?>> executeWithPassage(String queryAsString, Backend<?,?,?> backend) {
+    public static Multiset<BackendBindings<?,?>> executeWithPassage(String queryAsString, Backend<?,?> backend) {
         return executeWithPassage(queryAsString, new PassageExecutionContextBuilder().setBackend(backend).build());
     }
 
@@ -42,7 +43,7 @@ public class OpExecutorUtils {
         return bindings;
     }
 
-    public static long countWithPassage(String queryAsString, Backend<?,?,?> backend) {
+    public static long countWithPassage(String queryAsString, Backend<?,?> backend) {
         return countWithPassage(queryAsString, new PassageExecutionContextBuilder().setBackend(backend).build());
     }
 
@@ -62,13 +63,13 @@ public class OpExecutorUtils {
 
     /* ************************************************************************** */
 
-    public static Multiset<BackendBindings<?,?>> executeWithPush(String queryAsString, Backend<?,?,?> backend) {
+    public static Multiset<BackendBindings<?,?>> executeWithPush(String queryAsString, Backend<?,?> backend) {
         return executeWithPush(queryAsString, new PassageExecutionContextBuilder().
                 setBackend(backend)
                 .build());
     }
 
-    public static Multiset<BackendBindings<?,?>> executeWithPush(String queryAsString, Backend<?,?,?> backend,
+    public static Multiset<BackendBindings<?,?>> executeWithPush(String queryAsString, Backend<?,?> backend,
                                                                  int maxParallel) {
         return executeWithPush(queryAsString, new PassageExecutionContextBuilder()
                 .setBackend(backend)
@@ -76,7 +77,7 @@ public class OpExecutorUtils {
                 .build());
     }
 
-    public static Multiset<BackendBindings<?,?>> executeWithPush(String queryAsString, Backend<?,?,?> backend,
+    public static Multiset<BackendBindings<?,?>> executeWithPush(String queryAsString, Backend<?,?> backend,
                                                                  int maxParallel,
                                                                  Consumer<BackendBindings<?,?>> consumer) {
         return executeWithPush(queryAsString, new PassageExecutionContextBuilder()
@@ -109,8 +110,8 @@ public class OpExecutorUtils {
         return results;
     }
 
-    public static <ID,VALUE> Multiset<BackendBindings<ID,VALUE>> executeWithPush(String queryAsString, PassageExecutionContextBuilder<ID,VALUE> builder) {
-        Multiset<BackendBindings<ID,VALUE>> results = ConcurrentHashMultiset.create();
+    public static <ID,VALUE> Multiset<BackendBindings<?,?>> executeWithPush(String queryAsString, PassageExecutionContextBuilder<ID,VALUE> builder) {
+        Multiset<BackendBindings<?,?>> results = ConcurrentHashMultiset.create();
         while (Objects.nonNull(queryAsString)) {
             PassagePushExecutor<ID, VALUE> executor = new PassagePushExecutor<>(builder.build());
             Op query = Algebra.compile(QueryFactory.create(queryAsString));
@@ -119,7 +120,7 @@ public class OpExecutorUtils {
                 log.debug("{}", i);
                 results.add(i);
             });
-            queryAsString = Objects.nonNull(paused) ? OpAsQuery.asQuery(paused).toString() : null;
+            queryAsString = Objects.nonNull(paused) ? OpAsQuery.asQuery(new Quad2Pattern().visit(paused)).toString() : null;
         }
         return results;
     }

@@ -37,7 +37,7 @@ public class CountDistinctCRAWD<ID,VALUE> implements BackendAccumulator<ID, VALU
     private final static Logger log = LoggerFactory.getLogger(CountDistinctCRAWD.class);
 
     final ExecutionContext context;
-    final Backend<ID,VALUE,?> backend;
+    final Backend<ID,VALUE> backend;
     final OpGroup group;
     final BackendCache<ID,VALUE> cache;
 
@@ -152,7 +152,7 @@ public class CountDistinctCRAWD<ID,VALUE> implements BackendAccumulator<ID, VALU
         log.debug("∑Fµ fail: " + sumOfFailForFmu);
         log.debug("N̂: " + sumOfInversedProba/sampleSizeOfWJ);
         log.debug("Nb Total Scans: " + context.getContext().get(RawConstants.SCANS));
-        Backend<ID,VALUE,?> backend = context.getContext().get(RawConstants.BACKEND);
+        Backend<ID,VALUE> backend = context.getContext().get(RawConstants.BACKEND);
         return backend.getValue(String.format("\"%s\"^^<%s>", getValueAsDouble(), XSDDatatype.XSDdouble.getURI()));
     }
 

@@ -74,7 +74,7 @@ public class PauseDistinctTest {
 
     /* ************************************************************* */
 
-    public static int executeAll(String queryAsString, Backend<?,?,Long> backend) {
+    public static int executeAll(String queryAsString, Backend<?,?> backend) {
         int sum = 0;
         while (Objects.nonNull(queryAsString)) {
             log.debug(queryAsString);

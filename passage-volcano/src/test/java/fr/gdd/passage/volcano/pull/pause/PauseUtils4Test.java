@@ -30,7 +30,7 @@ public class PauseUtils4Test {
      * @param backend The backend to execute on.
      * @return The preempted query after one result.
      */
-    public static <ID,VALUE> Pair<Integer, String> executeQuery(String queryAsString, Backend<ID,VALUE,Long> backend) {
+    public static <ID,VALUE> Pair<Integer, String> executeQuery(String queryAsString, Backend<ID,VALUE> backend) {
         return executeQuery(queryAsString, backend, 1L);
     }
 
@@ -40,7 +40,7 @@ public class PauseUtils4Test {
      * @param limit The number of actual results mappings before pausing.
      * @return The preempted query after one result.
      */
-    public static <ID, VALUE> Pair<Integer, String> executeQuery(String queryAsString, Backend<ID, VALUE, Long> backend, Long limit) {
+    public static <ID, VALUE> Pair<Integer, String> executeQuery(String queryAsString, Backend<ID, VALUE> backend, Long limit) {
         PassagePullExecutor<ID, VALUE> executor = new PassagePullExecutor<>(
                 new PassageExecutionContextBuilder<ID,VALUE>()
                         .setBackend(backend)
@@ -56,7 +56,7 @@ public class PauseUtils4Test {
         return new ImmutablePair<>(nbResults, executor.pauseAsString());
     }
 
-    public static <ID, VALUE> Pair<Integer, String> executeQueryWithTimeout(String queryAsString, Backend<ID, VALUE, Long> backend, Long timeout) {
+    public static <ID, VALUE> Pair<Integer, String> executeQueryWithTimeout(String queryAsString, Backend<ID, VALUE> backend, Long timeout) {
         PassagePullExecutor<ID, VALUE> executor = new PassagePullExecutor<>(
                 new PassageExecutionContextBuilder<ID,VALUE>()
                         .setBackend(backend)
@@ -74,7 +74,7 @@ public class PauseUtils4Test {
     }
 
 
-    public static <ID,VALUE> String executeQuery(String queryAsString, Backend<ID,VALUE,Long> backend, Multiset<BackendBindings<?,?>> results) {
+    public static <ID,VALUE> String executeQuery(String queryAsString, Backend<ID,VALUE> backend, Multiset<BackendBindings<?,?>> results) {
         PassagePullExecutor<ID, VALUE> executor = new PassagePullExecutor<>(
                 new PassageExecutionContextBuilder<ID,VALUE>()
                         .setBackend(backend)
@@ -90,7 +90,7 @@ public class PauseUtils4Test {
         return executor.pauseAsString();
     }
 
-    public static <ID,VALUE> String executeQuery(String queryAsString, Backend<ID,VALUE,Long> backend, Multiset<BackendBindings<?,?>> results, long limit) {
+    public static <ID,VALUE> String executeQuery(String queryAsString, Backend<ID,VALUE> backend, Multiset<BackendBindings<?,?>> results, long limit) {
         PassagePullExecutor<ID, VALUE> executor = new PassagePullExecutor<>(
                 new PassageExecutionContextBuilder<ID,VALUE>()
                         .setBackend(backend)

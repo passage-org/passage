@@ -40,7 +40,7 @@ public class DatasetAndQueriesBuilder<ID,VALUE,SKIP extends Serializable> {
             throw new UnsupportedOperationException("Download of dataset.");
             // TODO cleanup if need be
         }
-        Backend<ID,VALUE,SKIP> backend = factory.get(pathToDataset);
+        Backend<ID,VALUE> backend = factory.get(pathToDataset);
         if (pathsToQueries.stream().anyMatch(p -> p.toFile().isFile())) {
             throw new IllegalArgumentException("The query path appears to be a file while it should be a directory.");
         }
