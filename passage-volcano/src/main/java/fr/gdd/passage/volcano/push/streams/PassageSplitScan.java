@@ -9,7 +9,8 @@ import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
-import fr.gdd.passage.volcano.pause.PauseException;
+import fr.gdd.passage.volcano.exceptions.BackjumpException;
+import fr.gdd.passage.volcano.exceptions.PauseException;
 import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.atlas.lib.tuple.TupleFactory;
 import org.apache.jena.sparql.algebra.Op;
@@ -117,20 +118,20 @@ public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> im
             offset += 1;
             if (Objects.nonNull(limit)) { limit -= 1 ; }
             wrapped.next();
-            this.context.scans.getAndIncrement();
+            context.scans.getAndIncrement();
             BackendBindings<ID, VALUE> newBinding = new BackendBindings<>();
 
             if (Objects.nonNull(vars.get(SPOC.SUBJECT))) { // ugly x4
-                newBinding.put(vars.get(SPOC.SUBJECT), wrapped.getId(SPOC.SUBJECT), this.context.backend).setCode(vars.get(SPOC.SUBJECT), SPOC.SUBJECT);
+                newBinding.put(vars.get(SPOC.SUBJECT), wrapped.getId(SPOC.SUBJECT), context.backend).setCode(vars.get(SPOC.SUBJECT), SPOC.SUBJECT);
             }
             if (Objects.nonNull(vars.get(SPOC.PREDICATE))) {
-                newBinding.put(vars.get(SPOC.PREDICATE), wrapped.getId(SPOC.PREDICATE), this.context.backend).setCode(vars.get(SPOC.PREDICATE), SPOC.PREDICATE);
+                newBinding.put(vars.get(SPOC.PREDICATE), wrapped.getId(SPOC.PREDICATE), context.backend).setCode(vars.get(SPOC.PREDICATE), SPOC.PREDICATE);
             }
             if (Objects.nonNull(vars.get(SPOC.OBJECT))) {
-                newBinding.put(vars.get(SPOC.OBJECT), wrapped.getId(SPOC.OBJECT), this.context.backend).setCode(vars.get(SPOC.OBJECT), SPOC.OBJECT);
+                newBinding.put(vars.get(SPOC.OBJECT), wrapped.getId(SPOC.OBJECT), context.backend).setCode(vars.get(SPOC.OBJECT), SPOC.OBJECT);
             }
             if (vars.len() > 3 && Objects.nonNull(vars.get(SPOC.GRAPH))) {
-                newBinding.put(vars.get(SPOC.GRAPH), wrapped.getId(SPOC.GRAPH), this.context.backend).setCode(vars.get(SPOC.GRAPH), SPOC.GRAPH);
+                newBinding.put(vars.get(SPOC.GRAPH), wrapped.getId(SPOC.GRAPH), context.backend).setCode(vars.get(SPOC.GRAPH), SPOC.GRAPH);
             }
 
             try {

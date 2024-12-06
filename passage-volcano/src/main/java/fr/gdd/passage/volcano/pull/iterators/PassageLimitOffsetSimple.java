@@ -1,7 +1,7 @@
 package fr.gdd.passage.volcano.pull.iterators;
 
 import fr.gdd.passage.commons.factories.BackendNestedLoopJoinFactory;
-import fr.gdd.passage.commons.generics.BackendOpExecutor;
+import fr.gdd.passage.commons.generics.BackendPullExecutor;
 import fr.gdd.passage.commons.iterators.BackendBind;
 import fr.gdd.passage.commons.iterators.BackendProject;
 import org.apache.jena.sparql.engine.ExecutionContext;
@@ -11,7 +11,7 @@ import org.apache.jena.sparql.engine.ExecutionContext;
  * This limited sub-set of operators allows us to pause/resume the query execution
  * when needed.
  */
-public class PassageLimitOffsetSimple<ID,VALUE> extends BackendOpExecutor<ID,VALUE> {
+public class PassageLimitOffsetSimple<ID,VALUE> extends BackendPullExecutor<ID,VALUE> {
 
     public PassageLimitOffsetSimple(ExecutionContext context) {
         super(context, BackendProject.factory(),

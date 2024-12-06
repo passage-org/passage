@@ -4,10 +4,9 @@ import fr.gdd.jena.utils.FlattenUnflatten;
 import fr.gdd.passage.commons.factories.IBackendUnionsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
-import fr.gdd.passage.commons.generics.BackendOpExecutor;
+import fr.gdd.passage.commons.generics.BackendPullExecutor;
 import fr.gdd.passage.commons.iterators.BackendIteratorOverInput;
 import fr.gdd.passage.volcano.PassageExecutionContext;
-import fr.gdd.passage.volcano.pause.PausableIterator;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpUnion;
@@ -29,7 +28,7 @@ public class PassageUnion<ID, VALUE> extends PausableIterator<ID,VALUE> implemen
     final BackendBindings<ID, VALUE> input;
     final Op left;
     final Op right;
-    final BackendOpExecutor<ID, VALUE> executor;
+    final BackendPullExecutor<ID, VALUE> executor;
     final PassageExecutionContext<ID,VALUE> context;
 
     BackendBindings<ID, VALUE> current = null;

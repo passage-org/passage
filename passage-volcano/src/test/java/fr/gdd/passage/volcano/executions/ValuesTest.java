@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.push;
+package fr.gdd.passage.volcano.executions;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
@@ -15,7 +15,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class PushValuesTest {
+public class ValuesTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
@@ -65,7 +65,7 @@ public class PushValuesTest {
         builder.setBackend(blazegraph);
         String query = "SELECT * WHERE { VALUES ?p { <http://Alice> }  }";
 
-        var results = OpExecutorUtils.executeWithPush(query, blazegraph);
+        var results = OpExecutorUtils.executeWithPush(query, builder);
         assertEquals(1, results.size()); // Alice lives in Nantes
         assertTrue(MultisetResultChecking.containsResult(results, List.of("p"), List.of("Alice")));
         blazegraph.close();

@@ -3,7 +3,7 @@ package fr.gdd.passage.commons.iterators;
 import fr.gdd.passage.commons.factories.IBackendProjectsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
-import fr.gdd.passage.commons.generics.BackendOpExecutor;
+import fr.gdd.passage.commons.generics.BackendPullExecutor;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.sparql.algebra.op.OpProject;
 
@@ -16,19 +16,19 @@ public class BackendProject<ID,VALUE> implements Iterator<BackendBindings<ID, VA
 
     public static <ID,VALUE> IBackendProjectsFactory<ID,VALUE> factory() {
         return (context, input, op) -> {
-            BackendOpExecutor<ID,VALUE> executor = context.getContext().get(BackendConstants.EXECUTOR);
+            BackendPullExecutor<ID,VALUE> executor = context.getContext().get(BackendConstants.EXECUTOR);
             return new BackendProject<>(executor, op, input);
         };
     }
 
     final OpProject project;
     final Iterator<BackendBindings<ID,VALUE>> input;
-    final BackendOpExecutor<ID,VALUE> executor;
+    final BackendPullExecutor<ID,VALUE> executor;
 
     BackendBindings<ID,VALUE> inputBinding;
     Iterator<BackendBindings<ID,VALUE>> instantiated = Iter.empty();
 
-    public BackendProject(BackendOpExecutor<ID,VALUE> executor, OpProject project, Iterator<BackendBindings<ID, VALUE>> input) {
+    public BackendProject(BackendPullExecutor<ID,VALUE> executor, OpProject project, Iterator<BackendBindings<ID, VALUE>> input) {
         this.project = project;
         this.input = input;
         this.executor = executor;

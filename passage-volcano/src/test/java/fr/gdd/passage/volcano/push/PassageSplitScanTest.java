@@ -32,7 +32,9 @@ class PassageSplitScanTest {
     @Test
     public void correct_offset_limits_for_split_tps () throws RepositoryException {
         BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
-        var context = new PassageExecutionContextBuilder<>().setBackend(backend).build();
+        var context = new PassageExecutionContextBuilder<>()
+                .setExecutorFactory((ec)-> null)
+                .setBackend(backend).build();
 
         OpTriple tp = new OpTriple(Triple.create(
                 Var.alloc("s"),
@@ -69,7 +71,9 @@ class PassageSplitScanTest {
     @Test
     public void split_of_split() throws RepositoryException {
         BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
-        var context = new PassageExecutionContextBuilder().setBackend(backend).build();
+        var context = new PassageExecutionContextBuilder<>()
+                .setExecutorFactory((ec)-> null)
+                .setBackend(backend).build();
 
         OpTriple tp = new OpTriple(Triple.create(
                 NodeFactory.createURI("http://Alice"),
@@ -105,7 +109,9 @@ class PassageSplitScanTest {
     @RepeatedTest(20)
     public void simple_bgp_to_test () throws RepositoryException, SailException {
         BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
-            var context = new PassageExecutionContextBuilder().setBackend(backend).build();
+            var context = new PassageExecutionContextBuilder<>()
+                    .setExecutorFactory(ec -> null)
+                    .setBackend(backend).build();
 
             OpTriple tp = new OpTriple(Triple.create(
                     Var.alloc("s"),
@@ -131,7 +137,9 @@ class PassageSplitScanTest {
     @RepeatedTest(20)
     public void a_simple_test_of_bgp () throws RepositoryException, SailException {
         BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
-        var context = new PassageExecutionContextBuilder().setBackend(backend).build();
+        var context = new PassageExecutionContextBuilder<>()
+                .setExecutorFactory((ec)-> null)
+                .setBackend(backend).build();
 
         OpTriple tp1 = new OpTriple(Triple.create(
                 Var.alloc("s"),
@@ -164,7 +172,9 @@ class PassageSplitScanTest {
     @RepeatedTest(20)
     public void a_first_backjump_test_where_tp3_throws_catch_by_tp1 () throws RepositoryException, SailException {
         BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
-        var context = new PassageExecutionContextBuilder().setMaxParallel(10).setBackend(backend).build();
+        var context = new PassageExecutionContextBuilder<>()
+                .setExecutorFactory((ec)-> null)
+                .setMaxParallel(10).setBackend(backend).build();
 
         OpTriple tp2 = new OpTriple(Triple.create(
                 Var.alloc("s"),

@@ -4,7 +4,7 @@ import fr.gdd.passage.commons.factories.IBackendBindsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.generics.BackendConstants;
-import fr.gdd.passage.commons.generics.BackendOpExecutor;
+import fr.gdd.passage.commons.generics.BackendPullExecutor;
 import fr.gdd.passage.commons.interfaces.Backend;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.riot.out.NodeFmtLib;
@@ -34,7 +34,7 @@ public class BackendBind<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>
     final VarExprList exprs;
     final Backend<ID,VALUE> backend;
     final BackendCache<ID,VALUE> cache;
-    final BackendOpExecutor<ID,VALUE> executor;
+    final BackendPullExecutor<ID,VALUE> executor;
     final OpExtend bind;
 
     final Iterator<BackendBindings<ID,VALUE>> wrapped;

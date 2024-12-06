@@ -3,7 +3,7 @@ package fr.gdd.passage.volcano.pull.iterators;
 import fr.gdd.passage.commons.factories.IBackendLimitOffsetFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
-import fr.gdd.passage.commons.generics.BackendOpExecutor;
+import fr.gdd.passage.commons.generics.BackendPullExecutor;
 import fr.gdd.passage.commons.generics.BackendSaver;
 import fr.gdd.passage.volcano.CanBeSkipped;
 import fr.gdd.passage.volcano.PassageConstants;
@@ -35,7 +35,7 @@ public class PassageLimitOffsetFactory<ID,VALUE> implements IBackendLimitOffsetF
 
     @Override
     public Iterator<BackendBindings<ID, VALUE>> get(ExecutionContext context, Iterator<BackendBindings<ID, VALUE>> input, OpSlice slice) {
-        BackendOpExecutor<ID,VALUE> executor = context.getContext().get(BackendConstants.EXECUTOR);
+        BackendPullExecutor<ID,VALUE> executor = context.getContext().get(BackendConstants.EXECUTOR);
         return new CompatibilityCheckIteratorFactory<>(executor, input, slice); // so they should be checked
     }
 
@@ -45,12 +45,12 @@ public class PassageLimitOffsetFactory<ID,VALUE> implements IBackendLimitOffsetF
 
     public static class CompatibilityCheckIteratorFactory<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
 
-        final BackendOpExecutor<ID,VALUE> executor;
+        final BackendPullExecutor<ID,VALUE> executor;
         final Iterator<BackendBindings<ID,VALUE>> input;
         final OpSlice subquery;
         Iterator<BackendBindings<ID,VALUE>> wrapped;
 
-        public CompatibilityCheckIteratorFactory (BackendOpExecutor<ID,VALUE> executor,
+        public CompatibilityCheckIteratorFactory (BackendPullExecutor<ID,VALUE> executor,
                                                   Iterator<BackendBindings<ID,VALUE>> input,
                                                   OpSlice subquery) {
             this.executor = executor;
@@ -87,13 +87,13 @@ public class PassageLimitOffsetFactory<ID,VALUE> implements IBackendLimitOffsetF
 
     public static class CompatibilityCheckIterator<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE>> {
 
-        final BackendOpExecutor<ID,VALUE> executor;
+        final BackendPullExecutor<ID,VALUE> executor;
         final BackendBindings<ID,VALUE> input;
         final Iterator<BackendBindings<ID,VALUE>> wrapped;
         final OpSlice subquery;
         BackendBindings<ID,VALUE> produced;
 
-        public CompatibilityCheckIterator(BackendOpExecutor<ID,VALUE> executor, BackendBindings<ID,VALUE> input, OpSlice subquery) {
+        public CompatibilityCheckIterator(BackendPullExecutor<ID,VALUE> executor, BackendBindings<ID,VALUE> input, OpSlice subquery) {
             this.executor = executor;
             this.input = input;
 

@@ -4,7 +4,7 @@ import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.passage.commons.factories.IBackendCountsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
-import fr.gdd.passage.commons.generics.BackendOpExecutor;
+import fr.gdd.passage.commons.generics.BackendPullExecutor;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendAccumulator;
 import fr.gdd.passage.commons.iterators.BackendIteratorOverInput;
@@ -44,7 +44,7 @@ public class PassageCount<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE
         return (context, input, agg) -> new BackendIteratorOverInput<>(context, input, agg, PassageCount::new);
     }
 
-    final BackendOpExecutor<ID,VALUE> executor;
+    final BackendPullExecutor<ID,VALUE> executor;
     final Backend<ID,VALUE> backend;
     final OpGroup opCount;
     final BackendBindings<ID,VALUE> input;

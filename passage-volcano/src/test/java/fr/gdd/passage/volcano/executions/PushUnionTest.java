@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.push;
+package fr.gdd.passage.volcano.executions;
 
 import com.google.common.collect.ConcurrentHashMultiset;
 import com.google.common.collect.Multiset;
@@ -50,7 +50,7 @@ public class PushUnionTest {
                 {?p  <http://address> ?a}
                }""";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, blazegraph);
+        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
         log.debug("{}", results);
         assertEquals(6, results.size()); // 3 triples + 3 triples
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
@@ -72,7 +72,7 @@ public class PushUnionTest {
                  ?p  <http://own> ?a }
                }""";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, blazegraph);
+        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
         log.debug("{}", results);
         assertEquals(6, results.size()); // Alice x6
         blazegraph.close();
@@ -88,7 +88,7 @@ public class PushUnionTest {
                 {?p <http://own> ?a . ?a <http://species> ?s } UNION { ?p <http://address> <http://nantes> }
                }""";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, blazegraph);
+        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
         log.debug("{}", results);
         assertEquals(5, results.size()); // Alice * 3 + Alice + Carol
         blazegraph.close();
@@ -120,8 +120,8 @@ public class PushUnionTest {
                   ?x4 <http://www.wikidata.org/prop/direct/P4614> ?x3 . #tp4
                 }""";
 
-        var results = OpExecutorUtils.executeWithPush(query646, blazegraph);
-        log.debug("{}", results);
+        // var results = OpExecutorUtils.executeWithPush(query646, blazegraph);
+        //log.debug("{}", results);
     }
 
     @Test
@@ -140,9 +140,9 @@ public class PushUnionTest {
                     }
                     """;
 
-        var results = OpExecutorUtils.executeWithPush(query0, watdivBlazegraph);
+        // var results = OpExecutorUtils.executeWithPush(query0, watdivBlazegraph);
 
-        assertEquals(117, results.size());
+        // assertEquals(117, results.size());
     }
 
     @Test

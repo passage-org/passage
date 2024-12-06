@@ -2,7 +2,7 @@ package fr.gdd.passage.cli.server;
 
 import fr.gdd.passage.commons.io.ModuleOutputWriter;
 import fr.gdd.passage.volcano.PassageConstants;
-import fr.gdd.passage.volcano.pause.PassagePaused;
+import fr.gdd.passage.volcano.PassagePaused;
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.atlas.json.io.JSWriter;
 import org.apache.jena.sparql.util.Context;

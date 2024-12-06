@@ -12,8 +12,7 @@ import fr.gdd.passage.commons.interfaces.SPOC;
 import fr.gdd.passage.commons.iterators.BackendIteratorOverInput;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.PassageExecutionContext;
-import fr.gdd.passage.volcano.pause.PausableIterator;
-import fr.gdd.passage.volcano.pause.PauseException;
+import fr.gdd.passage.volcano.exceptions.PauseException;
 import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.atlas.lib.tuple.TupleFactory;
 import org.apache.jena.sparql.algebra.Op;
@@ -43,8 +42,8 @@ public class PassageScan<ID, VALUE> extends PausableIterator<ID,VALUE> implement
      * By default, this is based on execution time. However, developers can change it
      * e.g., for testing purposes.
      */
-    public static Function<ExecutionContext, Boolean> stopping = (ec) ->
-            System.currentTimeMillis() >= ec.getContext().getLong(PassageConstants.DEADLINE, Long.MAX_VALUE);
+    public volatile static Function<PassageExecutionContext, Boolean> stopping = (ec) ->
+            System.currentTimeMillis() >= ec.getDeadline() || ec.scans.get() >= ec.maxScans;
 
     final Backend<ID,VALUE> backend;
     final BackendCache<ID,VALUE> cache;
@@ -125,7 +124,7 @@ public class PassageScan<ID, VALUE> extends PausableIterator<ID,VALUE> implement
         produced += 1;
         wrapped.next();
 
-        ((AtomicLong) context.getContext().get(PassageConstants.SCANS)).getAndIncrement();
+        context.scans.incrementAndGet();
 
         BackendBindings<ID, VALUE> newBinding = new BackendBindings<>();
 

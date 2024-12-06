@@ -6,7 +6,7 @@ import fr.gdd.passage.commons.factories.BackendNestedLoopJoinFactory;
 import fr.gdd.passage.commons.factories.IBackendBindsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendCache;
-import fr.gdd.passage.commons.generics.BackendOpExecutor;
+import fr.gdd.passage.commons.generics.BackendPullExecutor;
 import fr.gdd.passage.commons.generics.BackendSaver;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.iterators.BackendBind;
@@ -40,7 +40,7 @@ import java.util.Iterator;
  * If an operator is not implemented, then it returns the explicit mention
  * that it's not implemented. No surprises.
  */
-public class RawOpExecutor<ID, VALUE> extends BackendOpExecutor<ID, VALUE> { // output
+public class RawOpExecutor<ID, VALUE> extends BackendPullExecutor<ID, VALUE> { // output
 
     final ExecutionContext execCxt;
     Backend<ID, VALUE> backend;

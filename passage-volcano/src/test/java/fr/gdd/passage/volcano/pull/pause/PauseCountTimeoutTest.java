@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Disabled("Integrate aggregators again with continuation queries.")
 public class PauseCountTimeoutTest {
 
-    private static final Logger log = LoggerFactory.getLogger(PauseBGPTimeoutTest.class);
+    private static final Logger log = LoggerFactory.getLogger(PauseCountTimeoutTest.class);
 
     @BeforeEach
     public void stop_every_scan() { PassageScan.stopping = PauseUtils4Test.stopAtEveryScan; }

@@ -1,30 +1,25 @@
-package fr.gdd.passage.volcano.push;
+package fr.gdd.passage.volcano.executions;
 
-import com.google.common.collect.HashMultiset;
-import com.google.common.collect.Multiset;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
-import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.volcano.OpExecutorUtils;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
-import fr.gdd.passage.volcano.pull.pause.PauseUtils4Test;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.sail.SailException;
 
 import java.util.List;
-import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class PushFilterTest {
+public class FilterTest {
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
+            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
     public void simple_tp_filtered_by_one_var (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -42,7 +37,8 @@ public class PushFilterTest {
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
+            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
     public void simple_tp_filtered_by_two_vars (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -61,7 +57,8 @@ public class PushFilterTest {
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
+            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
     public void filter_bgp_of_2_tps (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -81,7 +78,8 @@ public class PushFilterTest {
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
+            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
     public void simple_bgp_filtered_in_the_middle (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -98,7 +96,8 @@ public class PushFilterTest {
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
+            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
     public void simple_bgp_filtered_in_the_middle_but_different_order (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -118,7 +117,8 @@ public class PushFilterTest {
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
+            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
     public void filter_using_a_literal_integer (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9PlusLiterals());
         builder.setBackend(blazegraph);
@@ -137,7 +137,8 @@ public class PushFilterTest {
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
+            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
     public void filter_using_a_literal_and_a_function (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9PlusLiterals());
         builder.setBackend(blazegraph);

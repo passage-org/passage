@@ -4,6 +4,7 @@ import com.google.common.collect.Multiset;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.PassageConstants;
+import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.pull.PassagePullExecutor;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -21,9 +22,9 @@ public class PauseUtils4Test {
     private static final Logger log = LoggerFactory.getLogger(PauseUtils4Test.class);
 
     // just a sample of stopping conditions based on scans
-    public static final Function<ExecutionContext, Boolean> stopAtEveryScan = (ec) -> ((AtomicLong) ec.getContext().get(PassageConstants.SCANS)).get() >= 1;
-    public static final Function<ExecutionContext, Boolean> stopEveryThreeScans = (ec) -> ((AtomicLong) ec.getContext().get(PassageConstants.SCANS)).get() >= 3;
-    public static final Function<ExecutionContext, Boolean> stopEveryFiveScans = (ec) -> ((AtomicLong) ec.getContext().get(PassageConstants.SCANS)).get() >= 5;
+    public static final Function<PassageExecutionContext, Boolean> stopAtEveryScan = (ec) -> ((AtomicLong) ec.getContext().get(PassageConstants.SCANS)).get() >= 1;
+    public static final Function<PassageExecutionContext, Boolean> stopEveryThreeScans = (ec) -> ((AtomicLong) ec.getContext().get(PassageConstants.SCANS)).get() >= 3;
+    public static final Function<PassageExecutionContext, Boolean> stopEveryFiveScans = (ec) -> ((AtomicLong) ec.getContext().get(PassageConstants.SCANS)).get() >= 5;
 
     /**
      * @param queryAsString The SPARQL query to execute.

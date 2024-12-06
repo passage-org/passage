@@ -5,7 +5,6 @@ import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.generics.BackendSaver;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.optimizers.PassageOptimizer;
-import fr.gdd.passage.volcano.pause.PassagePaused;
 import fr.gdd.passage.volcano.pull.Pause2Next;
 import fr.gdd.passage.volcano.push.Op2Spliterators;
 import org.apache.jena.sparql.algebra.Op;
@@ -13,6 +12,7 @@ import org.apache.jena.sparql.engine.ExecutionContext;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 
 /**
  * Quick access to mandatory things of passage to execute properly.
@@ -38,14 +38,18 @@ public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
     public final Long maxScans;
     public final AtomicLong scans;
     public final Boolean backjump;
-
+    public final PassageExecutor<ID,VALUE> executor;
+    public final Function<ExecutionContext, PassageExecutor<ID,VALUE>> executorFactory;
 
     public PassageExecutionContext(ExecutionContext context) {
         super(context);
+        this.executorFactory = context.getContext().get(BackendConstants.EXECUTOR_FACTORY);
+
         this.backjump = context.getContext().get(PassageConstants.BACKJUMP);
         this.maxScans = context.getContext().get(PassageConstants.MAX_SCANS);
         this.backend = context.getContext().get(BackendConstants.BACKEND);
         this.maxParallelism = context.getContext().get(PassageConstants.MAX_PARALLELISM);
+
         context.getContext().setIfUndef(PassageConstants.OP2ITS, new Op2Spliterators<>(maxParallelism > 1));
         this.op2its = context.getContext().get(PassageConstants.OP2ITS);
         context.getContext().setIfUndef(PassageConstants.SCANS, new AtomicLong());
@@ -63,6 +67,8 @@ public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
         this.paused = this.getContext().get(PassageConstants.PAUSED);
 
         this.deadline = this.getContext().get(PassageConstants.DEADLINE);
+
+        this.executor = executorFactory.apply(this); // last just in case
     }
 
     /**

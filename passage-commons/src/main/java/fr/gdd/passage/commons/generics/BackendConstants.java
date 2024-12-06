@@ -8,6 +8,7 @@ public class BackendConstants {
     public static final String passageSymbolPrefix = "common";
 
     static public final Symbol EXECUTOR = allocConstantSymbol("Executor"); // The current executor executing
+    static public final Symbol EXECUTOR_FACTORY = allocConstantSymbol("ExecutorFactory"); // Create executors
     static public final Symbol BACKEND = allocConstantSymbol("Backend"); // The backend in question
     static public final Symbol CACHE = allocVariableSymbol("Cache"); // some kind of cache
 

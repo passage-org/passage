@@ -20,7 +20,7 @@ import java.util.Objects;
  * Base executor of operators that compose the logical plan.
  * Mostly exist to ease the creation of executor configurations.
  */
-public class BackendOpExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
+public class BackendPullExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
         Iterator<BackendBindings<ID, VALUE>>, // input
         Iterator<BackendBindings<ID, VALUE>>> { // output
 
@@ -40,20 +40,20 @@ public class BackendOpExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
     private final IBackendServicesFactory<ID,VALUE> services;
 
 
-    public BackendOpExecutor(ExecutionContext context,
-                             IBackendProjectsFactory<ID,VALUE> projects,
-                             IBackendTriplesFactory<ID,VALUE> triples,
-                             IBackendQuadsFactory<ID,VALUE> quads,
-                             IBackendJoinsFactory<ID,VALUE> joins,
-                             IBackendUnionsFactory<ID,VALUE> unions,
-                             IBackendValuesFactory<ID,VALUE> values,
-                             IBackendBindsFactory<ID,VALUE> binds,
-                             IBackendFiltersFactory<ID,VALUE> filters,
-                             IBackendDistinctsFactory<ID,VALUE> distincts,
-                             IBackendLimitOffsetFactory<ID,VALUE> slices,
-                             IBackendOptionalsFactory<ID,VALUE> optionals,
-                             IBackendCountsFactory<ID, VALUE> counts,
-                             IBackendServicesFactory<ID,VALUE> services) {
+    public BackendPullExecutor(ExecutionContext context,
+                               IBackendProjectsFactory<ID,VALUE> projects,
+                               IBackendTriplesFactory<ID,VALUE> triples,
+                               IBackendQuadsFactory<ID,VALUE> quads,
+                               IBackendJoinsFactory<ID,VALUE> joins,
+                               IBackendUnionsFactory<ID,VALUE> unions,
+                               IBackendValuesFactory<ID,VALUE> values,
+                               IBackendBindsFactory<ID,VALUE> binds,
+                               IBackendFiltersFactory<ID,VALUE> filters,
+                               IBackendDistinctsFactory<ID,VALUE> distincts,
+                               IBackendLimitOffsetFactory<ID,VALUE> slices,
+                               IBackendOptionalsFactory<ID,VALUE> optionals,
+                               IBackendCountsFactory<ID, VALUE> counts,
+                               IBackendServicesFactory<ID,VALUE> services) {
         this.context = context;
         this.context.getContext().set(BackendConstants.EXECUTOR, this);
         this.triples = triples;

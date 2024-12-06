@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.push;
+package fr.gdd.passage.volcano.executions;
 
 import com.google.common.collect.ConcurrentHashMultiset;
 import com.google.common.collect.Multiset;
@@ -37,12 +37,13 @@ import java.util.stream.StreamSupport;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class PushBGPTest {
+public class BGPTest {
 
-    private final static Logger log = LoggerFactory.getLogger(PushBGPTest.class);
+    private final static Logger log = LoggerFactory.getLogger(BGPTest.class);
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
+            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
     public void a_literal_at_predicate_position (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -58,7 +59,8 @@ public class PushBGPTest {
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
+            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
     public void a_tp_with_an_unknown_value (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -70,7 +72,8 @@ public class PushBGPTest {
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
+            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
     public void a_bgp_with_an_unknown_value (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -82,7 +85,8 @@ public class PushBGPTest {
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
+            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
     void an_unknown_value_at_first_but_then_known (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -102,7 +106,8 @@ public class PushBGPTest {
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
+            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
     void an_unknown_value_at_first_but_then_known_but_known_first (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -122,7 +127,8 @@ public class PushBGPTest {
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
+            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
     public void bgp_of_1_tp (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -138,7 +144,8 @@ public class PushBGPTest {
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
+            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
     public void bgp_of_2_tps (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -158,7 +165,8 @@ public class PushBGPTest {
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
+            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
     public void bgp_of_3_tps (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -204,8 +212,8 @@ public class PushBGPTest {
                   ?x4 <http://www.wikidata.org/prop/direct/P4614> ?x3 . #tp4
                 }""";
 
-        var results = OpExecutorUtils.executeWithPush(query646, wdbench);
-        log.debug("{}", results);
+        // var results = OpExecutorUtils.executeWithPush(query646, wdbench);
+        // log.debug("{}", results);
     }
 
     @Disabled // TODO put it in dedicated tests using benchmarks
@@ -225,9 +233,9 @@ public class PushBGPTest {
                     }
                     """;
 
-        var results = OpExecutorUtils.executeWithPush(query10124, watdiv, 10);
+        // var results = OpExecutorUtils.executeWithPush(query10124, watdiv, 10);
 
-        assertEquals(117, results.size());
+        // assertEquals(117, results.size());
     }
 
     @Disabled // TODO put it in dedicated benchmarking tool
@@ -238,8 +246,8 @@ public class PushBGPTest {
         String spo = "SELECT * WHERE {?s ?p ?o}";
 
         LongAdder results = new LongAdder();
-        OpExecutorUtils.executeWithPush(spo, watdiv, 10, result -> results.increment());
-        log.debug("Number of results: {}", results.longValue());
+        // OpExecutorUtils.execute(spo, watdiv, 10, result -> results.increment());
+        // log.debug("Number of results: {}", results.longValue());
     }
 
     @Disabled // TODO put it in dedicated tests using benchmarks
@@ -294,4 +302,28 @@ public class PushBGPTest {
     static ExecutionContext reset(ExecutionContext context) {
         return new PassageExecutionContextBuilder<>().setContext(context).build().setLimit(null).setOffset(0L);
     }
+
+
+    @Disabled("Time consuming.")
+    @Test
+    public void sandbox_of_test () throws RepositoryException, SailException {
+        Assumptions.assumeTrue(Path.of(WatDivTest.PATH).toFile().exists());
+        BlazegraphBackend watdivBlazegraph = new BlazegraphBackend(WatDivTest.PATH);
+
+        String query = """        
+                SELECT ?v7 ?v1 ?v5 ?v6 ?v0 ?v3 ?v2 WHERE {
+                        ?v0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://db.uwaterloo.ca/~galuc/wsdbm/Genre13>.
+                        ?v2 <http://db.uwaterloo.ca/~galuc/wsdbm/hasGenre> ?v0.
+                        ?v2 <http://schema.org/caption> ?v5.
+                        ?v2 <http://schema.org/keywords> ?v7.
+                        ?v2 <http://schema.org/contentRating> ?v6.
+                        ?v2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?v3.
+                        ?v0 <http://ogp.me/ns#tag> ?v1.
+                }
+                """;
+
+        int sum = OpExecutorUtils.executeWithPassage(query, watdivBlazegraph).size();
+        log.info("{}", sum);
+    }
+
 }

@@ -8,6 +8,7 @@ import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
+import fr.gdd.passage.volcano.pull.PassagePullExecutor;
 import fr.gdd.passage.volcano.pull.iterators.PassageScan;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -46,7 +47,9 @@ public class CardinalityJoinOrdering<ID,VALUE> extends ReturningArgsOpVisitor<
     }
 
     public CardinalityJoinOrdering(Backend backend, BackendCache<ID,VALUE> cache) {
-        this.fakeContext = new PassageExecutionContextBuilder<ID,VALUE>().setBackend(backend).build().setCache(cache).setQuery(null);
+        this.fakeContext = new PassageExecutionContextBuilder<ID,VALUE>()
+                .setExecutorFactory(ec -> new PassagePullExecutor<>((PassageExecutionContext)ec))
+                .setBackend(backend).build().setCache(cache).setQuery(null);
     }
 
     public Op visit(Op op) {

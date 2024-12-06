@@ -1,5 +1,8 @@
 package fr.gdd.passage.volcano;
 
+import fr.gdd.passage.volcano.pull.PassagePullExecutor;
+import fr.gdd.passage.volcano.push.PassagePushExecutor;
+
 import java.util.Arrays;
 import java.util.stream.Stream;
 
@@ -10,15 +13,17 @@ public class InstanceProviderForTests {
      * the *push* iterator model. We leave `setBackend` for the body of the
      * tested function.
      */
-    static Stream<PassageExecutionContextBuilder> pushProvider () {
+    static Stream<PassageExecutionContextBuilder<?,?>> pushProvider () {
         Long[] maxScans = {null, 1L, 2L, 3L};
         // Long[] maxScans = {2L};
         Integer[] maxParallel = {1, 2, 5, 10};
 
         return Arrays.stream(maxScans).flatMap(s ->
-                Arrays.stream(maxParallel).map(p -> new PassageExecutionContextBuilder()
+                Arrays.stream(maxParallel).map(p -> new PassageExecutionContextBuilder<>()
+                        .setName("PUSH")
                         .setMaxScans(s)
                         .setMaxParallel(p)
+                        .setExecutorFactory((ec) -> new PassagePushExecutor<>((PassageExecutionContext) ec))
         ));
     }
 
@@ -27,13 +32,29 @@ public class InstanceProviderForTests {
      * the *pull* iterator model. We leave `setBackend` for the body of the
      * tested function.
      */
-    static Stream<PassageExecutionContextBuilder> singleThreadProvider () {
+    static Stream<PassageExecutionContextBuilder<?,?>> singleThreadPushProvider() {
         Long[] maxScans = {null, 1L, 2L, 3L};
-        // no support for parallel just yet.
-        return Arrays.stream(maxScans).map(s -> new PassageExecutionContextBuilder()
+        return Arrays.stream(maxScans).map(s -> new PassageExecutionContextBuilder<>()
+                        .setName("PUSH")
+                        .setExecutorFactory((ec) -> new PassagePushExecutor<>((PassageExecutionContext) ec))
                         .setMaxScans(s)
                 ); // setBackend should be in the test function
     }
 
+
+    /**
+     * @return A stream of pull executors builder where the number of scans is limits to
+     * test for pause/resumes. The `setBackend` function is left for the body of the tested function.
+     */
+    static Stream<PassageExecutionContextBuilder<?,?>> pullProvider () {
+        Long[] maxScans = {null, 1L, 2L, 3L};
+        // no support for parallel just yet.
+        return Arrays.stream(maxScans).map(s -> new PassageExecutionContextBuilder<>()
+                .setName("PULL")
+                .setExecutorFactory((ec) -> new PassagePullExecutor<>((PassageExecutionContext) ec))
+                .setMaxScans(s)
+        );
+
+    }
 
 }

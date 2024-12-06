@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.push;
+package fr.gdd.passage.volcano.executions;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
@@ -16,10 +16,11 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class PushQuadTest {
+public class QuadTest {
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
+            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
     public void empty_quad_pattern (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.graph3());
         builder.setBackend(blazegraph);
@@ -31,7 +32,8 @@ public class PushQuadTest {
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
+            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
     public void a_simple_quad_pattern_with_bounded_graph (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.graph3());
         builder.setBackend(blazegraph);
@@ -45,7 +47,8 @@ public class PushQuadTest {
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
+            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
     public void a_simple_quad_pattern_with_unknown_graph (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.graph3());
         builder.setBackend(blazegraph);
@@ -57,7 +60,8 @@ public class PushQuadTest {
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
+            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
     public void a_simple_quad_pattern_with_variable_for_graph (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.graph3());
         builder.setBackend(blazegraph);
@@ -75,7 +79,8 @@ public class PushQuadTest {
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
+            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
     public void multiple_graphs_are_joined (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.graph3());
         builder.setBackend(blazegraph);
@@ -95,7 +100,8 @@ public class PushQuadTest {
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
+            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
     public void a_graph_with_bgp_inside (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.graph3());
         builder.setBackend(blazegraph);
@@ -106,7 +112,7 @@ public class PushQuadTest {
                         ?p <http://own> ?a}
                 }""";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, blazegraph);
+        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
         assertEquals(3, results.size()); // 3x Alice, with different species
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                 List.of("Alice", "cat"),
@@ -116,7 +122,8 @@ public class PushQuadTest {
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
+            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
     public void bgp_with_3_tps_that_preempt (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.graph3());
         builder.setBackend(blazegraph);
@@ -128,7 +135,7 @@ public class PushQuadTest {
                }""";
 
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, blazegraph);
+        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
         // 3x Alice, with different species, BUT this time, some tp come from multiple locations.
         // g1 -> Alice; g2 -> Alice, and Carol; g3 -> Bob
         assertEquals(6, results.size());

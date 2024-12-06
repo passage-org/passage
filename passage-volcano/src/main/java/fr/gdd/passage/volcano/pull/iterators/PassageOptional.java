@@ -4,7 +4,7 @@ import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.passage.commons.factories.IBackendOptionalsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
-import fr.gdd.passage.commons.generics.BackendOpExecutor;
+import fr.gdd.passage.commons.generics.BackendPullExecutor;
 import fr.gdd.passage.commons.generics.BackendSaver;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.pull.Pause2Next;
@@ -29,7 +29,7 @@ public class PassageOptional<ID,VALUE>  implements Iterator<BackendBindings<ID, 
 
     public static <ID,VALUE> IBackendOptionalsFactory<ID,VALUE> factory() {
         return (context, input, op) -> {
-            BackendOpExecutor<ID,VALUE> executor = context.getContext().get(BackendConstants.EXECUTOR);
+            BackendPullExecutor<ID,VALUE> executor = context.getContext().get(BackendConstants.EXECUTOR);
             BackendSaver<ID,VALUE,?> saver = context.getContext().get(PassageConstants.SAVER);
             Iterator<BackendBindings<ID,VALUE>> optionals = new PassageOptional<>(context, executor, op, input);
             saver.register(op, optionals);
@@ -42,7 +42,7 @@ public class PassageOptional<ID,VALUE>  implements Iterator<BackendBindings<ID, 
     final Op2 op;
     final Iterator<BackendBindings<ID,VALUE>> input;
     final ExecutionContext context;
-    final BackendOpExecutor<ID,VALUE> executor;
+    final BackendPullExecutor<ID,VALUE> executor;
 
     BackendBindings<ID,VALUE> inputBinding;
     Iterator<BackendBindings<ID,VALUE>> mandatory = Iter.empty();
@@ -51,7 +51,7 @@ public class PassageOptional<ID,VALUE>  implements Iterator<BackendBindings<ID, 
     Boolean noOptionalPart = true; // saving the fact that the optional exist or not
     BackendBindings<ID,VALUE> optionalBinding;
 
-    public PassageOptional(ExecutionContext context, BackendOpExecutor<ID, VALUE> executor, Op2 op, Iterator<BackendBindings<ID,VALUE>> input) {
+    public PassageOptional(ExecutionContext context, BackendPullExecutor<ID, VALUE> executor, Op2 op, Iterator<BackendBindings<ID,VALUE>> input) {
         this.op = op;
         this.input = input;
         this.context = context;

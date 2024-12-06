@@ -3,7 +3,7 @@ package fr.gdd.passage.commons.iterators;
 import fr.gdd.passage.commons.factories.IBackendFiltersFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
-import fr.gdd.passage.commons.generics.BackendOpExecutor;
+import fr.gdd.passage.commons.generics.BackendPullExecutor;
 import org.apache.jena.sparql.algebra.op.OpFilter;
 import org.apache.jena.sparql.expr.E_LogicalOr;
 import org.apache.jena.sparql.expr.E_NotEquals;
@@ -22,20 +22,20 @@ public class BackendFilter<ID,VALUE> implements Iterator<BackendBindings<ID,VALU
 
     public static <ID,VALUE> IBackendFiltersFactory<ID,VALUE> factory() {
         return (context, input, filter) -> {
-            BackendOpExecutor<ID,VALUE> executor = context.getContext().get(BackendConstants.EXECUTOR);
+            BackendPullExecutor<ID,VALUE> executor = context.getContext().get(BackendConstants.EXECUTOR);
             return new BackendFilter<>(executor, input, filter);
         };
     }
 
     /* ******************************* ACTUAL FILTER ******************************** */
 
-    final BackendOpExecutor<ID,VALUE> executor;
+    final BackendPullExecutor<ID,VALUE> executor;
     final OpFilter filter;
     final Iterator<BackendBindings<ID,VALUE>> wrapped;
 
     BackendBindings<ID,VALUE> lastProduced;
 
-    public BackendFilter(BackendOpExecutor<ID,VALUE> executor, Iterator<BackendBindings<ID,VALUE>> input, OpFilter filter) {
+    public BackendFilter(BackendPullExecutor<ID,VALUE> executor, Iterator<BackendBindings<ID,VALUE>> input, OpFilter filter) {
         this.executor = executor;
         this.filter = filter;
         this.wrapped = executor.visit(filter.getSubOp(), input); // The input is bypassed, then filter applies

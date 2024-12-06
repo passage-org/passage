@@ -5,20 +5,20 @@ import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.transforms.DefaultGraphUriQueryModifier;
 import fr.gdd.passage.volcano.PassageExecutionContext;
-import fr.gdd.passage.volcano.pause.PauseException;
+import fr.gdd.passage.volcano.PassageExecutor;
+import fr.gdd.passage.volcano.exceptions.PauseException;
 import fr.gdd.passage.volcano.push.streams.PassagePushLimitOffset;
 import fr.gdd.passage.volcano.push.streams.PassagePushValues;
 import fr.gdd.passage.volcano.push.streams.PassageSplitScan;
-import org.apache.jena.query.ResultSetFactory;
+import org.apache.jena.query.QueryFactory;
 import org.apache.jena.riot.out.NodeFmtLib;
+import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.expr.NodeValue;
 
-import java.util.Spliterator;
-import java.util.Spliterators;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -26,7 +26,7 @@ import java.util.stream.StreamSupport;
 
 public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
         Stream<BackendBindings<ID, VALUE>>, // output
-        BackendBindings<ID, VALUE>> { // input
+        BackendBindings<ID, VALUE>> implements PassageExecutor<ID,VALUE> { // input
 
     final PassageExecutionContext<ID,VALUE> context;
 
@@ -35,14 +35,12 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
         this.context.getContext().set(BackendConstants.EXECUTOR, this); // TODO, let a super do the job
     }
 
-    @Deprecated // should not be used
-    public Stream<BackendBindings<ID, VALUE>> execute(Op root) {
-        root = context.optimizer.optimize(root);
-        root = new DefaultGraphUriQueryModifier(context).visit(root);
-        context.setQuery(root); // mandatory to be saved later on
-        return this.visit(root, new BackendBindings<>());
+    @Override
+    public Op execute(String query, Consumer<BackendBindings<ID, VALUE>> consumer) {
+        return this.execute(Algebra.compile(QueryFactory.create(query)), consumer);
     }
 
+    @Override
     public Op execute(Op root, Consumer<BackendBindings<ID, VALUE>> consumer) {
         root = context.optimizer.optimize(root);
         final Op _root = new DefaultGraphUriQueryModifier(context).visit(root);

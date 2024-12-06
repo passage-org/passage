@@ -1,17 +1,21 @@
 package fr.gdd.passage.volcano;
 
 import fr.gdd.passage.commons.generics.BackendConstants;
+import fr.gdd.passage.commons.generics.BackendPullExecutor;
 import fr.gdd.passage.commons.interfaces.Backend;
+import fr.gdd.passage.volcano.exceptions.InvalidContexException;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
 import java.util.Objects;
+import java.util.function.Function;
 
 /**
  * A builder for a well-formed execution context for Passage.
  */
 public class PassageExecutionContextBuilder<ID,VALUE> {
 
+    private String name; // optional name to make it simpler
     private Backend<ID,VALUE> backend;
     private ExecutionContext context;
 
@@ -21,28 +25,35 @@ public class PassageExecutionContextBuilder<ID,VALUE> {
     private Boolean forceOrder = false;
     private Boolean backjump = false;
 
+    private Function<ExecutionContext, PassageExecutor> executorFactory;
+
     public PassageExecutionContext<ID,VALUE> build() {
         ExecutionContext ec = Objects.isNull(context) ?
                 new ExecutionContext(DatasetFactory.empty().asDatasetGraph()):
                 context;
 
         if (ec.getContext().isUndef(BackendConstants.BACKEND) && Objects.isNull(backend)) {
-            throw new RuntimeException("Backend undefined.");
+            throw new InvalidContexException("Backend undefined.");
+        } else {
+            // prioritize execution context's backend
+            ec.getContext().setIfUndef(BackendConstants.BACKEND, backend);
         }
 
-        // prioritize execution context's backend
-        ec.getContext().setIfUndef(BackendConstants.BACKEND, backend);
+        if (ec.getContext().isUndef(BackendConstants.EXECUTOR_FACTORY) && Objects.isNull(executorFactory)) {
+            throw new InvalidContexException("Executor factory undefined.");
+        } else {
+            ec.getContext().setIfUndef(BackendConstants.EXECUTOR_FACTORY, executorFactory);
+        }
 
         if (ec.getContext().isUndef(PassageConstants.DEADLINE)) {
             ec.getContext().set(PassageConstants.TIMEOUT, timeout);
+            // handle overflow
             long deadline = (System.currentTimeMillis() + timeout <= 0) ? Long.MAX_VALUE : System.currentTimeMillis() + timeout;
             ec.getContext().set(PassageConstants.DEADLINE, deadline);
         }
 
         ec.getContext().setIfUndef(PassageConstants.MAX_SCANS, maxScans);
-
         ec.getContext().setIfUndef(PassageConstants.FORCE_ORDER, forceOrder);
-
         ec.getContext().setIfUndef(PassageConstants.MAX_PARALLELISM, maxParallel);
         ec.getContext().setIfUndef(PassageConstants.BACKJUMP, backjump);
 
@@ -95,11 +106,22 @@ public class PassageExecutionContextBuilder<ID,VALUE> {
         return this;
     }
 
+    public PassageExecutionContextBuilder<ID,VALUE> setExecutorFactory(Function<ExecutionContext, PassageExecutor> executorFactory) {
+        this.executorFactory = executorFactory;
+        return this;
+    }
+
+    public PassageExecutionContextBuilder<ID,VALUE> setName(String name) {
+        this.name = name;
+        return this;
+    }
+
     @Override
     public String toString() {
-        return (Objects.nonNull(timeout) && timeout!=Long.MAX_VALUE ? " timeout=" + timeout : "") +
+        return  ((Objects.nonNull(name)) ? name + " " : "") +
+                (Objects.nonNull(timeout) && timeout!=Long.MAX_VALUE ? " timeout=" + timeout : "") +
                 (Objects.nonNull(maxScans) && maxScans!=Long.MAX_VALUE ? " scans ≤ " + maxScans : "") +
                 (forceOrder ? " forceOrder ": "") +
-                " parallel ≤ " + maxParallel;
+                (maxParallel > 1 ? " parallel ≤ " + maxParallel : "") ;
     }
 }

@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.push.streams;
+package fr.gdd.passage.volcano.exceptions;
 
 import org.apache.jena.sparql.core.Var;
 
