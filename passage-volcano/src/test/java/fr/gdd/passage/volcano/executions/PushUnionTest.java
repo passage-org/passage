@@ -50,7 +50,7 @@ public class PushUnionTest {
                 {?p  <http://address> ?a}
                }""";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        var results = OpExecutorUtils.execute(queryAsString, builder);
         log.debug("{}", results);
         assertEquals(6, results.size()); // 3 triples + 3 triples
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
@@ -72,7 +72,7 @@ public class PushUnionTest {
                  ?p  <http://own> ?a }
                }""";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        var results = OpExecutorUtils.execute(queryAsString, builder);
         log.debug("{}", results);
         assertEquals(6, results.size()); // Alice x6
         blazegraph.close();
@@ -88,7 +88,7 @@ public class PushUnionTest {
                 {?p <http://own> ?a . ?a <http://species> ?s } UNION { ?p <http://address> <http://nantes> }
                }""";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        var results = OpExecutorUtils.execute(queryAsString, builder);
         log.debug("{}", results);
         assertEquals(5, results.size()); // Alice * 3 + Alice + Carol
         blazegraph.close();

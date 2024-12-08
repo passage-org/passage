@@ -53,7 +53,7 @@ public class BGPTest {
                     ?p ?predicate ?c
                 }""";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        var results = OpExecutorUtils.execute(queryAsString, builder);
         assertEquals(0, results.size());
         blazegraph.close();
     }
@@ -66,7 +66,7 @@ public class BGPTest {
         builder.setBackend(blazegraph);
         String queryAsString = "SELECT * WHERE {?p <http://does_not_exist> ?c}";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        var results = OpExecutorUtils.execute(queryAsString, builder);
         assertEquals(0, results.size());
         blazegraph.close();
     }
@@ -79,7 +79,7 @@ public class BGPTest {
         builder.setBackend(blazegraph);
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c . ?p <http://does_not_exist> ?c}";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        var results = OpExecutorUtils.execute(queryAsString, builder);
         assertEquals(0, results.size());
         blazegraph.close();
     }
@@ -96,7 +96,7 @@ public class BGPTest {
                     ?p ?predicate ?c}
                 """;
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        var results = OpExecutorUtils.execute(queryAsString, builder);
         assertEquals(3, results.size());
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "predicate", "c"),
                 List.of("Alice", "address", "nantes"),
@@ -117,7 +117,7 @@ public class BGPTest {
                     ?p ?predicate ?c}
                 """;
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        var results = OpExecutorUtils.execute(queryAsString, builder);
         assertEquals(3, results.size());
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "predicate", "c"),
                 List.of("Alice", "address", "nantes"),
@@ -134,7 +134,7 @@ public class BGPTest {
         builder.setBackend(blazegraph);
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c}";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        var results = OpExecutorUtils.execute(queryAsString, builder);
         assertEquals(3, results.size()); // Bob, Alice, and Carol.
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "c"),
                 List.of("Alice", "nantes"),
@@ -155,7 +155,7 @@ public class BGPTest {
                 ?p <http://own> ?a .
                }""";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        var results = OpExecutorUtils.execute(queryAsString, builder);
         assertEquals(3, results.size()); // Alice, Alice, and Alice.
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                 List.of("Alice", "dog"),
@@ -177,7 +177,7 @@ public class BGPTest {
                 ?a <http://species> ?s
                }""";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        var results = OpExecutorUtils.execute(queryAsString, builder);
         assertEquals(3, results.size()); // Alice->own->cat,dog,snake
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a", "s"),
                 List.of("Alice", "dog", "canine"),

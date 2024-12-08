@@ -28,7 +28,7 @@ public class BindAsTest {
                 BIND (<http://Someone> AS ?p)
                }""";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        var results = OpExecutorUtils.execute(queryAsString, builder);
         assertEquals(1, results.size());
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p"),
                 List.of("Someone")));
@@ -47,7 +47,7 @@ public class BindAsTest {
                 ?p  <http://own>  ?a .
                }""";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        var results = OpExecutorUtils.execute(queryAsString, builder);
         assertEquals(3, results.size()); // Alice, Alice, and Alice.
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                 List.of("Alice", "cat"), List.of("Alice", "dog"), List.of("Alice", "snake")));
@@ -65,7 +65,7 @@ public class BindAsTest {
                 BIND (12+30-2*2 AS ?count)
                }""";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        var results = OpExecutorUtils.execute(queryAsString, builder);
         assertEquals(1, results.size());
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("count"),
                 List.of("38")));
@@ -84,7 +84,7 @@ public class BindAsTest {
                        BIND (strlen(str(?animal)) AS ?number)
                 }""";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        var results = OpExecutorUtils.execute(queryAsString, builder);
         assertEquals(3, results.size()); // no snake this time
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("animal", "number"),
                 List.of("snake", "12"),

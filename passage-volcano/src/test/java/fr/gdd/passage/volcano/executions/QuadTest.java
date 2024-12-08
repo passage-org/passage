@@ -26,7 +26,7 @@ public class QuadTest {
         builder.setBackend(blazegraph);
         String queryAsString = "SELECT * WHERE { GRAPH <http://Alice> { ?p <http://not_known> ?c } }";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        var results = OpExecutorUtils.execute(queryAsString, builder);
         assertEquals(0, results.size()); // no known so nothing
         blazegraph.close();
     }
@@ -39,7 +39,7 @@ public class QuadTest {
         builder.setBackend(blazegraph);
         String queryAsString = "SELECT * WHERE {GRAPH <http://Alice> {?p <http://address> ?c}}";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        var results = OpExecutorUtils.execute(queryAsString, builder);
         assertEquals(1, results.size()); // herself
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "c"),
                 Arrays.asList("Alice", "nantes")));
@@ -54,7 +54,7 @@ public class QuadTest {
         builder.setBackend(blazegraph);
         String queryAsString = "SELECT * WHERE {GRAPH <http://David> {?p <http://address> ?c}}";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        var results = OpExecutorUtils.execute(queryAsString, builder);
         assertEquals(0, results.size()); // graph does not exist, so 0.
         blazegraph.close();
     }
@@ -67,7 +67,7 @@ public class QuadTest {
         builder.setBackend(blazegraph);
         String queryAsString = "SELECT * WHERE {GRAPH ?g {?p <http://address> ?c}}";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        var results = OpExecutorUtils.execute(queryAsString, builder);
         assertEquals(5, results.size()); // 1 Alice, 1 Bob, 3 Carol
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "c", "g"),
                 List.of("Alice", "nantes", "Alice"),
@@ -90,7 +90,7 @@ public class QuadTest {
                     GRAPH <http://Bob> {?a <http://species> ?s}
                 }""";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        var results = OpExecutorUtils.execute(queryAsString, builder);
         assertEquals(3, results.size()); // 3x Alice, with different species
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a", "s"),
                 List.of("Alice", "cat", "feline"),
@@ -112,7 +112,7 @@ public class QuadTest {
                         ?p <http://own> ?a}
                 }""";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        var results = OpExecutorUtils.execute(queryAsString, builder);
         assertEquals(3, results.size()); // 3x Alice, with different species
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                 List.of("Alice", "cat"),
@@ -135,7 +135,7 @@ public class QuadTest {
                }""";
 
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        var results = OpExecutorUtils.execute(queryAsString, builder);
         // 3x Alice, with different species, BUT this time, some tp come from multiple locations.
         // g1 -> Alice; g2 -> Alice, and Carol; g3 -> Bob
         assertEquals(6, results.size());

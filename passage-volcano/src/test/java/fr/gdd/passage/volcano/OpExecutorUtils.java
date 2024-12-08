@@ -23,10 +23,12 @@ public class OpExecutorUtils {
 
     private static final Logger log = LoggerFactory.getLogger(OpExecutorUtils.class);
 
+    @Deprecated // should use execute
     public static Multiset<BackendBindings<?,?>> executeWithPassage(String queryAsString, Backend<?,?> backend) {
         return executeWithPassage(queryAsString, new PassageExecutionContextBuilder().setBackend(backend).build());
     }
 
+    @Deprecated // should use execute
     public static Multiset<BackendBindings<?,?>> executeWithPassage(String queryAsString, PassageExecutionContext<?,?> ec) {
         PassagePullExecutor<?,?> executor = new PassagePullExecutor<>(ec);
 
@@ -43,10 +45,12 @@ public class OpExecutorUtils {
         return bindings;
     }
 
+    @Deprecated // should use execute
     public static long countWithPassage(String queryAsString, Backend<?,?> backend) {
         return countWithPassage(queryAsString, new PassageExecutionContextBuilder().setBackend(backend).build());
     }
 
+    @Deprecated // should use execute
     public static long countWithPassage(String queryAsString, PassageExecutionContext<?,?> ec) {
         PassagePullExecutor<?,?> executor = new PassagePullExecutor<>(ec);
 
@@ -63,27 +67,12 @@ public class OpExecutorUtils {
 
     /* ************************************************************************** */
 
-    public static <ID,VALUE> Multiset<BackendBindings<?,?>> executeWithPush(String queryAsString, PassageExecutionContextBuilder<ID,VALUE> builder) {
-        Multiset<BackendBindings<?,?>> results = ConcurrentHashMultiset.create();
-        while (Objects.nonNull(queryAsString)) {
-            PassagePushExecutor<ID, VALUE> executor = new PassagePushExecutor<>(builder.build());
-            Op query = Algebra.compile(QueryFactory.create(queryAsString));
-            log.debug(queryAsString);
-            Op paused = executor.execute(query, (i) -> {
-                log.debug("{}", i);
-                results.add(i);
-            });
-            queryAsString = Objects.nonNull(paused) ? OpAsQuery.asQuery(new Quad2Pattern().visit(paused)).toString() : null;
-        }
-        return results;
-    }
-
     public static <ID,VALUE> Multiset<BackendBindings<?,?>> execute(String queryAsString, PassageExecutionContextBuilder<ID,VALUE> builder) {
         Multiset<BackendBindings<?,?>> results = ConcurrentHashMultiset.create();
         while (Objects.nonNull(queryAsString)) {
             PassageExecutionContext<?,?> context = builder.build();
-            Op query = Algebra.compile(QueryFactory.create(queryAsString));
             log.debug(queryAsString);
+            Op query = Algebra.compile(QueryFactory.create(queryAsString));
             Op paused = context.executor.execute(query, (i) -> {
                 log.debug("{}", i);
                 results.add(i);

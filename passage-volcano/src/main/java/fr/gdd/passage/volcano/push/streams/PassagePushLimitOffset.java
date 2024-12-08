@@ -24,7 +24,8 @@ public class PassagePushLimitOffset<ID,VALUE> extends PausableSpliterator<ID,VAL
     final OpSlice slice;
     final PassagePushExecutor<ID,VALUE> executor;
 
-    final LongAdder produced = new LongAdder();
+    final LongAdder actuallyProduced = new LongAdder();
+    final LongAdder totalProduced = new LongAdder();
 
     public PassagePushLimitOffset(ExecutionContext context, BackendBindings<ID,VALUE> input, OpSlice slice) {
         super((PassageExecutionContext<ID, VALUE>) context, slice);
@@ -46,9 +47,14 @@ public class PassagePushLimitOffset<ID,VALUE> extends PausableSpliterator<ID,VAL
                     .filter(Objects::nonNull);
         } else { // but sometimes, operators do not provide efficient skips, so we can stay in this context
             this.wrapped = executor.visit(slice.getSubOp(), new BackendBindings<>())
-                    .skip(slice.getStart() == Long.MIN_VALUE ? 0 : slice.getStart())
-                    .limit(slice.getLength() == Long.MIN_VALUE ? Long.MAX_VALUE : slice.getLength())
-                    .peek(i -> produced.increment())
+                    .peek(i -> totalProduced.increment())
+                    // `skip` and `limit` cannot be used because they propagate downstream, so the logic at this level
+                    // is not executed despite its necessity.
+                    // offset:
+                    .filter(ignored -> slice.getStart() == Long.MIN_VALUE || totalProduced.longValue() > slice.getStart())
+                    // limit:
+                    .filter(ignored -> slice.getLength() == Long.MIN_VALUE || actuallyProduced.longValue() < slice.getLength())
+                    .peek(i -> actuallyProduced.increment())
                     // TODO multiple parents instead of copy? (add layers of visibility)
                     .map(i -> i.isCompatible(input) ? new BackendBindings<>(i).setParent(input) : null)
                     .filter(Objects::nonNull);
@@ -61,14 +67,18 @@ public class PassagePushLimitOffset<ID,VALUE> extends PausableSpliterator<ID,VAL
 
     @Override
     public Op pause() {
-        if (slice.getLength()!=Long.MIN_VALUE && produced.longValue() >= slice.getLength()) { return null; }
-        long pausedLimit = slice.getLength() == Long.MIN_VALUE ? Long.MIN_VALUE : slice.getLength() - produced.longValue();
-        long pausedOffset = produced.longValue() == 0 ? slice.getStart() : slice.getStart() - produced.longValue();
-        Op inside = new Pause2ContinuationQuery<>(context.getContext().get(PassageConstants.OP2ITS)).visit(slice.getSubOp());
-        if (Objects.isNull(inside)) { return null; }
+        Op inside = new Pause2ContinuationQuery<>(context.op2its).visit(slice.getSubOp());
+        if (Objects.isNull(inside)) {
+            // return OpJoin.create(input.toOp(), slice.getSubOp());
+            return null;
+        }
         if (new CanBeSkipped().visit((Op) slice)) {
             return OpJoin.create(input.toOp(), inside);
         } else {
+            if (slice.getLength()!=Long.MIN_VALUE && actuallyProduced.longValue() >= slice.getLength()) { return null; }
+            long pausedLimit = slice.getLength() == Long.MIN_VALUE ? Long.MIN_VALUE : slice.getLength() - actuallyProduced.longValue();
+            long pausedOffset = slice.getStart() == Long.MIN_VALUE ? Long.MIN_VALUE : slice.getStart() - totalProduced.longValue();
+            pausedOffset = pausedOffset > 0 ? pausedOffset : Long.MIN_VALUE;
             return OpJoin.create(input.toOp(), new OpSlice(inside, pausedOffset, pausedLimit));
         }
     }

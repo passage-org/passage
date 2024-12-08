@@ -8,6 +8,13 @@ import java.util.stream.Stream;
 
 public class InstanceProviderForTests {
 
+    static Stream<PassageExecutionContextBuilder<?,?>> oneScanOneThreadOnePush () {
+        return Stream.of(new PassageExecutionContextBuilder<>()
+                .setName("PUSH")
+                .setMaxScans(1L)
+                .setExecutorFactory((ec)-> new PassagePushExecutor((PassageExecutionContext) ec)));
+    }
+
     /**
      * @return A stream of builder that set the execution context of Passage for
      * the *push* iterator model. We leave `setBackend` for the body of the

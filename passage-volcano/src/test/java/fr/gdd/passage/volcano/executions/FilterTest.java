@@ -29,7 +29,7 @@ public class FilterTest {
             FILTER ( ?address != <http://nantes> )
         }""";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        var results = OpExecutorUtils.execute(queryAsString, builder);
         assertEquals(1, results.size()); // Bob only
         assertTrue(MultisetResultChecking.containsResult(results, List.of("person", "address"),
                 List.of("Bob", "paris")));
@@ -48,7 +48,7 @@ public class FilterTest {
             FILTER ( (?address != <http://nantes>) || (?person != <http://Alice>) )
         }""";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        var results = OpExecutorUtils.execute(queryAsString, builder);
         assertEquals(2, results.size()); // Bob and Carol
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("person", "address"),
                 List.of("Bob", "paris"),
@@ -69,7 +69,7 @@ public class FilterTest {
                 FILTER (?a != <http://dog>)
                }""";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        var results = OpExecutorUtils.execute(queryAsString, builder);
         assertEquals(2, results.size()); // Alice and Alice.
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                 List.of("Alice", "cat"),
@@ -90,7 +90,7 @@ public class FilterTest {
                 ?p <http://own> ?a
                }""";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        var results = OpExecutorUtils.execute(queryAsString, builder);
         assertEquals(0, results.size()); // No one that lives outside nantes has animals
         blazegraph.close();
     }
@@ -108,7 +108,7 @@ public class FilterTest {
                 ?p <http://address> <http://nantes>
                }""";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        var results = OpExecutorUtils.execute(queryAsString, builder);
         assertEquals(2, results.size()); // No one that lives outside nantes has animals
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                 List.of("Alice", "snake"),
@@ -128,7 +128,7 @@ public class FilterTest {
                        FILTER (?number > 3)
                 }""";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        var results = OpExecutorUtils.execute(queryAsString, builder);
         assertEquals(1, results.size());
         // cat = 3 so filtered out
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("animal", "number"),
@@ -148,7 +148,7 @@ public class FilterTest {
                        FILTER (strlen(str(?animal)) <= 8+3)
                 }""";
 
-        var results = OpExecutorUtils.executeWithPush(queryAsString, builder);
+        var results = OpExecutorUtils.execute(queryAsString, builder);
         assertEquals(2, results.size()); // no snake this time
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("animal"),
                 List.of("dog"),

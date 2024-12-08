@@ -24,7 +24,7 @@ public class ValuesTest {
         builder.setBackend(blazegraph);
         String query = "SELECT * WHERE {  VALUES ?p { UNDEF } }";
 
-        var results = OpExecutorUtils.executeWithPush(query, builder);
+        var results = OpExecutorUtils.execute(query, builder);
         assertEquals(1, results.size()); // 1 result but empty. (Wikidata's online server confirms)
         blazegraph.close();
     }
@@ -36,7 +36,7 @@ public class ValuesTest {
         builder.setBackend(blazegraph);
         String query = "SELECT * WHERE {  VALUES ?p { <http://does_not_exist> } }";
 
-        var results = OpExecutorUtils.executeWithPush(query, builder);
+        var results = OpExecutorUtils.execute(query, builder);
         assertEquals(1, results.size()); // the one that does not exist
         assertTrue(MultisetResultChecking.containsResult(results, List.of("p"), List.of("does_not_exist")));
         blazegraph.close();
@@ -53,7 +53,7 @@ public class ValuesTest {
                     ?p <http://address> ?c
                 }""";
 
-        var results = OpExecutorUtils.executeWithPush(query, builder);
+        var results = OpExecutorUtils.execute(query, builder);
         assertEquals(0, results.size()); // does not exist
         blazegraph.close();
     }
@@ -65,7 +65,7 @@ public class ValuesTest {
         builder.setBackend(blazegraph);
         String query = "SELECT * WHERE { VALUES ?p { <http://Alice> }  }";
 
-        var results = OpExecutorUtils.executeWithPush(query, builder);
+        var results = OpExecutorUtils.execute(query, builder);
         assertEquals(1, results.size()); // Alice lives in Nantes
         assertTrue(MultisetResultChecking.containsResult(results, List.of("p"), List.of("Alice")));
         blazegraph.close();
@@ -83,7 +83,7 @@ public class ValuesTest {
             }
         """;
 
-        var results = OpExecutorUtils.executeWithPush(query, builder);
+        var results = OpExecutorUtils.execute(query, builder);
         assertEquals(1, results.size()); // Alice lives in Nantes
         assertTrue(MultisetResultChecking.containsResult(results, List.of("p", "c"), List.of("Alice", "nantes")));
         blazegraph.close();
@@ -101,7 +101,7 @@ public class ValuesTest {
             }
         """;
 
-        var results = OpExecutorUtils.executeWithPush(query, builder);
+        var results = OpExecutorUtils.execute(query, builder);
         assertEquals(2, results.size()); // Alice lives in Nantes; Bob lives in Paris
         assertTrue(MultisetResultChecking.containsResult(results, List.of("p", "c"), List.of("Alice", "nantes")));
         assertTrue(MultisetResultChecking.containsResult(results, List.of("p", "c"), List.of("Bob", "paris")));
@@ -120,7 +120,7 @@ public class ValuesTest {
             }
         """;
 
-        var results = OpExecutorUtils.executeWithPush(query, builder);
+        var results = OpExecutorUtils.execute(query, builder);
         assertEquals(3, results.size()); // Alice lives in Nantes; Bob lives in Paris
         assertTrue(MultisetResultChecking.containsResult(results, List.of("p", "c"), List.of("Alice", "nantes")));
         assertTrue(MultisetResultChecking.containsResult(results, List.of("p", "c"), List.of("Bob", "paris")));
@@ -140,7 +140,7 @@ public class ValuesTest {
             }
         """;
 
-        var results = OpExecutorUtils.executeWithPush(query, builder);
+        var results = OpExecutorUtils.execute(query, builder);
         assertEquals(2, results.size()); // Alice lives in Nantes; Bob lives in Paris
         assertTrue(MultisetResultChecking.containsResult(results, List.of("p", "c"), List.of("Alice", "nantes")));
         assertTrue(MultisetResultChecking.containsResult(results, List.of("p", "c"), List.of("Bob", "paris")));
@@ -159,7 +159,7 @@ public class ValuesTest {
             }
         """;
 
-        var results = OpExecutorUtils.executeWithPush(query, builder);
+        var results = OpExecutorUtils.execute(query, builder);
         assertEquals(0, results.size()); // Nothing
         blazegraph.close();
     }
@@ -177,7 +177,7 @@ public class ValuesTest {
             }
         """;
 
-        var results = OpExecutorUtils.executeWithPush(query, builder);
+        var results = OpExecutorUtils.execute(query, builder);
         assertEquals(2, results.size()); // (Alice and herself + Alice and Carol) live in nantes
         assertTrue(MultisetResultChecking.containsResult(results, List.of("p", "p2", "c"), List.of("Alice", "Alice", "nantes")));
         assertTrue(MultisetResultChecking.containsResult(results, List.of("p", "p2", "c"), List.of("Alice", "Carol", "nantes")));
@@ -196,7 +196,7 @@ public class ValuesTest {
             }
         """;
 
-        var results = OpExecutorUtils.executeWithPush(query, builder);
+        var results = OpExecutorUtils.execute(query, builder);
         assertEquals(6, results.size());
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("person", "city", "location"),
                 List.of("Alice", "nantes", "France"),
