@@ -6,7 +6,7 @@ import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
-import fr.gdd.passage.volcano.OpExecutorUtils;
+import fr.gdd.passage.volcano.ExecutorUtils;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.benchmarks.WDBenchTest;
 import fr.gdd.passage.volcano.push.streams.PassageSplitScan;
@@ -34,12 +34,13 @@ import java.util.stream.StreamSupport;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class PushUnionTest {
+public class UnionTest {
 
-    private final static Logger log = LoggerFactory.getLogger(PushUnionTest.class);
+    private final static Logger log = LoggerFactory.getLogger(UnionTest.class);
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void execute_a_simple_union (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -50,7 +51,7 @@ public class PushUnionTest {
                 {?p  <http://address> ?a}
                }""";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         log.debug("{}", results);
         assertEquals(6, results.size()); // 3 triples + 3 triples
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
@@ -61,6 +62,7 @@ public class PushUnionTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void union_with_a_bgp (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -72,14 +74,15 @@ public class PushUnionTest {
                  ?p  <http://own> ?a }
                }""";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         log.debug("{}", results);
         assertEquals(6, results.size()); // Alice x6
         blazegraph.close();
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider") // TODO issue on parallelism
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void create_an_simple_union_with_bgp_inside(PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -88,7 +91,7 @@ public class PushUnionTest {
                 {?p <http://own> ?a . ?a <http://species> ?s } UNION { ?p <http://address> <http://nantes> }
                }""";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         log.debug("{}", results);
         assertEquals(5, results.size()); // Alice * 3 + Alice + Carol
         blazegraph.close();

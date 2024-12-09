@@ -1,10 +1,9 @@
-package fr.gdd.passage.volcano.pull.execute;
+package fr.gdd.passage.volcano.pull;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.benchmarks.WatDivTest;
-import fr.gdd.passage.volcano.pull.PassagePullExecutor;
 import fr.gdd.passage.volcano.pull.iterators.PassageUnionParallel;
 import fr.gdd.passage.volcano.transforms.BGP2Triples;
 import org.apache.jena.query.QueryFactory;
@@ -49,8 +48,8 @@ class PassageUnionParallelTest {
 
     private void executeUnionParallel(BlazegraphBackend backend, Op left, Op right) {
         OpUnion union = new OpUnion(left, right);
-        PassageUnionParallel unionPhysical = new PassageUnionParallel(
-                new PassageExecutionContextBuilder().setBackend(backend).build(),
+        PassageUnionParallel<?,?> unionPhysical = new PassageUnionParallel<>(
+                new PassageExecutionContextBuilder<>().setBackend(backend).build(),
                 new BackendBindings<>(),
                 union);
 

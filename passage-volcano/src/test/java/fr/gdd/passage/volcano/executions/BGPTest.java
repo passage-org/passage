@@ -6,7 +6,7 @@ import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
-import fr.gdd.passage.volcano.OpExecutorUtils;
+import fr.gdd.passage.volcano.ExecutorUtils;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.benchmarks.WDBenchTest;
 import fr.gdd.passage.volcano.benchmarks.WatDivTest;
@@ -42,8 +42,8 @@ public class BGPTest {
     private final static Logger log = LoggerFactory.getLogger(BGPTest.class);
 
     @ParameterizedTest
-    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
-            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void a_literal_at_predicate_position (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -53,40 +53,40 @@ public class BGPTest {
                     ?p ?predicate ?c
                 }""";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(0, results.size());
         blazegraph.close();
     }
 
     @ParameterizedTest
-    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
-            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void a_tp_with_an_unknown_value (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
         String queryAsString = "SELECT * WHERE {?p <http://does_not_exist> ?c}";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(0, results.size());
         blazegraph.close();
     }
 
     @ParameterizedTest
-    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
-            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void a_bgp_with_an_unknown_value (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c . ?p <http://does_not_exist> ?c}";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(0, results.size());
         blazegraph.close();
     }
 
     @ParameterizedTest
-    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
-            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     void an_unknown_value_at_first_but_then_known (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -96,7 +96,7 @@ public class BGPTest {
                     ?p ?predicate ?c}
                 """;
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(3, results.size());
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "predicate", "c"),
                 List.of("Alice", "address", "nantes"),
@@ -106,8 +106,8 @@ public class BGPTest {
     }
 
     @ParameterizedTest
-    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
-            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     void an_unknown_value_at_first_but_then_known_but_known_first (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -117,7 +117,7 @@ public class BGPTest {
                     ?p ?predicate ?c}
                 """;
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(3, results.size());
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "predicate", "c"),
                 List.of("Alice", "address", "nantes"),
@@ -127,14 +127,14 @@ public class BGPTest {
     }
 
     @ParameterizedTest
-    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
-            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void bgp_of_1_tp (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c}";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(3, results.size()); // Bob, Alice, and Carol.
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "c"),
                 List.of("Alice", "nantes"),
@@ -144,8 +144,8 @@ public class BGPTest {
     }
 
     @ParameterizedTest
-    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
-            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void bgp_of_2_tps (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -155,7 +155,7 @@ public class BGPTest {
                 ?p <http://own> ?a .
                }""";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(3, results.size()); // Alice, Alice, and Alice.
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                 List.of("Alice", "dog"),
@@ -165,8 +165,8 @@ public class BGPTest {
     }
 
     @ParameterizedTest
-    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
-            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void bgp_of_3_tps (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -177,7 +177,7 @@ public class BGPTest {
                 ?a <http://species> ?s
                }""";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(3, results.size()); // Alice->own->cat,dog,snake
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a", "s"),
                 List.of("Alice", "dog", "canine"),
@@ -322,8 +322,8 @@ public class BGPTest {
                 }
                 """;
 
-        int sum = OpExecutorUtils.executeWithPassage(query, watdivBlazegraph).size();
-        log.info("{}", sum);
+        // int sum = OpExecutorUtils.execute(query, watdivBlazegraph).size();
+        // log.info("{}", sum);
     }
 
 }

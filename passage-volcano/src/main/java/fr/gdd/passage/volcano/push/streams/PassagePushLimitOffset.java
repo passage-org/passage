@@ -36,7 +36,8 @@ public class PassagePushLimitOffset<ID,VALUE> extends PausableSpliterator<ID,VAL
 
         if (new CanBeSkipped().visit((Op) slice)) {
             PassagePushExecutor<ID,VALUE> newExecutor = new PassagePushExecutor<>(
-                    new PassageExecutionContext<ID,VALUE>(context)
+                    // must be a clone so limit and offset are bound only in this subquery
+                    new PassageExecutionContext<ID,VALUE>(((PassageExecutionContext<?, ?>) context).clone())
                             .setLimit(slice.getLength())
                             .setOffset(slice.getStart()));
             // skip and offset should be handled in the sub-executor

@@ -5,7 +5,7 @@ import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
-import fr.gdd.passage.volcano.OpExecutorUtils;
+import fr.gdd.passage.volcano.ExecutorUtils;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -35,7 +35,7 @@ public class LimitOffsetTest {
         builder.setBackend(blazegraph);
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c} LIMIT 0";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(0, results.size()); // nothing
         blazegraph.close();
     }
@@ -51,7 +51,7 @@ public class LimitOffsetTest {
                   ?person <http://address> ?city
                } LIMIT 1""";
 
-        Multiset<BackendBindings<?,?>> results = OpExecutorUtils.execute(queryAsString, builder);
+        Multiset<BackendBindings<?,?>> results = ExecutorUtils.execute(queryAsString, builder);
         log.debug("{}", results);
         assertEquals(1, results.size());
         assertTrue(MultisetResultChecking.containsResult(results, List.of("person", "city"), List.of("Alice", "nantes")) ||
@@ -68,7 +68,7 @@ public class LimitOffsetTest {
         builder.setBackend(blazegraph);
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c} LIMIT 42";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(3, results.size()); // limit 42 but only 3 still
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "c"),
                 List.of("Bob", "paris"),
@@ -85,7 +85,7 @@ public class LimitOffsetTest {
         builder.setBackend(blazegraph);
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c . ?p <http://own> ?a } LIMIT 1";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(1, results.size());
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                 List.of("Alice", "cat")) ||
@@ -111,7 +111,7 @@ public class LimitOffsetTest {
 
         // still should get a result no matter what because the only owner
         // Alice has an address.
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(1, results.size());
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                 List.of("Alice", "cat")) ||
@@ -139,7 +139,7 @@ public class LimitOffsetTest {
         var expected = backend.executeQuery(queryAsString);
         log.debug("Expected: {}", expected);
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         log.debug("{}", results);
         assertEquals(1, results.size());
         assertTrue(MultisetResultChecking.containsResult(results, List.of("person", "city"), List.of("Alice", "nantes")) ||
@@ -163,7 +163,7 @@ public class LimitOffsetTest {
         var expected = backend.executeQuery(queryAsString);
         log.debug("Expected: {}", expected); // [[person=http://Bob;city=http://paris]]
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         log.debug("{}", results);
         assertEquals(1, results.size());
         assertTrue(MultisetResultChecking.containsResult(results, List.of("person", "city"), List.of("Alice", "nantes")) ||
@@ -188,7 +188,7 @@ public class LimitOffsetTest {
         var expected = blazegraph.executeQuery(queryAsString);
         log.debug("Expected: {}", expected);
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(1, results.size()); // skipped 2 results, so there is only one left.
         blazegraph.close();
     }
@@ -206,7 +206,7 @@ public class LimitOffsetTest {
                     ?p <http://own> ?a
                 } OFFSET 1000""";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(0, results.size()); // skip all
         blazegraph.close();
     }
@@ -226,7 +226,7 @@ public class LimitOffsetTest {
                   ?person <http://own> ?animal
                } LIMIT 2 OFFSET 1""";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         log.debug("{}", results);
         assertEquals(2, results.size());
         assertTrue(MultisetResultChecking.containsResult(results, List.of("person", "city", "animal"), List.of("Alice", "nantes", "dog")) ||
@@ -242,15 +242,15 @@ public class LimitOffsetTest {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
         String queryAsString = "SELECT * WHERE {?p <http://address> ?c} LIMIT 1";
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(1, results.size()); // either Bob, Alice, or Carol.
 
         queryAsString = "SELECT * WHERE {?p <http://address> ?c} OFFSET 1 LIMIT 1";
-        results.addAll(OpExecutorUtils.execute(queryAsString, builder));
+        results.addAll(ExecutorUtils.execute(queryAsString, builder));
         assertEquals(2, results.size()); // either Bob, Alice, or Carol.
 
         queryAsString = "SELECT * WHERE {?p <http://address> ?c} OFFSET 2 LIMIT 1";
-        results.addAll(OpExecutorUtils.execute(queryAsString, builder));
+        results.addAll(ExecutorUtils.execute(queryAsString, builder));
         assertEquals(3, results.size()); // either Bob, Alice, or Carol.
 
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "c"),
@@ -271,7 +271,7 @@ public class LimitOffsetTest {
                 ?p <http://address> ?c .
                 {SELECT * WHERE { ?p <http://own> ?a } OFFSET 1 LIMIT 1 }
             }""";
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(1, results.size()); // either dog, cat, or snake.
         blazegraph.close();
     }
@@ -288,7 +288,7 @@ public class LimitOffsetTest {
                 ?p <http://own> ?a
             } LIMIT 1
             """;
-        var results = OpExecutorUtils.execute(queryA, builder);
+        var results = ExecutorUtils.execute(queryA, builder);
         assertEquals(1, results.size()); // either dog, cat, or snake.
 
         String queryB = """
@@ -297,7 +297,7 @@ public class LimitOffsetTest {
                 ?p <http://own> ?a
             } OFFSET 1 LIMIT 1
             """;
-        results.addAll(OpExecutorUtils.execute(queryB, builder));
+        results.addAll(ExecutorUtils.execute(queryB, builder));
         assertEquals(2, results.size()); // either dog, cat, or snake.
 
         String queryC = """
@@ -306,7 +306,7 @@ public class LimitOffsetTest {
                 ?p <http://own> ?a
             } OFFSET 2 LIMIT 1
             """;
-        results.addAll(OpExecutorUtils.execute(queryC, builder));
+        results.addAll(ExecutorUtils.execute(queryC, builder));
         assertEquals(3, results.size()); // either dog, cat, or snake.
 
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
@@ -331,14 +331,14 @@ public class LimitOffsetTest {
                 } OFFSET 1 LIMIT 2}
             }""";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(0, results.size()); // should be 0 as Bob lives in Paris, and no one owns animals in Paris
         blazegraph.close();
     }
 
     @ParameterizedTest
     // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider") // TODO multithread
-    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
     public void make_sure_that_the_limit_offset_is_not_applies_to_each_tp_in_bgp (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, QueryEvaluationException, MalformedQueryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
@@ -356,7 +356,7 @@ public class LimitOffsetTest {
         log.debug("Expected: {}", expected);
 
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(1, results.size()); // should be 1, (processed multiple times without optimization)
         assertTrue(MultisetResultChecking.containsResult(results, List.of("p", "a", "s"),
                 List.of("Alice", "snake", "reptile")));
@@ -365,10 +365,14 @@ public class LimitOffsetTest {
 
 
     @ParameterizedTest
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void issue_with_two_subqueries_that_are_joined (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException, QueryEvaluationException, MalformedQueryException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
+        // The offset was applied to both queries, while each subquery should have
+        // its own limit offset fields in their context.
         String queryAsString = """
                 SELECT * WHERE { {
                     SELECT * WHERE { ?a  <http://species>  ?s } OFFSET  2  }
@@ -381,7 +385,7 @@ public class LimitOffsetTest {
         var expected = blazegraph.executeQuery(queryAsString);
         log.debug("Expected: {}", expected);
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(1, results.size());
         blazegraph.close();
     }

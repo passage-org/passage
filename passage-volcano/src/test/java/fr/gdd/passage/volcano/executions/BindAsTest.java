@@ -3,7 +3,7 @@ package fr.gdd.passage.volcano.executions;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
-import fr.gdd.passage.volcano.OpExecutorUtils;
+import fr.gdd.passage.volcano.ExecutorUtils;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -18,8 +18,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class BindAsTest {
 
     @ParameterizedTest
-    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
-            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void create_a_bind_for_nothing (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -28,7 +28,7 @@ public class BindAsTest {
                 BIND (<http://Someone> AS ?p)
                }""";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(1, results.size());
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p"),
                 List.of("Someone")));
@@ -36,8 +36,8 @@ public class BindAsTest {
     }
 
     @ParameterizedTest
-    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
-            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void create_a_bind_and_execute_a_tp (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -47,7 +47,7 @@ public class BindAsTest {
                 ?p  <http://own>  ?a .
                }""";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(3, results.size()); // Alice, Alice, and Alice.
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                 List.of("Alice", "cat"), List.of("Alice", "dog"), List.of("Alice", "snake")));
@@ -55,8 +55,8 @@ public class BindAsTest {
     }
 
     @ParameterizedTest
-    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
-            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void a_bind_with_an_expression_to_evaluate (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -65,7 +65,7 @@ public class BindAsTest {
                 BIND (12+30-2*2 AS ?count)
                }""";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(1, results.size());
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("count"),
                 List.of("38")));
@@ -73,8 +73,8 @@ public class BindAsTest {
     }
 
     @ParameterizedTest
-    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
-            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void function_in_bind (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9PlusLiterals());
         builder.setBackend(blazegraph);
@@ -84,7 +84,7 @@ public class BindAsTest {
                        BIND (strlen(str(?animal)) AS ?number)
                 }""";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(3, results.size()); // no snake this time
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("animal", "number"),
                 List.of("snake", "12"),

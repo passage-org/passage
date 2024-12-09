@@ -3,7 +3,7 @@ package fr.gdd.passage.volcano.executions;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
-import fr.gdd.passage.volcano.OpExecutorUtils;
+import fr.gdd.passage.volcano.ExecutorUtils;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -18,8 +18,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class FilterTest {
 
     @ParameterizedTest
-    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
-            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void simple_tp_filtered_by_one_var (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -29,7 +29,7 @@ public class FilterTest {
             FILTER ( ?address != <http://nantes> )
         }""";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(1, results.size()); // Bob only
         assertTrue(MultisetResultChecking.containsResult(results, List.of("person", "address"),
                 List.of("Bob", "paris")));
@@ -37,8 +37,8 @@ public class FilterTest {
     }
 
     @ParameterizedTest
-    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
-            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void simple_tp_filtered_by_two_vars (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -48,7 +48,7 @@ public class FilterTest {
             FILTER ( (?address != <http://nantes>) || (?person != <http://Alice>) )
         }""";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(2, results.size()); // Bob and Carol
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("person", "address"),
                 List.of("Bob", "paris"),
@@ -57,8 +57,8 @@ public class FilterTest {
     }
 
     @ParameterizedTest
-    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
-            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void filter_bgp_of_2_tps (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -69,7 +69,7 @@ public class FilterTest {
                 FILTER (?a != <http://dog>)
                }""";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(2, results.size()); // Alice and Alice.
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                 List.of("Alice", "cat"),
@@ -78,8 +78,8 @@ public class FilterTest {
     }
 
     @ParameterizedTest
-    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
-            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void simple_bgp_filtered_in_the_middle (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -90,14 +90,14 @@ public class FilterTest {
                 ?p <http://own> ?a
                }""";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(0, results.size()); // No one that lives outside nantes has animals
         blazegraph.close();
     }
 
     @ParameterizedTest
-    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
-            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void simple_bgp_filtered_in_the_middle_but_different_order (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -108,7 +108,7 @@ public class FilterTest {
                 ?p <http://address> <http://nantes>
                }""";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(2, results.size()); // No one that lives outside nantes has animals
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
                 List.of("Alice", "snake"),
@@ -117,8 +117,8 @@ public class FilterTest {
     }
 
     @ParameterizedTest
-    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
-            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void filter_using_a_literal_integer (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9PlusLiterals());
         builder.setBackend(blazegraph);
@@ -128,7 +128,7 @@ public class FilterTest {
                        FILTER (?number > 3)
                 }""";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(1, results.size());
         // cat = 3 so filtered out
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("animal", "number"),
@@ -137,8 +137,8 @@ public class FilterTest {
     }
 
     @ParameterizedTest
-    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider",
-            "fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void filter_using_a_literal_and_a_function (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9PlusLiterals());
         builder.setBackend(blazegraph);
@@ -148,7 +148,7 @@ public class FilterTest {
                        FILTER (strlen(str(?animal)) <= 8+3)
                 }""";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(2, results.size()); // no snake this time
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("animal"),
                 List.of("dog"),

@@ -8,6 +8,10 @@ import java.util.stream.Stream;
 
 public class InstanceProviderForTests {
 
+    /**
+     * @return A simple builder to test the push iterator model when only one scan
+     *         is allowed, and parallelism is disabled.
+     */
     static Stream<PassageExecutionContextBuilder<?,?>> oneScanOneThreadOnePush () {
         return Stream.of(new PassageExecutionContextBuilder<>()
                 .setName("PUSH")

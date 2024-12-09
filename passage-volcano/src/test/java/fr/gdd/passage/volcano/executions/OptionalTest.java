@@ -1,9 +1,9 @@
-package fr.gdd.passage.volcano.pull;
+package fr.gdd.passage.volcano.executions;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
-import fr.gdd.passage.volcano.OpExecutorUtils;
+import fr.gdd.passage.volcano.ExecutorUtils;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -29,7 +29,7 @@ public class OptionalTest {
                 OPTIONAL {?person <http://does_not_exist> ?animal}
                }""";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(3, results.size()); // Alice, Alice, and Alice, and Bob, and Carol
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("person", "animal"),
                 Arrays.asList("Alice", null),
@@ -49,7 +49,7 @@ public class OptionalTest {
                 OPTIONAL {?person <http://own> ?animal}
                }""";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(5, results.size()); // Alice, Alice, and Alice, and Bob, and Carol
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("person", "animal"),
                 List.of("Alice", "cat"), List.of("Alice", "dog"), List.of("Alice", "snake"),
@@ -69,7 +69,7 @@ public class OptionalTest {
                 OPTIONAL {?person <http://address> <http://nantes>}
                }""";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(3, results.size()); // Alice, Alice, and Alice.
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("person", "animal"),
                 List.of("Alice", "cat"), List.of("Alice", "dog"), List.of("Alice", "snake")));
@@ -90,7 +90,7 @@ public class OptionalTest {
                  }
                }""";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(5, results.size()); // same as "<address> OPT <own>" query
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("person", "animal", "specie"),
                 List.of("Alice", "cat", "feline"),
@@ -115,7 +115,7 @@ public class OptionalTest {
                  }
                }""";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(5, results.size()); // same as "<address> OPT <own>" query
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("person", "animal", "specie"),
                 List.of("Alice", "cat", "feline"),
@@ -137,7 +137,7 @@ public class OptionalTest {
                   OPTIONAL { ?person  <http://address>  <http://nantes> }
                 }""";
 
-        var results = OpExecutorUtils.execute(queryAsString, builder);
+        var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(1, results.size()); // (Alice owns snake)
         assertTrue(MultisetResultChecking.containsResult(results,List.of("person", "animal"),
                 List.of("Alice", "dog")) ||
