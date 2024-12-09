@@ -52,7 +52,7 @@ public class PassagePushValues<ID,VALUE> extends PausableSpliterator<ID,VALUE> {
     @Override
     public Op pause() {
         if (produced.longValue() >= values.getTable().size()) {
-            return null; // done everything
+            return OpTable.empty(); // done
         }
 
         List<Binding> bindings = new ArrayList<>();

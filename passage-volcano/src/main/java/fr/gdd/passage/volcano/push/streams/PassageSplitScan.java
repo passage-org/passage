@@ -187,7 +187,7 @@ public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> im
 
     @Override
     public Op pause() {
-        if (Objects.nonNull(limit) && limit == 0) return null; // done
+        if (Objects.nonNull(limit) && limit == 0) return OpTable.empty(); // done
         // save the whole context
         Op toSave = OpJoin.create(input.toOp(), op);
         // update LIMIT and OFFSET

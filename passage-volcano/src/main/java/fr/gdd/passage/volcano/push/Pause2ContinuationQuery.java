@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -21,26 +22,40 @@ public class Pause2ContinuationQuery<ID,VALUE> extends ReturningOpVisitor<Op> {
 
     final Op2Spliterators<ID,VALUE> op2its;
 
+    private static Boolean isDone(Op op) { return op instanceof OpTable table && table.getTable().isEmpty(); }
+
     public Pause2ContinuationQuery(Op2Spliterators<ID,VALUE> op2its) {
         this.op2its = op2its;
     }
 
     @Override
+    public Op visit(Op op) {
+        Op continuation = super.visit(op);
+        return isDone(continuation) ? null : continuation;
+    }
+
+    @Override
     public Op visit(OpTriple triple) {
         Set<PausableSpliterator<ID,VALUE>> its = op2its.get(triple);
-        if (Objects.isNull(its) || its.isEmpty()) return null;
+        if (Objects.isNull(its)) return null; // not executed at all
+        if (its.isEmpty()) return OpTable.empty(); // done
         // unionize the lot of triple iterators
-        return its.stream().map(PausableSpliterator::pause).reduce(null,
-                (l, r) -> Objects.isNull(l) ? r : OpUnion.create(l, r));
+        return its.stream().map(PausableSpliterator::pause)
+                .filter(Predicate.not(Pause2ContinuationQuery::isDone))
+                .reduce(OpTable.empty(),
+                        (l, r) -> isDone(l) ? r : OpUnion.create(l, r));
     }
 
     @Override
     public Op visit(OpQuad quad) {
         Set<PausableSpliterator<ID,VALUE>> its = op2its.get(quad);
-        if (Objects.isNull(its) || its.isEmpty()) return null;
-        // unionize the lot of quads iterators
-        return its.stream().map(PausableSpliterator::pause).reduce(null,
-                (l, r) -> Objects.isNull(l) ? r : OpUnion.create(l, r));
+        if (Objects.isNull(its)) return null; // not executed at all
+        if (its.isEmpty()) return OpTable.empty(); // done
+        // unionize the lot of triple iterators
+        return its.stream().map(PausableSpliterator::pause)
+                .filter(Predicate.not(Pause2ContinuationQuery::isDone))
+                .reduce(OpTable.empty(),
+                        (l, r) -> isDone(l) ? r : OpUnion.create(l, r));
     }
 
     @Override
@@ -112,19 +127,24 @@ public class Pause2ContinuationQuery<ID,VALUE> extends ReturningOpVisitor<Op> {
     @Override
     public Op visit(OpExtend extend) {
         Op subop = this.visit(extend.getSubOp());
-        // TODO subop can be null because done, but should return done
-        return Objects.isNull(subop) ? null : OpCloningUtil.clone(extend, subop);
+        if (Objects.isNull(subop)) return null; // downstream never executed
+        if (isDone(subop)) return OpTable.empty(); // done propagates
+        return OpCloningUtil.clone(extend, subop); // otherwise, we actually produce something
     }
 
     @Override
     public Op visit(OpProject project) {
         Op subop = this.visit(project.getSubOp());
-        return Objects.isNull(subop) ? null : OpCloningUtil.clone(project, subop);
+        if (Objects.isNull(subop)) return null; // downstream never executed
+        if (isDone(subop)) return OpTable.empty(); // done propagates
+        return OpCloningUtil.clone(project, subop); // otherwise, we actually produce something
     }
 
     @Override
     public Op visit(OpFilter filter) {
         Op subop = this.visit(filter.getSubOp());
-        return Objects.isNull(subop) ? null : OpCloningUtil.clone(filter, subop);
+        if (Objects.isNull(subop)) return null; // downstream never executed
+        if (isDone(subop)) return OpTable.empty(); // done propagates
+        return OpCloningUtil.clone(filter, subop); // otherwise, we actually produce something
     }
 }
