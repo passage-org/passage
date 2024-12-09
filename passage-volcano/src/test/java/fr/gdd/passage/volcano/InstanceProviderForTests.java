@@ -20,6 +20,16 @@ public class InstanceProviderForTests {
     }
 
     /**
+     * @return A simple builder to test the push iterator model when only one scan
+     *         is allowed, and parallelism is disabled.
+     */
+    static Stream<PassageExecutionContextBuilder<?,?>> oneThreadPush () {
+        return Stream.of(new PassageExecutionContextBuilder<>()
+                .setName("PUSH")
+                .setExecutorFactory((ec)-> new PassagePushExecutor((PassageExecutionContext) ec)));
+    }
+
+    /**
      * @return A stream of builder that set the execution context of Passage for
      * the *push* iterator model. We leave `setBackend` for the body of the
      * tested function.

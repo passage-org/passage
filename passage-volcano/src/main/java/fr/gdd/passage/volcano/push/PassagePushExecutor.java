@@ -8,6 +8,7 @@ import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutor;
 import fr.gdd.passage.volcano.exceptions.PauseException;
 import fr.gdd.passage.volcano.push.streams.PassagePushLimitOffset;
+import fr.gdd.passage.volcano.push.streams.PassagePushOptional;
 import fr.gdd.passage.volcano.push.streams.PassagePushValues;
 import fr.gdd.passage.volcano.push.streams.PassageSplitScan;
 import org.apache.jena.query.QueryFactory;
@@ -19,6 +20,7 @@ import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.expr.NodeValue;
 
+import java.util.Objects;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -121,6 +123,14 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
 
     @Override
     public Stream<BackendBindings<ID, VALUE>> visit(OpFilter filter, BackendBindings<ID, VALUE> input) {
-        return this.visit(filter.getSubOp(), input).filter(i -> filter.getExprs().isSatisfied(i, this.context));
+        return this.visit(filter.getSubOp(), input).filter(i -> filter.getExprs().isSatisfied(i, context));
+    }
+
+    @Override
+    public Stream<BackendBindings<ID, VALUE>> visit(OpLeftJoin lj, BackendBindings<ID, VALUE> input) {
+        if (Objects.nonNull(lj.getExprs()) && !lj.getExprs().isEmpty()) {
+            throw new UnsupportedOperationException("Condition in leftjoin are not handled yet.");
+        }
+        return new PassagePushOptional<>(context, input, lj).stream();
     }
 }

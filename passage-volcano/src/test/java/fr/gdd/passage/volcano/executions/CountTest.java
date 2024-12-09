@@ -19,8 +19,8 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@Disabled
-@Deprecated // TODO update
+@Disabled("Should be reworked.")
+@Deprecated
 public class CountTest {
 
     private final static Logger log = LoggerFactory.getLogger(CountTest.class);

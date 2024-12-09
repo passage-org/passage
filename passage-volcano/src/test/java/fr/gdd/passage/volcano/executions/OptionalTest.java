@@ -19,7 +19,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class OptionalTest {
 
     @ParameterizedTest
-    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
     public void optional_with_not_found_value (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -39,7 +41,9 @@ public class OptionalTest {
     }
 
     @ParameterizedTest
-    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
     public void tp_with_optional_tp(PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -59,7 +63,8 @@ public class OptionalTest {
     }
 
     @ParameterizedTest
-    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void tp_with_optional_tp_reverse_order(PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -77,7 +82,8 @@ public class OptionalTest {
     }
 
     @ParameterizedTest
-    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void bgp_of_3_tps_and_optional(PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -102,7 +108,8 @@ public class OptionalTest {
     }
 
     @ParameterizedTest
-    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void bgp_of_3_tps_and_optional_of_optional (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -127,7 +134,8 @@ public class OptionalTest {
     }
 
     @ParameterizedTest
-    @MethodSource({"fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider"})
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void intermediate_query_that_should_return_one_triple (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);

@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Generate a SPARQL query from the current paused state. By executing
@@ -60,6 +61,14 @@ public class Pause2ContinuationQuery<ID,VALUE> extends ReturningOpVisitor<Op> {
         // (ii) The preempted left part with a copy of the right (The rest of the query)
         // In other words, it's like, (i) finish the OFFSET you where in. (ii) start at OFFSET + 1
         return FlattenUnflatten.unflattenUnion(Arrays.asList(right, OpJoin.create(left, join.getRight())));
+    }
+
+    @Override
+    public Op visit(OpLeftJoin lj) {
+        Set<PausableSpliterator<ID,VALUE>> optionals = op2its.get(lj);
+        if (Objects.isNull(optionals) || optionals.isEmpty()) { return null; }
+
+        return FlattenUnflatten.unflattenUnion(optionals.stream().map(PausableSpliterator::pause).collect(Collectors.toList()));
     }
 
     @Override
