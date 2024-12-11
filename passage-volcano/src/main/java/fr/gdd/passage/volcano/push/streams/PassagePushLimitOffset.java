@@ -54,10 +54,10 @@ public class PassagePushLimitOffset<ID,VALUE> extends PausableSpliterator<ID,VAL
                     .filter(ignored -> slice.getStart() == Long.MIN_VALUE || totalProduced.longValue() > slice.getStart())
                     // limit:
                     .filter(ignored -> slice.getLength() == Long.MIN_VALUE || actuallyProduced.longValue() < slice.getLength())
-                    .peek(i -> actuallyProduced.increment())
                     // TODO multiple parents instead of copy? (add layers of visibility)
                     .map(i -> i.isCompatible(input) ? new BackendBindings<>(i).setParent(input) : null)
-                    .filter(Objects::nonNull);
+                    .filter(Objects::nonNull)
+                    .peek(i -> actuallyProduced.increment()); // peek after so not compatible mappings are deleted
         }
     }
 
@@ -71,14 +71,18 @@ public class PassagePushLimitOffset<ID,VALUE> extends PausableSpliterator<ID,VAL
         if (Pause2ContinuationQuery.isDone(inside)) { return Pause2ContinuationQuery.DONE; }
         if (Objects.isNull(inside)) { return null; }
 
+        Op subquery;
         if (new CanBeSkipped().visit((Op) slice)) {
-            return OpJoin.create(input.toOp(), inside);
+            subquery = inside;
         } else {
             if (slice.getLength()!=Long.MIN_VALUE && actuallyProduced.longValue() >= slice.getLength()) { return null; }
             long pausedLimit = slice.getLength() == Long.MIN_VALUE ? Long.MIN_VALUE : slice.getLength() - actuallyProduced.longValue();
             long pausedOffset = slice.getStart() == Long.MIN_VALUE ? Long.MIN_VALUE : slice.getStart() - totalProduced.longValue();
             pausedOffset = pausedOffset > 0 ? pausedOffset : Long.MIN_VALUE;
-            return OpJoin.create(input.toOp(), new OpSlice(inside, pausedOffset, pausedLimit));
+            subquery = new OpSlice(inside, pausedOffset, pausedLimit);
         }
+
+        Op toSave = input.isEmpty() ? subquery : OpJoin.create(input.toOp(), subquery);
+        return toSave.equalTo(slice, null) ? slice : toSave; // we keep the pointer
     }
 }

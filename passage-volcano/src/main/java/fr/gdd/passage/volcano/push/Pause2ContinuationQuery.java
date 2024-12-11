@@ -7,7 +7,9 @@ import fr.gdd.passage.volcano.push.streams.PausableSpliterator;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
 
@@ -29,13 +31,14 @@ public class Pause2ContinuationQuery<ID,VALUE> extends ReturningOpVisitor<Op> {
      */
     public Op get(Op root) {
         Op continuation = super.visit(root);
+        // we don't override visit(Op) because null has a different meaning
         return isDone(continuation) ? null : continuation;
     }
 
     @Override
     public Op visit(OpTriple triple) {
         Set<PausableSpliterator<ID,VALUE>> its = op2its.get(triple);
-        if (Objects.isNull(its)) return null; // not executed at all
+        if (Objects.isNull(its)) return triple; // not executed at all
         if (its.isEmpty()) return DONE;
         return its.stream().map(PausableSpliterator::pause)
                 .reduce(OpTable.empty(), removeEmptyOfUnion);
@@ -44,7 +47,7 @@ public class Pause2ContinuationQuery<ID,VALUE> extends ReturningOpVisitor<Op> {
     @Override
     public Op visit(OpQuad quad) {
         Set<PausableSpliterator<ID,VALUE>> its = op2its.get(quad);
-        if (Objects.isNull(its)) return null; // not executed at all
+        if (Objects.isNull(its)) return quad; // not executed at all
         if (its.isEmpty()) return DONE;
         return its.stream().map(PausableSpliterator::pause)
                 .reduce(OpTable.empty(), removeEmptyOfUnion);
@@ -55,12 +58,18 @@ public class Pause2ContinuationQuery<ID,VALUE> extends ReturningOpVisitor<Op> {
         // no state needed really, everything is in the returned value of these:
         Op left = super.visit(join.getLeft());
         Op right = super.visit(join.getRight());
-        
-        if (Objects.isNull(left) && Objects.isNull(right)) return join; // nothing has been executed yet
 
-        if (isDone(left) && isDone(right)) return DONE;
-        if (isDone(left)) return FlattenUnflatten.unflattenUnion(Collections.singletonList(right));
+        if (left == join.getLeft() && right == join.getRight()) return join; // not executed at all, we return it pristine
 
+        if (isDone(left) && isDone(right)) return DONE; // both done, so we are done
+        if (isDone(left) && right == join.getRight()) return DONE; // consumed left but right did not move, so the join is done
+        if (isDone(left)) return right; // consumed left, generating a new right to consume
+        if (isDone(right)) return OpJoin.create(left, join.getRight()); // still must do the rest of left with the old right
+
+        if (left == join.getLeft()) return right;
+        if (right == join.getRight()) return OpJoin.create(left, join.getRight());
+
+        // if (right == join.getRight()) return OpJoin.create(left, right); // TODO bind gets consumed
 
         // Otherwise, create a union with:
         // (i) The preempted right part (The current pointer to where we are executing)
@@ -82,8 +91,10 @@ public class Pause2ContinuationQuery<ID,VALUE> extends ReturningOpVisitor<Op> {
         Op left = super.visit(union.getLeft());
         Op right = super.visit(union.getRight());
 
-        left = Objects.isNull(left) ? union.getLeft() : left;
-        right = Objects.isNull(right) ? union.getRight() : right;
+        if (left == union.getLeft() && right == union.getRight()) return union;
+
+        // left = Objects.isNull(left) ? union.getLeft() : left;
+        // right = Objects.isNull(right) ? union.getRight() : right;
 
         if (isDone(left) && isDone(right)) return DONE;
         if (isDone(left)) return right;
@@ -95,10 +106,9 @@ public class Pause2ContinuationQuery<ID,VALUE> extends ReturningOpVisitor<Op> {
     @Override
     public Op visit(OpSlice slice) {
         Set<PausableSpliterator<ID,VALUE>> its = op2its.get(slice);
-        if (Objects.isNull(its)) return null; // not executed at all, so we copy
-        if (its.isEmpty()) return OpTable.empty(); // done
-        return its.stream().map(PausableSpliterator::pause)
-                .reduce(OpTable.empty(), removeEmptyOfUnion);
+        if (Objects.isNull(its)) return slice; // not executed at all, so we copy
+        if (its.isEmpty()) return DONE; // done
+        return its.stream().map(PausableSpliterator::pause).reduce(DONE, removeEmptyOfUnion);
     }
 
     @Override

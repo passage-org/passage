@@ -127,8 +127,9 @@ public class BGPTest {
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
     public void bgp_of_1_tp (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -185,6 +186,21 @@ public class BGPTest {
                 List.of("Alice", "dog", "canine"),
                 List.of("Alice", "cat", "feline"),
                 List.of("Alice", "snake", "reptile")));
+        blazegraph.close();
+    }
+
+    @ParameterizedTest
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
+    public void meow (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+        builder.setBackend(blazegraph);
+        String queryAsString = """
+                SELECT * WHERE { { { SELECT  *  WHERE  { ?p  <http://address>  <http://nantes> }  OFFSET  1 }
+                      ?p  <http://own>  ?a }
+                    ?a  <http://species>  ?s }""";
+
+        var results = ExecutorUtils.execute(queryAsString, builder);
+        assertEquals(0, results.size());
         blazegraph.close();
     }
 

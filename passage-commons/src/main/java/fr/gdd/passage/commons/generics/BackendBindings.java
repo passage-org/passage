@@ -284,10 +284,7 @@ public class BackendBindings<ID, VALUE> implements Binding {
         }
 
         return switch (seq.size()) {
-            case 0 -> {
-                seq.add(OpTable.unit());
-                yield seq;
-            }
+            case 0 -> OpTable.unit();
             case 1 -> seq.get(0);
             default -> seq;
         };

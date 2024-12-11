@@ -20,6 +20,7 @@ import org.apache.jena.sparql.core.Var;
 
 import java.util.Objects;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -44,23 +45,19 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
     public Op execute(Op root, Consumer<BackendBindings<ID, VALUE>> consumer) {
         root = context.optimizer.optimize(root);
         final Op _root = new DefaultGraphUriQueryModifier(context).visit(root);
-        context.setQuery(root); // mandatory to be saved later on
-        // With a timeout condition, we need to create a catch that wraps the
-        // whole process.
+        AtomicBoolean gotPaused = new AtomicBoolean(false);
         try (ForkJoinPool customPool = new ForkJoinPool(context.maxParallelism)) {
             customPool.submit(() -> {
                 try {
                     this.visit(_root, new BackendBindings<>()).forEach(consumer);
                 } catch (PauseException pe) {
-                    // TODO test if there are multiple PauseException catch.
-                    //      The best scenario would be that children continue
-                    //      their execution until throwing. So when join is called
-                    //      they are all stopped in a consistent state.
-                    System.out.println("Stop !"); // TODO remove this stop
+                    gotPaused.set(true);
                 }
             }).join();
         }
-        return new Pause2ContinuationQuery<>(context.op2its).get(_root);
+        return gotPaused.get() ?
+                new Pause2ContinuationQuery<>(context.op2its).get(_root):
+                null; // null means execution is over: we provided complete and correct results
     }
 
     /* *********************************** OPERATORS ************************************* */

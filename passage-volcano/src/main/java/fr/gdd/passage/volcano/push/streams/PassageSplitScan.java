@@ -111,8 +111,7 @@ public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> im
 
         if (wrapped.hasNext()) { // actually iterates over the dataset
             if (!context.paused.isPaused() && stopping.apply(context)) { // unless we must stop
-                // execution stops immediately, caught by {@link PassageRoot}
-                throw new PauseException(op);
+                throw new PauseException(op); // execution stops immediately, caught at the root
             }
 
             // but if not pause, we create the new binding
@@ -190,10 +189,11 @@ public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> im
     public Op pause() {
         if (Objects.nonNull(limit) && limit == 0) return Pause2ContinuationQuery.DONE;
         // save the whole context
-        Op toSave = OpJoin.create(input.toOp(), op);
+        Op toSave = !input.isEmpty() ? OpJoin.create(input.toOp(), op) : op;
         // update LIMIT and OFFSET
         long newLimit = Objects.isNull(limit) ? Long.MIN_VALUE : limit;
         long newOffset = Objects.isNull(offset) || offset == 0 ? Long.MIN_VALUE : offset; // to simplify the query
+
         if (newLimit == Long.MIN_VALUE && newOffset == Long.MIN_VALUE) {
             return toSave;
         } else { // if either LIMIT or OFFSET, we need to create a subquery
