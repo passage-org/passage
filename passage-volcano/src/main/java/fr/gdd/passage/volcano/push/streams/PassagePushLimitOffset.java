@@ -68,10 +68,9 @@ public class PassagePushLimitOffset<ID,VALUE> extends PausableSpliterator<ID,VAL
     @Override
     public Op pause() {
         Op inside = new Pause2ContinuationQuery<>(context.op2its).visit(slice.getSubOp());
-        if (Objects.isNull(inside)) {
-            // return OpJoin.create(input.toOp(), slice.getSubOp());
-            return null;
-        }
+        if (Pause2ContinuationQuery.isDone(inside)) { return Pause2ContinuationQuery.DONE; }
+        if (Objects.isNull(inside)) { return null; }
+
         if (new CanBeSkipped().visit((Op) slice)) {
             return OpJoin.create(input.toOp(), inside);
         } else {

@@ -11,6 +11,7 @@ import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.exceptions.BackjumpException;
 import fr.gdd.passage.volcano.exceptions.PauseException;
+import fr.gdd.passage.volcano.push.Pause2ContinuationQuery;
 import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.atlas.lib.tuple.TupleFactory;
 import org.apache.jena.sparql.algebra.Op;
@@ -187,7 +188,7 @@ public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> im
 
     @Override
     public Op pause() {
-        if (Objects.nonNull(limit) && limit == 0) return OpTable.empty(); // done
+        if (Objects.nonNull(limit) && limit == 0) return Pause2ContinuationQuery.DONE;
         // save the whole context
         Op toSave = OpJoin.create(input.toOp(), op);
         // update LIMIT and OFFSET

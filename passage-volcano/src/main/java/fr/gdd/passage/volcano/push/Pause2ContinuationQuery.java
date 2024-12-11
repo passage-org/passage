@@ -7,11 +7,8 @@ import fr.gdd.passage.volcano.push.streams.PausableSpliterator;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.Predicate;
+import java.util.*;
+import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
 
 /**
@@ -22,15 +19,16 @@ public class Pause2ContinuationQuery<ID,VALUE> extends ReturningOpVisitor<Op> {
 
     final Op2Spliterators<ID,VALUE> op2its;
 
-    private static Boolean isDone(Op op) { return op instanceof OpTable table && table.getTable().isEmpty(); }
-
     public Pause2ContinuationQuery(Op2Spliterators<ID,VALUE> op2its) {
         this.op2its = op2its;
     }
 
-    @Override
-    public Op visit(Op op) {
-        Op continuation = super.visit(op);
+    /**
+     * @param root The root operator.
+     * @return The continuation query of the original query, null if the query execution is over.
+     */
+    public Op get(Op root) {
+        Op continuation = super.visit(root);
         return isDone(continuation) ? null : continuation;
     }
 
@@ -38,38 +36,31 @@ public class Pause2ContinuationQuery<ID,VALUE> extends ReturningOpVisitor<Op> {
     public Op visit(OpTriple triple) {
         Set<PausableSpliterator<ID,VALUE>> its = op2its.get(triple);
         if (Objects.isNull(its)) return null; // not executed at all
-        if (its.isEmpty()) return OpTable.empty(); // done
-        // unionize the lot of triple iterators
+        if (its.isEmpty()) return DONE;
         return its.stream().map(PausableSpliterator::pause)
-                .filter(Predicate.not(Pause2ContinuationQuery::isDone))
-                .reduce(OpTable.empty(),
-                        (l, r) -> isDone(l) ? r : OpUnion.create(l, r));
+                .reduce(OpTable.empty(), removeEmptyOfUnion);
     }
 
     @Override
     public Op visit(OpQuad quad) {
         Set<PausableSpliterator<ID,VALUE>> its = op2its.get(quad);
         if (Objects.isNull(its)) return null; // not executed at all
-        if (its.isEmpty()) return OpTable.empty(); // done
-        // unionize the lot of triple iterators
+        if (its.isEmpty()) return DONE;
         return its.stream().map(PausableSpliterator::pause)
-                .filter(Predicate.not(Pause2ContinuationQuery::isDone))
-                .reduce(OpTable.empty(),
-                        (l, r) -> isDone(l) ? r : OpUnion.create(l, r));
+                .reduce(OpTable.empty(), removeEmptyOfUnion);
     }
 
     @Override
     public Op visit(OpJoin join) {
         // no state needed really, everything is in the returned value of these:
-        Op left = this.visit(join.getLeft());
-        Op right = this.visit(join.getRight());
+        Op left = super.visit(join.getLeft());
+        Op right = super.visit(join.getRight());
+        
+        if (Objects.isNull(left) && Objects.isNull(right)) return join; // nothing has been executed yet
 
-        // If the left is empty, i.e., it's done. Then you don't need to preempt it.
-        // However, you still need to consider to preempt the right part.
-        if (Objects.isNull(left)) {
-            // (if right is null, it's handled by the union flattener)
-            return FlattenUnflatten.unflattenUnion(Collections.singletonList(right));
-        }
+        if (isDone(left) && isDone(right)) return DONE;
+        if (isDone(left)) return FlattenUnflatten.unflattenUnion(Collections.singletonList(right));
+
 
         // Otherwise, create a union with:
         // (i) The preempted right part (The current pointer to where we are executing)
@@ -88,16 +79,15 @@ public class Pause2ContinuationQuery<ID,VALUE> extends ReturningOpVisitor<Op> {
 
     @Override
     public Op visit(OpUnion union) {
-        Op left = this.visit(union.getLeft());
-        Op right = this.visit(union.getRight());
+        Op left = super.visit(union.getLeft());
+        Op right = super.visit(union.getRight());
 
-        if (Objects.isNull(left) && Objects.isNull(right)) {
-            return null;
-        } else if (Objects.isNull(left)) {
-            return FlattenUnflatten.unflattenUnion(Collections.singletonList(right));
-        } else if (Objects.isNull(right)) {
-            return FlattenUnflatten.unflattenUnion(Collections.singletonList(left));
-        }
+        left = Objects.isNull(left) ? union.getLeft() : left;
+        right = Objects.isNull(right) ? union.getRight() : right;
+
+        if (isDone(left) && isDone(right)) return DONE;
+        if (isDone(left)) return right;
+        if (isDone(right)) return left;
 
         return FlattenUnflatten.unflattenUnion(Arrays.asList(left, right));
     }
@@ -105,28 +95,26 @@ public class Pause2ContinuationQuery<ID,VALUE> extends ReturningOpVisitor<Op> {
     @Override
     public Op visit(OpSlice slice) {
         Set<PausableSpliterator<ID,VALUE>> its = op2its.get(slice);
-        if (Objects.isNull(its) || its.isEmpty()) return null;
-        return its.stream().map(PausableSpliterator::pause).reduce(null,
-                (l, r) -> Objects.isNull(l) ? r : OpUnion.create(l, r));
+        if (Objects.isNull(its)) return null; // not executed at all, so we copy
+        if (its.isEmpty()) return OpTable.empty(); // done
+        return its.stream().map(PausableSpliterator::pause)
+                .reduce(OpTable.empty(), removeEmptyOfUnion);
     }
 
     @Override
     public Op visit(OpTable table) {
-        if (table.isJoinIdentity()) {
-            return null; // nothing to save
-        }
-        // otherwise values
         Set<PausableSpliterator<ID,VALUE>> its = op2its.get(table);
-        if (Objects.isNull(its) || its.isEmpty()) return null;
-        return its.stream().map(PausableSpliterator::pause).reduce(null,
-                (l, r) -> Objects.isNull(l) ? r : OpUnion.create(l, r));
+        if (Objects.isNull(its)) return null; // not executed at all, so we copy
+        if (its.isEmpty()) return OpTable.empty(); // done
+        return its.stream().map(PausableSpliterator::pause)
+                .reduce(OpTable.empty(), removeEmptyOfUnion);
     }
 
     /* **************** UNARY OPERATORS WITHOUT INTERNAL STATES ******************* */
 
     @Override
     public Op visit(OpExtend extend) {
-        Op subop = this.visit(extend.getSubOp());
+        Op subop = super.visit(extend.getSubOp());
         if (Objects.isNull(subop)) return null; // downstream never executed
         if (isDone(subop)) return OpTable.empty(); // done propagates
         return OpCloningUtil.clone(extend, subop); // otherwise, we actually produce something
@@ -134,7 +122,7 @@ public class Pause2ContinuationQuery<ID,VALUE> extends ReturningOpVisitor<Op> {
 
     @Override
     public Op visit(OpProject project) {
-        Op subop = this.visit(project.getSubOp());
+        Op subop = super.visit(project.getSubOp());
         if (Objects.isNull(subop)) return null; // downstream never executed
         if (isDone(subop)) return OpTable.empty(); // done propagates
         return OpCloningUtil.clone(project, subop); // otherwise, we actually produce something
@@ -142,9 +130,23 @@ public class Pause2ContinuationQuery<ID,VALUE> extends ReturningOpVisitor<Op> {
 
     @Override
     public Op visit(OpFilter filter) {
-        Op subop = this.visit(filter.getSubOp());
+        Op subop = super.visit(filter.getSubOp());
         if (Objects.isNull(subop)) return null; // downstream never executed
         if (isDone(subop)) return OpTable.empty(); // done propagates
         return OpCloningUtil.clone(filter, subop); // otherwise, we actually produce something
     }
+
+
+    /* *************************** UTILS ************************ */
+
+    public static Boolean isDone(Op op) { return op instanceof OpTable table && table.getTable().isEmpty(); }
+
+    private static final BinaryOperator<Op> removeEmptyOfUnion = (l, r) -> {
+        if (isDone(l) && isDone(r)) return OpTable.empty();
+        if (isDone(l)) return r;
+        if (isDone(r)) return l;
+        return OpUnion.create(l, r);
+    };
+
+    public static final Op DONE = OpTable.empty();
 }

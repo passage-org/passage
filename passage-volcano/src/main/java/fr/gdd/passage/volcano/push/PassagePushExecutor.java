@@ -17,8 +17,6 @@ import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.expr.Expr;
-import org.apache.jena.sparql.expr.NodeValue;
 
 import java.util.Objects;
 import java.util.concurrent.ForkJoinPool;
@@ -62,7 +60,7 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
                 }
             }).join();
         }
-        return new Pause2ContinuationQuery<>(context.op2its).visit(_root);
+        return new Pause2ContinuationQuery<>(context.op2its).get(_root);
     }
 
     /* *********************************** OPERATORS ************************************* */
@@ -92,12 +90,10 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
         return this.visit(extend.getSubOp(), input).map(i -> {
             BackendBindings<ID, VALUE> b = new BackendBindings<ID, VALUE>().setParent(i);
             for (Var v : extend.getVarExprList().getVars()) {
-                Expr expr = extend.getVarExprList().getExpr(v);
-                BackendBindings.IdValueBackend<ID, VALUE> newBinding = new BackendBindings.IdValueBackend<ID, VALUE>()
-                        .setBackend(context.backend);
-                NodeValue newValue = expr.eval(i, context);
-                newBinding.setString(NodeFmtLib.strNT(newValue.asNode()));
-                b.put(v, newBinding);
+                b.put(v, new BackendBindings.IdValueBackend<ID, VALUE>()
+                        .setBackend(context.backend)
+                        .setString(NodeFmtLib.strNT(extend.getVarExprList().getExpr(v)
+                                .eval(i, context).asNode())));
             }
             return b;
         });
@@ -105,9 +101,6 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
 
     @Override
     public Stream<BackendBindings<ID, VALUE>> visit(OpTable table, BackendBindings<ID, VALUE> input) {
-        if (table.isJoinIdentity()) {
-            return Stream.of(input);
-        }
         return new PassagePushValues<>(context, input, table).getStream();
     }
 
@@ -129,7 +122,7 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
     @Override
     public Stream<BackendBindings<ID, VALUE>> visit(OpLeftJoin lj, BackendBindings<ID, VALUE> input) {
         if (Objects.nonNull(lj.getExprs()) && !lj.getExprs().isEmpty()) {
-            throw new UnsupportedOperationException("Condition in leftjoin are not handled yet.");
+            throw new UnsupportedOperationException("Conditions in left joins are not handled yet.");
         }
         return new PassagePushOptional<>(context, input, lj).stream();
     }

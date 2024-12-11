@@ -2,6 +2,7 @@ package fr.gdd.passage.volcano.push.streams;
 
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.PassageExecutionContext;
+import fr.gdd.passage.volcano.push.Pause2ContinuationQuery;
 import org.apache.jena.query.ResultSetFactory;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.Table;
@@ -34,15 +35,19 @@ public class PassagePushValues<ID,VALUE> extends PausableSpliterator<ID,VALUE> {
         this.values = table;
         this.input = input;
 
-        this.wrapped = StreamSupport.stream(
-                        Spliterators.spliteratorUnknownSize(
-                                ResultSetFactory.create(table.getTable().iterator(context), table.getTable().getVarNames()) ,
-                                Spliterator.SIZED | Spliterator.SUBSIZED |
-                                        Spliterator.NONNULL | Spliterator.IMMUTABLE |
-                                        Spliterator.CONCURRENT),
-                        this.context.maxParallelism > 1)
-                .map(r -> new BackendBindings<>(r, this.context.backend).setParent(input)) // TODO backend in bindingfactory
-                .peek(ignored -> produced.increment());
+        if (table.isJoinIdentity()) {
+            this.wrapped = Stream.of(input).peek(ignored -> produced.increment());
+        } else {
+            this.wrapped = StreamSupport.stream(
+                            Spliterators.spliteratorUnknownSize(
+                                    ResultSetFactory.create(table.getTable().iterator(context), table.getTable().getVarNames()),
+                                    Spliterator.SIZED | Spliterator.SUBSIZED |
+                                            Spliterator.NONNULL | Spliterator.IMMUTABLE |
+                                            Spliterator.CONCURRENT),
+                            this.context.maxParallelism > 1)
+                    .map(r -> new BackendBindings<>(r, this.context.backend).setParent(input)) // TODO backend in bindingfactory
+                    .peek(ignored -> produced.increment());
+        }
     }
 
     public Stream<BackendBindings<ID,VALUE>> getStream() {
@@ -51,8 +56,14 @@ public class PassagePushValues<ID,VALUE> extends PausableSpliterator<ID,VALUE> {
 
     @Override
     public Op pause() {
+        if (values.isJoinIdentity() && produced.longValue() > 0) {
+            return Pause2ContinuationQuery.DONE;
+        } else if (values.isJoinIdentity()) {
+            return input.toOp();
+        }
+
         if (produced.longValue() >= values.getTable().size()) {
-            return OpTable.empty(); // done
+            return Pause2ContinuationQuery.DONE;
         }
 
         List<Binding> bindings = new ArrayList<>();

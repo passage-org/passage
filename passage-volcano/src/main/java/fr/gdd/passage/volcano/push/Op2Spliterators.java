@@ -42,7 +42,7 @@ public class Op2Spliterators<ID,VALUE> {
 
     public void unregister(Op op, PausableSpliterator<ID,VALUE> it) {
         if (!isParallel) {
-            this.op2it.remove(op);
+            this.op2it.put(op, null);
         } else {
             this.op2its.get(op).remove(it);
         }
@@ -50,11 +50,15 @@ public class Op2Spliterators<ID,VALUE> {
 
     public Set<PausableSpliterator<ID,VALUE>> get(Op op) {
         if (isParallel) {
-            return Objects.nonNull(this.op2its.get(op)) ? this.op2its.get(op).elementSet():
+            return Objects.nonNull(this.op2its.get(op)) ?
+                    this.op2its.get(op).elementSet():
                     null;
         } else {
-            // `Set.of` but should not be often
-            return Objects.nonNull(this.op2it.get(op)) ? Set.of(this.op2it.get(op)): Set.of();
+            if (this.op2it.containsKey(op)) {
+                PausableSpliterator<ID,VALUE> pausableOrNull = this.op2it.get(op);
+                return Objects.isNull(pausableOrNull) ? Set.of() : Set.of(pausableOrNull);
+            }
+            return null;
         }
     }
 }
