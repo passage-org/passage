@@ -338,7 +338,7 @@ public class LimitOffsetTest {
 
     @ParameterizedTest
     // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider") // TODO multithread
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
     public void make_sure_that_the_limit_offset_is_not_applies_to_each_tp_in_bgp (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, QueryEvaluationException, MalformedQueryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());

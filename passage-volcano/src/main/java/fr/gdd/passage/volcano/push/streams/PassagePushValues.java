@@ -2,12 +2,11 @@ package fr.gdd.passage.volcano.push.streams;
 
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.PassageExecutionContext;
-import fr.gdd.passage.volcano.push.Pause2ContinuationQuery;
+import fr.gdd.passage.volcano.push.Pause2Continuation;
 import org.apache.jena.query.ResultSetFactory;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.Table;
 import org.apache.jena.sparql.algebra.TableFactory;
-import org.apache.jena.sparql.algebra.op.OpJoin;
 import org.apache.jena.sparql.algebra.op.OpTable;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.engine.binding.Binding;
@@ -57,13 +56,13 @@ public class PassagePushValues<ID,VALUE> extends PausableSpliterator<ID,VALUE> {
     @Override
     public Op pause() {
         if (values.isJoinIdentity() && produced.longValue() > 0) {
-            return Pause2ContinuationQuery.DONE;
+            return Pause2Continuation.DONE;
         } else if (values.isJoinIdentity()) {
             return input.toOp();
         }
 
         if (produced.longValue() >= values.getTable().size()) {
-            return Pause2ContinuationQuery.DONE;
+            return Pause2Continuation.DONE;
         }
 
         List<Binding> bindings = new ArrayList<>();
@@ -73,6 +72,6 @@ public class PassagePushValues<ID,VALUE> extends PausableSpliterator<ID,VALUE> {
         Table newTable = TableFactory.create(values.getTable().getVars());
         bindings.forEach(newTable::addBinding);
 
-        return OpJoin.create(input.toOp(), OpTable.create(newTable));
+        return input.joinWith(OpTable.create(newTable));
     }
 }

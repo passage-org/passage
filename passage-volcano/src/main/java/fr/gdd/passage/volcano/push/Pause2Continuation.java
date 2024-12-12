@@ -17,11 +17,11 @@ import java.util.stream.Collectors;
  * Generate a SPARQL query from the current paused state. By executing
  * the generated SPARQL query, the query execution becomes complete.
  */
-public class Pause2ContinuationQuery<ID,VALUE> extends ReturningOpVisitor<Op> {
+public class Pause2Continuation<ID,VALUE> extends ReturningOpVisitor<Op> {
 
     final Op2Spliterators<ID,VALUE> op2its;
 
-    public Pause2ContinuationQuery(Op2Spliterators<ID,VALUE> op2its) {
+    public Pause2Continuation(Op2Spliterators<ID,VALUE> op2its) {
         this.op2its = op2its;
     }
 
@@ -38,19 +38,17 @@ public class Pause2ContinuationQuery<ID,VALUE> extends ReturningOpVisitor<Op> {
     @Override
     public Op visit(OpTriple triple) {
         Set<PausableSpliterator<ID,VALUE>> its = op2its.get(triple);
-        if (Objects.isNull(its)) return triple; // not executed at all
-        if (its.isEmpty()) return DONE;
-        return its.stream().map(PausableSpliterator::pause)
-                .reduce(OpTable.empty(), removeEmptyOfUnion);
+        if (notExecuted(its)) return triple; // not executed at all
+        if (isDone(its)) return DONE;
+        return its.stream().map(PausableSpliterator::pause).reduce(OpTable.empty(), removeEmptyOfUnion);
     }
 
     @Override
     public Op visit(OpQuad quad) {
         Set<PausableSpliterator<ID,VALUE>> its = op2its.get(quad);
-        if (Objects.isNull(its)) return quad; // not executed at all
-        if (its.isEmpty()) return DONE;
-        return its.stream().map(PausableSpliterator::pause)
-                .reduce(OpTable.empty(), removeEmptyOfUnion);
+        if (notExecuted(its)) return quad; // not executed at all
+        if (isDone(its)) return DONE;
+        return its.stream().map(PausableSpliterator::pause).reduce(OpTable.empty(), removeEmptyOfUnion);
     }
 
     @Override
@@ -59,17 +57,15 @@ public class Pause2ContinuationQuery<ID,VALUE> extends ReturningOpVisitor<Op> {
         Op left = super.visit(join.getLeft());
         Op right = super.visit(join.getRight());
 
-        if (left == join.getLeft() && right == join.getRight()) return join; // not executed at all, we return it pristine
+        // not executed at all, we return it pristine
+        if (notExecuted(left, join.getLeft()) && notExecuted(right, join.getRight())) return join;
 
         if (isDone(left) && isDone(right)) return DONE; // both done, so we are done
-        if (isDone(left) && right == join.getRight()) return DONE; // consumed left but right did not move, so the join is done
-        if (isDone(left)) return right; // consumed left, generating a new right to consume
-        if (isDone(right)) return OpJoin.create(left, join.getRight()); // still must do the rest of left with the old right
-
-        if (left == join.getLeft()) return right;
-        if (right == join.getRight()) return OpJoin.create(left, join.getRight());
-
-        // if (right == join.getRight()) return OpJoin.create(left, right); // TODO bind gets consumed
+        if (isDone(left) && notExecuted(right, join.getRight())) return DONE; // consumed left but right did not move, so the join is done
+        // all consumed left or kept still, but generating a new right to consume
+        if (isDone(left) || notExecuted(left, join.getLeft())) return right;
+        // still must do the rest of left with the old right
+        if (isDone(right) || notExecuted(right, join.getRight())) return OpJoin.create(left, join.getRight());
 
         // Otherwise, create a union with:
         // (i) The preempted right part (The current pointer to where we are executing)
@@ -91,10 +87,7 @@ public class Pause2ContinuationQuery<ID,VALUE> extends ReturningOpVisitor<Op> {
         Op left = super.visit(union.getLeft());
         Op right = super.visit(union.getRight());
 
-        if (left == union.getLeft() && right == union.getRight()) return union;
-
-        // left = Objects.isNull(left) ? union.getLeft() : left;
-        // right = Objects.isNull(right) ? union.getRight() : right;
+        if (notExecuted(left, union.getLeft()) && notExecuted(right, union.getRight())) return union;
 
         if (isDone(left) && isDone(right)) return DONE;
         if (isDone(left)) return right;
@@ -106,18 +99,17 @@ public class Pause2ContinuationQuery<ID,VALUE> extends ReturningOpVisitor<Op> {
     @Override
     public Op visit(OpSlice slice) {
         Set<PausableSpliterator<ID,VALUE>> its = op2its.get(slice);
-        if (Objects.isNull(its)) return slice; // not executed at all, so we copy
-        if (its.isEmpty()) return DONE; // done
+        if (notExecuted(its)) return slice;
+        if (isDone(its)) return DONE;
         return its.stream().map(PausableSpliterator::pause).reduce(DONE, removeEmptyOfUnion);
     }
 
     @Override
     public Op visit(OpTable table) {
         Set<PausableSpliterator<ID,VALUE>> its = op2its.get(table);
-        if (Objects.isNull(its)) return null; // not executed at all, so we copy
-        if (its.isEmpty()) return OpTable.empty(); // done
-        return its.stream().map(PausableSpliterator::pause)
-                .reduce(OpTable.empty(), removeEmptyOfUnion);
+        if (notExecuted(its)) return table;
+        if (isDone(its)) return DONE;
+        return its.stream().map(PausableSpliterator::pause).reduce(OpTable.empty(), removeEmptyOfUnion);
     }
 
     /* **************** UNARY OPERATORS WITHOUT INTERNAL STATES ******************* */
@@ -125,38 +117,46 @@ public class Pause2ContinuationQuery<ID,VALUE> extends ReturningOpVisitor<Op> {
     @Override
     public Op visit(OpExtend extend) {
         Op subop = super.visit(extend.getSubOp());
-        if (Objects.isNull(subop)) return null; // downstream never executed
-        if (isDone(subop)) return OpTable.empty(); // done propagates
-        return OpCloningUtil.clone(extend, subop); // otherwise, we actually produce something
+        if (notExecuted(extend.getSubOp(), subop)) return extend;
+        if (isDone(subop)) return DONE;
+        return OpCloningUtil.clone(extend, subop);
     }
 
     @Override
     public Op visit(OpProject project) {
         Op subop = super.visit(project.getSubOp());
-        if (Objects.isNull(subop)) return null; // downstream never executed
-        if (isDone(subop)) return OpTable.empty(); // done propagates
-        return OpCloningUtil.clone(project, subop); // otherwise, we actually produce something
+        if (notExecuted(project.getSubOp(), subop)) return project;
+        if (isDone(subop)) return DONE;
+        return OpCloningUtil.clone(project, subop);
     }
 
     @Override
     public Op visit(OpFilter filter) {
         Op subop = super.visit(filter.getSubOp());
-        if (Objects.isNull(subop)) return null; // downstream never executed
-        if (isDone(subop)) return OpTable.empty(); // done propagates
-        return OpCloningUtil.clone(filter, subop); // otherwise, we actually produce something
+        if (notExecuted(filter.getSubOp(), subop)) return filter;
+        if (isDone(subop)) return DONE;
+        return OpCloningUtil.clone(filter, subop);
     }
 
 
     /* *************************** UTILS ************************ */
 
-    public static Boolean isDone(Op op) { return op instanceof OpTable table && table.getTable().isEmpty(); }
+    public static final Op DONE = OpTable.empty();
+    public static boolean isDone(Op op) { return op instanceof OpTable table && table.getTable().isEmpty(); }
+    public static <ID,VALUE> boolean isDone(Set<PausableSpliterator<ID,VALUE>> its) {return its.isEmpty(); }
 
-    private static final BinaryOperator<Op> removeEmptyOfUnion = (l, r) -> {
+    public static final BinaryOperator<Op> removeEmptyOfUnion = (l, r) -> {
         if (isDone(l) && isDone(r)) return OpTable.empty();
         if (isDone(l)) return r;
         if (isDone(r)) return l;
         return OpUnion.create(l, r);
     };
 
-    public static final Op DONE = OpTable.empty();
+    public static boolean notExecuted(Op before, Op after) {
+        return before.equalTo(after, null);
+    }
+
+    public static <ID,VALUE> boolean notExecuted(Set<PausableSpliterator<ID,VALUE>> its) {
+        return Objects.isNull(its);
+    }
 }

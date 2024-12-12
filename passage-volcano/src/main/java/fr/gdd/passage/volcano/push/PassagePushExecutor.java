@@ -56,7 +56,7 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
             }).join();
         }
         return gotPaused.get() ?
-                new Pause2ContinuationQuery<>(context.op2its).get(_root):
+                new Pause2Continuation<>(context.op2its).get(_root):
                 null; // null means execution is over: we provided complete and correct results
     }
 

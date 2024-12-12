@@ -5,11 +5,10 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.algebra.op.OpExtend;
-import org.apache.jena.sparql.algebra.op.OpSequence;
-import org.apache.jena.sparql.algebra.op.OpTable;
+import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.expr.ExprList;
 import org.apache.jena.sparql.expr.NodeValue;
 import org.apache.jena.sparql.util.ExprUtils;
 
@@ -288,5 +287,21 @@ public class BackendBindings<ID, VALUE> implements Binding {
             case 1 -> seq.get(0);
             default -> seq;
         };
+    }
+
+    /**
+     * @param op The operator to join the binding with.
+     * @return An operator consisting of the join between the op, and this binding.
+     */
+    public Op joinWith(Op op) {
+        return this.isEmpty() ? op : OpJoin.create(this.toOp(), op);
+    }
+
+    /**
+     * @param op The operator to join the binding with.
+     * @return An operator consisting of the join between the op, and this binding.
+     */
+    public Op leftJoinWith(Op op) {
+        return this.isEmpty() ? op : OpLeftJoin.create(this.toOp(), op, ExprList.emptyList);
     }
 }

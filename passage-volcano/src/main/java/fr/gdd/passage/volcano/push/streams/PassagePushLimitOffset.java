@@ -5,9 +5,8 @@ import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.volcano.CanBeSkipped;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.push.PassagePushExecutor;
-import fr.gdd.passage.volcano.push.Pause2ContinuationQuery;
+import fr.gdd.passage.volcano.push.Pause2Continuation;
 import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.algebra.op.OpJoin;
 import org.apache.jena.sparql.algebra.op.OpSlice;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
@@ -67,22 +66,24 @@ public class PassagePushLimitOffset<ID,VALUE> extends PausableSpliterator<ID,VAL
 
     @Override
     public Op pause() {
-        Op inside = new Pause2ContinuationQuery<>(context.op2its).visit(slice.getSubOp());
-        if (Pause2ContinuationQuery.isDone(inside)) { return Pause2ContinuationQuery.DONE; }
-        if (Objects.isNull(inside)) { return null; }
+        Op inside = new Pause2Continuation<>(context.op2its).visit(slice.getSubOp());
+        if (Pause2Continuation.isDone(inside)) { return Pause2Continuation.DONE; }
+        if (Pause2Continuation.notExecuted(inside, slice.getSubOp())) {
+            // the input comes from the production of somewhere, so we must save it here
+            return input.joinWith(slice);
+        }
 
         Op subquery;
         if (new CanBeSkipped().visit((Op) slice)) {
             subquery = inside;
         } else {
-            if (slice.getLength()!=Long.MIN_VALUE && actuallyProduced.longValue() >= slice.getLength()) { return null; }
+            if (slice.getLength() != Long.MIN_VALUE && actuallyProduced.longValue() >= slice.getLength()) { return Pause2Continuation.DONE; }
             long pausedLimit = slice.getLength() == Long.MIN_VALUE ? Long.MIN_VALUE : slice.getLength() - actuallyProduced.longValue();
             long pausedOffset = slice.getStart() == Long.MIN_VALUE ? Long.MIN_VALUE : slice.getStart() - totalProduced.longValue();
-            pausedOffset = pausedOffset > 0 ? pausedOffset : Long.MIN_VALUE;
+            pausedOffset = pausedOffset > 0 ? pausedOffset : Long.MIN_VALUE; // simplify when `OFFSET 0`
             subquery = new OpSlice(inside, pausedOffset, pausedLimit);
         }
 
-        Op toSave = input.isEmpty() ? subquery : OpJoin.create(input.toOp(), subquery);
-        return toSave.equalTo(slice, null) ? slice : toSave; // we keep the pointer
+        return input.joinWith(subquery);
     }
 }

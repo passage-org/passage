@@ -4,14 +4,13 @@ import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.push.PassagePushExecutor;
-import fr.gdd.passage.volcano.push.Pause2ContinuationQuery;
+import fr.gdd.passage.volcano.push.Pause2Continuation;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpLeftJoin;
 import org.apache.jena.sparql.algebra.op.OpUnion;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
 import java.util.Iterator;
-import java.util.Objects;
 import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -57,24 +56,36 @@ public class PassagePushOptional<ID,VALUE> extends PausableSpliterator<ID,VALUE>
 
     @Override
     public Op pause() {
-        Op left = new Pause2ContinuationQuery<>(context.op2its).visit(lj.getLeft());
-        Op right = new Pause2ContinuationQuery<>(context.op2its).visit(lj.getRight());
+        Op left = new Pause2Continuation<>(context.op2its).visit(lj.getLeft());
+        Op right = new Pause2Continuation<>(context.op2its).visit(lj.getRight());
 
-        if (Objects.isNull(left) && Objects.isNull(right)) {
-            return null;
-        } else if (Objects.isNull(left)) { // only right is not null, but might not be found
-            if (matchOptionalClause.get()) {
-                return right; // everything is set in the right part
-            } else {
-                return OpCloningUtil.clone(lj, inputOfOptional.get().toOp(), right);
-            }
-        } else if (Objects.isNull(right)) { // only left is not null
+        if (Pause2Continuation.isDone(left) && Pause2Continuation.isDone(right)) {
+            return Pause2Continuation.DONE; // ofc
+        }
+
+        if (Pause2Continuation.notExecuted(lj.getLeft(), left) && Pause2Continuation.notExecuted(lj.getRight(), right)) {
+            return input.joinWith(lj); // still need the input to save.
+        }
+
+        if (Pause2Continuation.isDone(left) && Pause2Continuation.notExecuted(lj.getRight(), right)) {
+            return Pause2Continuation.DONE; // the input did not make the right progress, so we stop
+        }
+
+        if (Pause2Continuation.isDone(left) || Pause2Continuation.notExecuted(lj.getLeft(), left)) {
+            return matchOptionalClause.get() ? input.joinWith(right) : input.leftJoinWith(right);
+        }
+
+        if (Pause2Continuation.isDone(right) || Pause2Continuation.notExecuted(lj.getRight(), right)) {
+            // input should be already included in left
             return OpCloningUtil.clone(lj, left, lj.getRight());
-        } else { // both sides are set
-            return OpUnion.create(OpCloningUtil.clone(lj,left, lj.getRight()), // rest of left
-                    (matchOptionalClause.get()) ?
-                            right: // everything is set in the right part
-                            OpCloningUtil.clone(lj, inputOfOptional.get().toOp(), right));
+        }
+
+        if (matchOptionalClause.get()) {
+            return OpUnion.create(right, // right alone contains all, as a join
+                    OpCloningUtil.clone(lj, left, lj.getRight())); // the rest remains a left join
+        } else { // otherwise we continue as a left join everywhere
+            return OpUnion.create(input.leftJoinWith(right),
+                    OpCloningUtil.clone(lj, left, lj.getRight()));
         }
     }
 }
