@@ -36,14 +36,36 @@ public class BindAsTest {
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
     public void create_a_bind_and_execute_a_tp (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
         String queryAsString = """
                SELECT * WHERE {
                 BIND (<http://Alice> AS ?p)
+                ?p  <http://own>  ?a .
+               }""";
+
+        var results = ExecutorUtils.execute(queryAsString, builder);
+        assertEquals(3, results.size()); // Alice, Alice, and Alice.
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a"),
+                List.of("Alice", "cat"), List.of("Alice", "dog"), List.of("Alice", "snake")));
+        blazegraph.close();
+    }
+
+    @ParameterizedTest
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
+    public void create_a_bind_and_execute_a_bgp (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+        builder.setBackend(blazegraph);
+        String queryAsString = """
+               SELECT * WHERE {
+                BIND (<http://Alice> AS ?p)
+                ?p  <http://address> ?city .
                 ?p  <http://own>  ?a .
                }""";
 

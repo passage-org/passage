@@ -194,6 +194,9 @@ public class BGPTest {
     public void meow (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
+
+        // Here, there is a second ?p from Nantes, but she does not own any animal
+
         String queryAsString = """
                 SELECT * WHERE { { { SELECT  *  WHERE  { ?p  <http://address>  <http://nantes> }  OFFSET  1 }
                       ?p  <http://own>  ?a }
