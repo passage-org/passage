@@ -1,17 +1,14 @@
 package fr.gdd.passage.volcano.push;
 
-import fr.gdd.jena.utils.FlattenUnflatten;
 import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.jena.visitors.ReturningOpVisitor;
 import fr.gdd.passage.volcano.push.streams.PausableSpliterator;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
 
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.BinaryOperator;
-import java.util.stream.Collectors;
 
 /**
  * Generate a SPARQL query from the current paused state. By executing
@@ -71,15 +68,15 @@ public class Pause2Continuation<ID,VALUE> extends ReturningOpVisitor<Op> {
         // (i) The preempted right part (The current pointer to where we are executing)
         // (ii) The preempted left part with a copy of the right (The rest of the query)
         // In other words, it's like, (i) finish the OFFSET you where in. (ii) start at OFFSET + 1
-        return FlattenUnflatten.unflattenUnion(Arrays.asList(right, OpJoin.create(left, join.getRight())));
+        return OpUnion.create(right, OpJoin.create(left, join.getRight()));
     }
 
     @Override
     public Op visit(OpLeftJoin lj) {
-        Set<PausableSpliterator<ID,VALUE>> optionals = op2its.get(lj);
-        if (Objects.isNull(optionals) || optionals.isEmpty()) { return null; }
-
-        return FlattenUnflatten.unflattenUnion(optionals.stream().map(PausableSpliterator::pause).collect(Collectors.toList()));
+        Set<PausableSpliterator<ID,VALUE>> its = op2its.get(lj);
+        if (Pause2Continuation.notExecuted(its)) { return lj; }
+        if (isDone(its)) { return DONE; }
+        return its.stream().map(PausableSpliterator::pause).reduce(DONE, removeEmptyOfUnion);
     }
 
     @Override
@@ -93,7 +90,7 @@ public class Pause2Continuation<ID,VALUE> extends ReturningOpVisitor<Op> {
         if (isDone(left)) return right;
         if (isDone(right)) return left;
 
-        return FlattenUnflatten.unflattenUnion(Arrays.asList(left, right));
+        return OpUnion.create(left, right);
     }
 
     @Override
@@ -109,7 +106,7 @@ public class Pause2Continuation<ID,VALUE> extends ReturningOpVisitor<Op> {
         Set<PausableSpliterator<ID,VALUE>> its = op2its.get(table);
         if (notExecuted(its)) return table;
         if (isDone(its)) return DONE;
-        return its.stream().map(PausableSpliterator::pause).reduce(OpTable.empty(), removeEmptyOfUnion);
+        return its.stream().map(PausableSpliterator::pause).reduce(DONE, removeEmptyOfUnion);
     }
 
     /* **************** UNARY OPERATORS WITHOUT INTERNAL STATES ******************* */

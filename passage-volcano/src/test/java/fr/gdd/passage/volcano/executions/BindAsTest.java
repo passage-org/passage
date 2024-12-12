@@ -36,9 +36,9 @@ public class BindAsTest {
     }
 
     @ParameterizedTest
-    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
     public void create_a_bind_and_execute_a_tp (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -56,9 +56,9 @@ public class BindAsTest {
     }
 
     @ParameterizedTest
-    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
     public void create_a_bind_and_execute_a_bgp (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);

@@ -83,7 +83,7 @@ public class PassageBackjumpTest {
         PassageExecutionContextBuilder<?,?> builder = new PassageExecutionContextBuilder<>()
                 .setBackend(backend)
                 .forceOrder()
-                // .backjump()
+                .backjump()
                 .setExecutorFactory((ec)-> new PassagePushExecutor<>((PassageExecutionContext<?,?>) ec));
 
         LongAdder counter = new LongAdder();

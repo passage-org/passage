@@ -16,4 +16,5 @@ public class Quad2Pattern extends ReturningOpBaseVisitor {
     public Op visit(OpQuad quad) {
         return new OpQuadPattern(quad.getQuad().getGraph(), quad.asQuadPattern().getBasicPattern());
     }
+
 }

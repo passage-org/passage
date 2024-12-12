@@ -32,6 +32,9 @@ public class ReturningOpBaseVisitor extends ReturningOpVisitor<Op> {
     }
 
     @Override
+    public Op visit(OpQuadPattern quads) { return quads;}
+
+    @Override
     public Op visit(OpGraph graph) {
         return OpCloningUtil.clone(graph, this.visit(graph.getSubOp()));
     }
