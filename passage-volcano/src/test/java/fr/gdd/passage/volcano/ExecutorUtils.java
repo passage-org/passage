@@ -20,7 +20,7 @@ import java.util.function.Consumer;
  */
 public class ExecutorUtils {
 
-    private static final Logger log = LoggerFactory.getLogger(ExecutorUtils.class);
+    public static Logger log = LoggerFactory.getLogger(ExecutorUtils.class);
 
     /**
      * @param queryAsString The SPARQL query to execute.

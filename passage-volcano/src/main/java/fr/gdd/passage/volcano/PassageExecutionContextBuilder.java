@@ -1,7 +1,6 @@
 package fr.gdd.passage.volcano;
 
 import fr.gdd.passage.commons.generics.BackendConstants;
-import fr.gdd.passage.commons.generics.BackendPullExecutor;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.exceptions.InvalidContexException;
 import org.apache.jena.query.DatasetFactory;
@@ -115,7 +114,7 @@ public class PassageExecutionContextBuilder<ID,VALUE> {
         this.name = name;
         return this;
     }
-
+    
     @Override
     public String toString() {
         return  ((Objects.nonNull(name)) ? name + " " : "") +

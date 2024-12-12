@@ -10,7 +10,6 @@ import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
 import fr.gdd.passage.commons.iterators.BackendIteratorOverInput;
-import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.exceptions.PauseException;
 import org.apache.jena.atlas.lib.tuple.Tuple;
@@ -22,7 +21,6 @@ import org.apache.jena.sparql.engine.ExecutionContext;
 
 import java.util.Iterator;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
 /**
