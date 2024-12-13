@@ -30,6 +30,19 @@ public class InstanceProviderForTests {
     }
 
     /**
+     * @return A simple builder to test the push iterator model when only one scan
+     *         is allowed, and parallelism is disabled.
+     */
+    static Stream<PassageExecutionContextBuilder<?,?>> multiThreadsPush () {
+        Integer[] maxParallel = {2};
+        return Arrays.stream(maxParallel).map(p -> new PassageExecutionContextBuilder<>()
+                .setName("PUSH")
+                .setMaxParallel(p)
+                .setMaxScans(3L)
+                .setExecutorFactory((ec) -> new PassagePushExecutor<>((PassageExecutionContext) ec)));
+    }
+
+    /**
      * @return A stream of builder that set the execution context of Passage for
      * the *push* iterator model. We leave `setBackend` for the body of the
      * tested function.
@@ -75,7 +88,6 @@ public class InstanceProviderForTests {
                 .setExecutorFactory((ec) -> new PassagePullExecutor<>((PassageExecutionContext) ec))
                 .setMaxScans(s)
         );
-
     }
 
 }

@@ -44,8 +44,12 @@ public class PassagePushLimitOffset<ID,VALUE> extends PausableSpliterator<ID,VAL
                     .map(i -> i.isCompatible(input) ? new BackendBindings<>(i).setParent(input) : null)
                     // we don't count as it will be done in the subquery
                     .filter(Objects::nonNull);
-        } else { // but sometimes, operators do not provide efficient skips, so we can stay in this context
-            this.wrapped = executor.visit(slice.getSubOp(), new BackendBindings<>())
+        } else { // but sometimes, operators do not provide efficient skips
+            PassagePushExecutor<ID,VALUE> newExecutor = new PassagePushExecutor<>(
+                    new PassageExecutionContext<ID,VALUE>(((PassageExecutionContext<?, ?>) context).clone())
+                            .setLimit(null)
+                            .setOffset(null));
+            this.wrapped = newExecutor.visit(slice.getSubOp(), new BackendBindings<>())
                     .peek(i -> totalProduced.increment())
                     // `skip` and `limit` cannot be used because they propagate downstream, so the logic at this level
                     // is not executed despite its necessity.
