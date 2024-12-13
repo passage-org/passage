@@ -149,9 +149,10 @@ public class LimitOffsetTest {
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider") // TODO multithread
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider") // TODO multithread
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#justGo")
     public void limit_of_a_limit_of_a_triple_pattern (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException, QueryEvaluationException, MalformedQueryException {
         final BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(backend);

@@ -27,7 +27,8 @@ import java.util.stream.StreamSupport;
 
 public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
         Stream<BackendBindings<ID, VALUE>>, // output
-        BackendBindings<ID, VALUE>> implements PassageExecutor<ID,VALUE> { // input
+        BackendBindings<ID, VALUE>>
+        implements PassageExecutor<ID,VALUE> { // input
 
     final PassageExecutionContext<ID,VALUE> context;
 

@@ -11,7 +11,6 @@ import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.exceptions.BackjumpException;
 import fr.gdd.passage.volcano.exceptions.PauseException;
-import fr.gdd.passage.volcano.push.Pause2Continuation;
 import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.atlas.lib.tuple.TupleFactory;
 import org.apache.jena.sparql.algebra.Op;
@@ -24,8 +23,12 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.Spliterator;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
+
+import static fr.gdd.passage.volcano.push.Pause2Continuation.DONE;
+import static fr.gdd.passage.volcano.push.Pause2Continuation.removeEmptyOfUnion;
 
 public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> implements Spliterator<BackendBindings<ID,VALUE>> {
 
@@ -41,6 +44,8 @@ public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> im
     final Backend<ID,VALUE> backend;
     final BackendCache<ID,VALUE> cache;
     final Op0 op;
+    final Long id; // The identifier is actually the starting offset
+    ConcurrentHashMap<Long, PassageSplitScan<ID,VALUE>> siblings = new ConcurrentHashMap<>(); // offset -> sibling
     Set<Var> producedVars;
     Set<Var> consumedVars;
 
@@ -101,7 +106,25 @@ public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> im
 
         this.limit = this.context.getLimit(); // if null, stays null
         this.offset = Objects.nonNull(this.context.getOffset()) ? this.context.getOffset() : 0;
+        this.id = this.offset;
+        this.siblings.put(id, this);
         if (Objects.nonNull(wrapped) && offset > 0) wrapped.skip(offset); // quick skip
+    }
+
+    /**
+     * When parallel, it allows keeping track of all spliterators running for this
+     * quad/triple pattern.
+     * @param siblings The concurrent map that registers
+     */
+    public PassageSplitScan<ID,VALUE> register(ConcurrentHashMap<Long, PassageSplitScan<ID, VALUE>> siblings) {
+        this.siblings = siblings;
+        this.siblings.put(id, this);
+        return this;
+    }
+
+    @Override
+    public void unregister() {
+        this.siblings.remove(id);
     }
 
     @Override
@@ -168,7 +191,7 @@ public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> im
 
         this.limit = splitIndex - offset;
 
-        return new PassageSplitScan<>(newContext, input, op);
+        return new PassageSplitScan<>(newContext, input, op).register(this.siblings);
     }
 
     @Override
@@ -187,7 +210,12 @@ public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> im
 
     @Override
     public Op pause() {
-        if (Objects.nonNull(limit) && limit == 0) return Pause2Continuation.DONE;
+        if (siblings.isEmpty()) { return DONE; }
+        return siblings.values().stream().map(PassageSplitScan::pauseOne).reduce(DONE, removeEmptyOfUnion);
+    }
+
+    public Op pauseOne() {
+        if (Objects.nonNull(limit) && limit == 0) return DONE;
         // save the whole context
         Op toSave = input.joinWith(op);
         // update LIMIT and OFFSET
