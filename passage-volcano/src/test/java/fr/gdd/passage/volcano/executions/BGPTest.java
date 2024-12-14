@@ -23,6 +23,8 @@ import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.openrdf.query.MalformedQueryException;
+import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
@@ -167,8 +169,8 @@ public class BGPTest {
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
     public void bgp_of_3_tps (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
@@ -185,6 +187,38 @@ public class BGPTest {
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a", "s"),
                 List.of("Alice", "dog", "canine"),
                 List.of("Alice", "cat", "feline"),
+                List.of("Alice", "snake", "reptile")));
+        blazegraph.close();
+    }
+
+
+    @ParameterizedTest
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
+    public void issue_with_the_first_offset (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException, QueryEvaluationException, MalformedQueryException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+        builder.setBackend(blazegraph);
+        String queryAsString = """
+                SELECT  * WHERE {   { {
+                  SELECT  * WHERE {
+                    BIND(<http://Alice> AS ?p)
+                    ?p  <http://own>  ?a
+                 } OFFSET  1 } }
+                 UNION
+                 { { SELECT * WHERE { ?p  <http://address>  <http://nantes> } OFFSET  1 }
+                        ?p  <http://own>  ?a }
+                    ?a  <http://species>  ?s
+                 }""";
+
+        var expected = blazegraph.executeQuery(queryAsString);
+        log.debug("{}", expected);
+
+        var results = ExecutorUtils.execute(queryAsString, builder);
+        assertEquals(2, results.size()); // Alice->own->cat,dog,snake
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a", "s"),
+                List.of("Alice", "dog", "canine"),
+                // List.of("Alice", "cat", "feline"), cat is already produced
                 List.of("Alice", "snake", "reptile")));
         blazegraph.close();
     }

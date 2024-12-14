@@ -1,10 +1,10 @@
 package fr.gdd.passage.volcano;
 
 import fr.gdd.passage.volcano.pull.PassagePullExecutor;
-import fr.gdd.passage.volcano.push.PassagePushExecutor;
 import fr.gdd.passage.volcano.push.PassagePushExecutor2;
 
 import java.util.Arrays;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class InstanceProviderForTests {
@@ -14,11 +14,13 @@ public class InstanceProviderForTests {
      *         is allowed, and parallelism is disabled.
      */
     static Stream<PassageExecutionContextBuilder<?,?>> justGo () {
-        return Stream.of(new PassageExecutionContextBuilder<>()
-                .setName("PUSH")
-                .setMaxScans(2L)
-                .setMaxParallel(2)
-                .setExecutorFactory((ec)-> new PassagePushExecutor2<>((PassageExecutionContext<?,?>) ec)));
+        return IntStream.rangeClosed(1, 1000).mapToObj(ignored ->
+                new PassageExecutionContextBuilder<>()
+                        .setName("PUSH")
+                        .setMaxScans(2L)
+                        .setMaxParallel(2)
+                        .setExecutorFactory((ec)-> new PassagePushExecutor2<>((PassageExecutionContext<?,?>) ec))
+        );
     }
 
     /**
