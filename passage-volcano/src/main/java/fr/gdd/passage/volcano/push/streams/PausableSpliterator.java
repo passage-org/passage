@@ -3,14 +3,9 @@ package fr.gdd.passage.volcano.push.streams;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import org.apache.jena.sparql.algebra.Op;
 
-import java.util.stream.Stream;
+import java.util.Spliterator;
 
-public interface PausableStream<ID,VALUE> {
-
-    /**
-     * @return The wrapped stream.
-     */
-    Stream<BackendBindings<ID,VALUE>> stream();
+public interface PausableSpliterator<ID,VALUE> extends Spliterator<BackendBindings<ID,VALUE>> {
 
     /**
      * @return The paused query corresponding to this operator. It does not

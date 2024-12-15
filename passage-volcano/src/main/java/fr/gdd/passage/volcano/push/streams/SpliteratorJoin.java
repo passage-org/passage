@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 
 import static fr.gdd.passage.volcano.push.Pause2Continuation.*;
 
-public class SpliteratorJoin<ID,VALUE> implements Spliterator<BackendBindings<ID,VALUE>> {
+public class SpliteratorJoin<ID,VALUE> implements Spliterator<BackendBindings<ID,VALUE>>, PausableSpliterator<ID,VALUE> {
 
     final PassageExecutionContext<ID,VALUE> context;
     final BackendBindings<ID,VALUE> input;
@@ -101,6 +101,7 @@ public class SpliteratorJoin<ID,VALUE> implements Spliterator<BackendBindings<ID
 
     /* ************************************ PAUSE ********************************** */
 
+    @Override
     public Op pause () {
         Op pausedLeft = leftStream.pause();
 

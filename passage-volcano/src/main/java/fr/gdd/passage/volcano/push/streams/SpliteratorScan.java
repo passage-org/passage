@@ -29,7 +29,7 @@ import java.util.function.Function;
 import static fr.gdd.passage.volcano.push.Pause2Continuation.DONE;
 import static fr.gdd.passage.volcano.push.Pause2Continuation.removeEmptyOfUnion;
 
-public class SpliteratorScan<ID,VALUE> implements Spliterator<BackendBindings<ID,VALUE>> {
+public class SpliteratorScan<ID,VALUE> implements Spliterator<BackendBindings<ID,VALUE>>, PausableSpliterator<ID,VALUE> {
 
     /**
      * By default, this is based on execution time. However, developers can change it
@@ -205,6 +205,7 @@ public class SpliteratorScan<ID,VALUE> implements Spliterator<BackendBindings<ID
 
     /* *********************************** PAUSE ************************************ */
 
+    @Override
     public Op pause() {
         if (siblings.isEmpty()) { return DONE; }
         return siblings.values().stream().map(SpliteratorScan::pauseOne).reduce(DONE, removeEmptyOfUnion);

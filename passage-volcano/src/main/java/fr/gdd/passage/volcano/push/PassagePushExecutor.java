@@ -61,12 +61,12 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
 
     @Override
     public PausableStream<ID, VALUE> visit(OpTriple triple, BackendBindings<ID, VALUE> input) {
-        return new PausableStreamScan<>(context, input, triple);
+        return new PausableStreamWrapper<>(context, input, triple, SpliteratorScan::new);
     }
 
     @Override
     public PausableStream<ID, VALUE> visit(OpQuad quad, BackendBindings<ID, VALUE> input) {
-        return new PausableStreamScan<>(context, input, quad);
+        return  new PausableStreamWrapper<>(context, input, quad, SpliteratorScan::new);
     }
 
     @Override
@@ -91,7 +91,7 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
 
     @Override
     public PausableStream<ID, VALUE> visit(OpJoin join, BackendBindings<ID, VALUE> input) {
-        return new PausableStreamJoin<>(context, input, join);
+        return new PausableStreamWrapper<>(context, input, join, SpliteratorJoin::new);
     }
 
     @Override
@@ -109,7 +109,6 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
         if (Objects.nonNull(lj.getExprs()) && !lj.getExprs().isEmpty()) {
             throw new UnsupportedOperationException("Conditions in left joins are not handled yet.");
         }
-        throw new UnsupportedOperationException("Left joins are not handled yet.");
-        // return new PassagePushOptional<>(context, input, lj).stream();
+        return new PausableStreamWrapper<>(context, input, lj, SpliteratorOptional::new);
     }
 }

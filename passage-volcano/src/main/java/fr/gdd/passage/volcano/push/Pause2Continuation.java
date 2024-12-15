@@ -6,9 +6,14 @@ import org.apache.jena.sparql.algebra.op.OpUnion;
 
 import java.util.function.BinaryOperator;
 
-public class Pause2Continuation<ID,VALUE> {
+/**
+ * This class used to be a visitor, but now, everything is done within
+ * the physical operators themselves. Therefore, this became a utility
+ * class.
+ */
+public class Pause2Continuation {
 
-    public static final Op DONE = OpTable.empty();
+    public static final Op DONE = OpTable.empty(); // actually produces an empty `VALUES` clause
     public static boolean isDone(Op op) { return op instanceof OpTable table && table.getTable().isEmpty(); }
 
     public static final BinaryOperator<Op> removeEmptyOfUnion = (l, r) -> {
