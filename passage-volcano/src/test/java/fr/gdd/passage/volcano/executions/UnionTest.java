@@ -7,9 +7,10 @@ import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.volcano.ExecutorUtils;
+import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.benchmarks.WDBenchTest;
-import fr.gdd.passage.volcano.push.streams.PassageSplitScan;
+import fr.gdd.passage.volcano.push.streams.SpliteratorScan;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
@@ -182,12 +183,12 @@ public class UnionTest {
         Multiset<BackendBindings<?,?>> results = ConcurrentHashMultiset.create();
         try (ForkJoinPool customPool = new ForkJoinPool(10)) {
             customPool.submit( () ->
-                            StreamSupport.stream(new PassageSplitScan<>(meow(c), new BackendBindings<>(), tp1), true)
-                                    .forEach((mu1)-> StreamSupport.stream(new PassageSplitScan<>(meow(c), mu1, tp2), true)
-                                            .forEach((mu2)-> StreamSupport.stream(new PassageSplitScan<>(meow(c), mu2, tp3), true)
-                                                    .forEach((mu3)-> StreamSupport.stream(new PassageSplitScan<>(meow(c), mu3, tp4), true)
-                                                            .forEach((mu4)-> StreamSupport.stream(new PassageSplitScan<>(meow(c), mu4, tp5), true)
-                                                                    .forEach((mu5)-> StreamSupport.stream(new PassageSplitScan<>(meow(c), mu5, tp6), true)
+                            StreamSupport.stream(new SpliteratorScan<>(meow(c), new BackendBindings<>(), tp1), true)
+                                    .forEach((mu1)-> StreamSupport.stream(new SpliteratorScan<>(meow(c), mu1, tp2), true)
+                                            .forEach((mu2)-> StreamSupport.stream(new SpliteratorScan<>(meow(c), mu2, tp3), true)
+                                                    .forEach((mu3)-> StreamSupport.stream(new SpliteratorScan<>(meow(c), mu3, tp4), true)
+                                                            .forEach((mu4)-> StreamSupport.stream(new SpliteratorScan<>(meow(c), mu4, tp5), true)
+                                                                    .forEach((mu5)-> StreamSupport.stream(new SpliteratorScan<>(meow(c), mu5, tp6), true)
                                                                             .forEach(results::add)))))))
                     .join();
         }
@@ -197,7 +198,7 @@ public class UnionTest {
     }
 
 
-    static ExecutionContext meow(ExecutionContext context) {
+    static PassageExecutionContext<Object, Object> meow(ExecutionContext context) {
         return new PassageExecutionContextBuilder<>().setContext(context).build().setLimit(null).setOffset(0L);
     }
 }

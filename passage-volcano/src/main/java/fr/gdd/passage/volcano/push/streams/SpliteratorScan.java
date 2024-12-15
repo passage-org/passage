@@ -16,7 +16,6 @@ import org.apache.jena.atlas.lib.tuple.TupleFactory;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.util.VarUtils;
 
 import java.util.HashSet;
@@ -30,7 +29,7 @@ import java.util.function.Function;
 import static fr.gdd.passage.volcano.push.Pause2Continuation.DONE;
 import static fr.gdd.passage.volcano.push.Pause2Continuation.removeEmptyOfUnion;
 
-public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> implements Spliterator<BackendBindings<ID,VALUE>> {
+public class SpliteratorScan<ID,VALUE> implements Spliterator<BackendBindings<ID,VALUE>> {
 
     /**
      * By default, this is based on execution time. However, developers can change it
@@ -45,7 +44,7 @@ public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> im
     final BackendCache<ID,VALUE> cache;
     final Op0 op;
     final Long id; // The identifier is actually the starting offset
-    ConcurrentHashMap<Long, PassageSplitScan<ID,VALUE>> siblings = new ConcurrentHashMap<>(); // offset -> sibling
+    ConcurrentHashMap<Long, SpliteratorScan<ID,VALUE>> siblings = new ConcurrentHashMap<>(); // offset -> sibling
     Set<Var> producedVars;
     Set<Var> consumedVars;
 
@@ -55,9 +54,8 @@ public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> im
     BackendIterator<ID, VALUE> wrapped;
     Tuple<Var> vars; // needed to create bindings var -> value
 
-    public PassageSplitScan (ExecutionContext context, BackendBindings<ID,VALUE> input, Op0 tripleOrQuad) {
-        super((PassageExecutionContext<ID, VALUE>) context, tripleOrQuad);
-        this.context = (PassageExecutionContext<ID, VALUE>) context;
+    public SpliteratorScan(PassageExecutionContext<ID,VALUE> context, BackendBindings<ID,VALUE> input, Op0 tripleOrQuad) {
+        this.context = context;
         this.backend = this.context.backend;
         this.cache = this.context.cache;
         this.op = tripleOrQuad;
@@ -116,13 +114,12 @@ public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> im
      * quad/triple pattern.
      * @param siblings The concurrent map that registers
      */
-    public PassageSplitScan<ID,VALUE> register(ConcurrentHashMap<Long, PassageSplitScan<ID, VALUE>> siblings) {
+    public SpliteratorScan<ID,VALUE> register(ConcurrentHashMap<Long, SpliteratorScan<ID, VALUE>> siblings) {
         this.siblings = siblings;
         this.siblings.put(id, this);
         return this;
     }
 
-    @Override
     public void unregister() {
         this.siblings.remove(id);
     }
@@ -191,7 +188,7 @@ public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> im
 
         this.limit = splitIndex - offset;
 
-        return new PassageSplitScan<>(newContext, input, op).register(this.siblings);
+        return new SpliteratorScan<>(newContext, input, op).register(this.siblings);
     }
 
     @Override
@@ -208,10 +205,9 @@ public class PassageSplitScan<ID,VALUE> extends PausableSpliterator<ID,VALUE> im
 
     /* *********************************** PAUSE ************************************ */
 
-    @Override
     public Op pause() {
         if (siblings.isEmpty()) { return DONE; }
-        return siblings.values().stream().map(PassageSplitScan::pauseOne).reduce(DONE, removeEmptyOfUnion);
+        return siblings.values().stream().map(SpliteratorScan::pauseOne).reduce(DONE, removeEmptyOfUnion);
     }
 
     public Op pauseOne() {

@@ -2,7 +2,7 @@ package fr.gdd.passage.volcano.push.streams;
 
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.PassageExecutionContext;
-import fr.gdd.passage.volcano.push.PassagePushExecutor2;
+import fr.gdd.passage.volcano.push.PassagePushExecutor;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpJoin;
 import org.apache.jena.sparql.algebra.op.OpUnion;
@@ -19,7 +19,7 @@ public class SpliteratorJoin<ID,VALUE> implements Spliterator<BackendBindings<ID
 
     final PassageExecutionContext<ID,VALUE> context;
     final BackendBindings<ID,VALUE> input;
-    final PassagePushExecutor2<ID,VALUE> executor;
+    final PassagePushExecutor<ID,VALUE> executor;
     final OpJoin join;
     PausableStream<ID,VALUE> leftStream;
     final Spliterator<BackendBindings<ID,VALUE>> left;
@@ -34,7 +34,7 @@ public class SpliteratorJoin<ID,VALUE> implements Spliterator<BackendBindings<ID
         this.context = context;
         this.input = input;
         this.join = join;
-        this.executor = (PassagePushExecutor2<ID, VALUE>) context.executor;
+        this.executor = (PassagePushExecutor<ID, VALUE>) context.executor;
         this.leftStream = executor.visit(join.getLeft(), input);
         this.left = leftStream.stream().spliterator();
         this.id = ids.incrementAndGet();
@@ -45,7 +45,7 @@ public class SpliteratorJoin<ID,VALUE> implements Spliterator<BackendBindings<ID
         this.context = context;
         this.input = input;
         this.join = join;
-        this.executor = (PassagePushExecutor2<ID, VALUE>) context.executor;
+        this.executor = (PassagePushExecutor<ID, VALUE>) context.executor;
         this.left = left;
         this.id = ids.incrementAndGet();
         register(joins);

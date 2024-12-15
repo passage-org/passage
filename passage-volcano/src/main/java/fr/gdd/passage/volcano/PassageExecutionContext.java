@@ -6,7 +6,6 @@ import fr.gdd.passage.commons.generics.BackendSaver;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.optimizers.PassageOptimizer;
 import fr.gdd.passage.volcano.pull.Pause2Next;
-import fr.gdd.passage.volcano.push.Op2Spliterators;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
@@ -26,7 +25,6 @@ public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
     @Deprecated
     public BackendSaver<ID,VALUE,Long> saver;
 
-    public final Op2Spliterators<ID,VALUE> op2its;
     public final Integer maxParallelism;
 
     public final PassagePaused paused;
@@ -50,8 +48,6 @@ public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
         this.backend = context.getContext().get(BackendConstants.BACKEND);
         this.maxParallelism = context.getContext().get(PassageConstants.MAX_PARALLELISM);
 
-        context.getContext().setIfUndef(PassageConstants.OP2ITS, new Op2Spliterators<>(maxParallelism > 1));
-        this.op2its = context.getContext().get(PassageConstants.OP2ITS);
         context.getContext().setIfUndef(PassageConstants.SCANS, new AtomicLong());
         this.scans = context.getContext().get(PassageConstants.SCANS);
         context.getContext().setIfUndef(PassageConstants.SERVICE_CALLS, new AtomicLong(0L));

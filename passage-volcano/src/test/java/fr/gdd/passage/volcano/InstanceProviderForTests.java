@@ -1,7 +1,7 @@
 package fr.gdd.passage.volcano;
 
 import fr.gdd.passage.volcano.pull.PassagePullExecutor;
-import fr.gdd.passage.volcano.push.PassagePushExecutor2;
+import fr.gdd.passage.volcano.push.PassagePushExecutor;
 
 import java.util.Arrays;
 import java.util.stream.IntStream;
@@ -19,7 +19,7 @@ public class InstanceProviderForTests {
                         .setName("PUSH")
                         .setMaxScans(2L)
                         .setMaxParallel(2)
-                        .setExecutorFactory((ec)-> new PassagePushExecutor2<>((PassageExecutionContext<?,?>) ec))
+                        .setExecutorFactory((ec)-> new PassagePushExecutor<>((PassageExecutionContext<?,?>) ec))
         );
     }
 
@@ -31,7 +31,7 @@ public class InstanceProviderForTests {
         return Stream.of(new PassageExecutionContextBuilder<>()
                 .setName("PUSH")
                 .setMaxScans(1L)
-                .setExecutorFactory((ec)-> new PassagePushExecutor2<>((PassageExecutionContext<?,?>) ec)));
+                .setExecutorFactory((ec)-> new PassagePushExecutor<>((PassageExecutionContext<?,?>) ec)));
     }
 
     /**
@@ -41,7 +41,7 @@ public class InstanceProviderForTests {
     static Stream<PassageExecutionContextBuilder<?,?>> oneThreadPush () {
         return Stream.of(new PassageExecutionContextBuilder<>()
                 .setName("PUSH")
-                .setExecutorFactory((ec)-> new PassagePushExecutor2<>((PassageExecutionContext<?,?>) ec)));
+                .setExecutorFactory((ec)-> new PassagePushExecutor<>((PassageExecutionContext<?,?>) ec)));
     }
 
     /**
@@ -54,7 +54,7 @@ public class InstanceProviderForTests {
                 .setName("PUSH")
                 .setMaxParallel(p)
                 .setMaxScans(3L)
-                .setExecutorFactory((ec) -> new PassagePushExecutor2<>((PassageExecutionContext<?,?>) ec)));
+                .setExecutorFactory((ec) -> new PassagePushExecutor<>((PassageExecutionContext<?,?>) ec)));
     }
 
     /**
@@ -72,7 +72,7 @@ public class InstanceProviderForTests {
                         .setName("PUSH")
                         .setMaxScans(s)
                         .setMaxParallel(p)
-                        .setExecutorFactory((ec) -> new PassagePushExecutor2<>((PassageExecutionContext<?,?>) ec))
+                        .setExecutorFactory((ec) -> new PassagePushExecutor<>((PassageExecutionContext<?,?>) ec))
         ));
     }
 
@@ -85,7 +85,7 @@ public class InstanceProviderForTests {
         Long[] maxScans = {null, 1L, 2L, 3L};
         return Arrays.stream(maxScans).map(s -> new PassageExecutionContextBuilder<>()
                         .setName("PUSH")
-                        .setExecutorFactory((ec) -> new PassagePushExecutor2<>((PassageExecutionContext<?,?>) ec))
+                        .setExecutorFactory((ec) -> new PassagePushExecutor<>((PassageExecutionContext<?,?>) ec))
                         .setMaxScans(s)
                 ); // setBackend should be in the test function
     }

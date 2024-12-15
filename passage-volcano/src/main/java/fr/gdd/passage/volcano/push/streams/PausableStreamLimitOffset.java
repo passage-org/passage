@@ -4,14 +4,12 @@ import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.volcano.CanBeSkipped;
 import fr.gdd.passage.volcano.PassageExecutionContext;
-import fr.gdd.passage.volcano.push.PassagePushExecutor2;
+import fr.gdd.passage.volcano.push.PassagePushExecutor;
 import fr.gdd.passage.volcano.push.Pause2Continuation;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpSlice;
-import org.apache.jena.sparql.engine.ExecutionContext;
 
-import java.util.Objects;
-import java.util.concurrent.atomic.LongAdder;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 public class PausableStreamLimitOffset<ID,VALUE> implements PausableStream<ID,VALUE> {
@@ -20,24 +18,24 @@ public class PausableStreamLimitOffset<ID,VALUE> implements PausableStream<ID,VA
     final PausableStream<ID,VALUE> wrapped;
     final BackendBindings<ID,VALUE> input;
     final OpSlice slice;
-    final PassagePushExecutor2<ID,VALUE> executor;
+    final PassagePushExecutor<ID,VALUE> executor;
 
-    final LongAdder actuallyProduced = new LongAdder();
-    final LongAdder totalProduced = new LongAdder();
+    final AtomicLong actuallyProduced = new AtomicLong();
+    final AtomicLong totalProduced = new AtomicLong();
 
-    public PausableStreamLimitOffset(ExecutionContext context, BackendBindings<ID,VALUE> input, OpSlice slice) {
-        this.context =  (PassageExecutionContext<ID, VALUE>) context;
+    public PausableStreamLimitOffset(PassageExecutionContext<ID,VALUE> context, BackendBindings<ID,VALUE> input, OpSlice slice) {
+        this.context =  context;
         this.executor = context.getContext().get(BackendConstants.EXECUTOR);
         this.slice = slice;
         this.input = input;
 
-        PassagePushExecutor2<ID,VALUE> newExecutor = new CanBeSkipped().visit((Op) slice) ?
-                new PassagePushExecutor2<>(
+        PassagePushExecutor<ID,VALUE> newExecutor = new CanBeSkipped().visit((Op) slice) ?
+                new PassagePushExecutor<>(
                         // must be a clone so limit and offset are bound only in this subquery
                         new PassageExecutionContext<ID,VALUE>(((PassageExecutionContext<?, ?>) context).clone())
                                 .setLimit(slice.getLength())
                                 .setOffset(slice.getStart())):
-                new PassagePushExecutor2<>(
+                new PassagePushExecutor<>(
                         new PassageExecutionContext<ID,VALUE>(((PassageExecutionContext<?, ?>) context).clone())
                                 .setLimit(null)
                                 .setOffset(null));
@@ -48,23 +46,28 @@ public class PausableStreamLimitOffset<ID,VALUE> implements PausableStream<ID,VA
         if (new CanBeSkipped().visit((Op) slice)) {
             // skip and offset should be handled in the sub-executor
             return this.wrapped.stream()
+                    .filter(i -> i.isCompatible(input))
                     // TODO multiple parents instead of copy? (add layers of visibility)
-                    .map(i -> i.isCompatible(input) ? new BackendBindings<>(i).setParent(input) : null)
+                    .map(i -> new BackendBindings<>(i).setParent(input));
                     // we don't count as it will be done in the subquery
-                    .filter(Objects::nonNull);
         } else {
             return this.wrapped.stream()
-                    .peek(i -> totalProduced.increment())
+                    // .peek(i -> totalProduced.increment())
                     // `skip` and `limit` cannot be used because they propagate downstream, so the logic at this level
                     // is not executed despite its necessity.
                     // offset:
-                    .filter(ignored -> slice.getStart() == Long.MIN_VALUE || totalProduced.longValue() > slice.getStart())
+                    .filter(ignored -> {
+                        long produced = totalProduced.incrementAndGet();
+                        return slice.getStart() == Long.MIN_VALUE || produced > slice.getStart();
+                    })
                     // limit:
-                    .filter(ignored -> slice.getLength() == Long.MIN_VALUE || actuallyProduced.longValue() < slice.getLength())
+                    .filter(ignored -> {
+                        long actually = actuallyProduced.incrementAndGet();
+                        return slice.getLength() == Long.MIN_VALUE || actually <= slice.getLength();
+                    })
+                    .filter(i -> i.isCompatible(input))
                     // TODO multiple parents instead of copy? (add layers of visibility)
-                    .map(i -> i.isCompatible(input) ? new BackendBindings<>(i).setParent(input) : null)
-                    .filter(Objects::nonNull)
-                    .peek(i -> actuallyProduced.increment()); // peek after so not compatible mappings are deleted
+                    .map(i -> new BackendBindings<>(i).setParent(input));
         }
     }
 

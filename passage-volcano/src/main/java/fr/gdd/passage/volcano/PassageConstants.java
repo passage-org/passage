@@ -10,7 +10,6 @@ public class PassageConstants {
     static public final Symbol LOADER = allocVariableSymbol("Loader");
     @Deprecated
     static public final Symbol SAVER = allocVariableSymbol("Saver");
-    static public final Symbol OP2ITS = allocVariableSymbol("OP2ITS");
 
     static public final Symbol MAX_PARALLELISM = allocConstantSymbol("MaxParallelism"); // the thread pool size for the execution stream
 

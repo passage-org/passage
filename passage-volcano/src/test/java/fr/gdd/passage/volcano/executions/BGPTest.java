@@ -7,10 +7,11 @@ import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.volcano.ExecutorUtils;
+import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.benchmarks.WDBenchTest;
 import fr.gdd.passage.volcano.benchmarks.WatDivTest;
-import fr.gdd.passage.volcano.push.streams.PassageSplitScan;
+import fr.gdd.passage.volcano.push.streams.SpliteratorScan;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
@@ -130,7 +131,7 @@ public class BGPTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
     public void bgp_of_1_tp (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
@@ -169,9 +170,9 @@ public class BGPTest {
     }
 
     @ParameterizedTest
-    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
     public void bgp_of_3_tps (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -193,9 +194,9 @@ public class BGPTest {
 
 
     @ParameterizedTest
-    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
     public void issue_with_the_first_offset (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException, QueryEvaluationException, MalformedQueryException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -342,12 +343,12 @@ public class BGPTest {
         Multiset<BackendBindings<?,?>> results = ConcurrentHashMultiset.create();
         try (ForkJoinPool customPool = new ForkJoinPool(10)) {
             customPool.submit( () ->
-                            StreamSupport.stream(new PassageSplitScan<>(reset(c), new BackendBindings<>(), tp1), true)
-                                    .forEach((mu1)-> StreamSupport.stream(new PassageSplitScan<>(reset(c), mu1, tp2), true)
-                                            .forEach((mu2)-> StreamSupport.stream(new PassageSplitScan<>(reset(c), mu2, tp3), true)
-                                                    .forEach((mu3)-> StreamSupport.stream(new PassageSplitScan<>(reset(c), mu3, tp4), true)
-                                                            .forEach((mu4)-> StreamSupport.stream(new PassageSplitScan<>(reset(c), mu4, tp5), true)
-                                                                    .forEach((mu5)-> StreamSupport.stream(new PassageSplitScan<>(reset(c), mu5, tp6), true)
+                            StreamSupport.stream(new SpliteratorScan<>(reset(c), new BackendBindings<>(), tp1), true)
+                                    .forEach((mu1)-> StreamSupport.stream(new SpliteratorScan<>(reset(c), mu1, tp2), true)
+                                            .forEach((mu2)-> StreamSupport.stream(new SpliteratorScan<>(reset(c), mu2, tp3), true)
+                                                    .forEach((mu3)-> StreamSupport.stream(new SpliteratorScan<>(reset(c), mu3, tp4), true)
+                                                            .forEach((mu4)-> StreamSupport.stream(new SpliteratorScan<>(reset(c), mu4, tp5), true)
+                                                                    .forEach((mu5)-> StreamSupport.stream(new SpliteratorScan<>(reset(c), mu5, tp6), true)
                                                                             .forEach(results::add)))))))
                     .join();
         }
@@ -356,7 +357,7 @@ public class BGPTest {
         assertEquals(117, results.size());
     }
 
-    static ExecutionContext reset(ExecutionContext context) {
+    static PassageExecutionContext<Object, Object> reset(ExecutionContext context) {
         return new PassageExecutionContextBuilder<>().setContext(context).build().setLimit(null).setOffset(0L);
     }
 

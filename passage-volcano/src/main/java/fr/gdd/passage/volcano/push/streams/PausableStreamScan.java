@@ -10,11 +10,11 @@ import java.util.stream.StreamSupport;
 
 public class PausableStreamScan<ID,VALUE> implements PausableStream<ID, VALUE> {
 
-    final PassageSplitScan<ID,VALUE> wrapped;
+    final SpliteratorScan<ID,VALUE> wrapped;
     final PassageExecutionContext<ID,VALUE> context;
 
     public PausableStreamScan(PassageExecutionContext<ID,VALUE> context, BackendBindings<ID,VALUE> input, Op0 tripleOrQuad) {
-        this.wrapped = new PassageSplitScan<>(context, input, tripleOrQuad);
+        this.wrapped = new SpliteratorScan<>(context, input, tripleOrQuad);
         this.context = context;
     }
 

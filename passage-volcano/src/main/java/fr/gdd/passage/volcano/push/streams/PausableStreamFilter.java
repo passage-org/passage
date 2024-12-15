@@ -3,7 +3,7 @@ package fr.gdd.passage.volcano.push.streams;
 import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.PassageExecutionContext;
-import fr.gdd.passage.volcano.push.PassagePushExecutor2;
+import fr.gdd.passage.volcano.push.PassagePushExecutor;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpFilter;
 
@@ -15,11 +15,11 @@ public class PausableStreamFilter<ID,VALUE> implements PausableStream<ID,VALUE> 
 
     final PassageExecutionContext<ID,VALUE> context;
     final PausableStream<ID,VALUE> wrapped;
-    final PassagePushExecutor2<ID,VALUE> executor;
+    final PassagePushExecutor<ID,VALUE> executor;
     final OpFilter filter;
 
     public PausableStreamFilter(PassageExecutionContext<ID,VALUE> context, BackendBindings<ID,VALUE> input, OpFilter filter) {
-        this.executor = (PassagePushExecutor2<ID, VALUE>) context.executor;
+        this.executor = (PassagePushExecutor<ID, VALUE>) context.executor;
         this.wrapped = executor.visit(filter.getSubOp(), input);
         this.filter = filter;
         this.context = context;

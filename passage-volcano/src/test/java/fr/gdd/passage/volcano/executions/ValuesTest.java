@@ -175,9 +175,9 @@ public class ValuesTest {
     }
 
     @ParameterizedTest
-    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#justGo")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#justGo")
     public void value_in_the_middle (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);

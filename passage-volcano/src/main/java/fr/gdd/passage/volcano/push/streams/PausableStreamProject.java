@@ -3,7 +3,7 @@ package fr.gdd.passage.volcano.push.streams;
 import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.PassageExecutionContext;
-import fr.gdd.passage.volcano.push.PassagePushExecutor2;
+import fr.gdd.passage.volcano.push.PassagePushExecutor;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpProject;
 
@@ -14,11 +14,11 @@ import static fr.gdd.passage.volcano.push.Pause2Continuation.*;
 public class PausableStreamProject<ID,VALUE> implements PausableStream<ID,VALUE> {
 
     final PausableStream<ID,VALUE> wrapped;
-    final PassagePushExecutor2<ID,VALUE> executor;
+    final PassagePushExecutor<ID,VALUE> executor;
     final OpProject project;
 
     public PausableStreamProject(PassageExecutionContext<ID,VALUE> context, BackendBindings<ID,VALUE> input, OpProject project) {
-        this.executor = (PassagePushExecutor2<ID, VALUE>) context.executor;
+        this.executor = (PassagePushExecutor<ID, VALUE>) context.executor;
         this.wrapped = executor.visit(project.getSubOp(), input);
         this.project = project;
     }

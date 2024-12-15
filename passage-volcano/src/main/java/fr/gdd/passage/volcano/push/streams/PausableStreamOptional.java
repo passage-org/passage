@@ -8,7 +8,6 @@ import fr.gdd.passage.volcano.push.Pause2Continuation;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpLeftJoin;
 import org.apache.jena.sparql.algebra.op.OpUnion;
-import org.apache.jena.sparql.engine.ExecutionContext;
 
 import java.util.Iterator;
 import java.util.Spliterators;
@@ -17,7 +16,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public class PassagePushOptional<ID,VALUE> extends PausableSpliterator<ID,VALUE> {
+// TODO TODO TODO
+public class PausableStreamOptional<ID,VALUE> implements PausableStream<ID,VALUE> {
 
     final PassageExecutionContext<ID,VALUE> context;
     final Stream<BackendBindings<ID,VALUE>> wrapped;
@@ -28,18 +28,17 @@ public class PassagePushOptional<ID,VALUE> extends PausableSpliterator<ID,VALUE>
     final AtomicBoolean matchOptionalClause = new AtomicBoolean(false);
     AtomicReference<BackendBindings<ID,VALUE>> inputOfOptional = new AtomicReference<>();
 
-    public PassagePushOptional(ExecutionContext context, BackendBindings<ID,VALUE> input, OpLeftJoin lj) {
-        super((PassageExecutionContext<ID, VALUE>) context, lj);
-        this.context = (PassageExecutionContext<ID, VALUE>) context;
+    public PausableStreamOptional(PassageExecutionContext<ID,VALUE> context, BackendBindings<ID,VALUE> input, OpLeftJoin lj) {
+        this.context = context;
         this.executor = (PassagePushExecutor<ID, VALUE>) this.context.executor;
         this.lj = lj;
         this.input = input;
 
-        this.wrapped = executor.visit(lj.getLeft(), input)
+        this.wrapped = executor.visit(lj.getLeft(), input).stream()
                 .flatMap(m -> {
                     inputOfOptional.set(m);
                     // iterator to call hasNext without consuming the stream nor to have to create a new one.
-                    Iterator<BackendBindings<ID,VALUE>> asIterator = executor.visit(lj.getRight(), m).iterator();
+                    Iterator<BackendBindings<ID,VALUE>> asIterator = executor.visit(lj.getRight(), m).stream().iterator();
                     if ((asIterator.hasNext())) {
                         matchOptionalClause.set(true);
                         // convert back to stream if it matches the optional
@@ -56,8 +55,8 @@ public class PassagePushOptional<ID,VALUE> extends PausableSpliterator<ID,VALUE>
 
     @Override
     public Op pause() {
-        Op left = new Pause2Continuation<>(context.op2its).visit(lj.getLeft());
-        Op right = new Pause2Continuation<>(context.op2its).visit(lj.getRight());
+        Op left = null; // TODO new Pause2Continuation<>(context.op2its).visit(lj.getLeft());
+        Op right = null; // TODO new Pause2Continuation<>(context.op2its).visit(lj.getRight());
 
         if (Pause2Continuation.isDone(left) && Pause2Continuation.isDone(right)) {
             return Pause2Continuation.DONE; // ofc

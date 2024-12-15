@@ -11,7 +11,8 @@ import org.slf4j.LoggerFactory;
 @Deprecated
 public class WatDivTest {
 
-    public static final String PATH = "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl";
+    // public static final String PATH = "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl";
+    public static final String PATH = "/Users/skoazell/Desktop/Projects/datasets/watdiv10m-blaze/watdiv10M.jnl";
     private final static Logger log = LoggerFactory.getLogger(WatDivTest.class);
     public static BlazegraphBackend watdivBlazegraph;
 

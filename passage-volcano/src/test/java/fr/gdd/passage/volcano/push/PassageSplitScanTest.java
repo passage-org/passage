@@ -7,7 +7,7 @@ import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
-import fr.gdd.passage.volcano.push.streams.PassageSplitScan;
+import fr.gdd.passage.volcano.push.streams.SpliteratorScan;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.algebra.op.OpTriple;
@@ -43,8 +43,8 @@ class PassageSplitScanTest {
 
         context.setOffset(1L);
 
-        var it = new PassageSplitScan<>(context, new BackendBindings<>(), tp);
-        PassageSplitScan it2 = (PassageSplitScan) it.trySplit();
+        var it = new SpliteratorScan<>(context, new BackendBindings<>(), tp);
+        SpliteratorScan it2 = (SpliteratorScan) it.trySplit();
 
         assertEquals(1, it.getOffset());
         assertEquals(1, it.estimateSize());
@@ -56,9 +56,9 @@ class PassageSplitScanTest {
 
         // same but because we advanced in production
         context.setOffset(0L);
-        var it3 = new PassageSplitScan<>(context, new BackendBindings<>(), tp);
+        var it3 = new SpliteratorScan<>(context, new BackendBindings<>(), tp);
         it3.tryAdvance((a) -> {log.debug("skip {}", a);});
-        PassageSplitScan it4 = (PassageSplitScan) it3.trySplit();
+        SpliteratorScan it4 = (SpliteratorScan) it3.trySplit();
         assertEquals(1, it3.getOffset());
         assertEquals(1, it3.estimateSize());
         assertEquals(1, it3.getLimit());
@@ -83,18 +83,18 @@ class PassageSplitScanTest {
         // context.setOffset(0L);
 
         // nantes ]/ cat / dog / snake
-        var it1 = new PassageSplitScan<>(context, new BackendBindings<>(), tp);
-        var it2 = (PassageSplitScan) it1.trySplit();
+        var it1 = new SpliteratorScan<>(context, new BackendBindings<>(), tp);
+        var it2 = (SpliteratorScan) it1.trySplit();
 
         assertEquals(4, it1.estimateSize() + it2.estimateSize());
         log.debug("it1 offset {}", it1.getOffset());
         log.debug("it2 offset {}", it2.getOffset());
-        var it3 = (PassageSplitScan) it1.trySplit();
+        var it3 = (SpliteratorScan) it1.trySplit();
         assertEquals(4, it3.estimateSize() + it1.estimateSize() + it2.estimateSize());
         log.debug("it1 offset {}", it1.getOffset());
         log.debug("it3 offset {}", it3.getOffset());
         log.debug("it2 offset {}", it2.getOffset());
-        var it4 = (PassageSplitScan) it2.trySplit();
+        var it4 = (SpliteratorScan) it2.trySplit();
         assertEquals(4, it3.estimateSize() + it1.estimateSize() + it2.estimateSize() + it4.estimateSize());
         log.debug("it1 offset {}", it1.getOffset());
         log.debug("it3 offset {}", it3.getOffset());
@@ -121,7 +121,7 @@ class PassageSplitScanTest {
             Multiset<BackendBindings<?, ?>> results = ConcurrentHashMultiset.create();
             try (ForkJoinPool customPool = new ForkJoinPool(4)) {
                 customPool.submit(() ->
-                        StreamSupport.stream(new PassageSplitScan<>(context, new BackendBindings<>(), tp), true)
+                        StreamSupport.stream(new SpliteratorScan<>(context, new BackendBindings<>(), tp), true)
                                 .forEach(results::add)
                 ).join();
             }
@@ -155,8 +155,8 @@ class PassageSplitScanTest {
 
         try (ForkJoinPool customPool = new ForkJoinPool(4)) {
             customPool.submit(() ->
-                    StreamSupport.stream(new PassageSplitScan<>(context, new BackendBindings<>(), tp1), true)
-                            .forEach((mu) -> StreamSupport.stream(new PassageSplitScan<>(context, mu, tp2), true)
+                    StreamSupport.stream(new SpliteratorScan<>(context, new BackendBindings<>(), tp1), true)
+                            .forEach((mu) -> StreamSupport.stream(new SpliteratorScan<>(context, mu, tp2), true)
                                     .forEach(results::add))
             ).join();
         }
@@ -193,9 +193,9 @@ class PassageSplitScanTest {
 
         Multiset<BackendBindings<?,?>> results = ConcurrentHashMultiset.create();
         try (ForkJoinPool customPool = new ForkJoinPool(10)) {
-            customPool.submit( () -> StreamSupport.stream(new PassageSplitScan<>(context, new BackendBindings<>(), tp1), true)
-                    .forEach((mu)-> StreamSupport.stream(new PassageSplitScan<>(context, mu, tp2), true)
-                        .forEach((mu2)-> StreamSupport.stream(new PassageSplitScan<>(context, mu2, tp3), true)
+            customPool.submit( () -> StreamSupport.stream(new SpliteratorScan<>(context, new BackendBindings<>(), tp1), true)
+                    .forEach((mu)-> StreamSupport.stream(new SpliteratorScan<>(context, mu, tp2), true)
+                        .forEach((mu2)-> StreamSupport.stream(new SpliteratorScan<>(context, mu2, tp3), true)
                                 .forEach(results::add))))
                     .join();
         }

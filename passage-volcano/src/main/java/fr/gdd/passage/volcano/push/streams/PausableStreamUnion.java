@@ -2,7 +2,7 @@ package fr.gdd.passage.volcano.push.streams;
 
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.PassageExecutionContext;
-import fr.gdd.passage.volcano.push.PassagePushExecutor2;
+import fr.gdd.passage.volcano.push.PassagePushExecutor;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpUnion;
 
@@ -15,11 +15,11 @@ public class PausableStreamUnion<ID,VALUE> implements PausableStream<ID,VALUE> {
     final OpUnion union;
     final PausableStream<ID,VALUE> left;
     final PausableStream<ID,VALUE> right;
-    final PassagePushExecutor2<ID,VALUE> executor;
+    final PassagePushExecutor<ID,VALUE> executor;
 
     public PausableStreamUnion(PassageExecutionContext<ID,VALUE> context, BackendBindings<ID,VALUE> input, OpUnion union) {
         this.union = union;
-        this.executor = (PassagePushExecutor2<ID, VALUE>) context.executor;
+        this.executor = (PassagePushExecutor<ID, VALUE>) context.executor;
         this.left = this.executor.visit(union.getLeft(), input);
         this.right = this.executor.visit(union.getRight(), input);
     }
