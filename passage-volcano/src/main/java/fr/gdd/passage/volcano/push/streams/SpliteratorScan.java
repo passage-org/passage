@@ -29,6 +29,11 @@ import java.util.function.Function;
 import static fr.gdd.passage.volcano.push.Pause2Continuation.DONE;
 import static fr.gdd.passage.volcano.push.Pause2Continuation.removeEmptyOfUnion;
 
+/**
+ * A basic scan with the ability to divide the space to explore. The virtual
+ * SPARQL query is then a union of partitions represented through `LIMIT` and `OFFSET`
+ * clauses.
+ */
 public class SpliteratorScan<ID,VALUE> implements Spliterator<BackendBindings<ID,VALUE>>, PausableSpliterator<ID,VALUE> {
 
     /**
@@ -93,6 +98,11 @@ public class SpliteratorScan<ID,VALUE> implements Spliterator<BackendBindings<ID
             }
         }
 
+        this.limit = this.context.getLimit(); // if null, stays null
+        this.offset = Objects.nonNull(this.context.getOffset()) ? this.context.getOffset() : 0;
+        this.id = this.offset;
+        this.siblings.put(id, this);
+
         if (this.context.backjump && Objects.isNull(wrapped)) { // no throw, no overhead
             unregister();
             getLazyProducedConsumed(input);
@@ -102,10 +112,6 @@ public class SpliteratorScan<ID,VALUE> implements Spliterator<BackendBindings<ID
             }
         }
 
-        this.limit = this.context.getLimit(); // if null, stays null
-        this.offset = Objects.nonNull(this.context.getOffset()) ? this.context.getOffset() : 0;
-        this.id = this.offset;
-        this.siblings.put(id, this);
         if (Objects.nonNull(wrapped) && offset > 0) wrapped.skip(offset); // quick skip
     }
 

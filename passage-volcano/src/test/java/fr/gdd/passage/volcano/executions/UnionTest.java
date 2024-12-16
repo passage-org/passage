@@ -104,7 +104,7 @@ public class UnionTest {
     @Disabled // TODO put this in test dedicated to benchmarking units
     @Test
     public void query_358 () {
-        final BlazegraphBackend blazegraph = WDBenchTest.wdbenchBlazegraph;
+        final BlazegraphBackend blazegraph = WDBenchTest.wdbench;
 
 //        String query358AsString = """
 //                SELECT * WHERE {

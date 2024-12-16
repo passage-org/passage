@@ -2,6 +2,7 @@ package fr.gdd.passage.volcano.push.streams;
 
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.PassageExecutionContext;
+import fr.gdd.passage.volcano.exceptions.BackjumpException;
 import fr.gdd.passage.volcano.push.PassagePushExecutor;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpJoin;
@@ -71,11 +72,27 @@ public class SpliteratorJoin<ID,VALUE> implements Spliterator<BackendBindings<ID
             }
         }
 
-        if (left.tryAdvance(b -> {
-            right = executor.visit(join.getRight(), b);
-            rightSplit = right.stream().spliterator();
-        })) {
-            return this.tryAdvance(action); // rightsplit updated, try anew.
+        // before this `while` loop, there was a `this.tryAdvance(action)`
+        // that has been removed because it caused deep recursion issues.
+        boolean matchLeft = true;
+        while (Objects.isNull(rightSplit) && matchLeft) {
+            matchLeft = left.tryAdvance(b -> {
+                // TODO Here, right might throw a backjump exception
+                //      that should be forwared to the left side…
+                try {
+                    right = executor.visit(join.getRight(), b);
+                    rightSplit = right.stream().spliterator();
+                } catch (BackjumpException bje) {
+                    throw bje; // TODO probably does not work, should be improved
+                }
+            });
+            if (matchLeft) {
+                if (rightSplit.tryAdvance(action)) {
+                    return true;
+                } else {
+                    rightSplit = null;
+                }
+            }
         }
 
         return false;
@@ -91,12 +108,14 @@ public class SpliteratorJoin<ID,VALUE> implements Spliterator<BackendBindings<ID
 
     @Override
     public long estimateSize() {
-        return Long.MAX_VALUE;
+        long rightEstimate = Objects.nonNull(rightSplit) ? rightSplit.estimateSize() : 1;
+        return left.estimateSize() * rightEstimate;
     }
 
     @Override
     public int characteristics() {
-        return left.characteristics();
+        int rightCharacteristic = Objects.nonNull(rightSplit) ? rightSplit.characteristics() : left.characteristics();
+        return left.characteristics() & rightCharacteristic;
     }
 
     /* ************************************ PAUSE ********************************** */

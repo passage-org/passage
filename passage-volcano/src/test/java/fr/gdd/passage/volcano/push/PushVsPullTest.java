@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.LongAdder;
 public class PushVsPullTest {
 
     private static final Logger log = LoggerFactory.getLogger(PushVsPullTest.class);
-    private static final Long MAX_SCAN = 20_000L;
+    private static final Long MAX_SCAN = 200_000L;
 
     @RepeatedTest(5)
     public void simple_SPO_with_push_one_thread () {
@@ -48,7 +48,7 @@ public class PushVsPullTest {
                 .setMaxParallel(8)
                 .setMaxScans(MAX_SCAN)
                 .setBackend(backend)
-                // .setSplitScans(Long.MAX_VALUE)
+                .setSplitScans(1_000_000L)
                 .setExecutorFactory(ec -> new PassagePushExecutor<>((PassageExecutionContext<?,?>) ec));
 
         LongAdder counter = new LongAdder();

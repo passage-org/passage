@@ -2,6 +2,7 @@ package fr.gdd.passage.volcano.exceptions;
 
 import org.apache.jena.sparql.core.Var;
 
+import java.util.Arrays;
 import java.util.Set;
 
 /**
@@ -17,4 +18,8 @@ public class BackjumpException extends RuntimeException {
         this.problematicVariables = problematicVariables;
     }
 
+    @Override
+    public String toString() {
+        return "BackjumpException on " + Arrays.toString(problematicVariables.toArray());
+    }
 }

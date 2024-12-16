@@ -250,7 +250,7 @@ public class BGPTest {
     @Test
     public void testing_a_query_on_wdbench () {
         Assumptions.assumeTrue(Path.of(WDBenchTest.PATH).toFile().exists());
-        final BlazegraphBackend wdbench = WDBenchTest.wdbenchBlazegraph;
+        final BlazegraphBackend wdbench = WDBenchTest.wdbench;
 
 //        String query358AsString = """
 //                SELECT * WHERE {

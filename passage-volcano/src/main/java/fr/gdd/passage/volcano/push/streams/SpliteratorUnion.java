@@ -11,8 +11,12 @@ import java.util.Spliterator;
 import java.util.function.Consumer;
 
 import static fr.gdd.passage.volcano.push.Pause2Continuation.*;
-import static fr.gdd.passage.volcano.push.Pause2Continuation.isDone;
 
+/**
+ * Aims to implement our own choices about parallelism, i.e., `trySplit` should
+ * be prioritized over scans' `trySplit` because scans potentially create new `UNION`
+ * clauses.
+ */
 public class SpliteratorUnion<ID,VALUE> implements Spliterator<BackendBindings<ID,VALUE>>, PausableSpliterator<ID,VALUE> {
 
     OpUnion union;

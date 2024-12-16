@@ -1,11 +1,29 @@
 package fr.gdd.passage.volcano.benchmarks;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
+import fr.gdd.passage.volcano.ExecutorUtils;
+import fr.gdd.passage.volcano.PassageExecutionContext;
+import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
+import fr.gdd.passage.volcano.push.PassagePushExecutor;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.LongAdder;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 @Disabled("Need the WDBench dataset to work.")
 @Deprecated
@@ -14,17 +32,61 @@ public class WDBenchTest {
     private final static Logger log = LoggerFactory.getLogger(WDBenchTest.class);
 
     public final static String PATH = "/Users/nedelec-b-2/Desktop/Projects/temp/wdbench-blaze/wdbench-blaze.jnl";
-    public static BlazegraphBackend wdbenchBlazegraph;
+    public final static String PATH_TO_QUERIES = "/Users/nedelec-b-2/Desktop/Projects/sage-jena-benchmarks/queries/passage-wdbench-multiple-tps/";
+    public static BlazegraphBackend wdbench;
 
     static {
         try {
-            wdbenchBlazegraph = new BlazegraphBackend(PATH);
+            wdbench = new BlazegraphBackend(PATH);
         } catch (SailException | RepositoryException e) {
             throw new RuntimeException(e);
         }
     }
 
-    static final Long TIMEOUT = 1000L * 60L * 2L; // 2 minutes
+    static final long TIMEOUT = 1000L * 60L; // 1 minutes
+    static final int REPEAT = 3; // 3 runs for each
+
+    private static Stream<Pair<String, String>> queries() throws IOException {
+        List<Pair<String,String>> queries = new ArrayList<>();
+        try (var queryFiles = Files.newDirectoryStream(Path.of(PATH_TO_QUERIES), "*.sparql")) {
+            for (var q : queryFiles) {
+                queries.add(new ImmutablePair<>(q.getFileName().toString(), Files.readString(q)));
+            }
+        }
+        return queries.stream();
+    }
+
+    private static Stream<Arguments> configurations () throws IOException {
+        return queries().flatMap(q ->
+            IntStream.rangeClosed(1, REPEAT).mapToObj(ignored ->
+                Arguments.of(
+                new PassageExecutionContextBuilder<>()
+                        .setBackend(wdbench)
+                        .setTimeout(TIMEOUT)
+                        .setMaxParallel(4) // 4 to compare with paper's measurements
+                        .setName("PUSH")
+                        .setExecutorFactory((ec) -> new PassagePushExecutor<>((PassageExecutionContext<?,?>) ec)),
+                        q.getLeft(), // name
+                        q.getRight()) // query
+            ));
+    }
+
+
+    @ParameterizedTest
+    @MethodSource("configurations")
+    public void benchmark_passage_on_wdbench_multiple_tps (PassageExecutionContextBuilder<?,?> builder, String name, String query) {
+        ExecutorUtils.log = LoggerFactory.getLogger("none");
+        LongAdder counter = new LongAdder();
+
+        long start = System.currentTimeMillis();
+        ExecutorUtils.execute(query, builder, ignored -> counter.increment());
+        long elapsed = System.currentTimeMillis() - start;
+        log.debug("Took {} ms to process {} results.", elapsed, counter.longValue());
+    }
+
+
+
+
 //
 //    @Disabled
 //    @Test

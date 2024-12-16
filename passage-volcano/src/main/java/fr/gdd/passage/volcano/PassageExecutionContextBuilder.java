@@ -23,7 +23,7 @@ public class PassageExecutionContextBuilder<ID,VALUE> {
     private Integer maxParallel = 1; // not parallel by default
     private Boolean forceOrder = false;
     private Boolean backjump = false;
-    private Long splitScans = 200L;
+    private Long splitScans = 2L;
 
     private Function<ExecutionContext, PassageExecutor> executorFactory;
 
