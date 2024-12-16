@@ -278,7 +278,7 @@ public class BGPTest {
     @RepeatedTest(5)
     public void query_watdiv_on_10124 () {
         Assumptions.assumeTrue(Path.of(WatDivTest.PATH).toFile().exists());
-        BlazegraphBackend watdiv = WatDivTest.watdivBlazegraph;
+        BlazegraphBackend watdiv = WatDivTest.watdiv;
 
         String query10124 = """
                     SELECT * WHERE {
@@ -300,7 +300,7 @@ public class BGPTest {
     @RepeatedTest(5)
     public void spo_on_watdiv () {
         Assumptions.assumeTrue(Path.of(WatDivTest.PATH).toFile().exists());
-        BlazegraphBackend watdiv = WatDivTest.watdivBlazegraph;
+        BlazegraphBackend watdiv = WatDivTest.watdiv;
         String spo = "SELECT * WHERE {?s ?p ?o}";
 
         LongAdder results = new LongAdder();
@@ -312,7 +312,7 @@ public class BGPTest {
     @Test
     public void query_watdiv_hand_written () {
         Assumptions.assumeTrue(Path.of(WatDivTest.PATH).toFile().exists());
-        BlazegraphBackend watdiv = WatDivTest.watdivBlazegraph;
+        BlazegraphBackend watdiv = WatDivTest.watdiv;
         var c = new PassageExecutionContextBuilder<>().setBackend(watdiv).build();
 
         // SELECT  * WHERE {

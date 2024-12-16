@@ -22,7 +22,7 @@ public class PushVsPullTest {
     @RepeatedTest(5)
     public void simple_SPO_with_push_one_thread () {
         ExecutorUtils.log = LoggerFactory.getLogger("none");
-        BlazegraphBackend backend = WatDivTest.watdivBlazegraph;
+        BlazegraphBackend backend = WatDivTest.watdiv;
         String spo = "SELECT * WHERE {?s ?p ?o}";
 
         PassageExecutionContextBuilder<?,?> context = new PassageExecutionContextBuilder<>()
@@ -41,7 +41,7 @@ public class PushVsPullTest {
     @RepeatedTest(5)
     public void simple_SPO_with_push () {
         ExecutorUtils.log = LoggerFactory.getLogger("none");
-        BlazegraphBackend backend = WatDivTest.watdivBlazegraph;
+        BlazegraphBackend backend = WatDivTest.watdiv;
         String spo = "SELECT * WHERE {?s ?p ?o}";
 
         PassageExecutionContextBuilder<?,?> context = new PassageExecutionContextBuilder<>()
@@ -61,7 +61,7 @@ public class PushVsPullTest {
     @RepeatedTest(5)
     public void simple_SPO_with_pull () {
         ExecutorUtils.log = LoggerFactory.getLogger("none");
-        BlazegraphBackend backend = WatDivTest.watdivBlazegraph;
+        BlazegraphBackend backend = WatDivTest.watdiv;
         String spo = "SELECT * WHERE {?s ?p ?o}";
 
         PassageExecutionContextBuilder<?,?> context = new PassageExecutionContextBuilder<>()

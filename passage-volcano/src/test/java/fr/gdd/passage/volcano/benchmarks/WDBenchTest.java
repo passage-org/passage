@@ -56,12 +56,11 @@ public class WDBenchTest {
         return queries.stream();
     }
 
-    private static Stream<Arguments> configurations () throws IOException {
+    public static Stream<Arguments> configurations () throws IOException {
         return queries().flatMap(q ->
             IntStream.rangeClosed(1, REPEAT).mapToObj(ignored ->
                 Arguments.of(
                 new PassageExecutionContextBuilder<>()
-                        .setBackend(wdbench)
                         .setTimeout(TIMEOUT)
                         .setMaxParallel(4) // 4 to compare with paper's measurements
                         .setName("PUSH")
@@ -71,10 +70,10 @@ public class WDBenchTest {
             ));
     }
 
-
     @ParameterizedTest
     @MethodSource("configurations")
     public void benchmark_passage_on_wdbench_multiple_tps (PassageExecutionContextBuilder<?,?> builder, String name, String query) {
+        builder.setBackend(wdbench);
         ExecutorUtils.log = LoggerFactory.getLogger("none");
         LongAdder counter = new LongAdder();
 
