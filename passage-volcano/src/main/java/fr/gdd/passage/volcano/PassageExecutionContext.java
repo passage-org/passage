@@ -33,6 +33,7 @@ public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
     Long offset; // null is no offset
     final Long deadline;
 
+    public final long splitScans;
     public final Long maxScans;
     public final AtomicLong scans;
     public final Boolean backjump;
@@ -63,6 +64,7 @@ public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
         this.paused = this.getContext().get(PassageConstants.PAUSED);
 
         this.deadline = this.getContext().get(PassageConstants.DEADLINE);
+        this.splitScans = this.getContext().get(PassageConstants.SPLIT_SCANS);
 
         this.executor = executorFactory.apply(this); // last just in case
     }

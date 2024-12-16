@@ -173,7 +173,7 @@ public class SpliteratorScan<ID,VALUE> implements Spliterator<BackendBindings<ID
     @Override
     public Spliterator<BackendBindings<ID, VALUE>> trySplit() {
         long remaining = estimateSize();
-        if (remaining < 2) { return null; } // no split possible
+        if (remaining < context.splitScans) { return null; } // no split possible
         // #1 limit the size of this split iterator
         long splitIndex = offset + remaining / 2;
         // #2 create another split iterator of removed size

@@ -23,6 +23,7 @@ public class PassageExecutionContextBuilder<ID,VALUE> {
     private Integer maxParallel = 1; // not parallel by default
     private Boolean forceOrder = false;
     private Boolean backjump = false;
+    private Long splitScans = 200L;
 
     private Function<ExecutionContext, PassageExecutor> executorFactory;
 
@@ -51,6 +52,7 @@ public class PassageExecutionContextBuilder<ID,VALUE> {
             ec.getContext().set(PassageConstants.DEADLINE, deadline);
         }
 
+        ec.getContext().setIfUndef(PassageConstants.SPLIT_SCANS, splitScans);
         ec.getContext().setIfUndef(PassageConstants.MAX_SCANS, maxScans);
         ec.getContext().setIfUndef(PassageConstants.FORCE_ORDER, forceOrder);
         ec.getContext().setIfUndef(PassageConstants.MAX_PARALLELISM, maxParallel);
@@ -76,6 +78,11 @@ public class PassageExecutionContextBuilder<ID,VALUE> {
         return this;
     }
 
+    public PassageExecutionContextBuilder<ID,VALUE> forceOrder(boolean forceOrder) {
+        this.forceOrder = forceOrder;
+        return this;
+    }
+
     public PassageExecutionContextBuilder<ID,VALUE> backjump() {
         this.backjump = true;
         return this;
@@ -88,20 +95,24 @@ public class PassageExecutionContextBuilder<ID,VALUE> {
         return this;
     }
 
-    public PassageExecutionContextBuilder<ID,VALUE> setTimeout(Long timeout) {
-        if (Objects.nonNull(timeout)) {
-            this.timeout = timeout;
-        }
+    public PassageExecutionContextBuilder<ID,VALUE> setTimeout(long timeout) {
+        this.timeout = timeout;
         return this;
     }
 
-    public PassageExecutionContextBuilder<ID,VALUE> setMaxParallel(Integer maxParallel) {
-        if (Objects.nonNull(maxParallel)) {
-            if (maxParallel < 1) {
-                throw new RuntimeException("Max parallel must be a positive integer.");
-            }
-            this.maxParallel = maxParallel;
+    public PassageExecutionContextBuilder<ID,VALUE> setMaxParallel(int maxParallel) {
+        if (maxParallel < 1) {
+            throw new InvalidContexException("Max parallel must be a positive integer.");
         }
+        this.maxParallel = maxParallel;
+        return this;
+    }
+
+    public PassageExecutionContextBuilder<ID,VALUE> setSplitScans(long splitScans) {
+        if (splitScans <= 1) {
+            throw new InvalidContexException("Split scans must be a positive integer.");
+        }
+        this.splitScans = splitScans;
         return this;
     }
 

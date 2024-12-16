@@ -43,12 +43,14 @@ public class CardinalityJoinOrdering<ID,VALUE> extends ReturningArgsOpVisitor<
     private boolean hasCartesianProduct = false;
 
     public CardinalityJoinOrdering(Backend<ID,VALUE> backend) {
-        this.fakeContext = new PassageExecutionContextBuilder<ID,VALUE>().setBackend(backend).build().setQuery(null);
+        this.fakeContext = new PassageExecutionContextBuilder<ID,VALUE>()
+                .setExecutorFactory(ec -> new PassagePullExecutor<>((PassageExecutionContext<?,?>)ec))
+                .setBackend(backend).build().setQuery(null);
     }
 
-    public CardinalityJoinOrdering(Backend backend, BackendCache<ID,VALUE> cache) {
+    public CardinalityJoinOrdering(Backend<?,?> backend, BackendCache<ID,VALUE> cache) {
         this.fakeContext = new PassageExecutionContextBuilder<ID,VALUE>()
-                .setExecutorFactory(ec -> new PassagePullExecutor<>((PassageExecutionContext)ec))
+                .setExecutorFactory(ec -> new PassagePullExecutor<>((PassageExecutionContext<?,?>)ec))
                 .setBackend(backend).build().setCache(cache).setQuery(null);
     }
 

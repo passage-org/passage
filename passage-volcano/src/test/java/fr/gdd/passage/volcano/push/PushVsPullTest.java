@@ -17,18 +17,19 @@ import java.util.concurrent.atomic.LongAdder;
 public class PushVsPullTest {
 
     private static final Logger log = LoggerFactory.getLogger(PushVsPullTest.class);
+    private static final Long MAX_SCAN = 20_000L;
 
     @RepeatedTest(5)
-    public void simpleSPOWithPush () {
+    public void simple_SPO_with_push_one_thread () {
         ExecutorUtils.log = LoggerFactory.getLogger("none");
         BlazegraphBackend backend = WatDivTest.watdivBlazegraph;
         String spo = "SELECT * WHERE {?s ?p ?o}";
 
-        PassageExecutionContextBuilder context = new PassageExecutionContextBuilder<>()
-                .setMaxParallel(8)
-                .setMaxScans(200_000L)
+        PassageExecutionContextBuilder<?,?> context = new PassageExecutionContextBuilder<>()
+                .setMaxParallel(1)
+                .setMaxScans(MAX_SCAN)
                 .setBackend(backend)
-                .setExecutorFactory(ec -> new PassagePushExecutor((PassageExecutionContext) ec));
+                .setExecutorFactory(ec -> new PassagePushExecutor<>((PassageExecutionContext<?,?>) ec));
 
         LongAdder counter = new LongAdder();
         long start = System.currentTimeMillis();
@@ -38,15 +39,35 @@ public class PushVsPullTest {
     }
 
     @RepeatedTest(5)
-    public void simpleSPOWithPull () {
+    public void simple_SPO_with_push () {
         ExecutorUtils.log = LoggerFactory.getLogger("none");
         BlazegraphBackend backend = WatDivTest.watdivBlazegraph;
         String spo = "SELECT * WHERE {?s ?p ?o}";
 
-        PassageExecutionContextBuilder context = new PassageExecutionContextBuilder<>()
+        PassageExecutionContextBuilder<?,?> context = new PassageExecutionContextBuilder<>()
+                .setMaxParallel(8)
+                .setMaxScans(MAX_SCAN)
                 .setBackend(backend)
-                .setMaxScans(200_000L)
-                .setExecutorFactory(ec -> new PassagePullExecutor((PassageExecutionContext) ec));
+                // .setSplitScans(Long.MAX_VALUE)
+                .setExecutorFactory(ec -> new PassagePushExecutor<>((PassageExecutionContext<?,?>) ec));
+
+        LongAdder counter = new LongAdder();
+        long start = System.currentTimeMillis();
+        ExecutorUtils.execute(spo, context, i -> counter.increment() );
+        long elapsed = System.currentTimeMillis() - start;
+        log.debug("Took {}ms to count {} elements.", elapsed, counter.longValue());
+    }
+
+    @RepeatedTest(5)
+    public void simple_SPO_with_pull () {
+        ExecutorUtils.log = LoggerFactory.getLogger("none");
+        BlazegraphBackend backend = WatDivTest.watdivBlazegraph;
+        String spo = "SELECT * WHERE {?s ?p ?o}";
+
+        PassageExecutionContextBuilder<?,?> context = new PassageExecutionContextBuilder<>()
+                .setBackend(backend)
+                .setMaxScans(MAX_SCAN)
+                .setExecutorFactory(ec -> new PassagePullExecutor<>((PassageExecutionContext<?,?>) ec));
 
         LongAdder counter = new LongAdder();
         long start = System.currentTimeMillis();

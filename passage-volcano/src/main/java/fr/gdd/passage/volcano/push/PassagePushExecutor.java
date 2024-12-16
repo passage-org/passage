@@ -76,7 +76,8 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
 
     @Override
     public PausableStream<ID, VALUE> visit(OpUnion union, BackendBindings<ID, VALUE> input) {
-        return new PausableStreamUnion<>(context, input, union);
+        // return new PausableStreamUnion<>(context, input, union);
+        return new PausableStreamWrapper<>(context, input, union, SpliteratorUnion::new);
     }
 
     @Override
