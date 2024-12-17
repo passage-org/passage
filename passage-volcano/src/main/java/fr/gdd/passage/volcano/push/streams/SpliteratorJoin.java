@@ -58,6 +58,10 @@ public class SpliteratorJoin<ID,VALUE> implements Spliterator<BackendBindings<ID
         return this;
     }
 
+    public void unregister () {
+        this.joins.remove(id);
+    }
+
     @Override
     public boolean tryAdvance(Consumer<? super BackendBindings<ID, VALUE>> action) {
         // we do not use a simple `.forEach(action)` on left stream because
@@ -95,15 +99,18 @@ public class SpliteratorJoin<ID,VALUE> implements Spliterator<BackendBindings<ID
             }
         }
 
+        unregister();
         return false;
     }
 
     @Override
     public Spliterator<BackendBindings<ID, VALUE>> trySplit() {
         Spliterator<BackendBindings<ID, VALUE>> split = left.trySplit();
-        if (Objects.isNull(split)) return null; // not possible
-
-        return new SpliteratorJoin<>(split, context, input, join).register(joins);
+        if (Objects.nonNull(split)) { // we first try to pause on left
+            return new SpliteratorJoin<>(split, context, input, join).register(joins);
+        }
+        // if it does not work, we try on right
+        return Objects.nonNull(rightSplit) ? rightSplit.trySplit(): null; // no need to register, will be done downstream in `right`.
     }
 
     @Override

@@ -59,6 +59,7 @@ public class ExecutorUtils {
             PassageExecutionContext<ID,VALUE> context = builder.build();
             Op query = Algebra.compile(QueryFactory.create(queryAsString));
             log.debug(queryAsString);
+            System.out.println(queryAsString);
             Op paused = context.executor.execute(query, (i) -> {
                 log.debug("{}", i);
                 consumer.accept(i);

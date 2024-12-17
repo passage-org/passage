@@ -29,7 +29,7 @@ public class PausableStreamExtend<ID,VALUE> implements PausableStream<ID, VALUE>
 
     @Override
     public Stream<BackendBindings<ID, VALUE>> stream() {
-        return wrapped.stream().map(i -> {
+        return wrapped.stream().parallel().map(i -> {
             BackendBindings<ID, VALUE> b = new BackendBindings<ID, VALUE>().setParent(i);
             for (Var v : extend.getVarExprList().getVars()) {
                 b.put(v, new BackendBindings.IdValueBackend<ID, VALUE>()

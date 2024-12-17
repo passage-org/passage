@@ -20,36 +20,34 @@ import static fr.gdd.passage.volcano.push.Pause2Continuation.*;
 public class SpliteratorUnion<ID,VALUE> implements Spliterator<BackendBindings<ID,VALUE>>, PausableSpliterator<ID,VALUE> {
 
     OpUnion union;
-    PausableStream<ID,VALUE> left;
-    Spliterator<BackendBindings<ID,VALUE>> leftSplit;
-    PausableStream<ID,VALUE> right;
-    Spliterator<BackendBindings<ID,VALUE>> rightSplit;
-    SpliteratorUnion<ID,VALUE> sibling;
+    PausableStream<ID,VALUE> main; // left when not parallel
+    final Spliterator<BackendBindings<ID,VALUE>> mainSplit;
+    PausableStream<ID,VALUE> secondary; // right when not parallel
+    Spliterator<BackendBindings<ID,VALUE>> secondarySplit;
 
     public SpliteratorUnion(PassageExecutionContext<ID,VALUE> context, BackendBindings<ID,VALUE> input, OpUnion union) {
         this.union = union;
         var executor = (PassagePushExecutor<ID, VALUE>) context.executor;
-        this.left = executor.visit(union.getLeft(), input);
-        this.leftSplit = this.left.stream().spliterator();
-        this.right = executor.visit(union.getRight(), input);
-        this.rightSplit = this.right.stream().spliterator();
+        this.main = executor.visit(union.getLeft(), input);
+        this.mainSplit = this.main.stream().spliterator();
+        this.secondary = executor.visit(union.getRight(), input);
+        this.secondarySplit = this.secondary.stream().spliterator();
     }
 
-    public SpliteratorUnion(PausableStream<ID,VALUE> right, Spliterator<BackendBindings<ID,VALUE>> rightSplit) {
-        this.right = right;
-        this.rightSplit = rightSplit;
+    public SpliteratorUnion(Spliterator<BackendBindings<ID,VALUE>> mainSplit) {
+        this.mainSplit = mainSplit;
         // the rest do not need initializing
     }
 
     @Override
     public boolean tryAdvance(Consumer<? super BackendBindings<ID, VALUE>> action) {
-        if (Objects.nonNull(leftSplit)) {
-            if (leftSplit.tryAdvance(action)) {
+        if (Objects.nonNull(mainSplit)) {
+            if (mainSplit.tryAdvance(action)) {
                 return true;
             }
         }
-        if (Objects.nonNull(rightSplit)) {
-            return rightSplit.tryAdvance(action);
+        if (Objects.nonNull(secondarySplit)) {
+            return secondarySplit.tryAdvance(action);
         }
 
         return false;
@@ -57,23 +55,27 @@ public class SpliteratorUnion<ID,VALUE> implements Spliterator<BackendBindings<I
 
     @Override
     public Spliterator<BackendBindings<ID, VALUE>> trySplit() {
-        if (Objects.isNull(left) || Objects.isNull(right)) {
-            return null; // already split
+        if (Objects.isNull(secondarySplit)) {
+            // Has already been split,
+            Spliterator<BackendBindings<ID,VALUE>> newSplit = mainSplit.trySplit();
+            if (Objects.nonNull(newSplit)) {
+                return new SpliteratorUnion<>(newSplit);
+            }
+            return null; // already split, and main does not allow, so we are done.
         }
-        // keep left for ourselves
 
+        // otherwise, we split the in two sides
         // give right to other union
-        sibling = new SpliteratorUnion<>(this.right, this.rightSplit);
-        this.right = null;
-        this.rightSplit = null;
+        SpliteratorUnion<ID,VALUE> newSplit = new SpliteratorUnion<>(this.secondarySplit);
+        this.secondarySplit = null;
 
-        return sibling;
+        return newSplit;
     }
 
     @Override
     public long estimateSize() {
-        long leftSize = Objects.nonNull(leftSplit) ? leftSplit.estimateSize() : 0;
-        long rightSize = Objects.nonNull(rightSplit) ? rightSplit.estimateSize() : 0;
+        long leftSize = Objects.nonNull(mainSplit) ? mainSplit.estimateSize() : 0;
+        long rightSize = Objects.nonNull(secondarySplit) ? secondarySplit.estimateSize() : 0;
         return leftSize + rightSize;
     }
 
@@ -84,8 +86,8 @@ public class SpliteratorUnion<ID,VALUE> implements Spliterator<BackendBindings<I
 
     @Override
     public Op pause() {
-        Op pausedRight = Objects.nonNull(sibling) ? sibling.right.pause() : right.pause();
-        Op pausedLeft = left.pause();
+        Op pausedLeft = main.pause();
+        Op pausedRight = secondary.pause();
 
         if (notExecuted(pausedLeft, union.getLeft()) && notExecuted(pausedRight, union.getRight())) return union;
 
@@ -95,4 +97,5 @@ public class SpliteratorUnion<ID,VALUE> implements Spliterator<BackendBindings<I
 
         return OpUnion.create(pausedLeft, pausedRight);
     }
+
 }

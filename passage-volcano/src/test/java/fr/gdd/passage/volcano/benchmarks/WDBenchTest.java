@@ -48,7 +48,7 @@ public class WDBenchTest {
 
     private static Stream<Pair<String, String>> queries() throws IOException {
         List<Pair<String,String>> queries = new ArrayList<>();
-        try (var queryFiles = Files.newDirectoryStream(Path.of(PATH_TO_QUERIES), "*.sparql")) {
+        try (var queryFiles = Files.newDirectoryStream(Path.of(PATH_TO_QUERIES), "query_358.sparql")) {
             for (var q : queryFiles) {
                 queries.add(new ImmutablePair<>(q.getFileName().toString(), Files.readString(q)));
             }
@@ -84,7 +84,153 @@ public class WDBenchTest {
     }
 
 
+    @ParameterizedTest
+    @MethodSource("configurations")
+    public void benchmark_passage_on_wdbench_with_specific_query (PassageExecutionContextBuilder<?,?> builder, String name, String query) {
+        query = SPO; // replaced took 4.5 minutes to process SPO.
+        builder.setBackend(wdbench);//.forceOrder();
+        ExecutorUtils.log = LoggerFactory.getLogger("none");
+        LongAdder counter = new LongAdder();
 
+        long start = System.currentTimeMillis();
+        ExecutorUtils.execute(query, builder, ignored -> counter.increment());
+        long elapsed = System.currentTimeMillis() - start;
+        log.debug("Took {} ms to process {} results.", elapsed, counter.longValue());
+    }
+
+    static String SPO = "SELECT * WHERE {?s ?p ?o}";
+
+
+    static String QUERY_NO_THREADS = """
+    SELECT  *
+WHERE
+  { { {   {   {   {   { { SELECT  *
+                          WHERE
+                            { BIND(<http://www.wikidata.org/entity/Q148> AS ?x2)
+                              ?x1  <http://www.wikidata.org/prop/direct/P17>  ?x2
+                            }
+                          OFFSET  237444
+                        }
+                      }
+                    UNION
+                      { { SELECT  *
+                          WHERE
+                            { BIND(<http://www.wikidata.org/entity/Q36> AS ?x2)
+                              ?x1  <http://www.wikidata.org/prop/direct/P17>  ?x2
+                            }
+                          OFFSET  79383
+                        }
+                      }
+                  }
+                UNION
+                  { { SELECT  *
+                      WHERE
+                        { BIND(<http://www.wikidata.org/entity/Q34> AS ?x2)
+                          ?x1  <http://www.wikidata.org/prop/direct/P17>  ?x2
+                        }
+                      OFFSET  155402
+                    }
+                  }
+              }
+            UNION
+              { { SELECT  *
+                  WHERE
+                    { BIND(<http://www.wikidata.org/entity/Q55> AS ?x2)
+                      ?x1  <http://www.wikidata.org/prop/direct/P17>  ?x2
+                    }
+                  OFFSET  334329
+                }
+              }
+          }
+        UNION
+          {   {   {   {   {   {   { { SELECT  *
+                                      WHERE
+                                        { ?x2  <http://www.wikidata.org/prop/direct/P31>  <http://www.wikidata.org/entity/Q6256> }
+                                      OFFSET  35
+                                      LIMIT   6
+                                    }
+                                  }
+                                UNION
+                                  { { SELECT  *
+                                      WHERE
+                                        { ?x2  <http://www.wikidata.org/prop/direct/P31>  <http://www.wikidata.org/entity/Q6256> }
+                                      OFFSET  75
+                                      LIMIT   1
+                                    }
+                                  }
+                              }
+                            UNION
+                              { { SELECT  *
+                                  WHERE
+                                    { ?x2  <http://www.wikidata.org/prop/direct/P31>  <http://www.wikidata.org/entity/Q6256> }
+                                  OFFSET  23
+                                  LIMIT   6
+                                }
+                              }
+                          }
+                        UNION
+                          { { SELECT  *
+                              WHERE
+                                { ?x2  <http://www.wikidata.org/prop/direct/P31>  <http://www.wikidata.org/entity/Q6256> }
+                              OFFSET  89
+                              LIMIT   5
+                            }
+                          }
+                      }
+                    UNION
+                      { { SELECT  *
+                          WHERE
+                            { ?x2  <http://www.wikidata.org/prop/direct/P31>  <http://www.wikidata.org/entity/Q6256> }
+                          OFFSET  41
+                          LIMIT   6
+                        }
+                      }
+                  }
+                UNION
+                  { { SELECT  *
+                      WHERE
+                        { ?x2  <http://www.wikidata.org/prop/direct/P31>  <http://www.wikidata.org/entity/Q6256> }
+                      OFFSET  33
+                      LIMIT   2
+                    }
+                  }
+              }
+            UNION
+              { { SELECT  *
+                  WHERE
+                    { ?x2  <http://www.wikidata.org/prop/direct/P31>  <http://www.wikidata.org/entity/Q6256> }
+                  OFFSET  47
+                  LIMIT   11
+                }
+              }
+            ?x1  <http://www.wikidata.org/prop/direct/P17>  ?x2
+          }
+        ?x1  <http://www.wikidata.org/prop/direct/P31>  <http://www.wikidata.org/entity/Q515>
+      }
+      ?x1  <http://www.wikidata.org/prop/direct/P6>  ?x3
+    }
+    ?x3  <http://www.wikidata.org/prop/direct/P39>  <http://www.wikidata.org/entity/Q30185>
+  }
+""";
+
+
+private static String QUERY_2 = """
+        SELECT  *
+        WHERE
+          { { { { SELECT  *
+                  WHERE
+                    { BIND(<http://www.wikidata.org/entity/Q183> AS ?x2)
+                      ?x1  <http://www.wikidata.org/prop/direct/P17>  ?x2
+                    }
+                  OFFSET  616097
+                }
+                ?x1  <http://www.wikidata.org/prop/direct/P31>  <http://www.wikidata.org/entity/Q515>
+              }
+              ?x1  <http://www.wikidata.org/prop/direct/P6>  ?x3
+            }
+            ?x3  <http://www.wikidata.org/prop/direct/P39>  <http://www.wikidata.org/entity/Q30185>
+          }
+        """;
 
 //
 //    @Disabled

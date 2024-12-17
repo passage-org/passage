@@ -52,10 +52,10 @@ public class PausableStreamLimitOffset<ID,VALUE> implements PausableStream<ID,VA
                     // we don't count as it will be done in the subquery
         } else {
             return this.wrapped.stream()
-                    // .peek(i -> totalProduced.increment())
                     // `skip` and `limit` cannot be used because they propagate downstream, so the logic at this level
                     // is not executed despite its necessity.
                     // offset:
+                    .parallel()
                     .filter(ignored -> {
                         long produced = totalProduced.incrementAndGet();
                         return slice.getStart() == Long.MIN_VALUE || produced > slice.getStart();
