@@ -108,8 +108,12 @@ public class BackendBindings<ID, VALUE> implements Binding {
 
     final Map<Var, IdValueBackend<ID, VALUE>> var2binding = new HashMap<>();
     BackendBindings<ID, VALUE> parent = null;
+    Backend<ID,VALUE> backend;
 
-    public BackendBindings () {}
+    public BackendBindings () {} // TODO to be removed, make backend final
+    public BackendBindings(Backend<ID,VALUE> backend) {
+        this.backend = backend;
+    }
 
     public BackendBindings (QuerySolution solution, Backend<ID,VALUE> backend) {
         solution.varNames().forEachRemaining(v -> put(Var.alloc(v),
@@ -130,6 +134,7 @@ public class BackendBindings<ID, VALUE> implements Binding {
                 this.put(v, toCopy.getBinding(v));
             }
         }
+        this.backend = toCopy.backend;
         this.parent = null; // self-contained
     }
 
@@ -137,6 +142,7 @@ public class BackendBindings<ID, VALUE> implements Binding {
         for (Var v: toCopy.variables()) {
             this.put(v, toCopy.getBinding(v));
         }
+        this.backend = toCopy.backend;
         this.parent = null; // self-contained
     }
 
