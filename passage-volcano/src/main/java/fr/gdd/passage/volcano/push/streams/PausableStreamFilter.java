@@ -27,7 +27,7 @@ public class PausableStreamFilter<ID,VALUE> implements PausableStream<ID,VALUE> 
 
     @Override
     public Stream<BackendBindings<ID, VALUE>> stream() {
-        return wrapped.stream().parallel().filter(i -> filter.getExprs().isSatisfied(i, context));
+        return wrapped.stream().filter(i -> filter.getExprs().isSatisfied(i, context));
     }
 
     @Override

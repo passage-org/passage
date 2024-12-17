@@ -93,6 +93,21 @@ public class WatDivTest {
         log.debug("{}: Took {} ms to process {} results.", name, elapsed, counter.longValue());
     }
 
+    @ParameterizedTest
+    @MethodSource("configurations")
+    public void benchmark_passage_on_watdiv_query (PassageExecutionContextBuilder<?,?> builder, String name, String query) {
+        builder.setBackend(watdiv);
+        query = "SELECT * WHERE { ?s ?p ?o }";
+        ExecutorUtils.log = LoggerFactory.getLogger("none");
+        LongAdder counter = new LongAdder();
+
+        long start = System.currentTimeMillis();
+        ExecutorUtils.execute(query, builder, ignored -> counter.increment());
+        long elapsed = System.currentTimeMillis() - start;
+        log.debug("{}", builder);
+        log.debug("{}: Took {} ms to process {} results.", name, elapsed, counter.longValue());
+    }
+
 //    @Disabled
 //    @Test
 //    public void watdiv_with_1s_timeout () throws IOException {

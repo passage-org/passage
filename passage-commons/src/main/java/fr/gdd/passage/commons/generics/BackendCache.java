@@ -2,6 +2,7 @@ package fr.gdd.passage.commons.generics;
 
 import fr.gdd.passage.commons.interfaces.Backend;
 import org.apache.jena.graph.Node;
+import org.apache.jena.riot.out.NodeFmtLib;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,8 +16,7 @@ import java.util.Objects;
 public class BackendCache<ID,VALUE> {
 
     final Backend<ID,VALUE> backend;
-
-    Map<Node, ID> node2id = new HashMap<>();
+    final Map<Node, ID> node2id = new HashMap<>();
 
     public BackendCache(Backend<ID,VALUE> backend) {
         this.backend = backend;
@@ -26,6 +26,7 @@ public class BackendCache<ID,VALUE> {
         ID id = node2id.get(node);
 
         if (Objects.isNull(id)) {
+            id = backend.getId(NodeFmtLib.strNT(node));
             if (node.isURI()) { // ugly…
                 id = backend.getId("<" + node + ">", spoc);
             } else {

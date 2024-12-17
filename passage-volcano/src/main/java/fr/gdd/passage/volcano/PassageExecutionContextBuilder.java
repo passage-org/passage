@@ -26,6 +26,8 @@ public class PassageExecutionContextBuilder<ID,VALUE> {
     private Long splitScans = 2L;
 
     private Function<ExecutionContext, PassageExecutor> executorFactory;
+    private Function<PassageExecutionContext<ID,VALUE>, Boolean> stoppingCondition = (ec) ->
+            System.currentTimeMillis() >= ec.getDeadline() || ec.scans.get() >= ec.maxScans;
 
     public PassageExecutionContext<ID,VALUE> build() {
         ExecutionContext ec = Objects.isNull(context) ?
@@ -38,6 +40,7 @@ public class PassageExecutionContextBuilder<ID,VALUE> {
             // prioritize execution context's backend
             ec.getContext().setIfUndef(BackendConstants.BACKEND, backend);
         }
+
 
         if (ec.getContext().isUndef(BackendConstants.EXECUTOR_FACTORY) && Objects.isNull(executorFactory)) {
             throw new InvalidContexException("Executor factory undefined.");
@@ -57,6 +60,19 @@ public class PassageExecutionContextBuilder<ID,VALUE> {
         ec.getContext().setIfUndef(PassageConstants.FORCE_ORDER, forceOrder);
         ec.getContext().setIfUndef(PassageConstants.MAX_PARALLELISM, maxParallel);
         ec.getContext().setIfUndef(PassageConstants.BACKJUMP, backjump);
+        ec.getContext().setIfUndef(PassageConstants.STOPPING_CONDITION, stoppingCondition);
+
+        if (maxScans != Long.MAX_VALUE && timeout != Long.MAX_VALUE) {
+            this.stoppingCondition = (context) ->
+                    System.currentTimeMillis() >= context.getDeadline() || context.scans.get() >= context.maxScans;
+        } else if (maxScans != Long.MAX_VALUE) {
+            this.stoppingCondition = (context) -> context.scans.get() >= context.maxScans;
+        } else if (timeout != Long.MAX_VALUE) {
+            this.stoppingCondition = (context) -> System.currentTimeMillis() >= context.getDeadline();
+        } else {
+            this.stoppingCondition = (context) -> false;
+        }
+
 
         return new PassageExecutionContext<>(ec);
     }
@@ -125,7 +141,7 @@ public class PassageExecutionContextBuilder<ID,VALUE> {
         this.name = name;
         return this;
     }
-    
+
     @Override
     public String toString() {
         return  ((Objects.nonNull(name)) ? name + " " : "") +

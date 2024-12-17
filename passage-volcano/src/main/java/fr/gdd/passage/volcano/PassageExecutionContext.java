@@ -1,5 +1,6 @@
 package fr.gdd.passage.volcano;
 
+import fr.gdd.passage.commons.generics.BackendBindingsFactory;
 import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.generics.BackendSaver;
@@ -39,14 +40,18 @@ public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
     public final Boolean backjump;
     public final PassageExecutor<ID,VALUE> executor;
     public final Function<ExecutionContext, PassageExecutor<ID,VALUE>> executorFactory;
+    public final BackendBindingsFactory<ID,VALUE> bindingsFactory;
+    public final Function<PassageExecutionContext<ID,VALUE>, Boolean> stoppingCondition;
 
     public PassageExecutionContext(ExecutionContext context) {
         super(context);
         this.executorFactory = context.getContext().get(BackendConstants.EXECUTOR_FACTORY);
+        this.stoppingCondition = context.getContext().get(PassageConstants.STOPPING_CONDITION);
 
         this.backjump = context.getContext().get(PassageConstants.BACKJUMP);
         this.maxScans = context.getContext().get(PassageConstants.MAX_SCANS);
         this.backend = context.getContext().get(BackendConstants.BACKEND);
+        this.bindingsFactory = new BackendBindingsFactory<>(backend);
         this.maxParallelism = context.getContext().get(PassageConstants.MAX_PARALLELISM);
 
         context.getContext().setIfUndef(PassageConstants.SCANS, new AtomicLong());

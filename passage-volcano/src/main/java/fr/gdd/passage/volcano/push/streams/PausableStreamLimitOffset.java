@@ -39,24 +39,19 @@ public class PausableStreamLimitOffset<ID,VALUE> implements PausableStream<ID,VA
                         new PassageExecutionContext<ID,VALUE>(((PassageExecutionContext<?, ?>) context).clone())
                                 .setLimit(null)
                                 .setOffset(null));
-        this.wrapped = newExecutor.visit(slice.getSubOp(), new BackendBindings<>());
+        this.wrapped = newExecutor.visit(slice.getSubOp(), context.bindingsFactory.get());
     }
 
     public Stream<BackendBindings<ID,VALUE>> stream() {
-        if (new CanBeSkipped().visit((Op) slice)) {
-            // skip and offset should be handled in the sub-executor
-            return this.wrapped.stream()
-                    .filter(i -> i.isCompatible(input))
-                    // TODO multiple parents instead of copy? (add layers of visibility)
-                    .map(i -> new BackendBindings<>(i).setParent(input));
-                    // we don't count as it will be done in the subquery
-        } else {
-            return this.wrapped.stream()
-                    // `skip` and `limit` cannot be used because they propagate downstream, so the logic at this level
-                    // is not executed despite its necessity.
-                    // offset:
-                    .parallel()
-                    .filter(ignored -> {
+        Stream<BackendBindings<ID,VALUE>> out = wrapped.stream();
+
+        // if it can be skipped, the offset should be handled in the sub-executor
+        // we don't count as it will be done in the subquery
+        if (!(new CanBeSkipped().visit((Op) slice))) {
+            // Otherwise, the sub-query is complex.
+            // `skip` and `limit` cannot be used because they propagate downstream, so the logic at this level
+            // is not executed despite its necessity.
+            out = out.filter(ignored -> { // offset:
                         long produced = totalProduced.incrementAndGet();
                         return slice.getStart() == Long.MIN_VALUE || produced > slice.getStart();
                     })
@@ -64,11 +59,17 @@ public class PausableStreamLimitOffset<ID,VALUE> implements PausableStream<ID,VA
                     .filter(ignored -> {
                         long actually = actuallyProduced.incrementAndGet();
                         return slice.getLength() == Long.MIN_VALUE || actually <= slice.getLength();
-                    })
-                    .filter(i -> i.isCompatible(input))
+                    });
+        }
+
+        // if empty, the result is obviously compatible
+        if (!input.isEmpty()) { // otherwise, additional check
+            out = out.filter(i -> i.isCompatible(input))
                     // TODO multiple parents instead of copy? (add layers of visibility)
                     .map(i -> new BackendBindings<>(i).setParent(input));
         }
+
+        return out;
     }
 
     @Override

@@ -24,7 +24,6 @@ import java.util.Set;
 import java.util.Spliterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import static fr.gdd.passage.volcano.push.Pause2Continuation.DONE;
 import static fr.gdd.passage.volcano.push.Pause2Continuation.removeEmptyOfUnion;
@@ -35,13 +34,6 @@ import static fr.gdd.passage.volcano.push.Pause2Continuation.removeEmptyOfUnion;
  * clauses.
  */
 public class SpliteratorScan<ID,VALUE> implements Spliterator<BackendBindings<ID,VALUE>>, PausableSpliterator<ID,VALUE> {
-
-    /**
-     * By default, this is based on execution time. However, developers can change it
-     * e.g., for testing purposes.
-     */
-    public volatile static Function<PassageExecutionContext, Boolean> stopping = (ec) ->
-            System.currentTimeMillis() >= ec.getDeadline() || ec.scans.get() >= ec.maxScans;
 
     final PassageExecutionContext<ID,VALUE> context;
     final BackendBindings<ID,VALUE> input;
@@ -136,7 +128,7 @@ public class SpliteratorScan<ID,VALUE> implements Spliterator<BackendBindings<ID
         if (Objects.nonNull(limit) && limit == 0) { unregister(); return false; } // we produced all
 
         if (wrapped.hasNext()) { // actually iterates over the dataset
-            if (!context.paused.isPaused() && stopping.apply(context)) { // unless we must stop
+            if (!context.paused.isPaused() && context.stoppingCondition.apply(context)) { // unless we must stop
                 throw new PauseException(op); // execution stops immediately, caught at the root
             }
 
@@ -144,8 +136,8 @@ public class SpliteratorScan<ID,VALUE> implements Spliterator<BackendBindings<ID
             offset += 1;
             if (Objects.nonNull(limit)) { limit -= 1 ; }
             wrapped.next();
-            context.scans.getAndIncrement();
-            BackendBindings<ID, VALUE> newBinding = new BackendBindings<>();
+            if (context.maxScans != Long.MAX_VALUE) { context.scans.getAndIncrement(); } // don't even try if not useful
+            BackendBindings<ID, VALUE> newBinding = context.bindingsFactory.get();
 
             if (Objects.nonNull(vars.get(SPOC.SUBJECT))) { // ugly x4
                 newBinding.put(vars.get(SPOC.SUBJECT), wrapped.getId(SPOC.SUBJECT), context.backend).setCode(vars.get(SPOC.SUBJECT), SPOC.SUBJECT);

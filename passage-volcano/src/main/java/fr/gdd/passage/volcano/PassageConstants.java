@@ -28,6 +28,7 @@ public class PassageConstants {
     static public final Symbol FORCE_ORDER = allocConstantSymbol("ForceOrder");
     static public final Symbol BACKJUMP = allocConstantSymbol("Backjump");
     static public final Symbol SPLIT_SCANS = allocConstantSymbol("SplitScans"); // for parallel streams
+    static public final Symbol STOPPING_CONDITION = allocConstantSymbol("StoppingCondition");
 
     /* ********************************************************************** */
 

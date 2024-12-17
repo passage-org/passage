@@ -21,9 +21,10 @@ import java.util.stream.StreamSupport;
 public class PausableStreamValues<ID,VALUE> implements PausableStream<ID,VALUE> {
 
     final PassageExecutionContext<ID,VALUE> context;
-    Stream<BackendBindings<ID,VALUE>> wrapped;
     final BackendBindings<ID,VALUE> input;
     final OpTable table;
+
+    Stream<BackendBindings<ID,VALUE>> wrapped;
 
     final LongAdder produced = new LongAdder();
 

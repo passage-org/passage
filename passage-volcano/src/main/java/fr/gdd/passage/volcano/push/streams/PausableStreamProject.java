@@ -25,6 +25,7 @@ public class PausableStreamProject<ID,VALUE> implements PausableStream<ID,VALUE>
 
     @Override
     public Stream<BackendBindings<ID, VALUE>> stream() {
+        // TODO instead of copy, put a filter in the bindings
         return wrapped.stream().map(i -> new BackendBindings<>(i, project.getVars()));
     }
 
