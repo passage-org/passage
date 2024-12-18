@@ -5,7 +5,7 @@ import fr.gdd.passage.commons.interfaces.Backend;
 public class BackendBindingsFactory<ID,VALUE> {
 
     final Backend<ID, VALUE> backend;
-    final BackendCache<ID,VALUE> cache;
+    public final BackendCache<ID,VALUE> cache;
 
     public BackendBindingsFactory(Backend<ID, VALUE> backend) {
         this.backend = backend;

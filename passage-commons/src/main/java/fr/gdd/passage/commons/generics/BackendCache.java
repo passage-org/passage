@@ -1,5 +1,6 @@
 package fr.gdd.passage.commons.generics;
 
+import fr.gdd.passage.commons.exceptions.NotFoundException;
 import fr.gdd.passage.commons.interfaces.Backend;
 import org.apache.jena.graph.Node;
 import org.apache.jena.riot.out.NodeFmtLib;
@@ -27,11 +28,6 @@ public class BackendCache<ID,VALUE> {
 
         if (Objects.isNull(id)) {
             id = backend.getId(NodeFmtLib.strNT(node));
-            if (node.isURI()) { // ugly…
-                id = backend.getId("<" + node + ">", spoc);
-            } else {
-                id = backend.getId(node.toString(), spoc);
-            }
             node2id.put(node, id);
         }
 
@@ -49,7 +45,14 @@ public class BackendCache<ID,VALUE> {
      * @return this, for convenience.
      */
     public BackendCache<ID,VALUE> register(Node node, ID id) {
-        node2id.put(node, id); // we don't check anything
+        try {
+            if (Objects.isNull(id)) {
+                id = backend.getId(NodeFmtLib.strNT(node));
+            }
+            node2id.put(node, id); // we don't check anything
+        } catch (NotFoundException e) {
+            // do nothing
+        }
         return this;
     }
 

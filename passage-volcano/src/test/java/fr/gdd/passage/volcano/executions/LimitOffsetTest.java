@@ -100,6 +100,7 @@ public class LimitOffsetTest {
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
     public void limit_as_a_nested_subquery (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);

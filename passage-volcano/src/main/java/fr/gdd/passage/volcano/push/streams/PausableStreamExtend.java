@@ -8,7 +8,10 @@ import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpExtend;
 import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.expr.Expr;
+import org.apache.jena.sparql.expr.nodevalue.NodeValueNode;
 
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static fr.gdd.passage.volcano.push.Pause2Continuation.*;
@@ -32,12 +35,14 @@ public class PausableStreamExtend<ID,VALUE> implements PausableStream<ID, VALUE>
         return wrapped.stream().map(i -> {
             BackendBindings<ID, VALUE> b = context.bindingsFactory.get().setParent(i);
 
-            for (Var v : extend.getVarExprList().getVars()) {
+            for (Map.Entry<Var, Expr> varAndExpr : extend.getVarExprList().getExprs().entrySet()) {
                 // TODO cache the thing when simple
-                b.put(v, new BackendBindings.IdValueBackend<ID, VALUE>()
+                if (varAndExpr.getValue() instanceof NodeValueNode toCache) {
+                    context.bindingsFactory.cache.register(toCache.asNode(), null);
+                }
+                b.put(varAndExpr.getKey(), new BackendBindings.IdValueBackend<ID, VALUE>()
                         .setBackend(context.backend)
-                        .setString(NodeFmtLib.strNT(extend.getVarExprList().getExpr(v)
-                                .eval(i, context).asNode())));
+                        .setString(NodeFmtLib.strNT(varAndExpr.getValue().eval(i, context).asNode())));
             }
 
             return b;

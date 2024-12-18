@@ -51,15 +51,12 @@ public class PausableStreamLimitOffset<ID,VALUE> implements PausableStream<ID,VA
             // Otherwise, the sub-query is complex.
             // `skip` and `limit` cannot be used because they propagate downstream, so the logic at this level
             // is not executed despite its necessity.
-            out = out.filter(ignored -> { // offset:
-                        long produced = totalProduced.incrementAndGet();
-                        return slice.getStart() == Long.MIN_VALUE || produced > slice.getStart();
-                    })
-                    // limit:
-                    .filter(ignored -> {
-                        long actually = actuallyProduced.incrementAndGet();
-                        return slice.getLength() == Long.MIN_VALUE || actually <= slice.getLength();
-                    });
+            if (slice.getStart() != Long.MIN_VALUE) { // offset:
+                out = out.filter(ignored -> totalProduced.incrementAndGet() > slice.getStart());
+            }
+            if (slice.getLength() != Long.MIN_VALUE) { // limit:
+                out = out.filter(ignored -> actuallyProduced.incrementAndGet() <= slice.getLength());
+            }
         }
 
         // if empty, the result is obviously compatible

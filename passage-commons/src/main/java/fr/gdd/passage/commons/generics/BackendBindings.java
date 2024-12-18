@@ -102,6 +102,26 @@ public class BackendBindings<ID, VALUE> implements Binding {
             }
             return asString;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == null || getClass() != o.getClass()) return false;
+            IdValueBackend<?, ?> that = (IdValueBackend<?, ?>) o;
+            boolean tempResult = ((Objects.nonNull(id) || Objects.nonNull(that.id)) && Objects.equals(id, that.id)) ||
+                    ((Objects.nonNull(value) || Objects.nonNull(that.value)) && Objects.equals(value, that.value)) ||
+                    ((Objects.nonNull(asString) || Objects.nonNull(that.asString)) && Objects.equals(asString, that.asString));
+            if (!tempResult) return getString().equals(that.getString());
+            return true;
+        }
+
+        @Override
+        public String toString() {
+            return "IdValueBackend{" +
+                    "id=" + id +
+                    ", value=" + value +
+                    ", asString='" + asString + '\'' +
+                    '}';
+        }
     }
 
     /* ****************************** BINDINGS ************************************ */
@@ -269,9 +289,7 @@ public class BackendBindings<ID, VALUE> implements Binding {
             IdValueBackend<ID,VALUE> valThis = this.getBinding(v);
             IdValueBackend<ID,VALUE> valOther = other.getBinding(v);
             if (Objects.nonNull(valOther) && Objects.nonNull(valThis)) {
-                if (!valOther.getString().equals(valThis.getString())) { // compared as string
-                    return false;
-                }
+                if (!valThis.equals(valOther)) return false;
             }
         }
         return true;
