@@ -209,12 +209,12 @@ public class BackendBindings<ID, VALUE> implements Binding {
 
     @Override
     public int size() {
-        return var2binding.size();
+        return variables().size();
     }
 
     @Override
     public boolean isEmpty() {
-        return var2binding.isEmpty();
+        return variables().isEmpty();
     }
 
     public boolean contains(Var var) {

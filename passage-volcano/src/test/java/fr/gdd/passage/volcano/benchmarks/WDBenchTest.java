@@ -25,6 +25,14 @@ import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+// note: to test the reading speed of the system:
+// #1 create a file of a certain size: `mkfile 10G ./testfile.to_remove`
+// #2 read speed: `dd if=./testfile.to_remove of=/dev/null bs=4096 status=progress`
+// #3 remove the file: `rm ./testfile.to_remove`
+// On macbook pro M1 1TB: reading speed is ~3GB/s
+// This might be important to check if the reading speed is limiting the performance of
+// the approach.
+
 @Disabled("Need the WDBench dataset to work.")
 @Deprecated
 public class WDBenchTest {
@@ -64,7 +72,10 @@ public class WDBenchTest {
                         .setTimeout(TIMEOUT)
                         .setMaxParallel(4) // 4 to compare with paper's measurements
                         .setName("PUSH")
-                        .setExecutorFactory((ec) -> new PassagePushExecutor<>((PassageExecutionContext<?,?>) ec)),
+                        .setExecutorFactory((ec) -> new PassagePushExecutor<>((PassageExecutionContext<?,?>) ec))
+                        // .setName("PULL")
+                        // .setExecutorFactory((ec) -> new PassagePullExecutor((PassageExecutionContext<?,?>) ec))
+                        ,
                         q.getLeft(), // name
                         q.getRight()) // query
             ));
@@ -74,7 +85,7 @@ public class WDBenchTest {
     @MethodSource("configurations")
     public void benchmark_passage_on_wdbench_multiple_tps (PassageExecutionContextBuilder<?,?> builder, String name, String query) {
         builder.setBackend(wdbench);
-        ExecutorUtils.log = LoggerFactory.getLogger("none");
+        // ExecutorUtils.log = LoggerFactory.getLogger("none");
         LongAdder counter = new LongAdder();
 
         long start = System.currentTimeMillis();
