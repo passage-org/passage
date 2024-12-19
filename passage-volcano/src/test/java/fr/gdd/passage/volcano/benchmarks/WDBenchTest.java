@@ -26,10 +26,15 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 // note: to test the reading speed of the system:
-// #1 create a file of a certain size: `mkfile 10G ./testfile.to_remove`
+// #0A know the block size: diskutil list
+// #0B then `diskutil info disk0s2`
+// #0C or: `lsblk -o NAME,PHY-SeC,LOG-SeC` on linux
+// #1A create a file of a certain size: `mkfile 10G ./testfile.to_remove`
+// #1B or: `dd if=/dev/null of=./testfile.to_remove bs=4096 status=progress`
 // #2 read speed: `dd if=./testfile.to_remove of=/dev/null bs=4096 status=progress`
 // #3 remove the file: `rm ./testfile.to_remove`
-// On macbook pro M1 1TB: reading speed is ~3GB/s
+// On macbook pro M1 1TB: block size 4M & reading speed is ~3GB/s
+// On bird-wan: block size 512 & reading speed is varying from 250MB/s to ~1.5GB/s (max when cached it seems, so often ~300MB/s)
 // This might be important to check if the reading speed is limiting the performance of
 // the approach.
 
@@ -70,7 +75,7 @@ public class WDBenchTest {
                 Arguments.of(
                 new PassageExecutionContextBuilder<>()
                         .setTimeout(TIMEOUT)
-                        .setMaxParallel(4) // 4 to compare with paper's measurements
+                        .setMaxParallel(100) // 4 to compare with paper's measurements
                         .setName("PUSH")
                         .setExecutorFactory((ec) -> new PassagePushExecutor<>((PassageExecutionContext<?,?>) ec))
                         // .setName("PULL")
@@ -98,7 +103,7 @@ public class WDBenchTest {
     @ParameterizedTest
     @MethodSource("configurations")
     public void benchmark_passage_on_wdbench_with_specific_query (PassageExecutionContextBuilder<?,?> builder, String name, String query) {
-        query = SPO; // replaced took 4.5 minutes to process SPO.
+        query = "SELECT * WHERE {?s ?p ?o}"; // replaced took 4.5 minutes to process SPO.
         builder.setBackend(wdbench);//.forceOrder();
         ExecutorUtils.log = LoggerFactory.getLogger("none");
         LongAdder counter = new LongAdder();
@@ -108,140 +113,6 @@ public class WDBenchTest {
         long elapsed = System.currentTimeMillis() - start;
         log.debug("Took {} ms to process {} results.", elapsed, counter.longValue());
     }
-
-    static String SPO = "SELECT * WHERE {?s ?p ?o}";
-
-
-    static String QUERY_NO_THREADS = """
-    SELECT  *
-WHERE
-  { { {   {   {   {   { { SELECT  *
-                          WHERE
-                            { BIND(<http://www.wikidata.org/entity/Q148> AS ?x2)
-                              ?x1  <http://www.wikidata.org/prop/direct/P17>  ?x2
-                            }
-                          OFFSET  237444
-                        }
-                      }
-                    UNION
-                      { { SELECT  *
-                          WHERE
-                            { BIND(<http://www.wikidata.org/entity/Q36> AS ?x2)
-                              ?x1  <http://www.wikidata.org/prop/direct/P17>  ?x2
-                            }
-                          OFFSET  79383
-                        }
-                      }
-                  }
-                UNION
-                  { { SELECT  *
-                      WHERE
-                        { BIND(<http://www.wikidata.org/entity/Q34> AS ?x2)
-                          ?x1  <http://www.wikidata.org/prop/direct/P17>  ?x2
-                        }
-                      OFFSET  155402
-                    }
-                  }
-              }
-            UNION
-              { { SELECT  *
-                  WHERE
-                    { BIND(<http://www.wikidata.org/entity/Q55> AS ?x2)
-                      ?x1  <http://www.wikidata.org/prop/direct/P17>  ?x2
-                    }
-                  OFFSET  334329
-                }
-              }
-          }
-        UNION
-          {   {   {   {   {   {   { { SELECT  *
-                                      WHERE
-                                        { ?x2  <http://www.wikidata.org/prop/direct/P31>  <http://www.wikidata.org/entity/Q6256> }
-                                      OFFSET  35
-                                      LIMIT   6
-                                    }
-                                  }
-                                UNION
-                                  { { SELECT  *
-                                      WHERE
-                                        { ?x2  <http://www.wikidata.org/prop/direct/P31>  <http://www.wikidata.org/entity/Q6256> }
-                                      OFFSET  75
-                                      LIMIT   1
-                                    }
-                                  }
-                              }
-                            UNION
-                              { { SELECT  *
-                                  WHERE
-                                    { ?x2  <http://www.wikidata.org/prop/direct/P31>  <http://www.wikidata.org/entity/Q6256> }
-                                  OFFSET  23
-                                  LIMIT   6
-                                }
-                              }
-                          }
-                        UNION
-                          { { SELECT  *
-                              WHERE
-                                { ?x2  <http://www.wikidata.org/prop/direct/P31>  <http://www.wikidata.org/entity/Q6256> }
-                              OFFSET  89
-                              LIMIT   5
-                            }
-                          }
-                      }
-                    UNION
-                      { { SELECT  *
-                          WHERE
-                            { ?x2  <http://www.wikidata.org/prop/direct/P31>  <http://www.wikidata.org/entity/Q6256> }
-                          OFFSET  41
-                          LIMIT   6
-                        }
-                      }
-                  }
-                UNION
-                  { { SELECT  *
-                      WHERE
-                        { ?x2  <http://www.wikidata.org/prop/direct/P31>  <http://www.wikidata.org/entity/Q6256> }
-                      OFFSET  33
-                      LIMIT   2
-                    }
-                  }
-              }
-            UNION
-              { { SELECT  *
-                  WHERE
-                    { ?x2  <http://www.wikidata.org/prop/direct/P31>  <http://www.wikidata.org/entity/Q6256> }
-                  OFFSET  47
-                  LIMIT   11
-                }
-              }
-            ?x1  <http://www.wikidata.org/prop/direct/P17>  ?x2
-          }
-        ?x1  <http://www.wikidata.org/prop/direct/P31>  <http://www.wikidata.org/entity/Q515>
-      }
-      ?x1  <http://www.wikidata.org/prop/direct/P6>  ?x3
-    }
-    ?x3  <http://www.wikidata.org/prop/direct/P39>  <http://www.wikidata.org/entity/Q30185>
-  }
-""";
-
-
-private static String QUERY_2 = """
-        SELECT  *
-        WHERE
-          { { { { SELECT  *
-                  WHERE
-                    { BIND(<http://www.wikidata.org/entity/Q183> AS ?x2)
-                      ?x1  <http://www.wikidata.org/prop/direct/P17>  ?x2
-                    }
-                  OFFSET  616097
-                }
-                ?x1  <http://www.wikidata.org/prop/direct/P31>  <http://www.wikidata.org/entity/Q515>
-              }
-              ?x1  <http://www.wikidata.org/prop/direct/P6>  ?x3
-            }
-            ?x3  <http://www.wikidata.org/prop/direct/P39>  <http://www.wikidata.org/entity/Q30185>
-          }
-        """;
 
 //
 //    @Disabled
