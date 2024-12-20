@@ -1,18 +1,14 @@
 package fr.gdd.passage.hdt;
 
-import com.bigdata.rdf.spo.SPO;
 import fr.gdd.passage.commons.exceptions.NotFoundException;
 import fr.gdd.passage.commons.interfaces.SPOC;
-import fr.gdd.passage.databases.inmemory.IM4HDT;
+import fr.gdd.passage.hdt.datasets.HDTInMemoryDatasetsFactory;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.rdfhdt.hdt.hdt.HDTFactory;
 import org.rdfhdt.hdt.hdt.HDTManager;
-import org.rdfhdt.hdt.triples.TripleID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,8 +18,8 @@ class HDTBackendTest {
     private final static Logger log = LoggerFactory.getLogger(HDTBackendTest.class);
 
     @Test
-    public void create_a_small_inmemory_dataset () {
-        HDTBackend backend = new HDTBackend(IM4HDT.triples9());
+    public void create_a_small_inmemory_dataset () throws Exception {
+        HDTBackend backend = new HDTBackend(HDTInMemoryDatasetsFactory.triples9());
         HDTIterator it = (HDTIterator) backend.search(backend.any(), backend.any(), backend.any());
         int count = 0;
         while (it.hasNext()) {
@@ -45,20 +41,22 @@ class HDTBackendTest {
         }
 
         assertEquals(4, count);
+        backend.close();
     }
 
     @Test
-    public void element_not_found () {
-        HDTBackend backend = new HDTBackend(IM4HDT.triples9());
+    public void element_not_found () throws Exception {
+        HDTBackend backend = new HDTBackend(HDTInMemoryDatasetsFactory.triples9());
         assertThrows(NotFoundException.class, () ->  backend.getId("not exists", SPOC.PREDICATE));
 
         // It should throw because Alice does not exist as predicate, only as subject
         assertThrows(NotFoundException.class, () ->  backend.getId("<http://Alice>", SPOC.PREDICATE));
+        backend.close();
     }
 
     @Test
-    public void may_i_skip_some_elements_of_iterator () {
-        HDTBackend backend = new HDTBackend(IM4HDT.triples9());
+    public void may_i_skip_some_elements_of_iterator () throws Exception {
+        HDTBackend backend = new HDTBackend(HDTInMemoryDatasetsFactory.triples9());
         HDTIterator all = (HDTIterator) backend.search(backend.any(), backend.any(), backend.any());
 
         all.skip(5L); // -5 results out of 9
@@ -68,11 +66,12 @@ class HDTBackendTest {
             ++count;
         }
         assertEquals(4, count);
+        backend.close();
     }
 
-    @Disabled
+    @Disabled("Only to try which indexes allow skipping.")
     @Test
-    public void skip_on_each_kind_of_iterator () throws IOException {
+    public void skip_on_each_kind_of_iterator () throws Exception {
         // TODO this does not pass, because the hdt-java might have an issue, see
         //  for more info: <https://github.com/Chat-Wane/passage/issues/7>
         // HDTBackend backend = new HDTBackend(IM4HDT.triples9());
@@ -108,11 +107,13 @@ class HDTBackendTest {
 
         // it = (HDTIterator) backend.search(any, pId, oId);
         // it.skip(1L);
+        backend.close();
     }
 
+    @Disabled("Cannot skip on any triple pattern index.")
     @Test
-    public void getting_random_elements_from_an_iterator () {
-        HDTBackend backend = new HDTBackend(IM4HDT.triples9());
+    public void getting_random_elements_from_an_iterator () throws Exception {
+        HDTBackend backend = new HDTBackend(HDTInMemoryDatasetsFactory.triples9());
         Long aliceId = backend.getId("<http://Alice>", SPOC.SUBJECT);
         HDTIterator it = (HDTIterator) backend.search(aliceId, backend.any(), backend.any());
 
@@ -128,6 +129,35 @@ class HDTBackendTest {
 
         assertEquals(4, objects.size());
         log.debug("{}", objects);
+        backend.close();
     }
 
+
+    @Disabled("Only here to assess the time required to go to a particular index.")
+    @Test
+    public void count_all_elements_using_has_next_next () throws Exception {
+        // HDTBackend backend = new HDTBackend("/Users/skoazell/Desktop/Projects/datasets/wdbench-hdt/wdbench.hdt");
+        HDTBackend backend = new HDTBackend("/Users/skoazell/Desktop/Projects/datasets/watdiv10m-hdt/watdiv.10M.hdt");
+        HDTManager.indexedHDT(backend.hdt, null);
+        final long SKIP = 10_000_000L; // roughly the end of the dataset on spo
+
+        long start = System.currentTimeMillis();
+        var any = backend.any();
+        for (int i = 0; i < 100; i++) {
+            var it = (HDTIterator) backend.search(any, any, any);
+            it.skip(SKIP);
+
+        }
+        long elapsed = System.currentTimeMillis() - start;
+        log.debug("Took {}ms to skip to {}", elapsed, SKIP);
+
+//        long remaining = 0L;
+//        while (it.hasNext()) {
+//            it.next();
+//            remaining++;
+//        }
+//        log.debug("remaining {}", remaining);
+
+        backend.close();
+    }
 }

@@ -27,7 +27,7 @@ public class BackendCache<ID,VALUE> {
         ID id = node2id.get(node);
 
         if (Objects.isNull(id)) {
-            id = backend.getId(NodeFmtLib.strNT(node));
+            id = backend.getId(NodeFmtLib.strNT(node), spoc);
             node2id.put(node, id);
         }
 

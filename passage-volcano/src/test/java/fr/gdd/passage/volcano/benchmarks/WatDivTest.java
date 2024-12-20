@@ -1,6 +1,7 @@
 package fr.gdd.passage.volcano.benchmarks;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
+import fr.gdd.passage.hdt.HDTBackend;
 import fr.gdd.passage.volcano.ExecutorUtils;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
@@ -30,13 +31,16 @@ import java.util.stream.Stream;
 @Deprecated
 public class WatDivTest {
 
+    private final static Logger log = LoggerFactory.getLogger(WatDivTest.class);
+
+    static final long TIMEOUT = 1000L * 60L; // 1 minutes
+    static final int REPEAT = 3; // 3 runs for each
+
     // public static final String PATH = "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl";
     public static final String PATH = "/Users/skoazell/Desktop/Projects/datasets/watdiv10m-blaze/watdiv10M.jnl";
     public static final String PATH_TO_QUERIES = "/Users/skoazell/Desktop/Projects/sage-jena-benchmarks/queries/watdiv10m-sage-ordered/";
 
-    private final static Logger log = LoggerFactory.getLogger(WatDivTest.class);
     public static BlazegraphBackend watdiv;
-
     static {
         try {
             watdiv = new BlazegraphBackend(PATH);
@@ -45,12 +49,19 @@ public class WatDivTest {
         }
     }
 
-    static final long TIMEOUT = 1000L * 60L; // 1 minutes
-    static final int REPEAT = 3; // 3 runs for each
+    public static final String PATH_HDT = "/Users/skoazell/Desktop/Projects/datasets/watdiv10m-hdt/watdiv.10M.hdt";
+    public static HDTBackend watdivHDT;
+    static {
+        try {
+            watdivHDT = new HDTBackend(PATH_HDT);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     private static Stream<Pair<String, String>> queries() throws IOException {
         List<Pair<String,String>> queries = new ArrayList<>();
-        try (var queryFiles = Files.newDirectoryStream(Path.of(PATH_TO_QUERIES), "*.sparql")) {
+        try (var queryFiles = Files.newDirectoryStream(Path.of(PATH_TO_QUERIES), "query_10044.sparql")) {
             for (var q : queryFiles) {
                 queries.add(new ImmutablePair<>(q.getFileName().toString(), Files.readString(q)));
             }
@@ -60,29 +71,30 @@ public class WatDivTest {
 
     public static Stream<Arguments> configurations () {
         Integer[] parallels = {1, 4}; // 1 and 4 to compare with paper's measurements
-        return Arrays.stream(parallels).flatMap(parallel -> {
-            try {
-                return queries().flatMap(q ->
-                        IntStream.rangeClosed(1, REPEAT).mapToObj(ignored ->
-                                Arguments.of(
-                                        new PassageExecutionContextBuilder<>()
-                                                .setTimeout(TIMEOUT)
-                                                .setMaxParallel(parallel)
-                                                .setName("PUSH")
-                                                .setExecutorFactory((ec) -> new PassagePushExecutor<>((PassageExecutionContext<?,?>) ec)),
-                                        q.getLeft(), // name
-                                        q.getRight()) // query
-                        ));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        return Stream.of(watdiv, watdivHDT).flatMap(backend ->
+                Arrays.stream(parallels).flatMap(parallel -> {
+                    try {
+                        return queries().flatMap(q ->
+                                IntStream.rangeClosed(1, REPEAT).mapToObj(ignored ->
+                                        Arguments.of(
+                                                new PassageExecutionContextBuilder<>()
+                                                        .setTimeout(TIMEOUT)
+                                                        .setMaxParallel(parallel)
+                                                        .setBackend(backend)
+                                                        .setName(String.format("%s PUSH", backend.getClass().getSimpleName()))
+                                                        .setExecutorFactory((ec) -> new PassagePushExecutor<>((PassageExecutionContext<?,?>) ec)),
+                                                q.getLeft(), // name
+                                                q.getRight()) // query
+                                ));
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }));
     }
 
     @ParameterizedTest
     @MethodSource("configurations")
     public void benchmark_passage_on_watdiv (PassageExecutionContextBuilder<?,?> builder, String name, String query) {
-        builder.setBackend(watdiv);
         ExecutorUtils.log = LoggerFactory.getLogger("none");
         LongAdder counter = new LongAdder();
 
@@ -96,8 +108,9 @@ public class WatDivTest {
     @ParameterizedTest
     @MethodSource("configurations")
     public void benchmark_passage_on_watdiv_query (PassageExecutionContextBuilder<?,?> builder, String name, String query) {
-        builder.setBackend(watdiv);
-        query = "SELECT * WHERE { ?s ?p ?o }";
+        builder.forceOrder();
+        query = QUERY_10044_WITH_BLAZEGRAPH_CARDINALITY_FORCE_ORDER;
+        // query = "SELECT * WHERE { ?s ?p ?o }";
         ExecutorUtils.log = LoggerFactory.getLogger("none");
         LongAdder counter = new LongAdder();
 
@@ -107,6 +120,32 @@ public class WatDivTest {
         log.debug("{}", builder);
         log.debug("{}: Took {} ms to process {} results.", name, elapsed, counter.longValue());
     }
+
+
+    private static String QUERY_10044_WITH_BLAZEGRAPH_CARDINALITY_FORCE_ORDER = """
+            SELECT  ?v2 ?v1 ?v6 ?v3 ?v7 ?v5 ?v8 ?v9 ?v4
+            WHERE
+              { { { { { { { { { <http://db.uwaterloo.ca/~galuc/wsdbm/City208>
+                                          <http://www.geonames.org/ontology#parentCountry>  ?v1 .\s
+                                ?v6  <http://schema.org/nationality>  ?v1
+                              }
+                              ?v6  <http://db.uwaterloo.ca/~galuc/wsdbm/likes>  ?v3
+                            }
+                            ?v2  <http://purl.org/goodrelations/includes>  ?v3
+                          }
+                          ?v2  <http://purl.org/goodrelations/validThrough>  ?v5
+                        }
+                        ?v2  <http://purl.org/goodrelations/serialNumber>  ?v4
+                      }
+                      ?v2  <http://schema.org/eligibleQuantity>  ?v8
+                    }
+                    ?v6  a  ?v7
+                  }
+                  ?v9  <http://db.uwaterloo.ca/~galuc/wsdbm/purchaseFor>  ?v3
+                }
+                ?v2  <http://schema.org/eligibleRegion>  ?v1
+              }
+            """;
 
 //    @Disabled
 //    @Test

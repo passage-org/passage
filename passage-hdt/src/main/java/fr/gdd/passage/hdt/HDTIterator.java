@@ -8,7 +8,7 @@ import org.rdfhdt.hdt.triples.TripleID;
 
 import java.util.Random;
 
-public class HDTIterator  extends BackendIterator<Long, String, Long> {
+public class HDTIterator  extends BackendIterator<Long, String> {
     public static ThreadLocal<Random> RNG = ThreadLocal.withInitial(() -> {
         // Seed can be derived from a common seed or generated uniquely per thread
         long seed = System.nanoTime() + Thread.currentThread().threadId();
@@ -66,23 +66,42 @@ public class HDTIterator  extends BackendIterator<Long, String, Long> {
         this.current = null;
     }
 
+
+    /**
+     * As of 20dec of 2024, only a few skips work with the index:
+     * `?s ?p ?o`, `?s P O` and `?s ?p O`.
+     * The rest of indexes we still process by calling next until
+     * the offset is reached.
+     * @param to The cursor location to skip to.
+     */
     @Override
-    public void skip(Long to) {
-        this.iterator.goTo(to);
-        this.offset = to;
+    public void skip(long to) {
+        if (this.iterator.canGoTo()) {
+            this.iterator.goTo(to);
+            this.offset = to;
+        } else {
+            while (to > this.offset && this.iterator.hasNext()) {
+                this.iterator.next();
+                ++this.offset;
+            }
+        }
         this.current = null;
     }
 
     @Override
-    public Long current() {
+    public long current() {
         return this.offset;
     }
 
     @Override
-    public Long previous() {
+    public long previous() {
         return this.offset - 1;
     }
 
+    /**
+     * Some indexes all jumping to random offset, however the others don't.
+     * @return The probability to choose this value.
+     */
     @Override
     public Double random() {
         this.current = null;

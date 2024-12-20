@@ -22,7 +22,7 @@
     <module>jena-utils</module>
     <module>passage-commons</module>
     <module>passage-blazegraph</module>
-    <!-- <module>passage-hdt</module> --> <!-- uncomment when issue_#7 is solved --> 
+    <module>passage-hdt</module> <!-- uncomment when issue_#7 is solved -->
     <module>passage-volcano</module>
     <module>passage-cli</module>
     <module>raw-tdb2</module>
@@ -73,6 +73,11 @@
       <dependency>
         <groupId>fr.gdd</groupId>
         <artifactId>passage-blazegraph</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>fr.gdd</groupId>
+        <artifactId>passage-hdt</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -151,6 +156,11 @@
       <dependency>
         <groupId>org.apache.jena</groupId>
         <artifactId>jena-base</artifactId>
+        <version>${jena.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.jena</groupId>
+        <artifactId>jena-core</artifactId>
         <version>${jena.version}</version>
       </dependency>
 

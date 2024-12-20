@@ -3,17 +3,21 @@ package fr.gdd.passage.hdt;
 import fr.gdd.passage.commons.exceptions.NotFoundException;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
+import org.apache.jena.riot.RiotException;
+import org.apache.jena.sparql.expr.NodeValue;
 import org.rdfhdt.hdt.hdt.HDT;
 import org.rdfhdt.hdt.hdt.HDTManager;
 
 import java.io.IOException;
+import java.util.Objects;
 
-public class HDTBackend implements Backend<Long, String, Long> {
+public class HDTBackend implements Backend<Long, String> {
 
     final HDT hdt;
 
     public HDTBackend(String path) throws IOException {
         this.hdt = HDTManager.loadHDT(path);
+        HDTManager.indexedHDT(this.hdt, null);
     }
 
     public HDTBackend(HDT hdt) {
@@ -21,12 +25,15 @@ public class HDTBackend implements Backend<Long, String, Long> {
     }
 
     @Override
-    public BackendIterator<Long, String, Long> search(Long s, Long p, Long o) {
-        return new HDTIterator(this, s, p, o);
+    public BackendIterator<Long, String> search(Long s, Long p, Long o) {
+        return new HDTIterator(this,
+                Objects.isNull(s) ? any() : s,
+                Objects.isNull(p) ? any() : p,
+                Objects.isNull(o) ? any() : o);
     }
 
     @Override
-    public BackendIterator<Long, String, Long> search(Long s, Long p, Long o, Long c) {
+    public BackendIterator<Long, String> search(Long s, Long p, Long o, Long c) {
         throw new UnsupportedOperationException("HDT does not support quads.");
     }
 
@@ -49,14 +56,26 @@ public class HDTBackend implements Backend<Long, String, Long> {
     public Long getId(String s, int... type) {
         long id = this.hdt.getDictionary().stringToId(s, SPOC2TripleComponentRole.toTripleComponentRole(type[0]));
         if (id <= 0) {
-            throw new NotFoundException(s);
-        } else {
-            return id;
+            try {
+                NodeValue nv = NodeValue.parse(s);
+                id = this.hdt.getDictionary().stringToId(nv.asString(), SPOC2TripleComponentRole.toTripleComponentRole(type[0]));
+                if (id <= 0) {
+                    throw new NotFoundException(s);
+                }
+            } catch (RiotException re) {
+                throw new NotFoundException(s);
+            }
         }
+        return id;
     }
 
     @Override
     public String getValue(String value, int... type) {
         return value;
+    }
+
+    @Override
+    public void close() throws Exception {
+        this.hdt.close();
     }
 }
