@@ -16,17 +16,20 @@ public class PausableStreamProject<ID,VALUE> implements PausableStream<ID,VALUE>
     final PausableStream<ID,VALUE> wrapped;
     final PassagePushExecutor<ID,VALUE> executor;
     final OpProject project;
+    final BackendBindings<ID,VALUE> input;
 
     public PausableStreamProject(PassageExecutionContext<ID,VALUE> context, BackendBindings<ID,VALUE> input, OpProject project) {
         this.executor = (PassagePushExecutor<ID, VALUE>) context.executor;
-        this.wrapped = executor.visit(project.getSubOp(), input);
+        this.wrapped = executor.visit(project.getSubOp(), input); // check if could be a problem to inject the input in the subquery
+        // this.wrapped = executor.visit(project.getSubOp(), context.bindingsFactory.get());
         this.project = project;
+        this.input = input;
     }
 
     @Override
     public Stream<BackendBindings<ID, VALUE>> stream() {
         // TODO instead of copy, put a filter in the bindings
-        return wrapped.stream().map(i -> new BackendBindings<>(i, project.getVars()));
+        return wrapped.stream().map(i -> new BackendBindings<>(i, project.getVars()).setParent(input));
     }
 
     @Override

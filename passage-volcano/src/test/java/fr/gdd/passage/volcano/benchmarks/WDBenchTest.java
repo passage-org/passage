@@ -44,7 +44,8 @@ public class WDBenchTest {
 
     private final static Logger log = LoggerFactory.getLogger(WDBenchTest.class);
 
-    public final static String PATH = "/Users/nedelec-b-2/Desktop/Projects/temp/wdbench-blaze/wdbench-blaze.jnl";
+    // public final static String PATH = "/Users/nedelec-b-2/Desktop/Projects/temp/wdbench-blaze/wdbench-blaze.jnl";
+    public final static String PATH = "/Users/skoazell/Desktop/Projects/datasets/wdbench-blaze/wdbench-blaze.jnl";
     public final static String PATH_TO_QUERIES = "/Users/nedelec-b-2/Desktop/Projects/sage-jena-benchmarks/queries/passage-wdbench-multiple-tps/";
     public static BlazegraphBackend wdbench;
 
@@ -60,13 +61,14 @@ public class WDBenchTest {
     static final int REPEAT = 3; // 3 runs for each
 
     private static Stream<Pair<String, String>> queries() throws IOException {
-        List<Pair<String,String>> queries = new ArrayList<>();
-        try (var queryFiles = Files.newDirectoryStream(Path.of(PATH_TO_QUERIES), "query_358.sparql")) {
-            for (var q : queryFiles) {
-                queries.add(new ImmutablePair<>(q.getFileName().toString(), Files.readString(q)));
-            }
-        }
-        return queries.stream();
+//        List<Pair<String,String>> queries = new ArrayList<>();
+//        try (var queryFiles = Files.newDirectoryStream(Path.of(PATH_TO_QUERIES), "query_358.sparql")) {
+//            for (var q : queryFiles) {
+//                queries.add(new ImmutablePair<>(q.getFileName().toString(), Files.readString(q)));
+//            }
+//        }
+        // return queries.stream();
+        return Stream.of(new ImmutablePair<>("spo" , "SELECT * WHERE {?s ?p ?o}"));
     }
 
     public static Stream<Arguments> configurations () throws IOException {
@@ -75,7 +77,7 @@ public class WDBenchTest {
                 Arguments.of(
                 new PassageExecutionContextBuilder<>()
                         .setTimeout(TIMEOUT)
-                        .setMaxParallel(100) // 4 to compare with paper's measurements
+                        .setMaxParallel(4) // 4 to compare with paper's measurements
                         .setName("PUSH")
                         .setExecutorFactory((ec) -> new PassagePushExecutor<>((PassageExecutionContext<?,?>) ec))
                         // .setName("PULL")
@@ -90,7 +92,7 @@ public class WDBenchTest {
     @MethodSource("configurations")
     public void benchmark_passage_on_wdbench_multiple_tps (PassageExecutionContextBuilder<?,?> builder, String name, String query) {
         builder.setBackend(wdbench);
-        // ExecutorUtils.log = LoggerFactory.getLogger("none");
+        ExecutorUtils.log = LoggerFactory.getLogger("none");
         LongAdder counter = new LongAdder();
 
         long start = System.currentTimeMillis();

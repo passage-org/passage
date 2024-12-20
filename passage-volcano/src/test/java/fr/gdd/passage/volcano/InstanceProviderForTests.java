@@ -49,11 +49,11 @@ public class InstanceProviderForTests {
      *         is allowed, and parallelism is disabled.
      */
     static Stream<PassageExecutionContextBuilder<?,?>> multiThreadsPush () {
-        Integer[] maxParallel = {2};
+        Integer[] maxParallel = {2, 5, 10};
         return Arrays.stream(maxParallel).map(p -> new PassageExecutionContextBuilder<>()
                 .setName("PUSH")
                 .setMaxParallel(p)
-                .setMaxScans(3L)
+                // .setMaxScans(3L)
                 .setExecutorFactory((ec) -> new PassagePushExecutor<>((PassageExecutionContext<?,?>) ec)));
     }
 

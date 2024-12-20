@@ -13,6 +13,8 @@ public interface BackendAccumulator<ID,VALUE> {
 
     VALUE getValue();
 
+    default boolean gotIncremented() { throw new UnsupportedOperationException(); } // remove default
+
     /**
      * @return The value processed internally as a Java Double.
      */

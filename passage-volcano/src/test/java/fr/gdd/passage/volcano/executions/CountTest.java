@@ -26,7 +26,9 @@ public class CountTest {
     private final static Logger log = LoggerFactory.getLogger(CountTest.class);
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#multiThreadsPush")
     public void simple_count_on_a_single_triple_pattern(PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -35,12 +37,14 @@ public class CountTest {
         var results = ExecutorUtils.execute(query, builder);
         assertEquals(1, results.size()); // ?count = 3
         assertTrue(MultisetResultChecking.containsResult(results, List.of("count"),
-                List.of("3")));
+                List.of("\"3\"")));
         blazegraph.close();
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#multiThreadsPush")
     public void count_of_tp_but_stops_inside_the_operator_focusing_on_last_step (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -57,7 +61,9 @@ public class CountTest {
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#multiThreadsPush")
     public void count_of_something_that_does_not_exist_is_zero(PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, QueryEvaluationException, MalformedQueryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -70,12 +76,14 @@ public class CountTest {
         assertEquals(1, results.size()); // not even a ?count = 0
         assertTrue(MultisetResultChecking.containsResult(results,
                 List.of("count"),
-                List.of("0")));
+                List.of("\"0\"")));
         blazegraph.close();
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#multiThreadsPush")
     public void variable_undefined_in_subquery (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, QueryEvaluationException, MalformedQueryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -86,12 +94,14 @@ public class CountTest {
 
         var results = ExecutorUtils.execute(query, builder);
         assertEquals(1, results.size());
-        assertTrue(MultisetResultChecking.containsResult(results, List.of("count"), List.of("0")));
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("count"), List.of("\"0\"")));
         blazegraph.close();
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#multiThreadsPush")
     public void count_in_bgp_without_results (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, QueryEvaluationException, MalformedQueryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -106,12 +116,14 @@ public class CountTest {
 
         var results = ExecutorUtils.execute(query, builder);
         assertEquals(1, results.size());
-        assertTrue(MultisetResultChecking.containsResult(results, List.of("count"), List.of("0")));
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("count"), List.of("\"0\"")));
         blazegraph.close();
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#multiThreadsPush")
     public void count_on_bgp_should_pause_in_bgp_without_providing_result (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -123,12 +135,14 @@ public class CountTest {
 
         var results = ExecutorUtils.execute(queryAsString, builder);
         assertEquals(1, results.size()); // 1 result where ?count = 3
-        assertTrue(MultisetResultChecking.containsResult(results, List.of("count"), List.of("3")));
+        assertTrue(MultisetResultChecking.containsResult(results, List.of("count"), List.of("\"3\"")));
         blazegraph.close();
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#multiThreadsPush")
     public void count_on_a_specific_variable_but_still_tp (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, QueryEvaluationException, MalformedQueryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -140,12 +154,14 @@ public class CountTest {
         var results = ExecutorUtils.execute(query, builder);
         assertEquals(1, results.size()); // ?count = 3
         assertTrue(MultisetResultChecking.containsResult(results, List.of("count"),
-                List.of("3")));
+                List.of("\"3\"")));
         blazegraph.close();
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#multiThreadsPush")
     public void count_in_optional_so_everything_does_not_count (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, QueryEvaluationException, MalformedQueryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -160,12 +176,14 @@ public class CountTest {
         var results = ExecutorUtils.execute(query, builder);
         assertEquals(1, results.size()); // ?count = 3
         assertTrue(MultisetResultChecking.containsResult(results, List.of("count"),
-                List.of("3"))); // if count=5, it means that the iterator wrongfully counted Bob and Carol…
+                List.of("\"3\""))); // if count=5, it means that the iterator wrongfully counted Bob and Carol…
         blazegraph.close();
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#multiThreadsPush")
     public void a_tp_join_with_a_count_subquery (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, QueryEvaluationException, MalformedQueryException, SailException {
         // The sub-query does not project `p`, so it should probably be a carthesian
         // product, unless the variable `p` is projected in the sub-query. However,
@@ -185,12 +203,14 @@ public class CountTest {
         var results = ExecutorUtils.execute(query, builder);
         assertEquals(3, results.size());
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "count"),
-                List.of("Alice", "3"), List.of("Bob", "3"), List.of("Carol", "3")));
+                List.of("Alice", "\"3\""), List.of("Bob", "\"3\""), List.of("Carol", "\"3\"")));
         blazegraph.close();
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#multiThreadsPush")
     public void count_with_bound_variables_projected_this_time_by_the_count (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, QueryEvaluationException, MalformedQueryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -211,7 +231,9 @@ public class CountTest {
     }
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#multiThreadsPush")
     public void count_with_group_by_at_the_top (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, QueryEvaluationException, MalformedQueryException, SailException {
         // For now, it throws because GROUP BY needs DISTINCT on keys when they are not bounded by the environment.
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
@@ -229,9 +251,10 @@ public class CountTest {
         blazegraph.close();
     }
 
-    @Disabled("Not implemented yet when multiple COUNTs in a single (sub-)query.")
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#multiThreadsPush")
     public void multiple_counts_in_a_single_aggregate (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, QueryEvaluationException, MalformedQueryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -247,13 +270,14 @@ public class CountTest {
         assertEquals(1, results.size());
         assertTrue(MultisetResultChecking.containsResult(results,
                 List.of("pCount", "aCount"),
-                List.of("3", "3"))); // both 3 since they count the same
+                List.of("\"3\"", "\"3\""))); // both 3 since they count the same
         blazegraph.close();
     }
 
-    @Disabled("Not implemented yet when multiple COUNTs in a single (sub-)query.")
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#multiThreadsPush")
     public void multiple_counts_in_a_single_aggregate_with_optional (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, QueryEvaluationException, MalformedQueryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -270,7 +294,7 @@ public class CountTest {
         assertEquals(1, results.size());
         assertTrue(MultisetResultChecking.containsResult(results,
                 List.of("pCount", "aCount"),
-                List.of("5", "3"))); // p: 3 Alices + Bob + Carol; a: dog + cat + snake
+                List.of("\"5\"", "\"3\""))); // p: 3 Alices + Bob + Carol; a: dog + cat + snake
         blazegraph.close();
     }
 

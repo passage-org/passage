@@ -11,6 +11,7 @@ import org.apache.jena.sparql.function.FunctionEnv;
 
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Collectors;
 
 /**
@@ -22,7 +23,7 @@ public class PassageCountAccumulator<ID,VALUE> implements BackendAccumulator<ID,
     final OpGroup opCount;
     final Set<Var> vars;
 
-    Integer value = 0;
+    LongAdder value = new LongAdder();
 
     public PassageCountAccumulator(ExecutionContext context, OpGroup opCount) {
         this.context = context;
@@ -33,17 +34,28 @@ public class PassageCountAccumulator<ID,VALUE> implements BackendAccumulator<ID,
                 .collect(Collectors.toSet());
     }
 
+    public PassageCountAccumulator(ExecutionContext context, OpGroup opCount, Set<Var> vars) {
+        this.vars = vars;
+        this.context = context;
+        this.opCount = opCount;
+    }
+
     @Override
     public void accumulate(BackendBindings<ID,VALUE> binding, FunctionEnv functionEnv) {
         if (vars.stream().anyMatch(v-> !binding.contains(v))) {
             return; // TODO check that the evaluation of the expression against the binding does not throw an error.
         }
-        value += 1;
+        value.increment();
     }
 
     @Override
     public VALUE getValue() {
         Backend<ID,VALUE> backend = context.getContext().get(BackendConstants.BACKEND);
-        return backend.getValue(String.format("\"%s\"^^<http://www.w3.org/2001/XMLSchema#integer>", value));
+        return backend.getValue(String.format("\"%s\"^^<http://www.w3.org/2001/XMLSchema#integer>", value.intValue()));
+    }
+
+    @Override
+    public boolean gotIncremented() {
+        return value.longValue() > 0;
     }
 }
