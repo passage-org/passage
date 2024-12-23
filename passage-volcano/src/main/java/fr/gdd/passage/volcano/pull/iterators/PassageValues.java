@@ -129,7 +129,7 @@ public class PassageValues<ID,VALUE> extends PausableIterator<ID,VALUE> implemen
             newTable.addBinding(this.table.get(i));
         }
 
-        return OpJoin.create(current.toOp(), OpTable.create(newTable));
+        return OpJoin.create(current.asBindAs(), OpTable.create(newTable));
     }
 
 }

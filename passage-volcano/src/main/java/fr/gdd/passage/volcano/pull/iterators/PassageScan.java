@@ -159,7 +159,7 @@ public class PassageScan<ID, VALUE> extends PausableIterator<ID,VALUE> implement
     public Op pause() {
         if (!this.hasNext()) { return null; }
 
-        Op toSave = OpJoin.create(input.toOp(), op);
+        Op toSave = OpJoin.create(input.asBindAs(), op);
         long newLimit = Objects.isNull(limit) || limit == Long.MIN_VALUE ? Long.MIN_VALUE : limit - produced;
         return new OpSlice(toSave, wrapped.current(), newLimit);
     }

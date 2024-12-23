@@ -4,7 +4,6 @@ import fr.gdd.passage.volcano.pull.PassagePullExecutor;
 import fr.gdd.passage.volcano.push.PassagePushExecutor;
 
 import java.util.Arrays;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class InstanceProviderForTests {

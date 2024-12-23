@@ -56,7 +56,7 @@ public class PausableStreamValues<ID,VALUE> implements PausableStream<ID,VALUE> 
         if (table.isJoinIdentity() && produced.longValue() > 0) {
             return Pause2Continuation.DONE;
         } else if (table.isJoinIdentity()) {
-            return input.toOp();
+            return input.asBindAs();
         }
 
         if (produced.longValue() >= table.getTable().size()) {

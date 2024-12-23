@@ -147,7 +147,7 @@ public class PassageCount<ID,VALUE> implements Iterator<BackendBindings<ID,VALUE
             cloned.getVarExprList().add(varFullName, newExpr);
         }
 
-        return OpJoin.create(input.toOp(), cloned); // add the environment mapping
+        return OpJoin.create(input.asBindAs(), cloned); // add the environment mapping
     }
 
 

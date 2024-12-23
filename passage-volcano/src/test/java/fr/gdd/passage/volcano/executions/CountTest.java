@@ -5,7 +5,6 @@ import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.volcano.ExecutorUtils;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.openrdf.query.MalformedQueryException;
@@ -19,8 +18,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@Disabled("Should be reworked.")
-@Deprecated
 public class CountTest {
 
     private final static Logger log = LoggerFactory.getLogger(CountTest.class);
@@ -165,8 +162,8 @@ public class CountTest {
     }
 
     @ParameterizedTest
-    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
     public void a_tp_join_with_a_count_subquery (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, QueryEvaluationException, MalformedQueryException, SailException {
         // The sub-query does not project `p`, so it should probably be a carthesian
         // product, unless the variable `p` is projected in the sub-query. However,
@@ -191,9 +188,9 @@ public class CountTest {
     }
 
     @ParameterizedTest
-    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
     // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#justGo")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#justGo")
     public void count_with_bound_variables_projected_this_time_by_the_count (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, QueryEvaluationException, MalformedQueryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -272,7 +269,7 @@ public class CountTest {
         assertEquals(1, results.size());
         assertTrue(MultisetResultChecking.containsResult(results,
                 List.of("pCount", "aCount"),
-                List.of("5", "3"))); // p: 3 Alices + Bob + Carol; a: dog + cat + snake
+                List.of("5", "3"))); // p: (3x Alice) + Bob + Carol; a: dog + cat + snake
         blazegraph.close();
     }
 

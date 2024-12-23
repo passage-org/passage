@@ -6,6 +6,7 @@ import org.apache.jena.query.QuerySolution;
 import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
+import org.apache.jena.sparql.algebra.table.TableN;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.expr.ExprList;
@@ -296,21 +297,35 @@ public class BackendBindings<ID, VALUE> implements Binding {
     }
 
     /**
-     * @return a SPARQL pattern that represents the state of this binding.
+     * @return a SPARQL pattern that represents the state of this binding
+     *         using a sequence of `BIND AS` clause.
      */
-    public Op toOp() {
-        Set<Var> vars = this.variables();
-
-        OpSequence seq = OpSequence.create();
+    public Op asBindAs() {
+         OpSequence seq = OpSequence.create();
+         Set<Var> vars = this.variables();
         for (Var v : vars) {
             seq.add(OpExtend.extend(OpTable.unit(), v, ExprUtils.parse(this.getBinding(v).getString())));
         }
-
         return switch (seq.size()) {
             case 0 -> OpTable.unit();
             case 1 -> seq.get(0);
             default -> seq;
         };
+    }
+
+    /**
+     * @return a SPARQL pattern that represents the state of this binding
+     *         using a `VALUES` clause.
+     */
+    public Op asValues() {
+        TableN bindingsAsVar = new TableN(new ArrayList<>(this.variables()));
+        bindingsAsVar.addBinding(this);
+        return OpTable.create(bindingsAsVar);
+    }
+
+
+    public Op toOp () {
+        return this.asValues(); // TODO depending on configuration
     }
 
     /**
