@@ -5,7 +5,7 @@ import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.generics.BackendSaver;
-import fr.gdd.passage.volcano.CanBeSkipped;
+import fr.gdd.passage.volcano.querypatterns.IsSkippableQuery;
 import fr.gdd.passage.volcano.pull.iterators.*;
 import fr.gdd.passage.volcano.transforms.Quad2Pattern;
 import fr.gdd.passage.volcano.transforms.Subqueries2LeftOfJoins;
@@ -132,7 +132,7 @@ public class Pause2Next<ID, VALUE> extends BackendSaver<ID,VALUE,Long> {
 
     @Override
     public Op visit(OpSlice slice) {
-        CanBeSkipped canBeSkipped = new CanBeSkipped();
+        IsSkippableQuery canBeSkipped = new IsSkippableQuery();
         if (canBeSkipped.visit((Op) slice)) { // simple OFFSET LIMIT query with only one triple pattern inside
             PassageLimitOffsetFactory.CompatibilityCheckIterator it = (PassageLimitOffsetFactory.CompatibilityCheckIterator) getIterator(slice);
             if (Objects.isNull(it)) { return null; }

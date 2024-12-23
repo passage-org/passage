@@ -5,7 +5,7 @@ import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.generics.BackendPullExecutor;
 import fr.gdd.passage.commons.generics.BackendSaver;
-import fr.gdd.passage.volcano.CanBeSkipped;
+import fr.gdd.passage.volcano.querypatterns.IsSkippableQuery;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.pull.PassagePullExecutor;
@@ -97,7 +97,7 @@ public class PassageLimitOffsetFactory<ID,VALUE> implements IBackendLimitOffsetF
             this.executor = executor;
             this.input = input;
 
-            Boolean canSkip = new CanBeSkipped().visit((Op) subquery);
+            Boolean canSkip = new IsSkippableQuery().visit((Op) subquery);
 
             if (canSkip) { // for simple sub-query comprising a single TP/QP, efficient skip is allowed.
                 PassageExecutionContext<ID,VALUE> subContext = ((PassageExecutionContext<ID, VALUE>) executor.context).clone();
@@ -154,7 +154,7 @@ public class PassageLimitOffsetFactory<ID,VALUE> implements IBackendLimitOffsetF
                 seq.add(OpExtend.extend(OpTable.unit(), v, ExprUtils.parse(input.getBinding(v).getString())));
             }
 
-            Boolean canSkip = new CanBeSkipped().visit((Op) subquery);
+            Boolean canSkip = new IsSkippableQuery().visit((Op) subquery);
             if (canSkip) {
                 seq.add(inside); // everything already included within `inside`.
             } else {

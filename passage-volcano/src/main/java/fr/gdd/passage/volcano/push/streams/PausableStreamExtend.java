@@ -4,9 +4,12 @@ import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.push.PassagePushExecutor;
+import fr.gdd.passage.volcano.querypatterns.IsGroupByQuery;
+import fr.gdd.passage.volcano.transforms.FactorizeExtends;
 import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpExtend;
+import org.apache.jena.sparql.algebra.op.OpJoin;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.expr.nodevalue.NodeValueNode;
@@ -54,6 +57,21 @@ public class PausableStreamExtend<ID,VALUE> implements PausableStream<ID, VALUE>
         Op subop = wrapped.pause();
         if (notExecuted(extend.getSubOp(), subop)) return extend;
         if (isDone(subop)) return DONE;
+
+        if (new IsGroupByQuery().visit(extend)) {
+            OpExtend op = (subop instanceof OpExtend subExtend) ?
+                    FactorizeExtends.factorize(extend, subExtend):
+                    OpCloningUtil.clone(extend, subop);
+
+            if (op.getSubOp() instanceof OpJoin join) {
+                Op inputToPushUp = join.getLeft();
+                Op groupByToKeep = join.getRight();
+
+                return OpJoin.create(inputToPushUp, OpCloningUtil.clone(op, groupByToKeep));
+            }
+            return op;
+        }
+
         return OpCloningUtil.clone(extend, subop);
     }
 }

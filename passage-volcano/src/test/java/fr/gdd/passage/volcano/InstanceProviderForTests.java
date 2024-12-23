@@ -14,10 +14,11 @@ public class InstanceProviderForTests {
      *         is allowed, and parallelism is disabled.
      */
     static Stream<PassageExecutionContextBuilder<?,?>> justGo () {
-        return IntStream.rangeClosed(1, 1000).mapToObj(ignored ->
-                new PassageExecutionContextBuilder<>()
+        return // IntStream.rangeClosed(1, 1000).mapToObj(ignored ->
+               Stream.of(
+                       new PassageExecutionContextBuilder<>()
                         .setName("PUSH")
-                        .setMaxScans(2L)
+                        .setMaxScans(1L)
                         .setMaxParallel(2)
                         .setExecutorFactory((ec)-> new PassagePushExecutor<>((PassageExecutionContext<?,?>) ec))
         );

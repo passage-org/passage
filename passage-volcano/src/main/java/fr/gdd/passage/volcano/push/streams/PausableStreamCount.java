@@ -1,20 +1,27 @@
 package fr.gdd.passage.volcano.push.streams;
 
+import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.interfaces.BackendAccumulator;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.pull.iterators.PassageCountAccumulator;
 import fr.gdd.passage.volcano.push.PassagePushExecutor;
 import org.apache.jena.sparql.algebra.Op;
+import org.apache.jena.sparql.algebra.op.OpExtend;
 import org.apache.jena.sparql.algebra.op.OpGroup;
 import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.expr.E_Add;
 import org.apache.jena.sparql.expr.ExprAggregator;
+import org.apache.jena.sparql.expr.ExprVar;
+import org.apache.jena.sparql.expr.NodeValue;
 import org.apache.jena.sparql.expr.aggregate.AggCount;
 import org.apache.jena.sparql.expr.aggregate.AggCountVar;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
+
+import static fr.gdd.passage.volcano.push.Pause2Continuation.notExecuted;
 
 public class PausableStreamCount<ID,VALUE> implements PausableStream<ID,VALUE> {
 
@@ -24,6 +31,7 @@ public class PausableStreamCount<ID,VALUE> implements PausableStream<ID,VALUE> {
     final BackendBindings<ID,VALUE> keys;
     final Map<Var, BackendAccumulator<ID,VALUE>> var2accumulator;
     final PausableStream<ID,VALUE> wrapped;
+    final Map<Var, Set<Var>> jenaId2queryId = new HashMap<>();
 
     public PausableStreamCount(PassageExecutionContext<ID,VALUE> context, BackendBindings<ID,VALUE> input, OpGroup count) {
         this.input = input;
@@ -44,8 +52,10 @@ public class PausableStreamCount<ID,VALUE> implements PausableStream<ID,VALUE> {
             Set<Var> vars; // TODO ugly, should be improved
             if (Objects.nonNull(agg.getAggregator().getExprList())) {
                 vars = agg.getAggregator().getExprList().getVarsMentioned();
+                jenaId2queryId.put(agg.getVar(), vars);
             } else {
                 vars = agg.getVarsMentioned();
+                jenaId2queryId.put(agg.getVar(), vars);
             }
             BackendAccumulator<ID,VALUE> passageCount = switch (agg.getAggregator()) {
                 case AggCount ignored -> new PassageCountAccumulator<>(context, count, vars);
@@ -85,8 +95,20 @@ public class PausableStreamCount<ID,VALUE> implements PausableStream<ID,VALUE> {
     }
 
     @Override
-    public Op pause() { // TODO
-        return null;
+    public Op pause() {
+        Op inside = wrapped.pause();
+        if (notExecuted(this.count.getSubOp(), inside)) return input.joinWith(count);
+
+        Op cloned = input.joinWith(OpCloningUtil.clone(count, inside));
+
+        for (Map.Entry<Var, BackendAccumulator<ID,VALUE>> entry : var2accumulator.entrySet()) {
+            PassageCountAccumulator<ID,VALUE> acc = (PassageCountAccumulator<ID,VALUE>) entry.getValue(); // TODO not cast
+            cloned = OpExtend.create(cloned, entry.getKey(),
+                    new E_Add(new ExprVar(entry.getKey()),
+                            NodeValue.makeInteger(acc.getCount())));
+        };
+
+        return cloned;
     }
 
     /* ************************************* UTILS ************************************* */

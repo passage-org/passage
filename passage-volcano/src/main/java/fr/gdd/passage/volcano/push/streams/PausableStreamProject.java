@@ -4,7 +4,9 @@ import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.push.PassagePushExecutor;
+import fr.gdd.passage.volcano.querypatterns.IsGroupByQuery;
 import org.apache.jena.sparql.algebra.Op;
+import org.apache.jena.sparql.algebra.op.OpJoin;
 import org.apache.jena.sparql.algebra.op.OpProject;
 
 import java.util.stream.Stream;
@@ -37,6 +39,15 @@ public class PausableStreamProject<ID,VALUE> implements PausableStream<ID,VALUE>
         Op subop = wrapped.pause();
         if (notExecuted(project.getSubOp(), subop)) return project;
         if (isDone(subop)) return DONE;
+
+        // If the project of a COUNT GROUP BY clause, then it should be pushed down
+        if (new IsGroupByQuery().visit(project) && subop instanceof OpJoin join) {
+            Op inputToPushUp = join.getLeft();
+            Op groupByToKeep = join.getRight();
+
+            return OpJoin.create(inputToPushUp, OpCloningUtil.clone(project, groupByToKeep));
+        }
+
         return OpCloningUtil.clone(project, subop);
     }
 }

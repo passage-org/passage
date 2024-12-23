@@ -2,7 +2,7 @@ package fr.gdd.passage.volcano.push.streams;
 
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
-import fr.gdd.passage.volcano.CanBeSkipped;
+import fr.gdd.passage.volcano.querypatterns.IsSkippableQuery;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.push.PassagePushExecutor;
 import fr.gdd.passage.volcano.push.Pause2Continuation;
@@ -29,7 +29,7 @@ public class PausableStreamLimitOffset<ID,VALUE> implements PausableStream<ID,VA
         this.slice = slice;
         this.input = input;
 
-        PassagePushExecutor<ID,VALUE> newExecutor = new CanBeSkipped().visit((Op) slice) ?
+        PassagePushExecutor<ID,VALUE> newExecutor = new IsSkippableQuery().visit((Op) slice) ?
                 new PassagePushExecutor<>(
                         // must be a clone so limit and offset are bound only in this subquery
                         new PassageExecutionContext<ID,VALUE>(((PassageExecutionContext<?, ?>) context).clone())
@@ -47,7 +47,7 @@ public class PausableStreamLimitOffset<ID,VALUE> implements PausableStream<ID,VA
 
         // if it can be skipped, the offset should be handled in the sub-executor
         // we don't count as it will be done in the subquery
-        if (!(new CanBeSkipped().visit((Op) slice))) {
+        if (!(new IsSkippableQuery().visit((Op) slice))) {
             // Otherwise, the sub-query is complex.
             // `skip` and `limit` cannot be used because they propagate downstream, so the logic at this level
             // is not executed despite its necessity.
@@ -79,7 +79,7 @@ public class PausableStreamLimitOffset<ID,VALUE> implements PausableStream<ID,VA
         }
 
         Op subquery;
-        if (new CanBeSkipped().visit((Op) slice)) {
+        if (new IsSkippableQuery().visit((Op) slice)) {
             subquery = inside;
         } else {
             if (slice.getLength() != Long.MIN_VALUE && actuallyProduced.longValue() >= slice.getLength()) { return Pause2Continuation.DONE; }

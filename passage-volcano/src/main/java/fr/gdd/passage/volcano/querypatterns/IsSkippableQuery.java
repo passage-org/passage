@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano;
+package fr.gdd.passage.volcano.querypatterns;
 
 import fr.gdd.jena.visitors.ReturningOpVisitor;
 import org.apache.jena.sparql.algebra.Op;
@@ -10,7 +10,7 @@ import org.apache.jena.sparql.algebra.op.*;
  * Mostly triple patterns and quad patterns, along with direct modifiers on them, e.g.
  * bounded variables.
  */
-public class CanBeSkipped extends ReturningOpVisitor<Boolean> {
+public class IsSkippableQuery extends ReturningOpVisitor<Boolean> {
 
     static private final Boolean NOT_ALLOWED = false;
     Integer nbTPQP = 0;

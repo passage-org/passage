@@ -54,6 +54,10 @@ public class PassageCountAccumulator<ID,VALUE> implements BackendAccumulator<ID,
         return backend.getValue(String.format("\"%s\"^^<http://www.w3.org/2001/XMLSchema#integer>", value.intValue()));
     }
 
+    public long getCount() {
+        return value.longValue();
+    }
+
     @Override
     public boolean gotIncremented() {
         return value.longValue() > 0;
