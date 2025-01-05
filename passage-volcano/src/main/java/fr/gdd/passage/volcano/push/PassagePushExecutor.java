@@ -135,4 +135,10 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
         return new PausableStreamCount<>(context, input, groupBy);
     }
 
+    @Override
+    public PausableStream<ID, VALUE> visit(OpDistinct distinct, BackendBindings<ID, VALUE> input) {
+        // TODO should be checked before execution
+
+        return super.visit(distinct, args);
+    }
 }

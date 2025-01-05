@@ -9,6 +9,15 @@ import org.apache.jena.sparql.algebra.op.OpProject;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Check if the Op subquery is a pattern corresponding to an aggregate group by.
+ * This is characterized by:
+ * Project
+ *     - Extend
+ *        - Extend
+ *            ...
+ *                + Group By
+ */
 public class IsGroupByQuery extends ReturningOpVisitor<Boolean> {
 
     OpProject opProject;
