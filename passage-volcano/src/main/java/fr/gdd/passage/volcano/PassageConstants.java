@@ -22,6 +22,7 @@ public class PassageConstants {
 
     static public final Symbol LIMIT = allocConstantSymbol("Limit"); // The limit of the subquery
     static public final Symbol OFFSET = allocConstantSymbol("Offset"); // The offset of the subquery
+    static public final Symbol PROJECT = allocConstantSymbol("Project"); // The projected values of the subquery
 
     static public final Symbol PAUSED = allocVariableSymbol("Paused"); // is the execution paused/stopped.
 

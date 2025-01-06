@@ -1,10 +1,12 @@
 package fr.gdd.passage.volcano.push.streams;
 
 import fr.gdd.passage.commons.generics.BackendBindings;
+import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpDistinct;
 
+import java.util.Spliterator;
 import java.util.stream.Stream;
 
 @Deprecated // TODO

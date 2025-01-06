@@ -217,7 +217,7 @@ public class BlazegraphDistinctIteratorVVXTest {
         log.debug("Ours: Took {}ms to get {} distinct results", elapsed, nbResults);
 
         assertEquals(results.size(), nbResults);
-        bb.close();
+        // bb.close(); // not close because watdiv may be used by multiple tests
     }
 
 
@@ -250,7 +250,7 @@ public class BlazegraphDistinctIteratorVVXTest {
         log.debug("Ours: Took {}ms to get {} distinct results", elapsed, nbResults);
 
         assertEquals(results.size(), nbResults);
-        bb.close();
+        // bb.close(); // not close because watdiv may be used by multiple tests
     }
 
 

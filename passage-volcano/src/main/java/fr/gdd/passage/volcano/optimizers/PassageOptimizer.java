@@ -1,6 +1,5 @@
 package fr.gdd.passage.volcano.optimizers;
 
-import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.transforms.*;
@@ -16,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Create the plan that will be used by the Executor afterward.
+ * TODO easy way to register and order visitor and transformer to be applied in configuration.
  */
 public class PassageOptimizer<ID,VALUE> {
 
@@ -33,17 +33,18 @@ public class PassageOptimizer<ID,VALUE> {
     public Op optimize(Op toOptimize) {
         toOptimize = Transformer.transform(new TransformFilterPlacement(), toOptimize);
 
-        toOptimize = ReturningOpVisitorRouter.visit(new Graph2Quads(), toOptimize);
+        toOptimize = new Graph2Quads().visit(toOptimize);
         if (!forceOrder) {
-            toOptimize = ReturningOpVisitorRouter.visit(new Triples2BGP(), toOptimize);
+            toOptimize = new Triples2BGP().visit(toOptimize);
             toOptimize = Transformer.transform(new TransformMergeBGPs(), toOptimize);
-            toOptimize = ReturningOpVisitorRouter.visit(new Quad2Patterns(), toOptimize);
+            toOptimize = new Quad2Patterns().visit(toOptimize);
             // for now, it's cardinality based only. TODO register them in lists
             toOptimize = new CardinalityJoinOrdering<>(backend, cache).visit(toOptimize); // need to have bgp to optimize, no tps
         }
 
-        toOptimize = ReturningOpVisitorRouter.visit(new Patterns2Quad(), toOptimize);
-        toOptimize = ReturningOpVisitorRouter.visit(new BGP2Triples(), toOptimize);
+        toOptimize = new DistinctQuery2QueryOfDistincts().visit(toOptimize);
+        toOptimize = new Patterns2Quad().visit(toOptimize);
+        toOptimize = new BGP2Triples().visit(toOptimize);
         toOptimize = Transformer.transform(new TransformPattern2Join(), toOptimize);
         toOptimize = Transformer.transform(new TransformSimplify(), toOptimize);
         // toOptimize = ReturningOpVisitorRouter.visit(new Subqueries2LeftOfJoins(), toOptimize);
