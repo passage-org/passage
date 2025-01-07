@@ -6,6 +6,7 @@ import com.bigdata.rdf.internal.IV;
 import com.bigdata.rdf.internal.impl.TermId;
 import com.bigdata.rdf.internal.impl.uri.VocabURIByteIV;
 import com.bigdata.rdf.model.BigdataLiteral;
+import com.bigdata.rdf.model.BigdataURI;
 import com.bigdata.rdf.model.BigdataValue;
 import com.bigdata.rdf.sail.BigdataSail;
 import com.bigdata.rdf.sail.BigdataSailRepository;
@@ -32,10 +33,7 @@ import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Backend for Blazegraph providing easy access to the most important
@@ -53,7 +51,8 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
     final BigdataSailRepository repository;
     final BigdataSailRepositoryConnection connection;
     final BigdataSail sail;
-
+    final IV defaultGraph;
+    final static IV UNION_OF_GRAPHS = null;
 
     public BlazegraphBackend() throws SailException, RepositoryException {
         System.setProperty("com.bigdata.Banner.quiet", "true"); // banner is annoying, sorry blazegraph
@@ -67,6 +66,7 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
         sail.initialize();
         this.connection = repository.getReadOnlyConnection();
         store = connection.getTripleStore();
+        defaultGraph = getDefaultGraph();
     }
 
     public BlazegraphBackend(String path) throws SailException, RepositoryException {
@@ -80,6 +80,7 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
         sail.initialize();
         this.connection = repository.getReadOnlyConnection();
         store = connection.getTripleStore();
+        defaultGraph = getDefaultGraph();
     }
 
     /**
@@ -91,6 +92,7 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
         this.connection = repository.getReadOnlyConnection();
         this.store = connection.getTripleStore();
         this.sail = sail;
+        defaultGraph = getDefaultGraph();
     }
 
     @Override
@@ -101,7 +103,7 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
 
     @Override
     public BackendIterator<IV, BigdataValue> search(IV s, IV p, IV o) {
-        return new BackendLazyIterator<>(this,new BlazegraphIterator(store, s, p, o, null));
+        return new BackendLazyIterator<>(this,new BlazegraphIterator(store, s, p, o, UNION_OF_GRAPHS));
     }
 
     @Override
@@ -111,14 +113,17 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
 
     @Override
     public BackendIterator<IV, BigdataValue> searchDistinct(IV s, IV p, IV o, Set<Integer> codes) {
-        // TODO add laziness
-        return BlazegraphDistinctIteratorFactory.get(store, s, p, o, null, codes);
+        // we assume that this is a triple store and that triples are not replicated in different graphs.
+        // However, this is subject to change. If so, we need a more consistent way to characterize the
+        // default graph, the union of graphs, and a specific graph.
+        Set<Integer> codesWithGraphs = new HashSet<>(codes);
+        codesWithGraphs.add(SPOC.GRAPH);
+        return BlazegraphDistinctIteratorFactory.get(store, s, p, o, UNION_OF_GRAPHS, codesWithGraphs); // TODO add laziness
     }
 
     @Override
     public BackendIterator<IV, BigdataValue> searchDistinct(IV s, IV p, IV o, IV c, Set<Integer> codes) {
-        // TODO add laziness
-        return BlazegraphDistinctIteratorFactory.get(store, s, p, o, c, codes);
+        return BlazegraphDistinctIteratorFactory.get(store, s, p, o, c, codes); // TODO add laziness
     }
 
     @Override
@@ -256,6 +261,14 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
     public IV any() {
         return null;
     }
+
+    // comes from : <https://github.com/blazegraph/database/blob/829ce8241ec29fddf7c893f431b57c8cf4221baf/bigdata-core/bigdata-rdf/src/java/com/bigdata/rdf/sparql/ast/eval/AST2BOpUpdateContext.java#L140>
+    public IV getDefaultGraph() {
+        BigdataURI nullGraph = store.getValueFactory().asValue(BigdataSail.NULL_GRAPH);
+        return store.addTerm(nullGraph);
+    }
+
+    /* ****************************************************************************** */
 
     /**
      * For debug purposes, this executes the query using blazegraph's engine.

@@ -33,6 +33,18 @@ public class BlazegraphDistinctIteratorFactory {
             }
         }
 
+        boolean fullySet = true;
+        for (int i = 0; i < ivs.length; ++i) {
+            if (Objects.isNull(ivs[i])) {
+                fullySet = false;
+            }
+        }
+        if (fullySet) {
+            // when all the unbounded variables are actually the one
+            // that need to be distinct, then the basic iterator works well.
+            return new BlazegraphIterator(store, s, p, o, c);
+        }
+
         IPredicate<ISPO> fakePredicate = store.getSPORelation().getPredicate(ivs[0], ivs[1], ivs[2], ivs[3]);
         IPredicate<ISPO> predicate = store.getSPORelation().getPredicate(s, p, o, c, null, null);
         IKeyOrder<ISPO> fakeKeyOrder = store.getSPORelation().getKeyOrder(fakePredicate);
