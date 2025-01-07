@@ -4,12 +4,10 @@ import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.transforms.DefaultGraphUriQueryModifier;
-import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutor;
 import fr.gdd.passage.volcano.exceptions.PauseException;
 import fr.gdd.passage.volcano.push.streams.*;
-import fr.gdd.passage.volcano.querypatterns.IsDistinctableQuery;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
@@ -138,21 +136,6 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
 
     @Override
     public PausableStream<ID, VALUE> visit(OpDistinct distinct, BackendBindings<ID, VALUE> input) {
-        // TODO should be checked before execution
-        //      for now, the condition is that all triple patterns in the distinct are connected
-        //      by a variable.
-        IsDistinctableQuery distinctable = new IsDistinctableQuery();
-        if (distinctable.visit((Op) distinct)) {
-            if (Objects.isNull(distinctable.project)) {
-                // project all so it works by default, no need for specific protocol
-                return this.visit(distinct.getSubOp(), input);
-            } else {
-                // but otherwise, need to be extra careful with the index chosen
-                PassageExecutionContext<ID, VALUE> newContext = new PassageExecutionContext<>(((PassageExecutionContext<?, ?>) context).clone());
-                newContext.getContext().set(PassageConstants.PROJECT, distinctable.project);
-                return new PausableStreamWrapper<>(newContext, input, distinctable.tripleOrQuad, SpliteratorDistinct::new);
-            }
-        }
-        throw new UnsupportedOperationException("The distinct function is not implemented.");
+        return new PausableStreamDistinct<>(context, input, distinct);
     }
 }

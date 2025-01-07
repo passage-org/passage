@@ -13,10 +13,7 @@ import fr.gdd.passage.volcano.exceptions.PauseException;
 import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.atlas.lib.tuple.TupleFactory;
 import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.algebra.op.Op0;
-import org.apache.jena.sparql.algebra.op.OpProject;
-import org.apache.jena.sparql.algebra.op.OpQuad;
-import org.apache.jena.sparql.algebra.op.OpTriple;
+import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.core.Var;
 
 import java.util.HashSet;
@@ -24,6 +21,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.function.Consumer;
+
+import static fr.gdd.passage.volcano.push.Pause2Continuation.DONE;
 
 /**
  * A wrapper that iterates over distinct values.
@@ -206,6 +205,18 @@ public class SpliteratorDistinct<ID,VALUE> implements Spliterator<BackendBinding
 
     @Override
     public Op pause() {
-        return null; // TODO
+        if (Objects.nonNull(limit) && limit == 0) return DONE;
+        // save the whole context
+        Op toSave = input.joinWith(op);
+        // update LIMIT and OFFSET
+        offset = wrapped.current(); // we rely on the offset of the underlying iterator
+        long newLimit = Objects.isNull(limit) ? Long.MIN_VALUE : limit;
+        long newOffset = Objects.isNull(offset) || offset == 0 ? Long.MIN_VALUE : offset; // to simplify the query
+
+        if (newLimit == Long.MIN_VALUE && newOffset == Long.MIN_VALUE) {
+            return toSave;
+        } else { // if either LIMIT or OFFSET, we need to create a subquery
+            return new OpSlice(toSave, newOffset, newLimit);
+        }
     }
 }

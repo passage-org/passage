@@ -1,5 +1,6 @@
 package fr.gdd.passage.volcano.transforms;
 
+import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.jena.visitors.ReturningOpBaseVisitor;
 import fr.gdd.passage.volcano.querypatterns.IsDistinctableQuery;
 import org.apache.jena.sparql.algebra.Op;
@@ -45,13 +46,9 @@ public class DistinctQuery2QueryOfDistincts extends ReturningOpBaseVisitor {
     public Op visit(OpBGP bgp) {
         // We assume here that the bgp is already ordered.
         return bgp.getPattern().getList().stream().map(t -> (Op) new OpTriple(t)).reduce(null,
-                (left, right) -> {
-                    if (Objects.isNull(left)) {
-                        return transformIntoDistinct(right);
-                    } else {
-                        return OpJoin.create(left, transformIntoDistinct(right));
-                    }
-                });
+                (left, right) -> Objects.isNull(left) ?
+                        transformIntoDistinct(right) :
+                        OpJoin.create(left, transformIntoDistinct(right)));
     }
 
     private Op transformIntoDistinct(Op op) {
@@ -63,12 +60,15 @@ public class DistinctQuery2QueryOfDistincts extends ReturningOpBaseVisitor {
         Set<Var> vars = VarUtils.getVars(opTriple.getTriple());
         Integer sizeBefore = vars.size();
         vars.retainAll(isDistinctableQuery.project.getVars());
-        if (sizeBefore != vars.size()) {
-            return new OpDistinct(new OpProject(opTriple, vars.stream().toList()));
-        }
 
-        // all vars are projected
-        return opTriple;
+        return new OpDistinct(OpCloningUtil.clone(isDistinctableQuery.project, opTriple));
+
+//        if (sizeBefore != vars.size()) {
+//            return new OpDistinct(new OpProject(opTriple, vars.stream().toList()));
+//        }
+//
+//        // all vars are projected
+//        return opTriple;
 
     }
 }
