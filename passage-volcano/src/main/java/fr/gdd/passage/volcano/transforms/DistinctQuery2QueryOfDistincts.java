@@ -5,11 +5,8 @@ import fr.gdd.jena.visitors.ReturningOpBaseVisitor;
 import fr.gdd.passage.volcano.querypatterns.IsDistinctableQuery;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
-import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.util.VarUtils;
 
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * Equivalence transformation to process distinct using well known
@@ -35,33 +32,59 @@ public class DistinctQuery2QueryOfDistincts extends ReturningOpBaseVisitor {
     IsDistinctableQuery isDistinctableQuery = new IsDistinctableQuery();
 
     @Override
+    public Op visit(Op op) {
+        return super.visit(op);
+    }
+
+    @Override
     public Op visit(OpDistinct distinct) {
+        // The transformation only triggers when a subquery is detected.
         if (isDistinctableQuery.visit((Op) distinct)) {
-            return super.visit(distinct.getSubOp());
+            return new ApplyDistinctQueries(isDistinctableQuery.project).visit(distinct.getSubOp());
         }
         throw new UnsupportedOperationException("Cannot rewrite the query into query of distincts that allow continuation.");
     }
 
-    @Override
-    public Op visit(OpBGP bgp) {
-        // We assume here that the bgp is already ordered.
-        return bgp.getPattern().getList().stream().map(t -> (Op) new OpTriple(t)).reduce(null,
-                (left, right) -> Objects.isNull(left) ?
-                        transformIntoDistinct(right) :
-                        OpJoin.create(left, transformIntoDistinct(right)));
-    }
 
-    private Op transformIntoDistinct(Op op) {
-        if  (Objects.isNull(isDistinctableQuery.project)) {
-            return new OpDistinct(op);
+    /**
+     * Actually apply the transformation to bgp in the distinct subquery.
+     */
+    static class ApplyDistinctQueries extends ReturningOpBaseVisitor {
+
+        final OpProject project;
+
+        public ApplyDistinctQueries(OpProject project) { this.project = project; }
+
+        @Override
+        public Op visit(OpSlice slice) {
+            return slice;
         }
 
-        OpTriple opTriple = (OpTriple) op;
-        Set<Var> vars = VarUtils.getVars(opTriple.getTriple());
-        Integer sizeBefore = vars.size();
-        vars.retainAll(isDistinctableQuery.project.getVars());
+        @Override
+        public Op visit(OpBGP bgp) {
+            // We assume here that the bgp is already ordered.
+            return bgp.getPattern().getList().stream().map(t -> (Op) new OpTriple(t)).reduce(null,
+                    (left, right) -> Objects.isNull(left) ?
+                            transformIntoDistinct(right) :
+                            OpJoin.create(left, transformIntoDistinct(right)));
+        }
 
-        return new OpDistinct(OpCloningUtil.clone(isDistinctableQuery.project, opTriple));
+        // TODO OpQuadPattern
+
+        private Op transformIntoDistinct(Op op) {
+            if (Objects.isNull(project)) { // SELECT DISTINCT * {…}
+                return new OpDistinct(op);
+            }
+
+            // otherwise // SELECT
+            // OpTriple opTriple = (OpTriple) op;
+//            Set<Var> vars = VarUtils.getVars(opTriple.getTriple());
+//            Integer sizeBefore = vars.size();
+//            vars.retainAll(project.getVars());
+
+            // we clone the full project because injected bindings may include needed variables
+            // so they are projected still.
+            return new OpDistinct(OpCloningUtil.clone(project, op));
 
 //        if (sizeBefore != vars.size()) {
 //            return new OpDistinct(new OpProject(opTriple, vars.stream().toList()));
@@ -69,6 +92,7 @@ public class DistinctQuery2QueryOfDistincts extends ReturningOpBaseVisitor {
 //
 //        // all vars are projected
 //        return opTriple;
+        }
 
     }
 }

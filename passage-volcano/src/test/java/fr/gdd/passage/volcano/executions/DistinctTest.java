@@ -81,7 +81,8 @@ public class DistinctTest {
         """;
 
         assertTrue(new IsDistinctableQuery().visit(Algebra.compile(QueryFactory.create(query))));
-        Op meow = new DistinctQuery2QueryOfDistincts().visit(Algebra.compile(QueryFactory.create(query)));
+        Op rewrote = new DistinctQuery2QueryOfDistincts().visit(Algebra.compile(QueryFactory.create(query)));
+        log.debug("Rewrote distinct: {}", OpAsQuery.asQuery(rewrote).toString());
 
         var results = ExecutorUtils.execute(query, builder);
         assertEquals(1, results.size()); // Nantes only, since only Alice has animals
@@ -110,7 +111,8 @@ public class DistinctTest {
 
     @ParameterizedTest
     // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
     public void distinct_of_bgp_rewritten (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);

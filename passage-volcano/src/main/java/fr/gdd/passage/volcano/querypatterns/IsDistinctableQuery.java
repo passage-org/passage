@@ -45,22 +45,12 @@ public class IsDistinctableQuery extends ReturningOpVisitor<Boolean> {
 
     @Override
     public Boolean visit(OpTriple triple) {
-//        if (Objects.isNull(project)) {
-//            project = new OpProject(triple, VarUtils.getVars(triple.getTriple()).stream().toList());
-//        }
         tripleOrQuad = triple;
         return true;
     }
 
     @Override
     public Boolean visit(OpQuad quad) {
-//        if (Objects.isNull(project)) {
-//            List<Var> vars = new ArrayList<>(VarUtils.getVars(quad.getQuad().asTriple()));
-//            if (quad.getQuad().getGraph().isVariable()) {
-//                vars.add(Var.alloc(quad.getQuad().getGraph()));
-//            }
-//            project = new OpProject(quad, vars);
-//        }
         tripleOrQuad = quad;
         return true;
     }
@@ -90,5 +80,20 @@ public class IsDistinctableQuery extends ReturningOpVisitor<Boolean> {
         // TODO check if all triple/quad patterns are linked together by variables
         //      that happen to be in the DISTINCT clause.
         // throw new UnsupportedOperationException("DISTINCT BGP Not supported yet.");
+    }
+
+    @Override
+    public Boolean visit(OpFilter filter) {
+        return super.visit(filter.getSubOp());
+    }
+
+    @Override
+    public Boolean visit(OpJoin join) {
+        return super.visit(join.getLeft()) && super.visit(join.getRight());
+    }
+
+    @Override
+    public Boolean visit(OpSlice slice) {
+        return super.visit(slice.getSubOp());
     }
 }

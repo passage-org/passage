@@ -1,10 +1,8 @@
 package fr.gdd.passage.volcano.push.streams;
 
-import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.PassageExecutionContext;
-import fr.gdd.passage.volcano.push.PassagePushExecutor;
 import fr.gdd.passage.volcano.querypatterns.IsDistinctableQuery;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpDistinct;
@@ -35,15 +33,19 @@ public class PausableStreamDistinct<ID,VALUE> implements PausableStream<ID, VALU
         this.input = input;
         this.distinctable = new IsDistinctableQuery();
         if (distinctable.visit((Op) distinct)) {
-            if (Objects.isNull(distinctable.project)) {
+            // if (Objects.isNull(distinctable.project)) {
                 // project all so it works by default, no need for specific protocol
-                this.wrapped = ((PassagePushExecutor<ID,VALUE>) context.executor).visit(distinct.getSubOp(), input);
-            } else {
+                // this.wrapped = ((PassagePushExecutor<ID,VALUE>) context.executor).visit(distinct.getSubOp(), input);
+            //} else {
                 // but otherwise, need to be extra careful with the index chosen
                 PassageExecutionContext<ID, VALUE> newContext = new PassageExecutionContext<>(((PassageExecutionContext<?, ?>) context).clone());
                 newContext.getContext().set(PassageConstants.PROJECT, distinctable.project);
+                newContext.setLimit(context.getLimit());
+                newContext.setOffset(context.getOffset());
+                // PassagePushExecutor<ID,VALUE> newExec = new PassagePushExecutor<>(newContext);
+                // this.wrapped = newExec.visit(distinct.getSubOp(), input);
                 this.wrapped = new PausableStreamWrapper<>(newContext, input, distinctable.tripleOrQuad, SpliteratorDistinct::new);
-            }
+            // }
         } else {
             throw new UnsupportedOperationException("Distinct for complex queries is not implemented yet.");
         }
@@ -62,9 +64,16 @@ public class PausableStreamDistinct<ID,VALUE> implements PausableStream<ID, VALU
         Expr expr = getFilterExpr();
         Op paused =  Objects.isNull(expr) ? wrapped.pause() : OpFilter.filterDirect(expr, wrapped.pause());
 
-        return Objects.isNull(distinctable.project) ?
-                new OpDistinct(paused) : // DISTINCT *
-                new OpDistinct(OpCloningUtil.clone(distinctable.project, paused)); // DISTINCT ?v1 … ?vn
+        // The previous filters cannot be removed unless we know for sure that the value to filter
+        // out is gone and cannot appear anymore: Indeed 
+        //
+        // which would be possible if we place the cursor to
+        // the last read value.
+
+        return paused;
+//        return Objects.isNull(distinctable.project) ?
+//                new OpDistinct(paused) : // DISTINCT *
+//                new OpDistinct(OpCloningUtil.clone(distinctable.project, paused)); // DISTINCT ?v1 … ?vn
     }
 
     public Expr getFilterExpr() {

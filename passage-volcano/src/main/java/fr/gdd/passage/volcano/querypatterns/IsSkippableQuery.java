@@ -27,11 +27,11 @@ public class IsSkippableQuery extends ReturningOpVisitor<Boolean> {
         tripleOrQuad = null; // reset
 
         if (op instanceof OpSlice slice) { // The root slice
-            // if (slice.getLength() != Long.MIN_VALUE) {
-            //    return NOT_ALLOWED; // only OFFSET is allowed: OFFSET + LIMIT we don't know
-            // }
-            canBeSkipped = super.visit(slice.getSubOp()); // call to super to reroute the operation
-            return canBeSkipped;
+            try {
+                return super.visit(slice.getSubOp()); // call to super to reroute the operation
+            } catch (UnsupportedOperationException e) {
+                return NOT_ALLOWED; // avoid implementing all since it throws by default
+            }
         }
         return NOT_ALLOWED; // only OFFSET can skip bindings.
     }
@@ -80,13 +80,10 @@ public class IsSkippableQuery extends ReturningOpVisitor<Boolean> {
     }
 
     @Override
-    public Boolean visit(OpFilter filter) { return NOT_ALLOWED; }
-
-    @Override
-    public Boolean visit(OpUnion union) { return NOT_ALLOWED; }
-
-    @Override
     public Boolean visit(OpSlice slice) { return NOT_ALLOWED; } // root slice already visited at this stage
 
-
+    @Override
+    public Boolean visit(OpDistinct distinct) {
+        return super.visit(distinct.getSubOp());
+    }
 }

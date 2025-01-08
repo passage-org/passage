@@ -1,5 +1,6 @@
 package fr.gdd.passage.volcano.push.streams;
 
+import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.passage.commons.exceptions.NotFoundException;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendCache;
@@ -61,13 +62,16 @@ public class SpliteratorDistinct<ID,VALUE> implements Spliterator<BackendBinding
 
                     // TODO factorize this ugly code
                     Set<Integer> distinctVarsCodes = new HashSet<>();
-                    if (opTriple.getTriple().getSubject().isVariable() && Objects.isNull(spo.get(SPOC.SUBJECT)) && distinctVars.getVars().contains(opTriple.getTriple().getSubject())) {
+                    if (opTriple.getTriple().getSubject().isVariable() && Objects.isNull(spo.get(SPOC.SUBJECT)) &&
+                            (Objects.isNull(distinctVars) || distinctVars.getVars().contains(opTriple.getTriple().getSubject()))) {
                         distinctVarsCodes.add(SPOC.SUBJECT);
                     }
-                    if (opTriple.getTriple().getPredicate().isVariable() && Objects.isNull(spo.get(SPOC.PREDICATE)) && distinctVars.getVars().contains(opTriple.getTriple().getPredicate())) {
+                    if (opTriple.getTriple().getPredicate().isVariable() && Objects.isNull(spo.get(SPOC.PREDICATE)) &&
+                            (Objects.isNull(distinctVars) || distinctVars.getVars().contains(opTriple.getTriple().getPredicate()))) {
                         distinctVarsCodes.add(SPOC.PREDICATE);
                     }
-                    if (opTriple.getTriple().getObject().isVariable() && Objects.isNull(spo.get(SPOC.OBJECT)) && distinctVars.getVars().contains(opTriple.getTriple().getObject())) {
+                    if (opTriple.getTriple().getObject().isVariable() && Objects.isNull(spo.get(SPOC.OBJECT)) &&
+                            (Objects.isNull(distinctVars) || distinctVars.getVars().contains(opTriple.getTriple().getObject()))) {
                         distinctVarsCodes.add(SPOC.OBJECT);
                     }
 
@@ -82,16 +86,20 @@ public class SpliteratorDistinct<ID,VALUE> implements Spliterator<BackendBinding
 
                     // TODO factorize this ugly code
                     Set<Integer> distinctVarsCodes = new HashSet<>();
-                    if (opQuad.getQuad().getSubject().isVariable() && Objects.isNull(spoc.get(SPOC.SUBJECT)) && distinctVars.getVars().contains(opQuad.getQuad().getSubject())) {
+                    if (opQuad.getQuad().getSubject().isVariable() && Objects.isNull(spoc.get(SPOC.SUBJECT)) &&
+                            (Objects.isNull(distinctVars) || distinctVars.getVars().contains(opQuad.getQuad().getSubject()))) {
                         distinctVarsCodes.add(SPOC.SUBJECT);
                     }
-                    if (opQuad.getQuad().getPredicate().isVariable() && Objects.isNull(spoc.get(SPOC.PREDICATE)) && distinctVars.getVars().contains(opQuad.getQuad().getPredicate())) {
+                    if (opQuad.getQuad().getPredicate().isVariable() && Objects.isNull(spoc.get(SPOC.PREDICATE)) &&
+                            (Objects.isNull(distinctVars) || distinctVars.getVars().contains(opQuad.getQuad().getPredicate()))) {
                         distinctVarsCodes.add(SPOC.PREDICATE);
                     }
-                    if (opQuad.getQuad().getObject().isVariable() && Objects.isNull(spoc.get(SPOC.OBJECT)) && distinctVars.getVars().contains(opQuad.getQuad().getObject())) {
+                    if (opQuad.getQuad().getObject().isVariable() && Objects.isNull(spoc.get(SPOC.OBJECT)) &&
+                            (Objects.isNull(distinctVars) || distinctVars.getVars().contains(opQuad.getQuad().getObject()))) {
                         distinctVarsCodes.add(SPOC.OBJECT);
                     }
-                    if (opQuad.getQuad().getGraph().isVariable() && Objects.isNull(spoc.get(SPOC.GRAPH)) && distinctVars.getVars().contains(opQuad.getQuad().getGraph())) {
+                    if (opQuad.getQuad().getGraph().isVariable() && Objects.isNull(spoc.get(SPOC.GRAPH)) &&
+                            (Objects.isNull(distinctVars) || distinctVars.getVars().contains(opQuad.getQuad().getGraph()))) {
                         distinctVarsCodes.add(SPOC.GRAPH);
                     }
 
@@ -153,16 +161,16 @@ public class SpliteratorDistinct<ID,VALUE> implements Spliterator<BackendBinding
             if (context.maxScans != Long.MAX_VALUE) { context.scans.getAndIncrement(); } // don't even try if not useful
             BackendBindings<ID, VALUE> newBinding = context.bindingsFactory.get();
 
-            if (Objects.nonNull(vars.get(SPOC.SUBJECT)) && distinctVars.getVars().contains(vars.get(SPOC.SUBJECT))) { // ugly x4
+            if (Objects.nonNull(vars.get(SPOC.SUBJECT)) && (Objects.isNull(distinctVars) || distinctVars.getVars().contains(vars.get(SPOC.SUBJECT)))) { // ugly x4
                 newBinding.put(vars.get(SPOC.SUBJECT), wrapped.getId(SPOC.SUBJECT), context.backend).setCode(vars.get(SPOC.SUBJECT), SPOC.SUBJECT);
             }
-            if (Objects.nonNull(vars.get(SPOC.PREDICATE)) && distinctVars.getVars().contains(vars.get(SPOC.PREDICATE))) {
+            if (Objects.nonNull(vars.get(SPOC.PREDICATE)) && (Objects.isNull(distinctVars) || distinctVars.getVars().contains(vars.get(SPOC.PREDICATE)))) {
                 newBinding.put(vars.get(SPOC.PREDICATE), wrapped.getId(SPOC.PREDICATE), context.backend).setCode(vars.get(SPOC.PREDICATE), SPOC.PREDICATE);
             }
-            if (Objects.nonNull(vars.get(SPOC.OBJECT)) && distinctVars.getVars().contains(vars.get(SPOC.OBJECT))) {
+            if (Objects.nonNull(vars.get(SPOC.OBJECT)) && (Objects.isNull(distinctVars) || distinctVars.getVars().contains(vars.get(SPOC.OBJECT)))) {
                 newBinding.put(vars.get(SPOC.OBJECT), wrapped.getId(SPOC.OBJECT), context.backend).setCode(vars.get(SPOC.OBJECT), SPOC.OBJECT);
             }
-            if (vars.len() > 3 && Objects.nonNull(vars.get(SPOC.GRAPH)) && distinctVars.getVars().contains(vars.get(SPOC.GRAPH))) {
+            if (vars.len() > 3 && Objects.nonNull(vars.get(SPOC.GRAPH)) && (Objects.isNull(distinctVars) || distinctVars.getVars().contains(vars.get(SPOC.GRAPH)))) {
                 newBinding.put(vars.get(SPOC.GRAPH), wrapped.getId(SPOC.GRAPH), context.backend).setCode(vars.get(SPOC.GRAPH), SPOC.GRAPH);
             }
 
@@ -213,10 +221,15 @@ public class SpliteratorDistinct<ID,VALUE> implements Spliterator<BackendBinding
         long newLimit = Objects.isNull(limit) ? Long.MIN_VALUE : limit;
         long newOffset = Objects.isNull(offset) || offset == 0 ? Long.MIN_VALUE : offset; // to simplify the query
 
-        if (newLimit == Long.MIN_VALUE && newOffset == Long.MIN_VALUE) {
-            return toSave;
-        } else { // if either LIMIT or OFFSET, we need to create a subquery
-            return new OpSlice(toSave, newOffset, newLimit);
-        }
+        OpProject topProjectIfItExists = context.getContext().get(PassageConstants.PROJECT);
+        toSave = (Objects.nonNull(topProjectIfItExists)) ?
+                new OpDistinct(OpCloningUtil.clone(topProjectIfItExists, toSave)):
+                new OpDistinct(toSave);
+
+        toSave = (newLimit == Long.MIN_VALUE && newOffset == Long.MIN_VALUE) ?
+                toSave:
+                new OpSlice(toSave, newOffset, newLimit); // if either LIMIT or OFFSET, we need to create a subquery
+
+        return toSave;
     }
 }
