@@ -53,7 +53,7 @@ public class DistinctQuery2QueryOfDistincts extends ReturningOpBaseVisitor {
 
     private Op transformIntoDistinct(Op op) {
         if  (Objects.isNull(isDistinctableQuery.project)) {
-            return op;
+            return new OpDistinct(op);
         }
 
         OpTriple opTriple = (OpTriple) op;

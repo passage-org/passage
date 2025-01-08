@@ -9,12 +9,13 @@ import fr.gdd.passage.volcano.querypatterns.IsDistinctableQuery;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpDistinct;
 import org.apache.jena.sparql.algebra.op.OpFilter;
-import org.apache.jena.sparql.algebra.op.OpProject;
+import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.E_LogicalOr;
 import org.apache.jena.sparql.expr.E_NotEquals;
 import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.util.ExprUtils;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -60,12 +61,19 @@ public class PausableStreamDistinct<ID,VALUE> implements PausableStream<ID, VALU
         // {DISTINCT PROJECT {TP OFFSET}} FILTER last value
         Expr expr = getFilterExpr();
         Op paused =  Objects.isNull(expr) ? wrapped.pause() : OpFilter.filterDirect(expr, wrapped.pause());
-        return new OpDistinct(OpCloningUtil.clone(distinctable.project, paused));
+
+        return Objects.isNull(distinctable.project) ?
+                new OpDistinct(paused) : // DISTINCT *
+                new OpDistinct(OpCloningUtil.clone(distinctable.project, paused)); // DISTINCT ?v1 … ?vn
     }
 
     public Expr getFilterExpr() {
         if (Objects.isNull(lastProduced)) { return null;}
-        return distinctable.project.getVars().stream().map(v ->
+        List<Var> projectedVars = Objects.isNull(distinctable.project) ?
+                lastProduced.variables().stream().toList(): // SELECT DISTINCT * WHERE {…}
+                distinctable.project.getVars(); // SELECT DISTINCT ?v1 … ?vn WHERE {…}
+
+        return projectedVars.stream().map(v ->
                 (Expr) new E_NotEquals(ExprUtils.parse(v.toString()), ExprUtils.parse(lastProduced.getBinding(v).getString()))
         ).reduce(null, (left, right) -> Objects.isNull(left) ? right : new E_LogicalOr(left, right));
     }

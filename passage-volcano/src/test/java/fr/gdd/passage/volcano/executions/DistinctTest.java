@@ -10,11 +10,14 @@ import fr.gdd.passage.volcano.transforms.DistinctQuery2QueryOfDistincts;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
+import org.apache.jena.sparql.algebra.OpAsQuery;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.sail.SailException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
@@ -25,15 +28,21 @@ import static org.junit.jupiter.api.Assertions.*;
 @Disabled("Should not be included as long as its not handled in continuations.")
 public class DistinctTest {
 
+    private static final Logger log = LoggerFactory.getLogger(DistinctTest.class);
+
     @ParameterizedTest
     // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
     public void basic_trial_to_create_distinct_without_projected_variable(PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
         String query = "SELECT DISTINCT * WHERE { ?p <http://address> ?a }";
         // handled as "SELECT * WHERE { ?p <http://address> ?a }"
+
+        assertTrue(new IsDistinctableQuery().visit(Algebra.compile(QueryFactory.create(query))));
+        Op rewrote = new DistinctQuery2QueryOfDistincts().visit(Algebra.compile(QueryFactory.create(query)));
+        log.debug("Rewrote distinct: {}", OpAsQuery.asQuery(rewrote).toString());
 
         var results = ExecutorUtils.execute(query, builder);
         assertEquals(3, results.size()); // Alice, Carol, and Bob
@@ -82,7 +91,7 @@ public class DistinctTest {
 
     @ParameterizedTest
     // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
     public void distinct_of_bgp_but_not_link_by_projected(PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         // since it's not linked by a projected distinct variable, there are no guarantee that
         // the bgp produce unique addresses, based on the underlying present assumptions.
