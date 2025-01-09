@@ -23,9 +23,9 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 
 
-public class BlazegraphDistinctIteratorVVXTest {
+public class BlazegraphDistinctIteratorXDVTest {
 
-    private static final Logger log = LoggerFactory.getLogger(BlazegraphDistinctIteratorVVXTest.class);
+    private static final Logger log = LoggerFactory.getLogger(BlazegraphDistinctIteratorXDVTest.class);
 
     @Test
     public void get_distinct_s_over_a_simple_triple_pattern() throws RepositoryException, SailException {
@@ -148,6 +148,42 @@ public class BlazegraphDistinctIteratorVVXTest {
                 it.next();
                 ++nbResults;
                 log.debug("offset {} for {}", it.current(), it.getString(SPOC.SUBJECT));
+            }
+            assertEquals(offsets.size() - i, nbResults);
+        }
+
+        bb.close();
+    }
+
+    @Test
+    public void get_distinct_cities () throws RepositoryException, SailException {
+        BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+
+        IV address = bb.getId("<http://address>", SPOC.PREDICATE);
+        IV any = bb.any();
+
+        BlazegraphDistinctIteratorXDV itBase = new BlazegraphDistinctIteratorXDV(bb.store,
+                any, address, any, any,
+                Set.of(SPOC.OBJECT));
+
+        List<Long> offsets = new ArrayList<>(); // making sure that the offset are actually the proper ones
+        while (itBase.hasNext()) {
+            itBase.next();
+            log.debug("Base offset: {} for {}", itBase.current(), itBase.getString(SPOC.OBJECT));
+            offsets.add(itBase.current());
+        }
+
+        for (int i = 0; i < offsets.size(); ++i ){
+            BlazegraphDistinctIteratorXDV it = new BlazegraphDistinctIteratorXDV(bb.store,
+                    any, address, any, any,
+                    Set.of(SPOC.OBJECT, SPOC.GRAPH));
+
+            it.skip(offsets.get(i));
+            long nbResults = 0;
+            while (it.hasNext()) {
+                it.next();
+                ++nbResults;
+                log.debug("offset {} for {}", it.current(), it.getString(SPOC.OBJECT));
             }
             assertEquals(offsets.size() - i, nbResults);
         }

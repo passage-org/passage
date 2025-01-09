@@ -96,4 +96,12 @@ public class IsDistinctableQuery extends ReturningOpVisitor<Boolean> {
     public Boolean visit(OpSlice slice) {
         return super.visit(slice.getSubOp());
     }
+
+    @Override
+    public Boolean visit(OpExtend extend) {return super.visit(extend.getSubOp());}
+
+    @Override
+    public Boolean visit(OpTable table) {
+        return table.isJoinIdentity() || table.getTable().size() <=1;
+    }
 }

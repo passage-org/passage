@@ -23,7 +23,7 @@ public class BlazegraphDistinctIteratorTest {
     private static Logger log = LoggerFactory.getLogger(BlazegraphDistinctIteratorTest.class);
 
     @Test
-    public void look_for_distinct_of_fully_bounded_triple_pattern () throws RepositoryException, SailException {
+    public void get_DXD () throws RepositoryException, SailException {
         // fully bounded in the sense that everything is either a projected variable, or a constant.
         BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
 
@@ -44,7 +44,7 @@ public class BlazegraphDistinctIteratorTest {
     }
 
     @Test
-    public void look_for_distinct_of_fully_bounded_quad_pattern () throws RepositoryException, SailException {
+    public void get_DXDD () throws RepositoryException, SailException {
         // fully bounded in the sense that everything is either a projected variable, or a constant.
         BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
 
@@ -64,7 +64,7 @@ public class BlazegraphDistinctIteratorTest {
     }
 
     @Test
-    public void look_for_distinct_for_object_of_triple_pattern () throws RepositoryException, SailException {
+    public void get_VXD () throws RepositoryException, SailException {
         // fully bounded in the sense that everything is either a projected variable, or a constant.
         BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
 
@@ -81,6 +81,27 @@ public class BlazegraphDistinctIteratorTest {
         }
 
         assertEquals(2, count); // nantes paris
+        bb.close();
+    }
+
+    @Test
+    public void get_DXV () throws RepositoryException, SailException {
+        // TODO fix "Too many codes for this kind of distinct iterator".
+        BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+
+        IV address = bb.getId("<http://address>", SPOC.PREDICATE);
+        IV any = bb.any();
+
+        BackendIterator<IV, BigdataValue> it = bb.searchDistinct(any, address, any, Set.of(SPOC.SUBJECT));
+
+        int count = 0;
+        while (it.hasNext()) {
+            it.next();
+            log.debug("{}: {}", count, it.getString(SPOC.OBJECT));
+            count++;
+        }
+
+        assertEquals(3, count); // alice, carol, bob
         bb.close();
     }
 

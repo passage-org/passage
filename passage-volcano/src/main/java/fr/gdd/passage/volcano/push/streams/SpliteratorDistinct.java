@@ -214,6 +214,7 @@ public class SpliteratorDistinct<ID,VALUE> implements Spliterator<BackendBinding
     @Override
     public Op pause() {
         if (Objects.nonNull(limit) && limit == 0) return DONE;
+        if (Objects.isNull(wrapped)) return DONE;
         // save the whole context
         Op toSave = input.joinWith(op);
         // update LIMIT and OFFSET

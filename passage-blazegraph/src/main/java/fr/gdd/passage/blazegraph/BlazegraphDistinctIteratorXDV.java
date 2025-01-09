@@ -202,6 +202,7 @@ public class BlazegraphDistinctIteratorXDV extends BackendIterator<IV, BigdataVa
      */
     @Override
     public void skip(long internalTo) {
+        consumed = true;
         if (internalTo == 0) { // Nothing to do
             return;
         }
@@ -223,7 +224,8 @@ public class BlazegraphDistinctIteratorXDV extends BackendIterator<IV, BigdataVa
     @Override
     public long current() {
         if (Objects.isNull(currentValue)) return 0L;
-        return iindex.rangeCount(min, currentValue.getKey());
+        long offset = iindex.rangeCount(min, currentValue.getKey());
+        return consumed ? offset : offset - 1;
     }
 
     @Override

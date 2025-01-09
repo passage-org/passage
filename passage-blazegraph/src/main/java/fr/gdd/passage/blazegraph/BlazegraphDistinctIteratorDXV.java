@@ -162,6 +162,7 @@ public class BlazegraphDistinctIteratorDXV extends BackendIterator<IV, BigdataVa
      */
     @Override
     public void skip(long internalTo) {
+        consumed = true;
         if (internalTo <= 0) { return; } // do nothing
 
         try {
@@ -188,7 +189,8 @@ public class BlazegraphDistinctIteratorDXV extends BackendIterator<IV, BigdataVa
 
         // prefixed by "-" because indexOf return negative number when not found, and since we
         // build fromKey, they are by design not found
-        return -((AbstractBTree) store.getSPORelation().getIndex(fakeKeyOrder)).indexOf(toKey)-1;
+        long offset = -((AbstractBTree) store.getSPORelation().getIndex(fakeKeyOrder)).indexOf(toKey)-1;
+        return consumed ? offset : offset - 1;
     }
 
     @Override
