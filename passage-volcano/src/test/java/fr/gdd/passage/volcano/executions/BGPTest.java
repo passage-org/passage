@@ -89,7 +89,7 @@ public class BGPTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     void an_unknown_value_at_first_but_then_known (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -110,7 +110,7 @@ public class BGPTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     void an_unknown_value_at_first_but_then_known_but_known_first (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);

@@ -13,6 +13,7 @@ import fr.gdd.passage.commons.exceptions.UndefinedCode;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
 
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -32,7 +33,7 @@ public class BlazegraphDistinctIteratorFactory {
         // #1 we look for the proper index to use first
         for (int i = 0; i < ivs.length; ++i) {
             if (codes.contains((Integer) i)) {
-                if (Objects.nonNull(ivs[i])) {
+                if (Objects.nonNull(ivs[i]) && ivs[i] != FAKE_BIND) {
                     throw new RuntimeException();
                 }
                 ivs[i] = FAKE_BIND;
@@ -42,6 +43,7 @@ public class BlazegraphDistinctIteratorFactory {
         if (isFullySet(ivs)) {
             // when all the unbounded variables are actually the one
             // that need to be distinct, then the basic iterator works well.
+            if (c == FAKE_BIND) c = null;
             return new BlazegraphIterator(store, s, p, o, c);
         }
 
@@ -57,9 +59,9 @@ public class BlazegraphDistinctIteratorFactory {
             // if (!isLeftMostVariable(codes, ivs, fakeKeyOrder.getIndexName())) throw new RuntimeException("Chosen keys do not allow distinct.");
             // TODO this because it uses a thing that return only one IV at a time.
             if (Objects.isNull(c) && codes.contains((Integer) SPOC.CONTEXT)) {
+                codes = new HashSet<>(codes); // make it mutable if need be
                 codes.remove(SPOC.CONTEXT);
             }
-            // if (codes.size() > 1) throw new RuntimeException("Too many codes for this kind of distinct iterator.");
             return new BlazegraphDistinctIteratorDXV(store, s, p, o, c, codes);
         }
         return new BlazegraphDistinctIteratorXDV(store, s, p, o, c, codes);

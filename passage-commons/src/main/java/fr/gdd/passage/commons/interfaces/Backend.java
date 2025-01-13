@@ -82,6 +82,9 @@ public interface Backend<ID, VALUE> extends AutoCloseable {
      */
     default String getString(final ID id, final int... type) {throw new UnsupportedOperationException();}
 
+    // TODO issue with the erasure signature which is the same the one above…
+    // default String getString(final VALUE value, final int... type) {throw new UnsupportedOperationException();}
+
     /**
      * @return The identifier of the wildcard `any` or `*` for the
      * backend.

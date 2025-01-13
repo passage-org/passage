@@ -4,8 +4,6 @@ import com.bigdata.bop.IPredicate;
 import com.bigdata.btree.AbstractBTree;
 import com.bigdata.btree.keys.KeyBuilder;
 import com.bigdata.rdf.internal.IV;
-import com.bigdata.rdf.internal.VTE;
-import com.bigdata.rdf.internal.impl.TermId;
 import com.bigdata.rdf.model.BigdataValue;
 import com.bigdata.rdf.spo.ISPO;
 import com.bigdata.rdf.store.AbstractTripleStore;
@@ -58,8 +56,6 @@ public class BlazegraphDistinctIteratorDXV extends BackendIterator<IV, BigdataVa
      * @param codes The SPOC codes of distinct variables. If none, it's like a normal scan iterator.
      */
     public BlazegraphDistinctIteratorDXV(AbstractTripleStore store, IV s, IV p, IV o, IV c, Set<Integer> codes) {
-        // TODO when distinct = unbounded variables, then it should be a normal iterator, no artificial bound in
-        //      the pattern to force the key order, otherwise, it might be inefficient for nothing.
         this.codes = codes;
         this.store = store;
         this.pattern = new IV[] {s, p, o, c};
@@ -71,13 +67,15 @@ public class BlazegraphDistinctIteratorDXV extends BackendIterator<IV, BigdataVa
                 if (Objects.nonNull(ivs[i])) {
                     throw new RuntimeException();
                 }
-                ivs[i] = new TermId<>(VTE.URI, -1); // fake IV to fake bind the variable
+                ivs[i] = BlazegraphDistinctIteratorFactory.FAKE_BIND; // fake IV to fake bind the variable
             }
         }
         IPredicate<ISPO> fakePredicate = store.getSPORelation().getPredicate(ivs[0], ivs[1], ivs[2], ivs[3]);
         this.fakeKeyOrder = store.getSPORelation().getKeyOrder(fakePredicate);
 
         // This only get distinct on the first variable
+        // TODO make it useful for when there are multiple… because it can happen when the GRAPH is of interest
+        if (codes.size() > 1) throw new RuntimeException("Too many codes for this kind of distinct iterator.");
         this.distincts = store.getSPORelation().distinctTermScan(fakeKeyOrder);
     }
 

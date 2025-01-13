@@ -7,8 +7,6 @@ import com.bigdata.btree.ITuple;
 import com.bigdata.btree.ITupleIterator;
 import com.bigdata.btree.filter.EmptyTupleIterator;
 import com.bigdata.rdf.internal.IV;
-import com.bigdata.rdf.internal.VTE;
-import com.bigdata.rdf.internal.impl.TermId;
 import com.bigdata.rdf.model.BigdataValue;
 import com.bigdata.rdf.spo.ISPO;
 import com.bigdata.rdf.store.AbstractTripleStore;
@@ -58,23 +56,23 @@ public class BlazegraphDistinctIteratorXDV extends BackendIterator<IV, BigdataVa
      * @param codes The SPOC codes of distinct variables. If none, it's like a normal scan iterator.
      */
     public BlazegraphDistinctIteratorXDV(AbstractTripleStore store, IV s, IV p, IV o, IV c, Set<Integer> codes) {
-        // TODO when distinct = unbounded variables, then it should be a normal iterator, no artificial bound in
-        //      the pattern to force the key order, otherwise, it might be inefficient for nothing.
         this.codes = codes;
         this.store = store;
+        c = c != BlazegraphDistinctIteratorFactory.FAKE_BIND ? c : null;
         this.pattern = new IV[] {s, p, o, c};
 
         IV[] ivs = new IV[] {s, p, o, c};
         // #1 we look for the proper index to use first
         for (int i = 0; i < ivs.length; ++i) {
             if (codes.contains((Integer) i)) {
-                if (Objects.nonNull(ivs[i])) {
+                if (Objects.nonNull(ivs[i]) && ivs[i] != BlazegraphDistinctIteratorFactory.FAKE_BIND) {
                     throw new RuntimeException();
                 }
-                ivs[i] = new TermId<>(VTE.URI, -1); // fake IV to fake bind the variable
+                ivs[i] = BlazegraphDistinctIteratorFactory.FAKE_BIND; // fake IV to fake bind the variable
             }
         }
         IPredicate<ISPO> fakePredicate = store.getSPORelation().getPredicate(ivs[0], ivs[1], ivs[2], ivs[3]);
+        c = c != BlazegraphDistinctIteratorFactory.FAKE_BIND ? c : null;
         IPredicate<ISPO> predicate = store.getSPORelation().getPredicate(s, p, o, c, null, null);
         IKeyOrder<ISPO> fakeKeyOrder = store.getSPORelation().getKeyOrder(fakePredicate);
         this.accessPath = store.getSPORelation().getAccessPath(fakeKeyOrder, predicate);
