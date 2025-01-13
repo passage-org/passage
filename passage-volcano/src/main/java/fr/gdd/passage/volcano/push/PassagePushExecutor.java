@@ -138,4 +138,9 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
     public PausableStream<ID, VALUE> visit(OpDistinct distinct, BackendBindings<ID, VALUE> input) {
         return new PausableStreamDistinct<>(context, input, distinct);
     }
+
+    @Override
+    public PausableStream<ID, VALUE> visit(OpService service, BackendBindings<ID, VALUE> input) {
+        return new PausableStreamService<>(context, input, service);
+    }
 }

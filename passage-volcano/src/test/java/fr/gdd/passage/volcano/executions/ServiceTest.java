@@ -41,7 +41,7 @@ public class ServiceTest {
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider") // TODO pause on service calls
     public void fails_because_the_remote_service_does_not_exist (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
-        Assumptions.assumeFalse(endpointIsReachable("http://endpoint_that_does_not_exist/", 80, 2000));
+        Assumptions.assumeFalse(endpointIsReachable("endpoint_that_does_not_exist", 80, 2000));
         BlazegraphBackend useless = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(useless);
         String queryAsString = """
@@ -57,7 +57,7 @@ public class ServiceTest {
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider") // TODO pause on service calls
     public void fails_because_the_remote_service_port_is_not_answering (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, IOException, SailException {
-        Assumptions.assumeFalse(endpointIsReachable("http://localhost", 9999, 2000));
+        Assumptions.assumeFalse(endpointIsReachable("localhost", 9999, 2000));
         BlazegraphBackend useless = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(useless);
         String queryAsString = """
@@ -72,7 +72,7 @@ public class ServiceTest {
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider") // TODO pause on service calls
     public void fails_because_the_remote_service_sends_error (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
-        Assumptions.assumeTrue(endpointIsReachable("http://localhost", 3000, 2000));
+        Assumptions.assumeTrue(endpointIsReachable("localhost", 3000, 2000));
         BlazegraphBackend useless = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(useless);
         String queryAsString = String.format("""
@@ -88,9 +88,10 @@ public class ServiceTest {
     /* ******************************* ON BIG DATASET *********************************** */
 
     @ParameterizedTest
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider") // TODO pause on service calls
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider") // TODO pause on service calls
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
     public void a_simple_spo_on_a_remote_passage_endpoint (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
-        Assumptions.assumeTrue(endpointIsReachable("http://localhost", 3000, 2000));
+        Assumptions.assumeTrue(endpointIsReachable("localhost", 3000, 2000));
         BlazegraphBackend useless = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(useless);
         String queryAsString = String.format("""
