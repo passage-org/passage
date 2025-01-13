@@ -1,7 +1,7 @@
 package fr.gdd.passage.blazegraph;
 
-import com.bigdata.btree.AbstractBTree;
 import com.bigdata.btree.IIndex;
+import com.bigdata.btree.ILinearList;
 import com.bigdata.btree.ITuple;
 import com.bigdata.btree.ITupleIterator;
 import com.bigdata.btree.filter.EmptyTupleIterator;
@@ -120,7 +120,7 @@ public class BlazegraphIterator extends BackendIterator<IV, BigdataValue> {
         long startFrom = Objects.isNull(min) ? 0L: iindex.rangeCount(null, min);
         if (to > 0) {
             try {
-            byte[] keyAt = ((AbstractBTree) iindex).keyAt(startFrom + to);
+            byte[] keyAt = ((ILinearList) iindex).keyAt(startFrom + to);
             if (Objects.isNull(max) || BytesUtil.compareBytes(keyAt, max) < 0) {
                 this.tupleIterator = iindex.rangeIterator(keyAt, max);
             } else {
@@ -139,7 +139,7 @@ public class BlazegraphIterator extends BackendIterator<IV, BigdataValue> {
     public ISPO getUniformRandomSPO() {
         long rn = RNG.get().nextLong((long) cardinality());
         long startFrom = Objects.isNull(min) ? 0L: iindex.rangeCount(null, min);
-        byte[] keyAt = ((AbstractBTree) iindex).keyAt(startFrom + rn );
+        byte[] keyAt = ((ILinearList) iindex).keyAt(startFrom + rn );
         ITupleIterator<?> iterator = iindex.rangeIterator(keyAt, max);
 
         ITuple<?> val = iterator.next();
@@ -152,7 +152,7 @@ public class BlazegraphIterator extends BackendIterator<IV, BigdataValue> {
         offset = RNG.get().nextLong((long) cardinality()); // random number
         long startFrom = Objects.isNull(min) ? 0L: iindex.rangeCount(null, min);
         // long startFrom = Objects.isNull(min) ? 0L: ((AbstractBTree) iindex).indexOf(min);
-        byte[] keyAt = ((AbstractBTree) iindex).keyAt(startFrom + offset );
+        byte[] keyAt = ((ILinearList) iindex).keyAt(startFrom + offset );
         tupleIterator = iindex.rangeIterator(keyAt, max);
         return 1./cardinality();
     }

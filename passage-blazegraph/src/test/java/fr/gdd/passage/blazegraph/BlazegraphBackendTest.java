@@ -8,6 +8,7 @@ import com.bigdata.rdf.spo.ISPO;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
+import fr.gdd.passage.commons.exceptions.NotFoundException;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
 import fr.gdd.passage.commons.iterators.BackendLazyIterator;
@@ -27,8 +28,7 @@ import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class BlazegraphBackendTest {
 
@@ -65,7 +65,7 @@ public class BlazegraphBackendTest {
         assertEquals("\"12\"", twelve.toString());
         BigdataValue uri = bb.getValue("<https://uri>");
         assertInstanceOf(BigdataURI.class, uri);
-        assertEquals("<https://uri>", uri.toString());
+        assertEquals("<https://uri>", bb.getString(uri));
         bb.close();
     }
 
@@ -74,15 +74,15 @@ public class BlazegraphBackendTest {
         BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
 
         BigdataValue uri = bb.getValue("<https://uri>");
-        IV uriId = bb.getId(uri);
+        assertThrows(NotFoundException.class, () -> bb.getId(uri));
+
+        IV expectedId = bb.getId("<http://address>");
         BigdataValue uriAlreadyExists = bb.getValue("<http://address>");
         IV uriAlreadyExistsId = bb.getId(uriAlreadyExists);
-        BigdataValue uriAlreadyExists2 = bb.getValue("<http://address>");
-        IV uriAlreadyExistsId2 = bb.getId(uriAlreadyExists2);
-        assertEquals(uriAlreadyExistsId, uriAlreadyExistsId2);
+        assertEquals(expectedId, uriAlreadyExistsId);
 
         BigdataValue twelve = bb.getValue("\"12\"");
-        IV twelveId = bb.getId(twelve);
+        assertThrows(NotFoundException.class, () -> bb.getId(twelve));
 
         bb.close();
     }

@@ -5,16 +5,12 @@ import com.bigdata.journal.Options;
 import com.bigdata.rdf.internal.IV;
 import com.bigdata.rdf.internal.impl.TermId;
 import com.bigdata.rdf.internal.impl.uri.VocabURIByteIV;
-import com.bigdata.rdf.model.BigdataLiteral;
 import com.bigdata.rdf.model.BigdataURI;
 import com.bigdata.rdf.model.BigdataValue;
 import com.bigdata.rdf.sail.BigdataSail;
 import com.bigdata.rdf.sail.BigdataSailRepository;
 import com.bigdata.rdf.sail.BigdataSailRepositoryConnection;
-import com.bigdata.rdf.spo.ISPO;
 import com.bigdata.rdf.store.AbstractTripleStore;
-import com.bigdata.relation.accesspath.IAccessPath;
-import com.bigdata.striterator.IChunkedOrderedIterator;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
@@ -25,7 +21,6 @@ import fr.gdd.passage.commons.interfaces.SPOC;
 import fr.gdd.passage.commons.iterators.BackendLazyIterator;
 import org.apache.jena.sparql.expr.NodeValue;
 import org.apache.jena.sparql.expr.nodevalue.*;
-import org.openrdf.model.Resource;
 import org.openrdf.model.Value;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.query.*;
@@ -87,7 +82,8 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
     public BlazegraphBackend(BigdataSail sail) throws RepositoryException {
         System.setProperty("com.bigdata.Banner.quiet", "true"); // banner is annoying, sorry blazegraph
         this.repository = new BigdataSailRepository(sail);
-        this.connection = repository.getConnection();
+        // this.connection = repository.getConnection();
+        this.connection = repository.getReadOnlyConnection();
         this.store = connection.getTripleStore();
         this.sail = sail;
         defaultGraph = getDefaultGraph();
@@ -124,94 +120,101 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
         return BlazegraphDistinctIteratorFactory.get(store, s, p, o, c, codes); // TODO add laziness
     }
 
+//    @Override
+//    public IV getId(String value, int... type) {
+//        // When the type does not exist, we look for the one.
+//        // Unfortunately, it's not efficient, so we would like to use the most relevant as often as possible
+//        if (Objects.isNull(type) || type.length == 0) { // ugly when type is not set
+//            try {
+//                if (value.startsWith("\"") && value.endsWith("\"")) {
+//                    return getId(value, SPOC.OBJECT);
+//                }
+//                try { // else not a string
+//                    return getId(value, SPOC.SUBJECT);
+//                } catch (Exception e) {
+//                    try {
+//                        return getId(value, SPOC.PREDICATE);
+//                    } catch (Exception f) {
+//                        try {
+//                            return getId(value, SPOC.OBJECT); // might still be the object
+//                        } catch (Exception g) {
+//                            try {
+//                                return getId(value, SPOC.CONTEXT);
+//                            } catch (Exception h) { // otherwise, it throws at runtime
+//                                throw new NotFoundException(value);
+//                            }
+//                        }
+//                    }
+//                }
+//            } catch (Exception i) {
+//                throw new NotFoundException(value);
+//            }
+//        }
+//
+//        IAccessPath<ISPO> accessPath = switch(type[0]) {
+//            case SPOC.SUBJECT -> {
+//                Resource res = (value.startsWith("<") && value.endsWith(">")) ?
+//                        new URIImpl(value.substring(1, value.length()-1)):
+//                        new URIImpl(value);
+//                yield store.getAccessPath(res, null, null);
+//            }
+//            case SPOC.PREDICATE -> {
+//                URIImpl uri = (value.startsWith("<") && value.endsWith(">")) ?
+//                    new URIImpl(value.substring(1, value.length()-1)):
+//                    new URIImpl(value);
+//                yield store.getAccessPath(null, uri, null);
+//            }
+//            case SPOC.OBJECT -> {
+//                if (value.startsWith("<") && value.endsWith(">")) {
+//                    URIImpl uri = new URIImpl(value.substring(1, value.length()-1));
+//                    yield store.getAccessPath(null,null, uri);
+//                }
+//                Value object = (value.startsWith("\"") && value.endsWith("\"")) ?
+//                        store.getValueFactory().createLiteral(value.substring(1, value.length()-1)):
+//                        store.getValueFactory().createLiteral(value);
+//
+//                // The string might be too long to be inlined in the identifier,
+//                // therefore, we need to proceed differently.
+//                // IV possiblyNotInline = store.getVocabulary().get(object);
+//                IV possiblyNotInline = store.getIV(object);
+//                if (Objects.isNull(possiblyNotInline)) {   // could not be inlined must do something else…
+//                    BigdataLiteral blob = store.getValueFactory().createLiteral(value.substring(1, value.length()-1), new URIImpl("http://www.w3.org/2001/XMLSchema#string" ));
+//                    IV possiblyABlob = store.getIV(blob);
+//                    BigdataValue bdv = store.getLexiconRelation().getTerm(possiblyABlob);
+//                    yield store.getAccessPath(null,null, bdv);
+//                }
+//                BigdataValue bdv = store.getLexiconRelation().getTerm(possiblyNotInline);
+//                yield store.getAccessPath(null,null, bdv);
+//            }
+//            case SPOC.GRAPH -> {
+//                Resource res = (value.startsWith("<") && value.endsWith(">")) ?
+//                        new URIImpl(value.substring(1, value.length()-1)):
+//                        new URIImpl(value);
+//                yield store.getAccessPath(null, null, null, res);
+//            }
+//            default -> throw new UnsupportedOperationException("Unknown SPOC: " + type[0]);
+//        };
+//
+//        IChunkedOrderedIterator<ISPO> it = accessPath.iterator();
+//        if (!it.hasNext()) throw new NotFoundException(value); // not found
+//        ISPO spo = it.next();
+//
+//        IV result = switch(type[0]){
+//            case SPOC.SUBJECT -> get(spo.getSubject());
+//            case SPOC.PREDICATE -> get(spo.getPredicate());
+//            case SPOC.OBJECT -> get(spo.getObject());
+//            case SPOC.CONTEXT-> get(spo.getContext());
+//            default -> throw new IllegalStateException("Unexpected value: " + type[0]);
+//        };
+//        it.close();
+//        return result;
+//    }
+
+
     @Override
     public IV getId(String value, int... type) {
-        // When the type does not exist, we look for the one.
-        // Unfortunately, it's not efficient, so we would like to use the most relevant as often as possible
-        if (Objects.isNull(type) || type.length == 0) { // ugly when type is not set
-            try {
-                if (value.startsWith("\"") && value.endsWith("\"")) {
-                    return getId(value, SPOC.OBJECT);
-                }
-                try { // else not a string
-                    return getId(value, SPOC.SUBJECT);
-                } catch (Exception e) {
-                    try {
-                        return getId(value, SPOC.PREDICATE);
-                    } catch (Exception f) {
-                        try {
-                            return getId(value, SPOC.OBJECT); // might still be the object
-                        } catch (Exception g) {
-                            try {
-                                return getId(value, SPOC.CONTEXT);
-                            } catch (Exception h) { // otherwise, it throws at runtime
-                                throw new NotFoundException(value);
-                            }
-                        }
-                    }
-                }
-            } catch (Exception i) {
-                throw new NotFoundException(value);
-            }
-        }
-
-        IAccessPath<ISPO> accessPath = switch(type[0]) {
-            case SPOC.SUBJECT -> {
-                Resource res = (value.startsWith("<") && value.endsWith(">")) ?
-                        new URIImpl(value.substring(1, value.length()-1)):
-                        new URIImpl(value);
-                yield store.getAccessPath(res, null, null);
-            }
-            case SPOC.PREDICATE -> {
-                URIImpl uri = (value.startsWith("<") && value.endsWith(">")) ?
-                    new URIImpl(value.substring(1, value.length()-1)):
-                    new URIImpl(value);
-                yield store.getAccessPath(null, uri, null);
-            }
-            case SPOC.OBJECT -> {
-                if (value.startsWith("<") && value.endsWith(">")) {
-                    URIImpl uri = new URIImpl(value.substring(1, value.length()-1));
-                    yield store.getAccessPath(null,null, uri);
-                }
-                Value object = (value.startsWith("\"") && value.endsWith("\"")) ?
-                        store.getValueFactory().createLiteral(value.substring(1, value.length()-1)):
-                        store.getValueFactory().createLiteral(value);
-
-                // The string might be too long to be inlined in the identifier,
-                // therefore, we need to proceed differently.
-                // IV possiblyNotInline = store.getVocabulary().get(object);
-                IV possiblyNotInline = store.getIV(object);
-                if (Objects.isNull(possiblyNotInline)) {   // could not be inlined must do something else…
-                    BigdataLiteral blob = store.getValueFactory().createLiteral(value.substring(1, value.length()-1), new URIImpl("http://www.w3.org/2001/XMLSchema#string" ));
-                    IV possiblyABlob = store.getIV(blob);
-                    BigdataValue bdv = store.getLexiconRelation().getTerm(possiblyABlob);
-                    yield store.getAccessPath(null,null, bdv);
-                }
-                BigdataValue bdv = store.getLexiconRelation().getTerm(possiblyNotInline);
-                yield store.getAccessPath(null,null, bdv);
-            }
-            case SPOC.GRAPH -> {
-                Resource res = (value.startsWith("<") && value.endsWith(">")) ?
-                        new URIImpl(value.substring(1, value.length()-1)):
-                        new URIImpl(value);
-                yield store.getAccessPath(null, null, null, res);
-            }
-            default -> throw new UnsupportedOperationException("Unknown SPOC: " + type[0]);
-        };
-
-        IChunkedOrderedIterator<ISPO> it = accessPath.iterator();
-        if (!it.hasNext()) throw new NotFoundException(value); // not found
-        ISPO spo = it.next();
-
-        IV result = switch(type[0]){
-            case SPOC.SUBJECT -> get(spo.getSubject());
-            case SPOC.PREDICATE -> get(spo.getPredicate());
-            case SPOC.OBJECT -> get(spo.getObject());
-            case SPOC.CONTEXT-> get(spo.getContext());
-            default -> throw new IllegalStateException("Unexpected value: " + type[0]);
-        };
-        it.close();
-        return result;
+        BigdataValue bdValue = getValue(value, type);
+        return getId(bdValue, type);
     }
 
     private static IV get(Value sOrPOrO) {
@@ -224,19 +227,26 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
 
     @Override
     public IV getId(BigdataValue bigdataValue, int... type) {
-        throw new UnsupportedOperationException("Not implemented yet"); // TODO
-        // return store.getLexiconRelation().getIV(bigdataValue);
-        // if (Objects.nonNull(bigdataValue.getIV())) return bigdataValue.getIV();
-        // return store.addTerm(bigdataValue);
+        // It uses an inefficient function marked deprecated on purpose:
+        // this is meant to be used only once per constant. Not everytime a value is needed.
+        IV toReturn = store.getIV(bigdataValue);
+        if (Objects.isNull(toReturn)) {
+            throw new NotFoundException(bigdataValue.toString());
+        } else {
+            return toReturn;
+        }
     }
 
     @Override
     public String getString(IV id, int... type) {
-        if (id.isURI()) {
-            return "<"+ store.getLexiconRelation().getTerm(id).toString() + ">";
-        } else {
-            return store.getLexiconRelation().getTerm(id).toString();
-        }
+        return getString(getValue(id, type));
+    }
+
+    public String getString(BigdataValue bigdataValue, int... type) {
+        return switch (bigdataValue) {
+            case BigdataURI uri ->  "<" + uri + ">";
+            default -> bigdataValue.toString();
+        };
     }
 
     @Override
@@ -248,7 +258,7 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
     public BigdataValue getValue(String valueAsString, int... type) {
         NodeValue nv = NodeValue.parse(valueAsString); // TODO parse immediately into BigdataValue
         return switch (nv) {
-            case NodeValueNode ignored -> store.getValueFactory().asValue(new URIImpl(valueAsString));
+            case NodeValueNode ignored -> store.getValueFactory().asValue(new URIImpl(nv.asUnquotedString()));
             case NodeValueInteger vint -> store.getValueFactory().createLiteral(vint.getInteger().intValue());
             case NodeValueDouble vdouble -> store.getValueFactory().createLiteral(vdouble.getDouble());
             case NodeValueBoolean vbool -> store.getValueFactory().createLiteral(vbool.getBoolean());
@@ -259,9 +269,7 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
     }
 
     @Override
-    public IV any() {
-        return null;
-    }
+    public IV any() { return null; }
 
     // comes from : <https://github.com/blazegraph/database/blob/829ce8241ec29fddf7c893f431b57c8cf4221baf/bigdata-core/bigdata-rdf/src/java/com/bigdata/rdf/sparql/ast/eval/AST2BOpUpdateContext.java#L140>
     public IV getDefaultGraph() {
