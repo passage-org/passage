@@ -77,6 +77,7 @@ public class BlazegraphDistinctIteratorDXV extends BackendIterator<IV, BigdataVa
         IPredicate<ISPO> fakePredicate = store.getSPORelation().getPredicate(ivs[0], ivs[1], ivs[2], ivs[3]);
         this.fakeKeyOrder = store.getSPORelation().getKeyOrder(fakePredicate);
 
+        // This only get distinct on the first variable
         this.distincts = store.getSPORelation().distinctTermScan(fakeKeyOrder);
     }
 

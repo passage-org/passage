@@ -70,6 +70,24 @@ public class BlazegraphBackendTest {
     }
 
     @Test
+    public void get_the_id_based_on_blazegraph_values () throws RepositoryException, SailException {
+        BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+
+        BigdataValue uri = bb.getValue("<https://uri>");
+        IV uriId = bb.getId(uri);
+        BigdataValue uriAlreadyExists = bb.getValue("<http://address>");
+        IV uriAlreadyExistsId = bb.getId(uriAlreadyExists);
+        BigdataValue uriAlreadyExists2 = bb.getValue("<http://address>");
+        IV uriAlreadyExistsId2 = bb.getId(uriAlreadyExists2);
+        assertEquals(uriAlreadyExistsId, uriAlreadyExistsId2);
+
+        BigdataValue twelve = bb.getValue("\"12\"");
+        IV twelveId = bb.getId(twelve);
+
+        bb.close();
+    }
+
+    @Test
     public void create_a_simple_pet_dataset () throws QueryEvaluationException, MalformedQueryException, RepositoryException, SailException {
         BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
 

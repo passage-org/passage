@@ -17,6 +17,7 @@ import com.bigdata.relation.accesspath.IAccessPath;
 import com.bigdata.striterator.IChunkedOrderedIterator;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.commons.exceptions.NotFoundException;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
@@ -56,10 +57,7 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
 
     public BlazegraphBackend() throws SailException, RepositoryException {
         System.setProperty("com.bigdata.Banner.quiet", "true"); // banner is annoying, sorry blazegraph
-        final Properties props = new Properties();
-        props.put(BigdataSail.Options.CREATE_TEMP_FILE, "true");
-        props.put(BigdataSail.Options.DELETE_ON_CLOSE, "true");
-        props.put(BigdataSail.Options.DELETE_ON_EXIT, "true");
+        final Properties props = BlazegraphInMemoryDatasetsFactory.getDefaultProps();
 
         this.sail = new BigdataSail(props);
         this.repository = new BigdataSailRepository(sail);
@@ -89,7 +87,7 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
     public BlazegraphBackend(BigdataSail sail) throws RepositoryException {
         System.setProperty("com.bigdata.Banner.quiet", "true"); // banner is annoying, sorry blazegraph
         this.repository = new BigdataSailRepository(sail);
-        this.connection = repository.getReadOnlyConnection();
+        this.connection = repository.getConnection();
         this.store = connection.getTripleStore();
         this.sail = sail;
         defaultGraph = getDefaultGraph();
@@ -226,7 +224,10 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
 
     @Override
     public IV getId(BigdataValue bigdataValue, int... type) {
-        throw new UnsupportedOperationException("TODO"); // TODO
+        throw new UnsupportedOperationException("Not implemented yet"); // TODO
+        // return store.getLexiconRelation().getIV(bigdataValue);
+        // if (Objects.nonNull(bigdataValue.getIV())) return bigdataValue.getIV();
+        // return store.addTerm(bigdataValue);
     }
 
     @Override
@@ -240,7 +241,7 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
 
     @Override
     public BigdataValue getValue(IV iv, int... type) {
-        throw new UnsupportedOperationException("TODO"); // TODO
+        return store.getTerm(iv);
     }
 
     @Override

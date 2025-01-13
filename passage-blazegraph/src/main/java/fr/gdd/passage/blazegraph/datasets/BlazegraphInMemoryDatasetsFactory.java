@@ -41,7 +41,7 @@ public class BlazegraphInMemoryDatasetsFactory {
     /**
      * @return Properties that makes sure the dataset is deleted at the end of each test.
      */
-    private static Properties getDefaultProps () {
+    public static Properties getDefaultProps () {
         final Properties props = new Properties();
         props.put(BigdataSail.Options.CREATE_TEMP_FILE, "true");
         props.put(BigdataSail.Options.DELETE_ON_CLOSE, "true");

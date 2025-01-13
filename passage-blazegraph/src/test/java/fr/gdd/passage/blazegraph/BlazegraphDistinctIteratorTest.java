@@ -97,7 +97,7 @@ public class BlazegraphDistinctIteratorTest {
         int count = 0;
         while (it.hasNext()) {
             it.next();
-            log.debug("{}: {}", count, it.getString(SPOC.OBJECT));
+            log.debug("{}: {}", count, it.getString(SPOC.SUBJECT));
             count++;
         }
 
