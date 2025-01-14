@@ -12,6 +12,8 @@ import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpAsQuery;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.sail.SailException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 
 import java.io.IOException;
@@ -89,7 +91,7 @@ public class PassageCLI {
 
     @CommandLine.Option(
             order = 5,
-            paramLabel = "<1>",
+            paramLabel = "1",
             names = "--threads",
             description = "Number of threads dedicated to execute the query.")
     Integer threads = 1;
@@ -99,8 +101,6 @@ public class PassageCLI {
             names = {"-r", "--report"},
             description = "Provides a concise report on query execution.")
     Boolean report = false;
-
-
 
     @CommandLine.Option(
             order = 11,
@@ -115,6 +115,8 @@ public class PassageCLI {
             usageHelp = true,
             description = "Display this help message.")
     boolean usageHelpRequested;
+
+    private final static Logger log = LoggerFactory.getLogger(PassageCLI.class);
 
     /* ****************************************************************** */
 
@@ -141,7 +143,7 @@ public class PassageCLI {
             try {
                 passageOptions.queryAsString = Files.readString(queryPath);
             } catch (IOException e) {
-                System.out.println("Error: could not read " + queryPath + ".");
+                log.error("Error: could not read {}.", queryPath);
                 System.exit(CommandLine.ExitCode.USAGE);
             }
         }
@@ -153,13 +155,13 @@ public class PassageCLI {
         try {
             backend = getBackend(passageOptions.database);
         } catch (SailException | RepositoryException | IOException e) {
-            System.out.println("Error: could not get backend: " + e.getMessage());
+            log.error("Error: could not get backend: {}", e.getMessage());
             System.exit(CommandLine.ExitCode.USAGE);
         }
 
         if (passageOptions.report) {
-            System.err.printf("%sPath to database:%s %s%n", PURPLE_BOLD, RESET, passageOptions.database);
-            System.err.printf("%sSPARQL query:%s %s%n", PURPLE_BOLD, RESET, passageOptions.queryAsString);
+            log.debug("{}Path to database:{} {}", PURPLE_BOLD, RESET, passageOptions.database);
+            log.debug("{}SPARQL query:{} {}", PURPLE_BOLD, RESET, passageOptions.queryAsString);
         }
 
         for (int i = 0; i < passageOptions.numberOfExecutions; ++i) {
@@ -181,7 +183,7 @@ public class PassageCLI {
                 final LongAdder nbResults = new LongAdder();
                 long start = System.currentTimeMillis();
                 Op paused = context.executor.execute(queryToRun, (result) -> {
-                    System.out.println(result);
+                    log.info("{}", result);
                     nbResults.increment();
                 });
                 long elapsed = System.currentTimeMillis() - start;
@@ -193,24 +195,24 @@ public class PassageCLI {
                 queryToRun = Objects.nonNull(paused) ? QueryFactory.create(OpAsQuery.asQuery(paused)).toString() : null;
 
                 if (passageOptions.report) {
-                    System.err.printf("%sNumber of pause/resume: %s %s%n", PURPLE_BOLD, RESET, totalPreempt);
-                    System.err.printf("%sExecution time: %s %s ms%n", PURPLE_BOLD, RESET, elapsed);
-                    System.err.printf("%sNumber of results: %s %s%n", PURPLE_BOLD, RESET, nbResults);
-                    System.err.printf("%sTOTAL Number of results: %s %s%n", PURPLE_BOLD, RESET, totalNbResults);
+                    log.debug("{}Number of pause/resume: {} {}", PURPLE_BOLD, RESET, totalPreempt);
+                    log.debug("{}Execution time: {} {} ms", PURPLE_BOLD, RESET, elapsed);
+                    log.debug("{}Number of results: {} {}", PURPLE_BOLD, RESET, nbResults);
+                    log.debug("{}TOTAL Number of results: {} {}", PURPLE_BOLD, RESET, totalNbResults);
                     if (Objects.nonNull(queryToRun)) {
-                        System.err.printf("%sTo continue query execution, use the following query:%s%n%s%s%s%n", GREEN_UNDERLINED, RESET, ANSI_GREEN, queryToRun, RESET);
+                        log.debug("\n{}To continue query execution, use the following query:{}\n{}{}{}", GREEN_UNDERLINED, RESET, ANSI_GREEN, queryToRun, RESET);
                     } else {
-                        System.err.printf("%n%sThe query execution is complete.%s%n", GREEN_UNDERLINED, RESET);
+                        log.debug("\n{}The query execution is complete.{}", GREEN_UNDERLINED, RESET);
                     }
                 }
 
             } while (Objects.nonNull(queryToRun) && passageOptions.loop);
 
             if (passageOptions.report && passageOptions.loop) {
-                System.err.println();
-                System.err.printf("%sTOTAL number of pause/resume: %s %s%n", PURPLE_BOLD, RESET, totalPreempt);
-                System.err.printf("%sTOTAL execution time: %s %s ms%n", PURPLE_BOLD, RESET, totalElapsed);
-                System.err.printf("%sTOTAL number of results: %s %s%n", PURPLE_BOLD, RESET, totalNbResults);
+                log.debug("");
+                log.debug("{}TOTAL number of pause/resume: {} {}", PURPLE_BOLD, RESET, totalPreempt);
+                log.debug("{}TOTAL execution time: {} {} ms", PURPLE_BOLD, RESET, totalElapsed);
+                log.debug("{}TOTAL number of results: {} {}", PURPLE_BOLD, RESET, totalNbResults);
             }
             System.gc(); // no guarantee but still
         }
@@ -218,7 +220,7 @@ public class PassageCLI {
         try {
             backend.close();
         } catch (Exception e) {
-            System.out.println("Error: could not close backend: " + e.getMessage());
+            log.error("Error: could not close backend: {}", e.getMessage());
             System.exit(CommandLine.ExitCode.SOFTWARE);
         }
 

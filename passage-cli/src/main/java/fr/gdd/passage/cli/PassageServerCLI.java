@@ -23,6 +23,8 @@ import org.apache.jena.sparql.engine.QueryEngineRegistry;
 import org.apache.jena.sparql.engine.main.QC;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.sail.SailException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 
 import java.nio.file.Path;
@@ -34,7 +36,7 @@ import java.util.Objects;
 @CommandLine.Command(
         name = "passage-server",
         version = "0.1.0",
-        description = "A server for complete SPARQL query processing!",
+        description = "A server for complete SPARQL query processing! using continuation queries.",
         usageHelpAutoWidth = true, // adapt to the screen size instead of new line on 80 chars
         sortOptions = false,
         sortSynopsis = false
@@ -56,11 +58,18 @@ public class PassageServerCLI {
             description = "Timeout before the query execution is stopped.")
     Long timeout = Long.MAX_VALUE;
 
-//    @CommandLine.Option(
-//            order = 5,
-//            names = "--force-order",
-//            description = "Force the order of triple patterns to the one provided by the query.")
-//    Boolean forceOrder = false; // TODO
+    @CommandLine.Option(
+            order = 5,
+            names = "--force-order",
+            description = "Force the order of triple patterns to the one provided by the query.")
+    Boolean forceOrder = false;
+
+    @CommandLine.Option(
+            order = 5,
+            paramLabel = "1",
+            names = "--threads",
+            description = "Number of threads dedicated to execute the query.")
+    Integer threads = 1;
 
     @CommandLine.Option(
             order = 6,
@@ -70,7 +79,7 @@ public class PassageServerCLI {
     @CommandLine.Option(
             order = 6,
             names = {"-p", "--port"},
-            paramLabel = "<3330>",
+            paramLabel = "3330",
             description = "The port of the server.")
     public Integer port = 3330;
 
@@ -80,6 +89,8 @@ public class PassageServerCLI {
             usageHelp = true,
             description = "Display this help message.")
     boolean usageHelpRequested;
+
+    private final static Logger log = LoggerFactory.getLogger(PassageServerCLI.class);
 
     /* ***********************************************************************/
 
@@ -142,10 +153,8 @@ public class PassageServerCLI {
         RowSetWriterRegistry.register(ResultSetLang.RS_JSON, ExtensibleRowSetWriterJSON.factory);
         ModuleOutputRegistry.register(ResultSetLang.RS_JSON, new PassageOutputWriterJSON());
 
-        // FusekiModules.add(new SageModule());
-
         FusekiServer.Builder serverBuilder = FusekiServer.create()
-                // .parseConfigFile("configurations/sage.ttl") // TODO let it be a configuration file
+                .parseConfigFile("default_config.ttl") // TODO let it be a configuration file
                 .port(port)
                 .enablePing(true)
                 .enableCompact(true)
@@ -158,11 +167,10 @@ public class PassageServerCLI {
                 .serverAuthPolicy(Auth.ANY_ANON) // Anyone can access the server
                 .addProcessor("/$/server", new ActionServerStatus())
                 //.addProcessor("/$/datasets/*", new ActionDatasets())
-                .registerOperation(PassageOperation.Passage, new SPARQL_QueryDataset())
-                .addDataset(name, dataset.asDatasetGraph()) // register the dataset
-                .addEndpoint(name, "passage", PassageOperation.Passage)
+                // .registerOperation(PassageOperation.Passage, new SPARQL_QueryDataset())
+                // .addDataset(name, dataset.asDatasetGraph()) // register the dataset
+                // .addEndpoint(name, "passage", PassageOperation.Passage)
                 // .auth(AuthScheme.BASIC)
-                // .addEndpoint(name, name+"/meow", SageOperation.Sage, Auth.ANY_ANON)
         ;
 
         if (Objects.nonNull(ui)) { // add UI if need be

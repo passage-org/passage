@@ -1,0 +1,47 @@
+<configuration debug="false">
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener" /> <!-- removes init messages -->
+
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.out</target>
+        <encoder>
+            <pattern>%msg%n</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level> <onMatch>ACCEPT</onMatch> <onMismatch>DENY</onMismatch>
+        </filter>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter"> <!-- errors are standard outputs of the app -->
+            <level>ERROR</level> <onMatch>ACCEPT</onMatch> <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <appender name="async_console" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="console" />
+    </appender>
+
+    <appender name="err_console" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.err</target>
+        <encoder>
+            <pattern>%msg%n</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>DEBUG</level> <onMatch>ACCEPT</onMatch> <onMismatch>DENY</onMismatch>
+        </filter>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>WARN</level> <onMatch>ACCEPT</onMatch> <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <!-- The additivity false disable the propagation of the output privileges -->
+    <logger name="fr.gdd.passage.cli.PassageCLI" level="ON" additivity="false">
+        <appender-ref ref="async_console" />
+        <appender-ref ref="err_console" />
+    </logger>
+
+    <logger name="fr.gdd.passage.cli.PassageServerCLI" level="ON" additivity="false">
+        <appender-ref ref="async_console" />
+        <appender-ref ref="err_console" />
+    </logger>
+
+    <root level="OFF" />
+
+</configuration>
