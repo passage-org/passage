@@ -1,10 +1,15 @@
 package fr.gdd.passage.cli;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
-import fr.gdd.passage.commons.generics.BackendBindings;
+import fr.gdd.passage.commons.interfaces.Backend;
+import fr.gdd.passage.hdt.HDTBackend;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
-import fr.gdd.passage.volcano.pull.PassagePullExecutor;
+import fr.gdd.passage.volcano.push.PassagePushExecutor;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.jena.query.QueryFactory;
+import org.apache.jena.sparql.algebra.Op;
+import org.apache.jena.sparql.algebra.OpAsQuery;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.sail.SailException;
 import picocli.CommandLine;
@@ -12,8 +17,8 @@ import picocli.CommandLine;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Iterator;
 import java.util.Objects;
+import java.util.concurrent.atomic.LongAdder;
 
 /**
  * Command Line Interface for running sampling-based SPARQL operators.
@@ -76,6 +81,18 @@ public class PassageCLI {
             description = "Continue executing the query until completion.")
     Boolean loop = false;
 
+    @CommandLine.Option(
+            order = 5,
+            names = "--force-order",
+            description = "Force the order of triple patterns to the one provided by the query.")
+    Boolean forceOrder = false;
+
+    @CommandLine.Option(
+            order = 5,
+            paramLabel = "<1>",
+            names = "--threads",
+            description = "Number of threads dedicated to execute the query.")
+    Integer threads = 1;
 
     @CommandLine.Option(
             order = 11,
@@ -83,11 +100,7 @@ public class PassageCLI {
             description = "Provides a concise report on query execution.")
     Boolean report = false;
 
-    @CommandLine.Option(
-            order = 5,
-            names = "--force-order",
-            description = "Force the order of triple patterns to the one provided by the query.")
-    Boolean forceOrder = false;
+
 
     @CommandLine.Option(
             order = 11,
@@ -129,24 +142,19 @@ public class PassageCLI {
                 passageOptions.queryAsString = Files.readString(queryPath);
             } catch (IOException e) {
                 System.out.println("Error: could not read " + queryPath + ".");
-                System.exit(CommandLine.ExitCode.SOFTWARE);
+                System.exit(CommandLine.ExitCode.USAGE);
             }
         }
 
-        if (Objects.isNull(passageOptions.numberOfExecutions)) {
-            passageOptions.numberOfExecutions = 1;
-        }
+        if (Objects.isNull(passageOptions.numberOfExecutions)) { passageOptions.numberOfExecutions = 1; }
+        if (Objects.isNull(passageOptions.timeout)) { passageOptions.timeout = Long.MAX_VALUE; }
 
-        if (Objects.isNull(passageOptions.timeout)) {
-            passageOptions.timeout = Long.MAX_VALUE;
-        }
-
-        // TODO database can be blazegraph or jena
-        BlazegraphBackend backend = null;
+        Backend<?,?> backend = null;
         try {
-            backend = new BlazegraphBackend(passageOptions.database);
-        } catch (SailException | RepositoryException e) {
-            throw new RuntimeException(e);
+            backend = getBackend(passageOptions.database);
+        } catch (SailException | RepositoryException | IOException e) {
+            System.out.println("Error: could not get backend: " + e.getMessage());
+            System.exit(CommandLine.ExitCode.USAGE);
         }
 
         if (passageOptions.report) {
@@ -160,38 +168,39 @@ public class PassageCLI {
             long totalNbResults = 0L;
             long totalPreempt = -1L; // start -1 because the first execution is not considered
             do {
-                PassageExecutionContext context = new PassageExecutionContextBuilder()
+                PassageExecutionContext<?,?> context = new PassageExecutionContextBuilder<>()
+                        .setName("PUSH")
                         .setBackend(backend)
                         .setMaxScans(passageOptions.limit)
                         .setTimeout(passageOptions.timeout)
                         .forceOrder(passageOptions.forceOrder)
+                        .setMaxParallel(passageOptions.threads)
+                        .setExecutorFactory((ec) -> new PassagePushExecutor<>((PassageExecutionContext<?,?>) ec))
                         .build();
 
-                PassagePullExecutor executor = new PassagePullExecutor(context);
-
+                final LongAdder nbResults = new LongAdder();
                 long start = System.currentTimeMillis();
-                Iterator<BackendBindings> iterator = executor.execute(queryToRun);
-                long nbResults = 0;
-                while (iterator.hasNext()) { // TODO try catch
-                    System.out.println(iterator.next());
-                    nbResults += 1;
-                }
+                Op paused = context.executor.execute(queryToRun, (result) -> {
+                    System.out.println(result);
+                    nbResults.increment();
+                });
                 long elapsed = System.currentTimeMillis() - start;
 
                 totalElapsed += elapsed;
-                totalNbResults += nbResults;
+                totalNbResults += nbResults.longValue();
                 totalPreempt += 1;
 
-                queryToRun = executor.pauseAsString();
+                queryToRun = Objects.nonNull(paused) ? QueryFactory.create(OpAsQuery.asQuery(paused)).toString() : null;
 
                 if (passageOptions.report) {
                     System.err.printf("%sNumber of pause/resume: %s %s%n", PURPLE_BOLD, RESET, totalPreempt);
                     System.err.printf("%sExecution time: %s %s ms%n", PURPLE_BOLD, RESET, elapsed);
                     System.err.printf("%sNumber of results: %s %s%n", PURPLE_BOLD, RESET, nbResults);
+                    System.err.printf("%sTOTAL Number of results: %s %s%n", PURPLE_BOLD, RESET, totalNbResults);
                     if (Objects.nonNull(queryToRun)) {
                         System.err.printf("%sTo continue query execution, use the following query:%s%n%s%s%s%n", GREEN_UNDERLINED, RESET, ANSI_GREEN, queryToRun, RESET);
                     } else {
-                        System.err.printf("%sThe query execution is complete.%s%n", GREEN_UNDERLINED, RESET);
+                        System.err.printf("%n%sThe query execution is complete.%s%n", GREEN_UNDERLINED, RESET);
                     }
                 }
 
@@ -206,7 +215,35 @@ public class PassageCLI {
             System.gc(); // no guarantee but still
         }
 
+        try {
+            backend.close();
+        } catch (Exception e) {
+            System.out.println("Error: could not close backend: " + e.getMessage());
+            System.exit(CommandLine.ExitCode.SOFTWARE);
+        }
+
         System.exit(CommandLine.ExitCode.OK);
+    }
+
+    /* ************************************************************************************ */
+
+    /**
+     * Gather all kinds of backend handled in this repository.
+     * @param toDatabase The path to the database as a string.
+     * @return The backend as a generic interface.
+     */
+    public static Backend<?,?> getBackend (String toDatabase) throws IOException, SailException, RepositoryException {
+        Path pathToDatabase = Path.of(toDatabase);
+        if (!pathToDatabase.toFile().exists()) {
+            throw new IOException("The path to the database does not seem right.");
+        }
+
+        String extension = FilenameUtils.getExtension(pathToDatabase.toString());
+        return switch (extension) {
+            case "jnl" -> new BlazegraphBackend(toDatabase);
+            case "hdt" -> new HDTBackend(toDatabase);
+            default -> throw new IOException("The database is of unknown type.");
+        };
     }
 
 }
