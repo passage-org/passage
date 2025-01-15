@@ -126,6 +126,7 @@ public class PassageCLI {
         try {
             new CommandLine(passageOptions).parseArgs(args);
         } catch (Exception e) {
+            log.error("Failed to parse command line arguments");
             CommandLine.usage(passageOptions, System.out);
             System.exit(CommandLine.ExitCode.USAGE);
         }
