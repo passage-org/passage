@@ -12,8 +12,6 @@ import fr.gdd.passage.volcano.PassageConstants;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.jena.fuseki.auth.Auth;
 import org.apache.jena.fuseki.main.FusekiServer;
-import org.apache.jena.fuseki.mgt.ActionDatasets;
-import org.apache.jena.fuseki.mgt.ActionServerStatus;
 import org.apache.jena.fuseki.servlets.SPARQL_QueryDataset;
 import org.apache.jena.query.ARQ;
 import org.apache.jena.query.Dataset;
@@ -32,7 +30,9 @@ import java.io.IOException;
 import java.util.Objects;
 
 /**
- * Command Line Interface of the Fuseki server running Passage.
+ * Command Line Interface of the Fuseki server running Passage. /!\ it does not
+ * intend to replace Apache Jena. It only runs 1 Passage server at a time, defined
+ * in the arguments.
  */
 @CommandLine.Command(
         name = "passage-server",
@@ -46,6 +46,7 @@ public class PassageServerCLI {
 
     @CommandLine.Option(
             order = 1,
+            required = true,
             names = {"-d","--database"},
             paramLabel = "<path/to/database>",
             description = "The path to your database.")
@@ -80,13 +81,13 @@ public class PassageServerCLI {
     @CommandLine.Option(
             order = 6,
             paramLabel = "<path/to/cors/file>",
-            names = "--cors", description = "The path to your CORS configuration file.")
+            names = "--cors", description = "The path to a CORS configuration file.")
     public String cors;
 
     @CommandLine.Option(
             order = 6,
             paramLabel = "<path/to/fuseki/config.ttl>",
-            names = "--config", description = "The path to your Apache Fuseki configuration file.")
+            names = "--config", description = "The path to an Apache Fuseki configuration file.")
     public String config;
 
     @CommandLine.Option(
@@ -162,15 +163,8 @@ public class PassageServerCLI {
 
         FusekiServer.Builder serverBuilder = FusekiServer.create()
                 .port(options.port)
-                .enablePing(true)
-                .enableCompact(true)
-                .enableStats(true)
-                .enableTasks(true)
-                .enableMetrics(true)
-                .numServerThreads(1, 10)
                 .serverAuthPolicy(Auth.ANY_ANON) // Anyone can access the server
-                .addProcessor("/$/server", new ActionServerStatus())
-                .addProcessor("/$/datasets/*", new ActionDatasets());
+                ;
 
         if (Objects.nonNull(backend)) {
             serverBuilder.registerOperation(PassageOperation.Passage, new SPARQL_QueryDataset())
