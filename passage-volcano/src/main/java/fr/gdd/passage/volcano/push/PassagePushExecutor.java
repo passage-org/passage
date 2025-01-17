@@ -22,6 +22,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
         PausableStream<ID,VALUE>,
@@ -29,6 +30,8 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
         implements PassageExecutor<ID,VALUE> {
 
     final PassageExecutionContext<ID,VALUE> context;
+    Stream<BackendBindings<ID,VALUE>> stream;
+    final AtomicBoolean gotPaused = new AtomicBoolean(false);
 
     public PassagePushExecutor(PassageExecutionContext<ID,VALUE> context) {
         this.context = context;
@@ -44,7 +47,7 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
     public Op execute(Op root, Consumer<BackendBindings<ID, VALUE>> consumer) {
         root = context.optimizer.optimize(root);
         final Op _root = new DefaultGraphUriQueryModifier(context).visit(root);
-        AtomicBoolean gotPaused = new AtomicBoolean(false);
+        // AtomicBoolean gotPaused = new AtomicBoolean(false);
         AtomicReference<PausableStream<ID,VALUE>> pausable = new AtomicReference<>();
         try (ForkJoinPool customPool = new ForkJoinPool(context.maxParallelism)) {
             customPool.submit(() -> {
@@ -59,6 +62,10 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
         return gotPaused.get() ?
                 pausable.get().pause():
                 null; // null means execution is over: we provided complete and correct results
+    }
+
+    public boolean gotPaused() {
+        return gotPaused.get();
     }
 
     /* *********************************** OPERATORS ************************************** */

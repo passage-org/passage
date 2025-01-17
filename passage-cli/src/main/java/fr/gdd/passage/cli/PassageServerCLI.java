@@ -119,16 +119,14 @@ public class PassageServerCLI {
             System.exit(CommandLine.ExitCode.USAGE);
         }
 
-        if (serverOptions.usageHelpRequested) {
+        if (serverOptions.usageHelpRequested || Objects.isNull(serverOptions.database)) {
             CommandLine.usage(serverOptions, System.out);
             System.exit(CommandLine.ExitCode.USAGE);
         }
 
         Backend<?,?> backend = null;
         try {
-            if (Objects.nonNull(serverOptions.database)) {
-                backend = PassageCLI.getBackend(serverOptions.database);
-            }
+            backend = PassageCLI.getBackend(serverOptions.database);
         } catch (SailException | RepositoryException | IOException e) {
             log.error("Error: could not get backend: {}", e.getMessage());
             System.exit(CommandLine.ExitCode.USAGE);
@@ -161,10 +159,10 @@ public class PassageServerCLI {
         RowSetWriterRegistry.register(ResultSetLang.RS_JSON, ExtensibleRowSetWriterJSON.factory);
         ModuleOutputRegistry.register(ResultSetLang.RS_JSON, new PassageOutputWriterJSON());
 
+        // if need be, processors must be added using the Apache Fuseki configuration file
         FusekiServer.Builder serverBuilder = FusekiServer.create()
                 .port(options.port)
-                .serverAuthPolicy(Auth.ANY_ANON) // Anyone can access the server
-                ;
+                .serverAuthPolicy(Auth.ANY_ANON); // Anyone can access the server
 
         if (Objects.nonNull(backend)) {
             serverBuilder.registerOperation(PassageOperation.Passage, new SPARQL_QueryDataset())

@@ -1,25 +1,24 @@
 package fr.gdd.passage.cli.server;
 
 import fr.gdd.passage.commons.generics.BackendBindings;
+import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.volcano.PassageConstants;
+import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.pull.PassagePullExecutor;
+import fr.gdd.passage.volcano.push.PassagePushExecutor;
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.engine.QueryIterator;
 import org.apache.jena.sparql.engine.binding.Binding;
-import org.apache.jena.sparql.engine.binding.BindingBuilder;
-import org.apache.jena.sparql.engine.binding.BindingFactory;
 import org.apache.jena.sparql.engine.main.OpExecutor;
 import org.apache.jena.sparql.engine.main.OpExecutorFactory;
-import org.apache.jena.sparql.expr.nodevalue.NodeValueNode;
 import org.apache.jena.sparql.serializer.SerializationContext;
 
-import java.util.Iterator;
-import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 /**
  * Apache Jena likes OpExecutor which is not an interface but a concrete
@@ -32,21 +31,29 @@ public class PassageOpExecutorFactory implements OpExecutorFactory {
         return new OpExecutorWrapper(execCxt);
     }
 
+    /**
+     * The actual wrapper of OpExecutor for Passage. It builds its execution context based on
+     * the dataset context.
+     */
     public static class OpExecutorWrapper extends OpExecutor {
 
-        final PassagePullExecutor executor;
+        final PassagePushExecutor<?,?> executor;
 
         public OpExecutorWrapper(ExecutionContext ec) {
             super(ec);
-            executor = new PassagePullExecutor<>(new PassageExecutionContextBuilder<>()
+            executor = new PassagePushExecutor<>(new PassageExecutionContextBuilder<>()
                     .setTimeout(ec.getContext().get(PassageConstants.TIMEOUT))
+                    .setBackend(ec.getContext().get(BackendConstants.BACKEND))
+                    .setMaxScans(ec.getContext().get(PassageConstants.MAX_SCANS))
+                    .setMaxParallel(ec.getContext().get(PassageConstants.MAX_PARALLELISM))
+                    .setExecutorFactory((_ec) -> new PassagePushExecutor<>((PassageExecutionContext<?,?>) _ec))
                     .setContext(ec)
                     .build());
         }
 
         @Override
         public QueryIterator executeOp(Op op, QueryIterator input) {
-            return new BindingWrapper(executor.execute(op), executor);
+            return new BindingWrapper(op, executor);
         }
 
         @Override
@@ -58,25 +65,53 @@ public class PassageOpExecutorFactory implements OpExecutorFactory {
 
     }
 
+    /**
+     * The wrapper for the stream that might be parallel.
+     */
     public static class BindingWrapper implements QueryIterator {
 
-        final Iterator<BackendBindings> wrapped;
-        final PassagePullExecutor executor;
+        final BlockingQueue<BackendBindings<?,?>> buffer;
+        final Op query;
+        final PassagePushExecutor<?,?> executor;
+        final Op paused;
 
-        public BindingWrapper(Iterator<BackendBindings> wrapped, PassagePullExecutor executor) {
-            this.wrapped = wrapped;
+        public BindingWrapper(Op query, PassagePushExecutor<?,?> executor) {
+            this.query = query;
             this.executor = executor;
+            this.buffer = new ArrayBlockingQueue<>(100_000); // TODO put this as an argument
+            this.paused = this.executor.execute(query, binding -> {
+                try {
+                    buffer.put(binding);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        }
+
+        @Override
+        public boolean hasNext() {
+            while (this.buffer.isEmpty() && !executor.gotPaused()) {
+                // just wait // TODO TODO use synchro and awaits
+            }
+            throw new UnsupportedOperationException("TODO");
+            // return !this.buffer.isEmpty() || executor.stream(). ;
         }
 
         @Override
         public Binding next() {
-            BackendBindings next = wrapped.next();
-            BindingBuilder builder = BindingFactory.builder();
-            Set<Var> vars = next.variables();
-            for (Var v : vars) {
-                builder.add(v, NodeValueNode.parse(next.getBinding(v).getString()).getNode());
+            if (!this.buffer.isEmpty()) {
+                return this.buffer.poll();
             }
-            return builder.build();
+
+
+
+//            BackendBindings next = wrapped.next();
+//            BindingBuilder builder = BindingFactory.builder();
+//            Set<Var> vars = next.variables();
+//            for (Var v : vars) {
+//                builder.add(v, NodeValueNode.parse(next.getBinding(v).getString()).getNode());
+//            }
+//            return builder.build();
         }
 
         @Override
@@ -94,10 +129,7 @@ public class PassageOpExecutorFactory implements OpExecutorFactory {
             throw new UnsupportedOperationException("is join identity not implemented…");
         }
 
-        @Override
-        public boolean hasNext() {
-            return this.wrapped.hasNext();
-        }
+
 
         @Override
         public void close() {

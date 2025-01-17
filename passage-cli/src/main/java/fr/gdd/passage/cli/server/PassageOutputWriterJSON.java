@@ -21,11 +21,6 @@ public class PassageOutputWriterJSON implements ModuleOutputWriter {
             return; // nothing to do, nothing to save
         }
 
-//        Boolean isPaused = context.isTrue(SagerConstants.PAUSED);
-//        if (!isPaused) {
-//            throw new RuntimeException("Should be in paused state…");
-//        }
-
         PassagePaused savedString = context.get(PassageConstants.PAUSED);
 
         if (Objects.isNull(savedString.getPausedQueryAsString())) {
