@@ -55,4 +55,12 @@ public class WanderJoin<ID, VALUE> extends ReturningOpVisitor<Double> {
         }
         return table.getTable().size() == 0 ? 0.0 : 1.0 / table.getTable().size();
     }
+
+    @Override
+    public Double visit(OpFilter filter) {
+        // TODO : make sure this is correct?
+        // answer : yes it is. For one random walk, it is true that this way look weird, but at the scale of an entire
+        // wander join, the increasing number of fail because of the filter will balance the overestimated probability
+        return 1. * ReturningOpVisitorRouter.visit(this, filter.getSubOp());
+    }
 }

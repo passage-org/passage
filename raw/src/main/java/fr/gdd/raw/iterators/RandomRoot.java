@@ -54,10 +54,11 @@ public class RandomRoot<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE
             if(current.hasNext()) {
                 produced = current.next();
             } else {
+                RawConstants.incrementRandomWalkAttempts(context);
                 current = null;
             }
 
-            RawConstants.incrementRandomWalkAttempts(context);
+
         }
         return true;
     }
@@ -81,7 +82,7 @@ public class RandomRoot<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE
             RawConstants.saveScanProbabilities(context, proba);
         }catch (Exception e){
             // TODO : to remove eventually, useful for debugging while still in the works
-            System.out.println("Can't compute probability of retrieving the binding (with wander join) on " + e.getMessage());
+            // System.out.println("Can't compute probability of retrieving the binding (with wander join) on " + e.getMessage());
         }
 
         return toReturn;

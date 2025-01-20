@@ -44,6 +44,6 @@ public class PassageAccCount<ID,VALUE> implements BackendAccumulator<ID,VALUE> {
     @Override
     public VALUE getValue() {
         Backend<ID,VALUE,?> backend = context.getContext().get(BackendConstants.BACKEND);
-        return backend.getValue(String.format("\"%s\"^^xsd:integer", value));
+        return backend.getValue(String.format("%s", value));
     }
 }
