@@ -153,7 +153,7 @@ public class RawServerCLI {
         dataset.getContext().set(BackendConstants.BACKEND, backend);
         dataset.getContext().set(RawConstants.LIMIT, limit);
         dataset.getContext().setIfUndef(RawConstants.ATTEMPT_LIMIT, attemptLimit);
-//        dataset.getContext().set(PassageConstants.TIMEOUT, timeout);
+        dataset.getContext().set(RawConstants.TIMEOUT, timeout);
         QC.setFactory(dataset.getContext(), new RawOpExecutorFactory());
         QueryEngineRegistry.addFactory(RawQueryEngine.factory);
 

@@ -155,6 +155,7 @@ public class RawRowSetWriterJSON implements RowSetWriter {
 
                 if(probas.isEmpty()){
                     writeRow(out, rowSet, binding);
+                    // System.out.println(binding);
                 }else {
                     BindingBuilder bb = BindingBuilder.create();
 
@@ -175,6 +176,7 @@ public class RawRowSetWriterJSON implements RowSetWriter {
                     if ( !firstRow )
                         println(out, " ,");
                     writeRow(out, rowSet, bindingWithProbability);
+                    // System.out.println(bindingWithProbability);
                     firstRow = false;
                     i++;
                 }

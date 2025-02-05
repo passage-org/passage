@@ -37,7 +37,7 @@ public class RawOpExecutorFactory implements OpExecutorFactory {
             rawer = new RawOpExecutor(ec);
             rawer.setBackend(ec.getContext().get(BackendConstants.BACKEND));
             rawer.setLimit(ec.getContext().get(RawConstants.LIMIT));
-//            rawer.setTimeout(ec.getContext().get(RawConstants.TIMEOUT));
+            rawer.setTimeout(ec.getContext().get(RawConstants.TIMEOUT));
         }
 
         @Override
