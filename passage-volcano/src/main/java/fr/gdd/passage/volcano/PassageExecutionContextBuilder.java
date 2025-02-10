@@ -31,7 +31,7 @@ public class PassageExecutionContextBuilder<ID,VALUE> {
 
     public PassageExecutionContext<ID,VALUE> build() {
         ExecutionContext ec = Objects.isNull(context) ?
-                new ExecutionContext(DatasetFactory.empty().asDatasetGraph()):
+                ExecutionContext.create(DatasetFactory.empty().asDatasetGraph()):
                 context;
 
         if (ec.getContext().isUndef(BackendConstants.BACKEND) && Objects.isNull(backend)) {

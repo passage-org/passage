@@ -46,7 +46,7 @@ public class PassageCLI {
             required = true,
             names = {"-d","--database"},
             paramLabel = "<path>",
-            description = "The path to your blazegraph database.")
+            description = "The path to your blazegraph|hdt database.")
     String database;
 
     @CommandLine.Option(

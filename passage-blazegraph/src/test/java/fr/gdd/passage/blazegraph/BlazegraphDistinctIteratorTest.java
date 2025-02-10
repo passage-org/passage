@@ -130,8 +130,6 @@ public class BlazegraphDistinctIteratorTest {
                 it.getString(SPOC.PREDICATE),
                 it.getString(SPOC.OBJECT),
                 it.getString(SPOC.GRAPH));
-
-        bb.close();
     }
 
     /* ************************************************************************************* */

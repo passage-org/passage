@@ -1,5 +1,6 @@
 package fr.gdd.passage.cli.server;
 
+import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.volcano.pull.PassagePullExecutor;
 import org.apache.jena.query.Query;
 import org.apache.jena.sparql.algebra.Op;
@@ -64,7 +65,7 @@ public class PassageQueryEngine extends QueryEngineBase {
     public static class PassageQueryEngineFactory implements QueryEngineFactory {
         @Override
         public boolean accept(Query query, DatasetGraph dataset, Context context) {
-            return true;
+            return context.isDefined(BackendConstants.BACKEND);
         }
 
         @Override

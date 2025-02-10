@@ -10,8 +10,12 @@ import fr.gdd.passage.commons.io.ExtensibleRowSetWriterJSON;
 import fr.gdd.passage.commons.io.ModuleOutputRegistry;
 import fr.gdd.passage.volcano.PassageConstants;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.jena.cmd.CmdGeneral;
 import org.apache.jena.fuseki.auth.Auth;
 import org.apache.jena.fuseki.main.FusekiServer;
+import org.apache.jena.fuseki.main.cmds.FusekiMain;
+import org.apache.jena.fuseki.main.cmds.ServerArgs;
+import org.apache.jena.fuseki.main.sys.FusekiServerArgsCustomiser;
 import org.apache.jena.fuseki.servlets.SPARQL_QueryDataset;
 import org.apache.jena.query.ARQ;
 import org.apache.jena.query.Dataset;
@@ -109,6 +113,13 @@ public class PassageServerCLI {
     /* ***********************************************************************/
 
     public static void main(String[] args) {
+        FusekiMain.addCustomiser(new FusekiServerArgsCustomiser() {
+            @Override
+            public void serverArgsModify(CmdGeneral fusekiCmd, ServerArgs serverArgs) {
+                FusekiServerArgsCustomiser.super.serverArgsModify(fusekiCmd, serverArgs);
+            }
+        });
+
         PassageServerCLI serverOptions = new PassageServerCLI();
 
         try {
@@ -151,6 +162,8 @@ public class PassageServerCLI {
         Dataset dataset = DatasetFactory.create(); // TODO double check if it's alright
         dataset.getContext().set(BackendConstants.BACKEND, backend);
         dataset.getContext().set(PassageConstants.TIMEOUT, options.timeout);
+        dataset.getContext().set(PassageConstants.FORCE_ORDER, options.forceOrder);
+        dataset.getContext().set(PassageConstants.MAX_PARALLELISM, options.threads);
         QC.setFactory(dataset.getContext(), new PassageOpExecutorFactory());
         QueryEngineRegistry.addFactory(PassageQueryEngine.factory);
 
@@ -175,10 +188,14 @@ public class PassageServerCLI {
         }
 
         if (Objects.nonNull(options.cors)) {
+            serverBuilder.enableCors(true, options.cors);
+        } else {
+            // we still enable, but without config file
             serverBuilder.enableCors(true, null);
         }
 
-        if (Objects.nonNull(options.ui)) { // add UI if need be
+        // add a web user interface if need be, the provided folder must have an `index.html`
+        if (Objects.nonNull(options.ui)) {
             serverBuilder.staticFileBase(options.ui);
         }
 

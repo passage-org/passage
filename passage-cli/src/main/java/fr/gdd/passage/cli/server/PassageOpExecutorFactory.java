@@ -112,6 +112,8 @@ public class PassageOpExecutorFactory implements OpExecutorFactory {
 //                builder.add(v, NodeValueNode.parse(next.getBinding(v).getString()).getNode());
 //            }
 //            return builder.build();
+            // TODO TODO TODO
+            return null;
         }
 
         @Override
@@ -121,7 +123,8 @@ public class PassageOpExecutorFactory implements OpExecutorFactory {
 
         @Override
         public void cancel() {
-            executor.pauseAsString();
+            // TODO TODO TODO
+            // executor.pauseAsString();
         }
 
         @Override
@@ -133,7 +136,8 @@ public class PassageOpExecutorFactory implements OpExecutorFactory {
 
         @Override
         public void close() {
-            executor.pauseAsString();
+            // TODO TODO TODO
+            // executor.pauseAsString();
         }
 
         @Override
