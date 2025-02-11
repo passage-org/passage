@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
  */
 public class PassageQueryEngine extends QueryEngineBase {
 
-    private static Logger log = LoggerFactory.getLogger(PassageQueryEngine.class);
+    private final static Logger log = LoggerFactory.getLogger(PassageQueryEngine.class);
 
     protected PassageQueryEngine(Op op, DatasetGraph dataset, Binding input, Context context) {
         super(op, dataset, input, context);
@@ -50,7 +50,7 @@ public class PassageQueryEngine extends QueryEngineBase {
     @Override
     public QueryIterator eval(Op op, DatasetGraph dsg, Binding input, Context context) {
         // #2 comes from {@link QueryEngineBase}
-        ExecutionContext execCxt = new ExecutionContext(context, dsg.getDefaultGraph(), dsg, QC.getFactory(context));
+        ExecutionContext execCxt = ExecutionContext.create(dsg, context);
 
         QueryIterator qIter1 = ( input.isEmpty() ) ?
                 QueryIterRoot.create(execCxt) :

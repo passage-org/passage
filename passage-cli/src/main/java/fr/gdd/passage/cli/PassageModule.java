@@ -2,6 +2,7 @@ package fr.gdd.passage.cli;
 
 import fr.gdd.passage.cli.server.PassageOutputWriterJSON;
 import fr.gdd.passage.cli.server.PassageQueryEngine;
+import fr.gdd.passage.cli.vocabularies.VocabBlazegraph;
 import fr.gdd.passage.commons.io.ExtensibleRowSetWriterJSON;
 import fr.gdd.passage.commons.io.ModuleOutputRegistry;
 import org.apache.jena.cmd.ArgDecl;
@@ -11,7 +12,6 @@ import org.apache.jena.fuseki.main.cmds.ServerArgs;
 import org.apache.jena.fuseki.main.sys.FusekiModule;
 import org.apache.jena.riot.resultset.ResultSetLang;
 import org.apache.jena.riot.rowset.RowSetWriterRegistry;
-import org.apache.jena.sparql.engine.QueryEngineRegistry;
 
 public class PassageModule implements FusekiModule {
 
@@ -30,7 +30,7 @@ public class PassageModule implements FusekiModule {
         // play when some variables exist in the execution context.
         RowSetWriterRegistry.register(ResultSetLang.RS_JSON, ExtensibleRowSetWriterJSON.factory);
         ModuleOutputRegistry.register(ResultSetLang.RS_JSON, new PassageOutputWriterJSON());
-        QueryEngineRegistry.addFactory(PassageQueryEngine.factory);
+        PassageQueryEngine.register();
     }
 
     @Override

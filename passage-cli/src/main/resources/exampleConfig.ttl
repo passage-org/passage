@@ -66,5 +66,6 @@ PREFIX psg:     <https://passage.gdd.fr/Passage#>
     .
 
 :dataset_watdiv rdf:type psg:DatasetBlazegraph ;
-    psg:location "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl" ;
+    # psg:location "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl" ;
+    psg:location "/Users/skoazell/Desktop/Projects/datasets/watdiv10m-blaze/watdiv10M.jnl" ;
     .

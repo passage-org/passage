@@ -1,5 +1,6 @@
-package fr.gdd.passage.cli;
+package fr.gdd.passage.cli.vocabularies;
 
+import fr.gdd.passage.cli.DatasetAssemblerBlazegraph;
 import fr.gdd.passage.volcano.PassageConstants;
 import org.apache.jena.assembler.Assembler;
 import org.apache.jena.assembler.assemblers.AssemblerGroup;

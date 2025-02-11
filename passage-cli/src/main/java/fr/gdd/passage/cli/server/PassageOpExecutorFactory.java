@@ -5,7 +5,6 @@ import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
-import fr.gdd.passage.volcano.pull.PassagePullExecutor;
 import fr.gdd.passage.volcano.push.PassagePushExecutor;
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.shared.PrefixMapping;
@@ -78,7 +77,7 @@ public class PassageOpExecutorFactory implements OpExecutorFactory {
         public BindingWrapper(Op query, PassagePushExecutor<?,?> executor) {
             this.query = query;
             this.executor = executor;
-            this.buffer = new ArrayBlockingQueue<>(100_000); // TODO put this as an argument
+            this.buffer = new ArrayBlockingQueue<>(100_000_000); // TODO put this as an argument
             this.paused = this.executor.execute(query, binding -> {
                 try {
                     buffer.put(binding);
@@ -90,30 +89,16 @@ public class PassageOpExecutorFactory implements OpExecutorFactory {
 
         @Override
         public boolean hasNext() {
-            while (this.buffer.isEmpty() && !executor.gotPaused()) {
+            while (this.buffer.isEmpty() && !this.executor.isDone()) {
                 // just wait // TODO TODO use synchro and awaits
             }
-            throw new UnsupportedOperationException("TODO");
-            // return !this.buffer.isEmpty() || executor.stream(). ;
+
+            return !this.buffer.isEmpty();
         }
 
         @Override
         public Binding next() {
-            if (!this.buffer.isEmpty()) {
-                return this.buffer.poll();
-            }
-
-
-
-//            BackendBindings next = wrapped.next();
-//            BindingBuilder builder = BindingFactory.builder();
-//            Set<Var> vars = next.variables();
-//            for (Var v : vars) {
-//                builder.add(v, NodeValueNode.parse(next.getBinding(v).getString()).getNode());
-//            }
-//            return builder.build();
-            // TODO TODO TODO
-            return null;
+            return this.buffer.poll();
         }
 
         @Override

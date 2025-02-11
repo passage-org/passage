@@ -1,7 +1,10 @@
 package fr.gdd.passage.cli;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
+import fr.gdd.passage.cli.server.PassageOpExecutorFactory;
+import fr.gdd.passage.cli.vocabularies.VocabBlazegraph;
 import fr.gdd.passage.commons.generics.BackendConstants;
+import fr.gdd.passage.volcano.PassageConstants;
 import org.apache.jena.assembler.Assembler;
 import org.apache.jena.assembler.exceptions.AssemblerException;
 import org.apache.jena.atlas.logging.Log;
@@ -10,6 +13,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.assembler.AssemblerUtils;
 import org.apache.jena.sparql.core.assembler.DatasetAssembler;
+import org.apache.jena.sparql.engine.main.QC;
 import org.apache.jena.sparql.expr.NodeValue;
 import org.apache.jena.sparql.util.Symbol;
 import org.apache.jena.sys.JenaSystem;
@@ -42,6 +46,13 @@ public class DatasetAssemblerBlazegraph extends DatasetAssembler
         // TODO need a connection manager for when the dataset is referenced multiple times
         String path2database = getStringValue(root, VocabBlazegraph.pLocation);
         DatasetGraph dsg = DatabaseMgr.createDatasetGraph(); // empty as we do not use this abstraction
+
+        QC.setFactory(dsg.getContext(), new PassageOpExecutorFactory()); // we fix the executor for this dataset
+
+        // TODO put this as argument, in the dataset or in the service?
+        dsg.getContext().set(PassageConstants.TIMEOUT, 1000L);
+        dsg.getContext().set(PassageConstants.FORCE_ORDER, false);
+        dsg.getContext().set(PassageConstants.MAX_PARALLELISM, 1);
 
         try {
             BlazegraphBackend backend = new BlazegraphBackend(path2database);
