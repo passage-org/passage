@@ -5,6 +5,7 @@ import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
+import fr.gdd.passage.volcano.PassagePaused;
 import fr.gdd.passage.volcano.push.PassagePushExecutor;
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.shared.PrefixMapping;
@@ -16,8 +17,8 @@ import org.apache.jena.sparql.engine.main.OpExecutor;
 import org.apache.jena.sparql.engine.main.OpExecutorFactory;
 import org.apache.jena.sparql.serializer.SerializationContext;
 
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingDeque;
 
 /**
  * Apache Jena likes OpExecutor which is not an interface but a concrete
@@ -52,7 +53,7 @@ public class PassageOpExecutorFactory implements OpExecutorFactory {
 
         @Override
         public QueryIterator executeOp(Op op, QueryIterator input) {
-            return new BindingWrapper(op, executor);
+            return new BindingWrapper(op, executor, execCxt);
         }
 
         @Override
@@ -72,27 +73,21 @@ public class PassageOpExecutorFactory implements OpExecutorFactory {
         final BlockingQueue<BackendBindings<?,?>> buffer;
         final Op query;
         final PassagePushExecutor<?,?> executor;
-        final Op paused;
+        Op paused;
 
-        public BindingWrapper(Op query, PassagePushExecutor<?,?> executor) {
+        public BindingWrapper(Op query, PassagePushExecutor<?,?> executor, ExecutionContext context) {
             this.query = query;
             this.executor = executor;
-            this.buffer = new ArrayBlockingQueue<>(100_000_000); // TODO put this as an argument
+            this.buffer = new LinkedBlockingDeque<>(); // TODO put this as an argument
             this.paused = this.executor.execute(query, binding -> {
-                try {
-                    buffer.put(binding);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
+                buffer.add(binding);
             });
+            PassagePaused p = context.getContext().get(PassageConstants.PAUSED);
+            p.setPausedQuery(this.paused);
         }
 
         @Override
         public boolean hasNext() {
-            while (this.buffer.isEmpty() && !this.executor.isDone()) {
-                // just wait // TODO TODO use synchro and awaits
-            }
-
             return !this.buffer.isEmpty();
         }
 
@@ -108,8 +103,7 @@ public class PassageOpExecutorFactory implements OpExecutorFactory {
 
         @Override
         public void cancel() {
-            // TODO TODO TODO
-            // executor.pauseAsString();
+            // TODO send a signal to stop the --possibly parallel-- query execution.
         }
 
         @Override
@@ -117,12 +111,9 @@ public class PassageOpExecutorFactory implements OpExecutorFactory {
             throw new UnsupportedOperationException("is join identity not implemented…");
         }
 
-
-
         @Override
         public void close() {
-            // TODO TODO TODO
-            // executor.pauseAsString();
+            // TODO send a signal to stop the --possibly parallel-- query execution.
         }
 
         @Override

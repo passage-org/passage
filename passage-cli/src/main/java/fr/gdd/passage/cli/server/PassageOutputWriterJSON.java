@@ -21,16 +21,16 @@ public class PassageOutputWriterJSON implements ModuleOutputWriter {
             return; // nothing to do, nothing to save
         }
 
-        PassagePaused savedString = context.get(PassageConstants.PAUSED);
+        PassagePaused paused = context.get(PassageConstants.PAUSED);
 
-        if (Objects.isNull(savedString.getPausedQueryAsString())) {
+        if (Objects.isNull(paused.getPausedQueryAsString())) {
             return; // no next, we are done!
         }
 
         // otherwise, we add a `next` field to the response.
         writer.print(JSWriter.outputQuotedString("next"));
         writer.println(" : ");
-        writer.println(JSWriter.outputQuotedString(savedString.getPausedQueryAsString()));
+        writer.println(JSWriter.outputQuotedString(paused.getPausedQueryAsString()));
     }
 
 }

@@ -50,9 +50,9 @@ public class DatasetAssemblerBlazegraph extends DatasetAssembler
         QC.setFactory(dsg.getContext(), new PassageOpExecutorFactory()); // we fix the executor for this dataset
 
         // TODO put this as argument, in the dataset or in the service?
-        dsg.getContext().set(PassageConstants.TIMEOUT, 1000L);
+        dsg.getContext().set(PassageConstants.TIMEOUT, 1000000L);
         dsg.getContext().set(PassageConstants.FORCE_ORDER, false);
-        dsg.getContext().set(PassageConstants.MAX_PARALLELISM, 1);
+        dsg.getContext().set(PassageConstants.MAX_PARALLELISM, 10);
 
         try {
             BlazegraphBackend backend = new BlazegraphBackend(path2database);

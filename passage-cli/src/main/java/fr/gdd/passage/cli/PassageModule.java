@@ -13,18 +13,20 @@ import org.apache.jena.fuseki.main.sys.FusekiModule;
 import org.apache.jena.riot.resultset.ResultSetLang;
 import org.apache.jena.riot.rowset.RowSetWriterRegistry;
 
+import java.util.Objects;
+
 public class PassageModule implements FusekiModule {
 
-    private static FusekiModule singleton = new PassageModule();
+    private static PassageModule singleton;
 
     public final static ArgDecl argDatabase = new ArgDecl(ArgDecl.HasValue, "database");
     public final static ArgDecl argThreads = new ArgDecl(ArgDecl.NoValue, "threads");
     public final static ArgDecl argTimeout = new ArgDecl(ArgDecl.NoValue, "timeout");
     public final static ArgDecl argMaxResults = new ArgDecl(ArgDecl.NoValue, "maxResults");
 
-    public static PassageModule create() { return new PassageModule(); }
+    public static PassageModule create() { if (Objects.isNull(singleton)) singleton = new PassageModule(); return singleton; }
 
-    public PassageModule() {
+    private PassageModule() {
         VocabBlazegraph.init();
         // set globally but the dedicated writer only comes into
         // play when some variables exist in the execution context.
