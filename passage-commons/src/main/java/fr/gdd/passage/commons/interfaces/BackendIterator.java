@@ -1,6 +1,10 @@
 package fr.gdd.passage.commons.interfaces;
 
+import fr.gdd.passage.commons.generics.BackendBindings;
+import org.apache.jena.sparql.engine.ExecutionContext;
+
 import java.io.Serializable;
+import java.util.Iterator;
 
 /**
  * An iterator over a backend that enables pausing/resuming query

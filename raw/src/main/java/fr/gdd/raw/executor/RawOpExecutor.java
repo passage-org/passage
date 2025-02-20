@@ -50,7 +50,7 @@ public class RawOpExecutor<ID, VALUE> extends BackendOpExecutor<ID, VALUE> { // 
         super(context, BackendProject.factory(), RandomScanFactory.tripleFactory(),
                 RandomScanFactory.quadFactory(), new BackendNestedLoopJoinFactory<>(), null, RandomValues.factory(),
                 BackendBind.factory(), BackendFilter.factory(), null,
-                null, null, null);
+                null, RawOptional.factory(), null);
         this.execCxt = context;
         this.execCxt.getContext().setIfUndef(RawConstants.SCAN_PROBABILITIES, new ArrayList<>());
         this.execCxt.getContext().setIfUndef(RawConstants.RANDOM_WALK_ATTEMPTS, new RawConstants.Wrapper<Long>(0L));
@@ -64,7 +64,7 @@ public class RawOpExecutor<ID, VALUE> extends BackendOpExecutor<ID, VALUE> { // 
         super(new ExecutionContext(DatasetFactory.empty().asDatasetGraph()), BackendProject.factory(), RandomScanFactory.tripleFactory(),
                 RandomScanFactory.quadFactory(), new BackendNestedLoopJoinFactory<>(), null, RandomValues.factory(),
                 BackendBind.factory(), BackendFilter.factory(), null,
-                null, null, null);
+                null, RawOptional.factory(), null);
 
         execCxt = context;
 
@@ -183,6 +183,7 @@ public class RawOpExecutor<ID, VALUE> extends BackendOpExecutor<ID, VALUE> { // 
         return ReturningArgsOpVisitorRouter.visit(this, join.getRight(), input);
     }
 
+
     @Override
     public Iterator<BackendBindings<ID, VALUE>> visit(OpTable table, Iterator<BackendBindings<ID, VALUE>> input) {
         if (table.isJoinIdentity())
@@ -213,4 +214,9 @@ public class RawOpExecutor<ID, VALUE> extends BackendOpExecutor<ID, VALUE> { // 
         return new RandomAggregator<>(this, groupBy, input);
     }
 
+    @Override
+    public Iterator<BackendBindings<ID, VALUE>> visit(OpLeftJoin leftJoin, Iterator<BackendBindings<ID, VALUE>> input) {
+        Iterator<BackendBindings<ID, VALUE>> leftInput = ReturningArgsOpVisitorRouter.visit(this, leftJoin.getLeft(), input);
+        return new RawOptional<>(leftInput, leftJoin.getRight(), execCxt);
+    }
 }

@@ -10,6 +10,7 @@ import org.apache.jena.sparql.algebra.op.OpSequence;
 import org.apache.jena.sparql.algebra.op.OpTable;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.engine.binding.BindingBuilder;
 import org.apache.jena.sparql.expr.NodeValue;
 import org.apache.jena.sparql.util.ExprUtils;
 
@@ -39,6 +40,12 @@ public class BackendBindings<ID, VALUE> implements Binding {
                 .map(v-> v.getVarName() + " -> " + getBinding(v).getString())
                 .collect(Collectors.joining()));
     }
+    Double probability = null;
+
+    public BackendBindings<ID, VALUE> setProbability(Double probability) {
+        this.probability = probability;
+        return this;
+    }
 
     /**
      * Contains everything to lazily get a value, or an id
@@ -51,6 +58,7 @@ public class BackendBindings<ID, VALUE> implements Binding {
         String asString = null;
         Integer code = null;
         Backend<ID, VALUE, ?> backend = null;
+
 
         public IdValueBackend<ID, VALUE> setString(String asString) {
             this.asString = asString;
@@ -103,6 +111,7 @@ public class BackendBindings<ID, VALUE> implements Binding {
             }
             return asString;
         }
+
     }
 
     /* ****************************** BINDINGS ************************************ */
@@ -164,6 +173,15 @@ public class BackendBindings<ID, VALUE> implements Binding {
         result.addAll(parent.variables());
         return result;
     }
+    public BackendBindings(Map<ID, VALUE> bindings) {
+        for (Map.Entry<ID, VALUE> entry : bindings.entrySet()) {
+            Var var = Var.alloc(entry.getKey().toString());
+            IdValueBackend<ID, VALUE> idValueBackend = new IdValueBackend<ID, VALUE>()
+                    .setId(entry.getKey())
+                    .setValue(entry.getValue());
+            this.put(var, idValueBackend);
+        }
+    }
 
     /* **************************** JENA BINDING INTERFACE *************************** */
 
@@ -210,6 +228,7 @@ public class BackendBindings<ID, VALUE> implements Binding {
     public void forEach(BiConsumer<Var, Node> action) {
         this.variables().forEach(v -> action.accept(v, get(v)));
     }
+
 
     /* ******************************** UTILITY ************************************* */
 
@@ -275,4 +294,16 @@ public class BackendBindings<ID, VALUE> implements Binding {
             default -> seq;
         };
     }
+
+    public Binding getAllBindings() {
+        BindingBuilder builder = BindingBuilder.create();
+        for (Var var : this.variables()) {
+            builder.add(var, this.get(var));
+        }
+        return builder.build();
+    }
+    public Double getProbability() {
+        return probability;
+    }
+
 }

@@ -63,4 +63,15 @@ public class WanderJoin<ID, VALUE> extends ReturningOpVisitor<Double> {
         // wander join, the increasing number of fail because of the filter will balance the overestimated probability
         return 1. * ReturningOpVisitorRouter.visit(this, filter.getSubOp());
     }
+
+    @Override
+    public Double visit(OpLeftJoin leftJoin) {
+        Double leftProba = ReturningOpVisitorRouter.visit(this, leftJoin.getLeft());
+        try {
+            Double rightProba = ReturningOpVisitorRouter.visit(this, leftJoin.getRight());
+            return leftProba * rightProba;
+        } catch (Exception e) {
+            return leftProba;
+        }
+    }
 }
