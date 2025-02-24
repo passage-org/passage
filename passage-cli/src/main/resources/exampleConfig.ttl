@@ -12,7 +12,8 @@ PREFIX psg:     <https://passage.gdd.fr/Passage#>
    fuseki:services (
      ## :service
      :watdiv_service
-   ) .
+   )
+   .
 
 ## Service description for "/dataset"
 ## with a TDB2 dataset
@@ -54,14 +55,23 @@ PREFIX psg:     <https://passage.gdd.fr/Passage#>
     ## tdb2:unionDefaultGraph true ;
     .
 
+## Actual service for
+
 :watdiv_service rdf:type fuseki:Service ;
     fuseki:name "watdiv" ;
     fuseki:endpoint [
         fuseki:operation fuseki:query ;
         fuseki:name "passage" ;
-    ] ;
+    ];
+    ## TODO create "raw" services for random walks
+    ## fuseki:endpoint [
+    ##    fuseki:operation fuseki:query ;
+    ##    fuseki:name "raw" ;
+    ##];
     fuseki:dataset :dataset_watdiv ;
     .
+
+## A new kind of dataset is available
 
 :dataset_watdiv rdf:type psg:DatasetBlazegraph ;
     psg:location "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl" ;

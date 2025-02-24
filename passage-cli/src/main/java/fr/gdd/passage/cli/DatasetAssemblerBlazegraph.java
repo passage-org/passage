@@ -1,9 +1,11 @@
 package fr.gdd.passage.cli;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
+import fr.gdd.passage.blazegraph.BlazegraphBackendFactory;
 import fr.gdd.passage.cli.server.PassageOpExecutorFactory;
 import fr.gdd.passage.cli.vocabularies.VocabBlazegraph;
 import fr.gdd.passage.commons.generics.BackendConstants;
+import fr.gdd.passage.commons.generics.BackendManager;
 import fr.gdd.passage.volcano.PassageConstants;
 import org.apache.jena.assembler.Assembler;
 import org.apache.jena.assembler.exceptions.AssemblerException;
@@ -22,11 +24,14 @@ import org.apache.jena.tdb2.DatabaseMgr;
 import static org.apache.jena.sparql.util.graph.GraphUtils.exactlyOneProperty;
 import static org.apache.jena.sparql.util.graph.GraphUtils.getStringValue;
 
-public class DatasetAssemblerBlazegraph extends DatasetAssembler
-{
+public class DatasetAssemblerBlazegraph extends DatasetAssembler {
     // This is not a NamedDatasetAssembler
     // Sharing is done by "same location" and must be system wide (not just assemblers).
     // In-memory TDB2 dataset can use named memory locations e.g. "--mem--/NAME" TODO <--
+
+    // just in case where a dataset path would be mentioned multiple times, we create a
+    // manager that ensures uniqueness in opening files.
+    private final static BackendManager manager = new BackendManager();
 
     static { JenaSystem.init(); }
 
@@ -55,7 +60,7 @@ public class DatasetAssemblerBlazegraph extends DatasetAssembler
         dsg.getContext().set(PassageConstants.MAX_PARALLELISM, 1);
 
         try {
-            BlazegraphBackend backend = new BlazegraphBackend(path2database);
+            BlazegraphBackend backend = (BlazegraphBackend) manager.addBackend(path2database, new BlazegraphBackendFactory());
             dsg.getContext().set(BackendConstants.BACKEND, backend);
         } catch (Exception e) {
             throw new AssemblerException(root, e.getMessage());

@@ -68,7 +68,7 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
     /**
      * Creates a Blazegraph backend using a path to a journal file or a path to a property file.
      * The former is for a quickstart of default journal file; While the latter defines a more
-     * specific dataset (must end with `.properties`).
+     * specific dataset (must end with `.properties` to be recognized as such).
      * @param path The path to the file defining the dataset. Relative path(s) are relative to
      *             the actual execution folder.
      */
