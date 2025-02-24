@@ -26,6 +26,9 @@ import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.*;
 
 /**
@@ -44,9 +47,12 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
     final BigdataSailRepository repository;
     final BigdataSailRepositoryConnection connection;
     final BigdataSail sail;
-    final IV defaultGraph;
-    final static IV UNION_OF_GRAPHS = null;
+    final IV defaultGraph; // TODO better handling of this, ie. comes from journal
+    final static IV UNION_OF_GRAPHS = null; // TODO better handling of this, ie. comes from journal
 
+    /**
+     * Creates an empty Blazegraph Backend, only useful for debug purpose
+     */
     public BlazegraphBackend() throws SailException, RepositoryException {
         System.setProperty("com.bigdata.Banner.quiet", "true"); // banner is annoying, sorry blazegraph
         final Properties props = BlazegraphInMemoryDatasetsFactory.getDefaultProps();
@@ -59,11 +65,27 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
         defaultGraph = getDefaultGraph();
     }
 
+    /**
+     * Creates a Blazegraph backend using a path to a journal file or a path to a property file.
+     * The former is for a quickstart of default journal file; While the latter defines a more
+     * specific dataset (must end with `.properties`).
+     * @param path The path to the file defining the dataset. Relative path(s) are relative to
+     *             the actual execution folder.
+     */
     public BlazegraphBackend(String path) throws SailException, RepositoryException {
         System.setProperty("com.bigdata.Banner.quiet", "true"); // banner is annoying, sorry blazegraph
 
-        final Properties props = new Properties();
-        props.put(Options.FILE, path);
+        Properties props = new Properties();
+        if (path.endsWith(".properties")) {
+            try {
+                props.load(new FileReader(Path.of(path).toFile()));
+            } catch (IOException e) {
+                throw new RepositoryException(e);
+            }
+        } else {
+            // resort to default, with `path` being the file path.
+            props.put(Options.FILE, path);
+        }
 
         this.sail = new BigdataSail(props);
         this.repository = new BigdataSailRepository(sail);
@@ -74,6 +96,7 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
     }
 
     /**
+     * Creates a Blazegraph backend using an already initialized sail repository.
      * @param sail An already initialized sail (blazegraph) repository.
      */
     public BlazegraphBackend(BigdataSail sail) throws RepositoryException {

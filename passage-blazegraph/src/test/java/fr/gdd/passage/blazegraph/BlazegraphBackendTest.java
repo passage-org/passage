@@ -34,6 +34,7 @@ public class BlazegraphBackendTest {
 
     private final static Logger log = LoggerFactory.getLogger(BlazegraphBackendTest.class);
     private static final String WATDIV = "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl";
+    private static final String WATDIV_PROPERTY = "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.properties";
     public static final BlazegraphBackend watdiv;
     private static final String WDBENCH = "/Users/nedelec-b-2/Desktop/Projects/temp/wdbench-blaze/wdbench-blaze.jnl";
     public static final BlazegraphBackend wdbench;
@@ -54,6 +55,23 @@ public class BlazegraphBackendTest {
         }
     }
 
+    /* ************************************************************************* */
+
+    @Disabled("Create a test with a small local properties file, generated on the fly.")
+    @Test
+    public void open_a_file_using_its_property_file () throws RepositoryException, SailException {
+        Assumptions.assumeTrue(Path.of(WATDIV_PROPERTY).toFile().exists());
+        BlazegraphBackend bb = new BlazegraphBackend(WATDIV_PROPERTY);
+        BackendIterator<?,?> it = bb.search(bb.any(), bb.any(), bb.any(), bb.any());
+        assertTrue(it.hasNext());
+        long count = 0;
+        while (it.hasNext()) {
+            it.next();
+            count++;
+        }
+        log.debug("Found {} statements.", count);
+        bb.close();
+    }
 
     /* ************************************************************************* */
 
