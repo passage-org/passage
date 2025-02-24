@@ -52,7 +52,7 @@ public class DatasetAssemblerBlazegraph extends DatasetAssembler
         // TODO put this as argument, in the dataset or in the service?
         dsg.getContext().set(PassageConstants.TIMEOUT, 1000000L);
         dsg.getContext().set(PassageConstants.FORCE_ORDER, false);
-        dsg.getContext().set(PassageConstants.MAX_PARALLELISM, 10);
+        dsg.getContext().set(PassageConstants.MAX_PARALLELISM, 1);
 
         try {
             BlazegraphBackend backend = new BlazegraphBackend(path2database);

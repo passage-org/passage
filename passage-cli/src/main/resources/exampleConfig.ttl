@@ -10,7 +10,7 @@ PREFIX psg:     <https://passage.gdd.fr/Passage#>
 
 [] rdf:type fuseki:Server ;
    fuseki:services (
-     :service
+     ## :service
      :watdiv_service
    ) .
 
@@ -59,8 +59,6 @@ PREFIX psg:     <https://passage.gdd.fr/Passage#>
     fuseki:endpoint [
         fuseki:operation fuseki:query ;
         fuseki:name "passage" ;
-        ## Set default-union-graph for this endpoint.
-        ja:context [ ja:cxtName "tdb:unionDefaultGraph" ; ja:cxtValue true ] ;
     ] ;
     fuseki:dataset :dataset_watdiv ;
     .
