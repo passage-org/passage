@@ -14,6 +14,7 @@ import org.apache.jena.rdf.model.Resource;
  * Creates our own vocabulary and operation. So the endpoint would not be a SPARQL endpoint,
  * but a Passage endpoint. A client can adapt its behavior based on this difference.
  */
+@Deprecated // to remove with PassageServerCLI
 public class PassageOperation {
 
     private static Model model = ModelFactory.createDefaultModel();

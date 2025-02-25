@@ -1,3 +1,7 @@
+*.#*
+*apache-jena*/
+*.tar.gz
+
 *.versionsBackup
 *queries/
 *results/

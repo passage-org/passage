@@ -46,6 +46,7 @@ import java.util.Objects;
         sortOptions = false,
         sortSynopsis = false
 )
+@Deprecated // TODO replaced by CLI2
 public class PassageServerCLI {
 
     @CommandLine.Option(

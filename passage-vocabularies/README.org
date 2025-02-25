@@ -1,0 +1,23 @@
+* passage vocabularies
+
+Once doesn't make an habit, this mean of creating the vocabulary of
+=passage= is greatly inspired by [[https://github.com/LiUSemWeb/HeFQUIN/tree/main/hefquin-vocabs][HeFQUIN]]. We create a =.ttl= file, and
+use Apache Jena's generator to create the corresponding Java
+class(es).
+
+#+BEGIN_SRC bash :results file :file ../passage-cli/src/main/java/fr/gdd/passage/cli/vocabularies/PassageVocabulary.java
+  JENA="./apache-jena-5.3.0/"
+  if [ ! -d "$JENA" ]; then
+      wget -nc https://dlcdn.apache.org/jena/binaries/apache-jena-5.3.0.tar.gz &> /dev/null && \
+          tar -xvzf apache-jena-5.3.0.tar.gz &> /dev/null
+  fi
+      
+  apache-jena-5.3.0/bin/riot --validate ./engine-vocabulary.ttl && \
+      echo "package fr.gdd.passage.cli.vocabularies;" && \
+      apache-jena-5.3.0/bin/schemagen --owl -e TURTLE -i ./engine-vocabulary.ttl \
+                                      -n PassageVocabulary \
+                                      -a "http://fr.gdd.passage/engine-vocabulary#"
+#+END_SRC
+
+#+RESULTS:
+[[file:../passage-cli/src/main/java/fr/gdd/passage/cli/vocabularies/PassageVocabulary.java]]

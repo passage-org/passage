@@ -1,8 +1,9 @@
 package fr.gdd.passage.cli;
 
+import fr.gdd.passage.cli.assemblers.DatasetAssemblerBlazegraph;
 import fr.gdd.passage.cli.server.PassageOutputWriterJSON;
 import fr.gdd.passage.cli.server.PassageQueryEngine;
-import fr.gdd.passage.cli.vocabularies.VocabBlazegraph;
+import fr.gdd.passage.cli.vocabularies.PassageVocabulary;
 import fr.gdd.passage.commons.io.ExtensibleRowSetWriterJSON;
 import fr.gdd.passage.commons.io.ModuleOutputRegistry;
 import org.apache.jena.cmd.ArgDecl;
@@ -12,6 +13,7 @@ import org.apache.jena.fuseki.main.cmds.ServerArgs;
 import org.apache.jena.fuseki.main.sys.FusekiModule;
 import org.apache.jena.riot.resultset.ResultSetLang;
 import org.apache.jena.riot.rowset.RowSetWriterRegistry;
+import org.apache.jena.sparql.core.assembler.AssemblerUtils;
 
 import java.util.Objects;
 
@@ -27,12 +29,14 @@ public class PassageModule implements FusekiModule {
     public static PassageModule create() { if (Objects.isNull(singleton)) singleton = new PassageModule(); return singleton; }
 
     private PassageModule() {
-        VocabBlazegraph.init();
         // set globally but the dedicated writer only comes into
         // play when some variables exist in the execution context.
         RowSetWriterRegistry.register(ResultSetLang.RS_JSON, ExtensibleRowSetWriterJSON.factory);
         ModuleOutputRegistry.register(ResultSetLang.RS_JSON, new PassageOutputWriterJSON());
         PassageQueryEngine.register();
+
+        AssemblerUtils.addRegistered(PassageVocabulary.DatasetBlazegraph.getModel());
+        AssemblerUtils.registerDataset(PassageVocabulary.DatasetBlazegraph, new DatasetAssemblerBlazegraph());
     }
 
     @Override

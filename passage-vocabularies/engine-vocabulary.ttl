@@ -1,0 +1,82 @@
+@prefix owl:    <http://www.w3.org/2002/07/owl#> .
+@prefix dc:     <http://purl.org/dc/elements/1.1/> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:    <http://www.w3.org/2000/10/XMLSchema#> .
+@prefix psg:    <http://fr.gdd.passage/engine-vocabulary#> .
+@prefix ja:     <http://jena.hpl.hp.com/2005/11/Assembler#> .
+
+## This vocabulary aims to define the configuration of an available engine
+## which are either PASSAGE, or RAW.
+## In addition, we would like to be able to create custom ones, by
+## defining the class to instantiate for each operator of SPARQL
+
+## To produce this document, we took an example of HeFQUIN available at:
+## <https://github.com/LiUSemWeb/HeFQUIN/blob/main/hefquin-vocabs/engineconf.ttl>
+
+<http://fr.gdd.passage/engine-vocabulary> rdf:type owl:Ontology ;
+    dc:creator       "Chat-Wane" ;
+    dc:date          "2025-24-02" ;
+    dc:format        "RDF" ;
+    # TODO dc:identifier w3id.org
+    dc:title         "Vocabulary for describing engines in PASSAGE"@en ;
+    rdfs:label       "Vocabulary for describing engines in PASSAGE"@en .
+
+## Engines
+
+psg:SPARQLEngine rdf:type owl:Class ;
+    rdfs:label       "SPARQL engine configuration"@en ;
+    rdfs:comment     "Abstract class of SPARQL engine configuration."@en .
+
+psg:PassageEngine rdf:type owl:Class ;
+    rdfs:subClassOf  psg:SPARQLEngine ;
+    rdfs:label       "PASSAGE configuration"@en ;
+    rdfs:comment     "Class of configuration for the PASSAGE engine."@en .
+
+psg:RawEngine rdf:type owl:Class ;
+    rdfs:subClassOf  psg:SPARQLEngine ;
+    rdfs:label       "RAW configuration"@en ;
+    rdfs:comment     "Class of configuration for the RAW engine."@en .
+
+psg:CustomEngine rdf:type owl:Class ;
+    rdfs:subClassOf  psg:SPARQLEngine ;
+    rdfs:label       "Custom configuration"@en ;
+    rdfs:comment     "Class of configuration to define its own custom SPARQL engine operator per operator."@en .
+
+psg:engine rdf:type rdf:Property ;
+    rdfs:range       psg:SPARQLEngine ;
+    # TODO rdfs:domain
+    rdfs:label       "SPARQL query engine"@en ;
+    rdfs:comment     "Specifies the SPARQL query engines to use with the service."@en .
+
+
+## Datasets
+
+psg:DatasetBlazegraph rdf:type owl:Class ;
+    rdfs:subClassOf  ja:dataset ;
+    rdfs:label       "Blazegraph dataset"@en ;
+    rdfs:comment     "An instance of this class defines a dataset with a Blazegraph backend."@en .
+
+psg:DatasetHDT rdf:type owl:Class ;
+    rdfs:subClassOf  ja:dataset ;
+    rdfs:label       "HDT dataset"@en ;
+    rdf:comment      "An instance of this class defines a dataset with an HDT backend."@en .
+
+
+## Properties
+
+psg:location rdf:type rdf:Property;
+    rdfs:label       "Dataset location"@en ;
+    rdfs:comment     "The location of the file to read to create the dataset."@en .
+
+psg:timeout rdf:type rdf:Property;
+    rdfs:label       "Query execution timeout"@en ;
+    rdfs:comment     "Timeout on SPARQL query execution. Depending on the query engine, a specific behavior is associated."@en .
+
+psg:parallel rdf:type rdf:Property;
+    rdfs:label       "Maximum number of threads"@en ;
+    rdfs:comment     "Maximum number of threads allocated to each SPARQL query execution."@en .
+
+## TODO describe supported operators
+
+## TODO Custom engines

@@ -6,7 +6,7 @@ PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX ja:      <http://jena.hpl.hp.com/2005/11/Assembler#>
 PREFIX tdb2:    <http://jena.apache.org/2016/tdb#>
-PREFIX psg:     <https://passage.gdd.fr/Passage#>
+PREFIX psg:     <http://fr.gdd.passage/engine-vocabulary#>
 
 [] rdf:type fuseki:Server ;
    fuseki:services (
@@ -74,6 +74,7 @@ PREFIX psg:     <https://passage.gdd.fr/Passage#>
 ## A new kind of dataset is available
 
 :dataset_watdiv rdf:type psg:DatasetBlazegraph ;
-    psg:location "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl" ;
+    psg:location "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.properties" ;
+    tdb2:unionDefaultGraph true ;
     # psg:location "/Users/skoazell/Desktop/Projects/datasets/watdiv10m-blaze/watdiv10M.jnl" ;
     .
