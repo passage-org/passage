@@ -42,10 +42,10 @@ public class PassageOpExecutorFactory implements OpExecutorFactory {
         public OpExecutorWrapper(ExecutionContext ec) {
             super(ec);
             executor = new PassagePushExecutor<>(new PassageExecutionContextBuilder<>()
-                    .setTimeout(ec.getContext().get(PassageConstants.TIMEOUT))
+                    .setTimeout(ec.getContext().getLong(PassageConstants.TIMEOUT, Long.MAX_VALUE))
                     .setBackend(ec.getContext().get(BackendConstants.BACKEND))
-                    .setMaxScans(ec.getContext().get(PassageConstants.MAX_SCANS))
-                    .setMaxParallel(ec.getContext().get(PassageConstants.MAX_PARALLELISM))
+                    .setMaxScans(ec.getContext().getLong(PassageConstants.MAX_SCANS, Long.MAX_VALUE))
+                    .setMaxParallel(ec.getContext().getInt(PassageConstants.MAX_PARALLELISM, 1))
                     .setExecutorFactory((_ec) -> new PassagePushExecutor<>((PassageExecutionContext<?,?>) _ec))
                     .setContext(ec)
                     .build());

@@ -77,6 +77,10 @@ psg:parallel rdf:type rdf:Property;
     rdfs:label       "Maximum number of threads"@en ;
     rdfs:comment     "Maximum number of threads allocated to each SPARQL query execution."@en .
 
+psg:force_order rdf:type rdf:Property ;
+    rdfs:label       "Force order of triple/quad patterns"@en ;
+    rdfs:comment     "Defines if the engine should try to optimize the join order or not."@en .
+
 ## TODO describe supported operators
 
 ## TODO Custom engines

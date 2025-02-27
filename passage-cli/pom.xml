@@ -108,7 +108,7 @@
               <appendAssemblyId>false</appendAssemblyId>
               <archive>
                 <manifest>
-                  <mainClass>fr.gdd.passage.cli.PassageServerCLI2</mainClass>
+                  <mainClass>fr.gdd.passage.cli.PassageServerCLI</mainClass>
                 </manifest>
               </archive>
               <finalName>passage-server</finalName>

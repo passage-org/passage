@@ -22,7 +22,6 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
         PausableStream<ID,VALUE>,

@@ -1,5 +1,3 @@
-## Licensed under the terms of http://www.apache.org/licenses/LICENSE-2.0
-
 PREFIX :        <#>
 PREFIX fuseki:  <http://jena.apache.org/fuseki#>
 PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -8,56 +6,21 @@ PREFIX ja:      <http://jena.hpl.hp.com/2005/11/Assembler#>
 PREFIX tdb2:    <http://jena.apache.org/2016/tdb#>
 PREFIX psg:     <http://fr.gdd.passage/engine-vocabulary#>
 
+## For more information about Fuseki configurations, take a look at:
+## <https://jena.apache.org/documentation/fuseki2/fuseki-configuration.html>
+
+## SERVER
+
 [] rdf:type fuseki:Server ;
    fuseki:services (
-     ## :service
-     :watdiv_service
+     :service_watdiv
+     :service_watdiv_raw
    )
    .
 
-## Service description for "/dataset"
-## with a TDB2 dataset
+## SERVICES
 
-:service rdf:type fuseki:Service ;
-    fuseki:name "dataset" ;
-    fuseki:endpoint [ 
-        fuseki:operation fuseki:query ;
-        fuseki:name "sparql" ;
-        ## Set default-union-graph for this endpoint.
-        ja:context [ ja:cxtName "tdb:unionDefaultGraph" ; ja:cxtValue true ] ;
-    ] ;
-    fuseki:endpoint [
-        fuseki:operation fuseki:query ;
-        fuseki:name "query" 
-    ] ;
-    fuseki:endpoint [
-        fuseki:operation fuseki:update ;
-        fuseki:name "update"
-    ] ;
-    fuseki:endpoint [
-        fuseki:operation fuseki:gsp-r ;
-        fuseki:name "get"
-    ] ;
-    fuseki:endpoint [ 
-        fuseki:operation fuseki:gsp-rw ; 
-        fuseki:name "data"
-    ] ; 
-    fuseki:endpoint [ 
-        fuseki:operation fuseki:patch ;
-        fuseki:name "patch"
-    ] ; 
-    fuseki:dataset :dataset_tdb2 ;
-    .
-
-:dataset_tdb2 rdf:type  tdb2:DatasetTDB2 ;
-    tdb2:location "DB2" ;
-    ## Optional - with union default for query and update WHERE matching.
-    ## tdb2:unionDefaultGraph true ;
-    .
-
-## Actual service for
-
-:watdiv_service rdf:type fuseki:Service ;
+:service_watdiv rdf:type fuseki:Service ;
     fuseki:name "watdiv" ;
     fuseki:endpoint [
         fuseki:operation fuseki:query ;
@@ -70,11 +33,28 @@ PREFIX psg:     <http://fr.gdd.passage/engine-vocabulary#>
     ##];
     fuseki:dataset :dataset_watdiv ;
     .
+## For now, we have to specify two services with different names
+## to provide random sampling on the same dataset
+## TODO while we would prefer a suffix /raw
+:service_watdiv_raw rdf:type fuseki:Service ;
+    fuseki:name "watdiv-raw" ;
+    fuseki:endpoint [
+        fuseki:operation fuseki:query ;
+        fuseki:name "raw" ;
+    ];
+    fuseki:dataset :dataset_watdiv_raw ;
+    .
 
-## A new kind of dataset is available
+## DATASETS
 
 :dataset_watdiv rdf:type psg:DatasetBlazegraph ;
-    psg:location "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.properties" ;
-    tdb2:unionDefaultGraph true ;
-    # psg:location "/Users/skoazell/Desktop/Projects/datasets/watdiv10m-blaze/watdiv10M.jnl" ;
+    psg:location           "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.properties" ;
+    psg:timeout            100 ;
+    psg:engine             psg:PassageEngine ;
+    .
+
+:dataset_watdiv_raw rdf:type psg:DatasetBlazegraph ;
+    psg:location           "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.properties" ;
+    psg:timeout            1000 ;
+    psg:engine             psg:PassageEngine ;
     .

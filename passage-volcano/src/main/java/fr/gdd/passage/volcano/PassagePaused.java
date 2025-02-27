@@ -1,5 +1,6 @@
 package fr.gdd.passage.volcano;
 
+import fr.gdd.passage.volcano.transforms.Quad2Pattern;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpAsQuery;
 
@@ -36,7 +37,8 @@ public class PassagePaused {
 
     public String getPausedQueryAsString() {
         if (Objects.isNull(pausedQueryAsString) && Objects.nonNull(pausedQuery)) { // lazy
-            pausedQueryAsString = OpAsQuery.asQuery(pausedQuery).toString();
+            Op transformed = new Quad2Pattern().visit(pausedQuery); // other to string does not work for quads
+            pausedQueryAsString = OpAsQuery.asQuery(transformed).toString();
         }
         return pausedQueryAsString;
     }
