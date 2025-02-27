@@ -16,7 +16,9 @@ public class PassageServerCLI {
         FusekiMain.addCustomisers(FusekiModules.create(PassageModule.create()));
         try {
             VocabTDB2.init();
-            FusekiServer server = FusekiMain.builder(args).build();
+            FusekiServer server = FusekiMain.builder(args)
+                    .fusekiModules(FusekiModules.create(PassageModule.create())) // to register it in the lifecycle if need be
+                    .build();
             server.start();
         } catch (TerminationException e) {
             System.exit(e.returnCode); // regular quit instead of throwing an exception

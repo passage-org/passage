@@ -16,6 +16,7 @@ import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.main.OpExecutor;
 import org.apache.jena.sparql.engine.main.OpExecutorFactory;
 import org.apache.jena.sparql.serializer.SerializationContext;
+import org.apache.jena.sparql.util.Symbol;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -39,8 +40,22 @@ public class PassageOpExecutorFactory implements OpExecutorFactory {
 
         final PassagePushExecutor<?,?> executor;
 
+        private static final Symbol userTimeoutSymbol = Symbol.create("userTimeout");
+
         public OpExecutorWrapper(ExecutionContext ec) {
             super(ec);
+
+            if (ec.getContext().isDefined(userTimeoutSymbol)) {
+                long userTimeout;
+                try {
+                    userTimeout = Long.parseLong(ec.getContext().get(userTimeoutSymbol));
+                } catch (NumberFormatException | NullPointerException e) {
+                    userTimeout = Long.MAX_VALUE;
+                }
+                long serverTimeout = ec.getContext().getLong(PassageConstants.TIMEOUT, Long.MAX_VALUE);
+                ec.getContext().set(PassageConstants.TIMEOUT, Math.min(serverTimeout, userTimeout));
+            }
+
             executor = new PassagePushExecutor<>(new PassageExecutionContextBuilder<>()
                     .setTimeout(ec.getContext().getLong(PassageConstants.TIMEOUT, Long.MAX_VALUE))
                     .setBackend(ec.getContext().get(BackendConstants.BACKEND))

@@ -5,6 +5,7 @@
 @prefix xsd:    <http://www.w3.org/2000/10/XMLSchema#> .
 @prefix psg:    <http://fr.gdd.passage/engine-vocabulary#> .
 @prefix ja:     <http://jena.hpl.hp.com/2005/11/Assembler#> .
+@prefix fuseki:  <http://jena.apache.org/fuseki#> .
 
 ## This vocabulary aims to define the configuration of an available engine
 ## which are either PASSAGE, or RAW.
@@ -21,6 +22,14 @@
     # TODO dc:identifier w3id.org
     dc:title         "Vocabulary for describing engines in PASSAGE"@en ;
     rdfs:label       "Vocabulary for describing engines in PASSAGE"@en .
+
+## Operations
+
+psg:query_w_args rdf:type fuseki:Operation ;
+    rdfs:label       "SPARQL query with args"@en ;
+    rdfs:comment     "SPARQL query operation for Fuseki that allows reading body's and header's arguments."@en ;
+    fuseki:implementation "fr.gdd.passage.cli.operations.SPARQL_QueryDatasetWithHeaders" ;
+    fuseki:name      "query_w_args" .
 
 ## Engines
 

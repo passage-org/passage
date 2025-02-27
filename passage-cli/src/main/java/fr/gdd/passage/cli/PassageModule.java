@@ -1,6 +1,7 @@
 package fr.gdd.passage.cli;
 
 import fr.gdd.passage.cli.assemblers.DatasetAssemblerBlazegraph;
+import fr.gdd.passage.cli.operations.SPARQL_QueryDatasetWithHeaders;
 import fr.gdd.passage.cli.server.PassageOutputWriterJSON;
 import fr.gdd.passage.cli.server.PassageQueryEngine;
 import fr.gdd.passage.cli.vocabularies.PassageVocabulary;
@@ -9,6 +10,8 @@ import fr.gdd.passage.commons.io.ModuleOutputRegistry;
 import org.apache.jena.cmd.CmdGeneral;
 import org.apache.jena.fuseki.main.cmds.ServerArgs;
 import org.apache.jena.fuseki.main.sys.FusekiModule;
+import org.apache.jena.fuseki.server.Operation;
+import org.apache.jena.fuseki.server.OperationRegistry;
 import org.apache.jena.riot.resultset.ResultSetLang;
 import org.apache.jena.riot.rowset.RowSetWriterRegistry;
 import org.apache.jena.sparql.core.assembler.AssemblerUtils;
@@ -26,7 +29,7 @@ public class PassageModule implements FusekiModule {
 
     public static PassageModule create() { if (Objects.isNull(singleton)) singleton = new PassageModule(); return singleton; }
 
-    private PassageModule() {
+    public PassageModule() {
         // explicit call to avoid our own RS_JSON from getting erased by the default one.
         RowSetWriterRegistry.init();
         // set globally but the dedicated writer only comes into
@@ -37,6 +40,12 @@ public class PassageModule implements FusekiModule {
 
         AssemblerUtils.addRegistered(PassageVocabulary.DatasetBlazegraph.getModel());
         AssemblerUtils.registerDataset(PassageVocabulary.DatasetBlazegraph, new DatasetAssemblerBlazegraph());
+
+        // Not mandatory but cool feature enabled: reading user-defined args from the request.
+        Operation queryWArgs = Operation.alloc(PassageVocabulary.query_w_args.asNode(),
+                PassageVocabulary.query_w_args.getLocalName(),
+                "SPARQL query operation that allows reading body's and header's arguments.");
+        OperationRegistry.get().register(queryWArgs, new SPARQL_QueryDatasetWithHeaders());
     }
 
     @Override

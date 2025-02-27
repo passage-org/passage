@@ -23,23 +23,24 @@ PREFIX psg:     <http://fr.gdd.passage/engine-vocabulary#>
 :service_watdiv rdf:type fuseki:Service ;
     fuseki:name "watdiv" ;
     fuseki:endpoint [
-        fuseki:operation fuseki:query ;
+        fuseki:operation psg:query_w_args ;
         fuseki:name "passage" ;
     ];
     ## TODO create "raw" services for random walks
     ## fuseki:endpoint [
-    ##    fuseki:operation fuseki:query ;
+    ##    fuseki:operation psg:query_w_args ;
+    ##    psg:engine  psg:RawEngine ; ## something like this would be nice(r)
     ##    fuseki:name "raw" ;
     ##];
     fuseki:dataset :dataset_watdiv ;
     .
 ## For now, we have to specify two services with different names
 ## to provide random sampling on the same dataset
-## TODO while we would prefer a suffix /raw
+## TODO while we would prefer the above solution in the endpoint
 :service_watdiv_raw rdf:type fuseki:Service ;
     fuseki:name "watdiv-raw" ;
     fuseki:endpoint [
-        fuseki:operation fuseki:query ;
+        fuseki:operation psg:query_w_headers ;
         fuseki:name "raw" ;
     ];
     fuseki:dataset :dataset_watdiv_raw ;
@@ -49,12 +50,12 @@ PREFIX psg:     <http://fr.gdd.passage/engine-vocabulary#>
 
 :dataset_watdiv rdf:type psg:DatasetBlazegraph ;
     psg:location           "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.properties" ;
-    psg:timeout            100 ;
+    psg:timeout            1000 ;
     psg:engine             psg:PassageEngine ;
     .
 
 :dataset_watdiv_raw rdf:type psg:DatasetBlazegraph ;
     psg:location           "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.properties" ;
     psg:timeout            1000 ;
-    psg:engine             psg:PassageEngine ;
+    psg:engine             psg:PassageEngine ; ## TODO change this engine for RAW
     .
