@@ -17,17 +17,18 @@ import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
 import fr.gdd.passage.commons.iterators.BackendLazyIterator;
-import org.apache.jena.sparql.expr.NodeValue;
-import org.apache.jena.sparql.expr.nodevalue.*;
-import org.openrdf.model.impl.URIImpl;
 import org.openrdf.query.*;
 import org.openrdf.repository.RepositoryException;
+import org.openrdf.rio.RDFFormat;
+import org.openrdf.rio.RDFParser;
+import org.openrdf.rio.RDFParserRegistry;
 import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.StringReader;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -180,16 +181,17 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
 
     @Override
     public BigdataValue getValue(String valueAsString, int... type) {
-        NodeValue nv = NodeValue.parse(valueAsString); // TODO parse immediately into BigdataValue
-        return switch (nv) {
-            case NodeValueNode ignored -> store.getValueFactory().asValue(new URIImpl(nv.asUnquotedString()));
-            case NodeValueInteger vint -> store.getValueFactory().createLiteral(vint.getInteger().intValue());
-            case NodeValueDouble vdouble -> store.getValueFactory().createLiteral(vdouble.getDouble());
-            case NodeValueBoolean vbool -> store.getValueFactory().createLiteral(vbool.getBoolean());
-            case NodeValueString vstr -> store.getValueFactory().createLiteral(vstr.asString());
-            case NodeValueDateTime vdate -> store.getValueFactory().createLiteral(vdate.getDateTime());
-            default -> throw new UnsupportedOperationException(nv.toString());
-        };
+        GetValueStatementHandler handler = new GetValueStatementHandler();
+        RDFParser parser = RDFParserRegistry.getInstance().get(RDFFormat.NTRIPLES).getParser();
+        parser.setValueFactory(this.connection.getValueFactory());
+        parser.setRDFHandler(handler);
+        String fakeNTriple = "<:_> <:_> " + valueAsString + " .";
+        try {
+            parser.parse(new StringReader(fakeNTriple), "");
+            return (BigdataValue) handler.get();
+        } catch (Exception e) {
+            throw new UnsupportedOperationException(valueAsString);
+        }
     }
 
     @Override

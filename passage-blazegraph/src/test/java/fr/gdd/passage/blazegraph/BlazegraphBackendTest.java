@@ -33,11 +33,24 @@ import static org.junit.jupiter.api.Assertions.*;
 public class BlazegraphBackendTest {
 
     private final static Logger log = LoggerFactory.getLogger(BlazegraphBackendTest.class);
+
     private static final String WATDIV = "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl";
     private static final String WATDIV_PROPERTY = "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.properties";
     public static final BlazegraphBackend watdiv;
+
     private static final String WDBENCH = "/Users/nedelec-b-2/Desktop/Projects/temp/wdbench-blaze/wdbench-blaze.jnl";
     public static final BlazegraphBackend wdbench;
+
+    public static final String DBPEDIA_PROPERTY = "/Users/nedelec-b-2/Desktop/Projects/temp/dbpedia-blaze/dbpedia2021_09.properties";
+    public static final BlazegraphBackend dbpedia;
+
+    static {
+        try {
+            dbpedia = Path.of(DBPEDIA_PROPERTY).toFile().exists() ? new BlazegraphBackend(DBPEDIA_PROPERTY) : null;
+        } catch (SailException | RepositoryException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     static {
         try {
@@ -85,6 +98,21 @@ public class BlazegraphBackendTest {
         assertInstanceOf(BigdataURI.class, uri);
         assertEquals("<https://uri>", bb.getString(uri));
         bb.close();
+    }
+
+    @Test
+    public void get_weird_values_from_string () throws RepositoryException, SailException {
+        Assumptions.assumeTrue(Path.of(DBPEDIA_PROPERTY).toFile().exists());
+        String bySeaLang = "\"\\\"By Sea, Land, and Air We Prosper\\\"\"@en";
+        BigdataValue bySeaLangValue = dbpedia.getValue(bySeaLang);
+        IV bySeaLangId = dbpedia.getId(bySeaLangValue);
+        var itLang = dbpedia.search(dbpedia.any(), dbpedia.any(), bySeaLangId);
+        assertTrue(itLang.hasNext());
+        String bySea = "\"\\\"By Sea, Land, and Air We Prosper\\\"\"";
+        BigdataValue bySeaValue = dbpedia.getValue(bySea);
+        IV bySeaId = dbpedia.getId(bySeaValue);
+        var it = dbpedia.search(dbpedia.any(), dbpedia.any(), bySeaId);
+        assertTrue(it.hasNext());
     }
 
     @Test

@@ -37,12 +37,26 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.StreamSupport;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class BGPTest {
 
     private final static Logger log = LoggerFactory.getLogger(BGPTest.class);
+
+    @ParameterizedTest
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    public void weird_string_in_query (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
+        String path2dbpedia = "/Users/nedelec-b-2/Desktop/Projects/temp/dbpedia-blaze/dbpedia2021_09.properties";
+        Assumptions.assumeTrue(Path.of(path2dbpedia).toFile().exists());
+        final BlazegraphBackend bb = new BlazegraphBackend(path2dbpedia);
+        builder.setBackend(bb);
+        String queryAsString = """
+                SELECT * WHERE {?s ?p \"\\"By Sea, Land, and Air We Prosper\\"\"}
+                """;
+        var results = ExecutorUtils.execute(queryAsString, builder);
+        assertFalse(results.isEmpty());
+        bb.close();
+    }
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
