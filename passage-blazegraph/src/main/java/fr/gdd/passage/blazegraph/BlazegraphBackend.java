@@ -19,9 +19,8 @@ import fr.gdd.passage.commons.interfaces.SPOC;
 import fr.gdd.passage.commons.iterators.BackendLazyIterator;
 import org.openrdf.query.*;
 import org.openrdf.repository.RepositoryException;
-import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFParser;
-import org.openrdf.rio.RDFParserRegistry;
+import org.openrdf.rio.ntriples.NTriplesParser;
 import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +50,10 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
     final IV defaultGraph; // TODO better handling of this, ie. comes from journal
     final static IV UNION_OF_GRAPHS = null; // TODO better handling of this, ie. comes from journal
 
+    // solely used to parse a term into a bigdatavalue
+    final RDFParser parser = new NTriplesParser();
+    final GetValueStatementHandler handler = new GetValueStatementHandler();
+
     /**
      * Creates an empty Blazegraph Backend, only useful for debug purpose
      */
@@ -64,6 +67,9 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
         this.connection = repository.getReadOnlyConnection();
         store = connection.getTripleStore();
         defaultGraph = getDefaultGraph();
+        parser.setValueFactory(this.connection.getValueFactory());
+        parser.setRDFHandler(handler);
+
     }
 
     /**
@@ -94,6 +100,8 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
         this.connection = repository.getReadOnlyConnection();
         store = connection.getTripleStore();
         defaultGraph = getDefaultGraph();
+        parser.setValueFactory(this.connection.getValueFactory());
+        parser.setRDFHandler(handler);
     }
 
     /**
@@ -108,6 +116,8 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
         this.store = connection.getTripleStore();
         this.sail = sail;
         defaultGraph = getDefaultGraph();
+        parser.setValueFactory(this.connection.getValueFactory());
+        parser.setRDFHandler(handler);
     }
 
     @Override
@@ -181,10 +191,6 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
 
     @Override
     public BigdataValue getValue(String valueAsString, int... type) {
-        GetValueStatementHandler handler = new GetValueStatementHandler();
-        RDFParser parser = RDFParserRegistry.getInstance().get(RDFFormat.NTRIPLES).getParser();
-        parser.setValueFactory(this.connection.getValueFactory());
-        parser.setRDFHandler(handler);
         String fakeNTriple = "<:_> <:_> " + valueAsString + " .";
         try {
             parser.parse(new StringReader(fakeNTriple), "");
