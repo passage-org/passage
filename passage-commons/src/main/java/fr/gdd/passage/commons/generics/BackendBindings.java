@@ -211,7 +211,13 @@ public class BackendBindings<ID, VALUE> implements Binding {
 
     @Override
     public Node get(Var var) { // TODO cache this probably, put it in the specific binding?
-        return NodeValue.parse(getBinding(var).getString()).asNode();
+
+        try {
+            return NodeValue.parse(getBinding(var).getString()).asNode();
+            } catch (Exception e) {
+            return NodeFactory.createLiteralString(getBinding(var).getString());
+
+        }
     }
 
     @Override

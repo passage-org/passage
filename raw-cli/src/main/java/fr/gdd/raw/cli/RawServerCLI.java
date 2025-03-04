@@ -30,7 +30,7 @@ import static fr.gdd.raw.cli.RawCLI.RESET;
 @CommandLine.Command(
         name = "raw-server",
         version = "0.0.3",
-        description = "A server for preemptive SPARQL query processing!",
+        description = "A server for sampling SPARQL query processing!",
         usageHelpAutoWidth = true, // adapt to the screen size instead of new line on 80 chars
         sortOptions = false,
         sortSynopsis = false

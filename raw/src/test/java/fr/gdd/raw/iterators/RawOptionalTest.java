@@ -6,6 +6,9 @@ import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.databases.inmemory.IM4Blazegraph;
 import fr.gdd.raw.RawOpExecutorUtils;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -25,7 +28,7 @@ public class RawOptionalTest {
     static BlazegraphBackend dbpediaBlazegraph;
     static {
         try {
-            dbpediaBlazegraph = new BlazegraphBackend("/Users/e23e889b/Documents/2025_02/dbpedia_GEval.jnl");
+            dbpediaBlazegraph = new BlazegraphBackend("/Users/e23e889b/Documents/2025_03/dbpedia2021_09.jnl");
         } catch (SailException | RepositoryException e) {
             throw new RuntimeException(e);
         }
@@ -40,7 +43,7 @@ public class RawOptionalTest {
     public void SimpleOptional() {
 
         String Opquery = "SELECT ?p ?o ?p1 ?o1 ?probabilityOfRetrievingRestOfMapping WHERE { <http://dbpedia.org/resource/Vancouver> ?p ?o OPTIONAL { ?o ?p1 ?o1 } }";
-        var results = RawOpExecutorUtils.executeWithRaw(Opquery, dbpediaBlazegraph, 100L);
+        var results = RawOpExecutorUtils.executeWithRaw(Opquery, dbpediaBlazegraph, 1000L);
         log.debug("{}", results);
         log.debug("{}", results.size());
         assertTrue(results.size() > 0);
@@ -191,5 +194,26 @@ public class RawOptionalTest {
         assertTrue(expectedResults.containsAll(results),
                 "Not all actual results are present in the expected results.");
     }
+    @Test
+public void test_literal_output() throws JSONException {
+   String Opquery = "SELECT ?p ?o ?p1 ?o1 ?probabilityOfRetrievingRestOfMapping WHERE { <http://dbpedia.org/resource/Vancouver> ?p ?o OPTIONAL { ?o ?p1 ?o1 } }";
+   Multiset<BackendBindings<?,?>> results = RawOpExecutorUtils.executeWithRaw(Opquery, dbpediaBlazegraph, 1000L);
+   log.debug("{}", results);
+   JSONArray jsonResults = new JSONArray();
+  for (BackendBindings<?,?> binding : results) {
+      JSONObject bindingObj = new JSONObject();
+          binding.forEach((var, value) -> {
+              try {
+                    bindingObj.put(var.toString(), value.toString());
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
+                }
+          });
+           jsonResults.put(bindingObj);
+       }
+   log.debug("{}", jsonResults);
+   }
+
+
 
 }
