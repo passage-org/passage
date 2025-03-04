@@ -6,6 +6,7 @@ import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.raw.executor.RawConstants;
+import jakarta.json.JsonObject;
 import org.apache.jena.graph.Node;
 import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.sparql.algebra.op.OpTable;
@@ -14,6 +15,9 @@ import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.engine.binding.Binding;
 
 import java.util.*;
+
+import static fr.gdd.raw.iterators.RandomScanFactory.buildScan;
+import static fr.gdd.raw.iterators.RandomScanFactory.stringify;
 
 public class RandomValues<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE>> {
 
@@ -104,14 +108,21 @@ public class RandomValues<ID, VALUE> implements Iterator<BackendBindings<ID, VAL
     public BackendBindings<ID, VALUE> next() {
         BackendBindings random = compatibleValues.get((new Random()).nextInt(compatibleValues.size()));
 
-        BackendBindings<ID,VALUE> newBinding = new BackendBindings<>(
+        BackendBindings<ID,VALUE> binding = new BackendBindings<>(
                 random, // copy
                 random.variables().stream().toList())
                 .setParent(current);
 
+        Double probability = 1.0 / compatibleValues.size();
+
+        // Is it relevant to have a buildValue? or is a build scan enough?
+        JsonObject scanJson = buildScan(binding, probability);
+
+        binding.put(RawConstants.RANDOM_WALK_HOLDER, new BackendBindings.IdValueBackend<ID,VALUE>().setString(stringify(scanJson)));
+
         hasProduced = true;
 
-        return newBinding;
+        return binding;
     }
 
         //        // index positioned in hasNext

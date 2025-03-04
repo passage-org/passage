@@ -2,8 +2,6 @@ package fr.gdd.passage.commons.generics;
 
 import fr.gdd.passage.commons.interfaces.Backend;
 import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpExtend;
 import org.apache.jena.sparql.algebra.op.OpSequence;
@@ -211,7 +209,9 @@ public class BackendBindings<ID, VALUE> implements Binding {
 
     @Override
     public Node get(Var var) { // TODO cache this probably, put it in the specific binding?
-        return NodeValue.parse(getBinding(var).getString()).asNode();
+        IdValueBackend<ID, VALUE> binding = this.getBinding(var);
+        if(binding == null) return null;
+        return NodeValue.parse(binding.getString()).asNode();
     }
 
     @Override

@@ -39,6 +39,10 @@ public class RawConstants {
 
     static public final Var MAPPING_PROBABILITY = Var.alloc("probabilityOfRetrievingRestOfMapping");
 
+    static public final String VAR_PROBABILITY_PREFIX = "probabilityOfRetrievingVariable_";
+
+    static public final Var RANDOM_WALK_HOLDER = Var.alloc("randomWalkHolder");
+
     /**
      * Symbol in use in the global context.
      */

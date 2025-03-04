@@ -2,14 +2,11 @@ package fr.gdd.raw.cli.server;
 
 import fr.gdd.passage.commons.io.ModuleOutputRegistry;
 import fr.gdd.passage.commons.io.ModuleOutputWriter;
-import fr.gdd.raw.executor.RawConstants;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.atlas.json.io.JSWriter;
 import org.apache.jena.atlas.logging.Log;
-import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.ARQ;
 import org.apache.jena.rdf.model.impl.Util;
@@ -21,7 +18,6 @@ import org.apache.jena.riot.rowset.rw.RowSetWriterJSON;
 import org.apache.jena.riot.system.SyntaxLabels;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
-import org.apache.jena.sparql.engine.binding.BindingBuilder;
 import org.apache.jena.sparql.exec.RowSet;
 import org.apache.jena.sparql.resultset.ResultSetException;
 import org.apache.jena.sparql.util.Context;
@@ -29,10 +25,10 @@ import org.apache.jena.sparql.util.Context;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Objects;
 
 import static fr.gdd.raw.executor.RawConstants.MAPPING_PROBABILITY;
+import static fr.gdd.raw.executor.RawConstants.RANDOM_WALK_HOLDER;
 import static org.apache.jena.riot.rowset.rw.JSONResultsKW.*;
 
 public class RawRowSetWriterJSON implements RowSetWriter {
@@ -148,40 +144,12 @@ public class RawRowSetWriterJSON implements RowSetWriter {
             incIndent(out);
 
             boolean firstRow = true;
-            int i = 0;
-            List<Double> probas = context.get(RawConstants.SCAN_PROBABILITIES);
             for ( ; rowSet.hasNext() ; ) {
                 Binding binding = rowSet.next();
-
-                if(probas.isEmpty()){
-                    writeRow(out, rowSet, binding);
-                    // System.out.println(binding);
-                }else {
-                    BindingBuilder bb = BindingBuilder.create();
-
-                    for (Iterator<Var> it = binding.vars(); it.hasNext(); ) {
-                        Var var = it.next();
-                        if(var != MAPPING_PROBABILITY){
-                            Node node = binding.get(var);
-                            bb.add(var, node);
-                        }
-                    }
-
-                    if(!rowSet.getResultVars().contains(MAPPING_PROBABILITY)) rowSet.getResultVars().add(MAPPING_PROBABILITY);
-
-                    bb.add(MAPPING_PROBABILITY, NodeFactory.createLiteral(String.valueOf(probas.get(i)), XSDDatatype.XSDdouble));
-
-                    Binding bindingWithProbability = bb.build();
-
-                    if ( !firstRow )
-                        println(out, " ,");
-                    writeRow(out, rowSet, bindingWithProbability);
-                    // System.out.println(bindingWithProbability);
-                    firstRow = false;
-                    i++;
-                }
-
-
+                if ( !firstRow )
+                    println(out, " ,");
+                writeRow(out, rowSet, binding);
+                firstRow = false;
             }
             println(out);
             decIndent(out);
@@ -226,6 +194,15 @@ public class RawRowSetWriterJSON implements RowSetWriter {
             println(out, " ]");
         }
 
+        private boolean writeVarValueIfNotNull(IndentedWriter out, Var var, Node value, boolean firstInRow) {
+            if ( value == null )
+                return firstInRow;
+            if ( ! firstInRow )
+                print(out, " ,");
+            writeVarValue(out, var, value, firstInRow);
+            return false;
+        }
+
         private void writeRow(IndentedWriter out, RowSet rowSet, Binding binding) {
             print(out, "{ ");
             //incIndent(out);
@@ -235,13 +212,18 @@ public class RawRowSetWriterJSON implements RowSetWriter {
             for ( Iterator<Var> iter = rowSet.getResultVars().iterator() ; iter.hasNext() ; ) {
                 Var var = iter.next();
                 Node value = binding.get(var);
-                if ( value == null )
-                    continue;
-                if ( ! firstInRow )
-                    print(out, " ,");
-                writeVarValue(out, var, value, firstInRow);
-                firstInRow = false;
+                firstInRow = writeVarValueIfNotNull(out, var, value, firstInRow);
+
+//                Var probaVar = Var.alloc(VAR_PROBABILITY_PREFIX + var.getVarName());
+//                Node proba = binding.get(probaVar);
+//                firstInRow = writeVarValueIfNotNull(out, probaVar, proba, firstInRow);
             }
+
+            Node bindingProba = binding.get(MAPPING_PROBABILITY);
+            firstInRow = writeVarValueIfNotNull(out, MAPPING_PROBABILITY, bindingProba, firstInRow);
+
+            Node randomWalkHolder = binding.get(RANDOM_WALK_HOLDER);
+            firstInRow = writeVarValueIfNotNull(out, RANDOM_WALK_HOLDER, randomWalkHolder, firstInRow);
 
             if ( false ) {
                 // Print "missing" variables.
