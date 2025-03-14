@@ -26,10 +26,15 @@ import org.openrdf.model.Value;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.query.*;
 import org.openrdf.repository.RepositoryException;
+import org.openrdf.rio.RDFFormat;
+import org.openrdf.rio.RDFParser;
+import org.openrdf.rio.RDFParserRegistry;
+import org.openrdf.rio.ntriples.NTriplesParser;
 import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.StringReader;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Properties;
@@ -117,92 +122,20 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
 
     @Override
     public IV getId(String value, int... type) {
-        // When the type does not exist, we look for the one.
-        // Unfortunately, it's not efficient, so we would like to use the most relevant as often as possible
-        if (Objects.isNull(type) || type.length == 0) { // ugly when type is not set
-            try {
-                if (value.startsWith("\"") && value.endsWith("\"")) {
-                    return getId(value, SPOC.OBJECT);
-                }
-                try { // else not a string
-                    return getId(value, SPOC.SUBJECT);
-                } catch (Exception e) {
-                    try {
-                        return getId(value, SPOC.PREDICATE);
-                    } catch (Exception f) {
-                        try {
-                            return getId(value, SPOC.OBJECT); // might still be the object
-                        } catch (Exception g) {
-                            try {
-                                return getId(value, SPOC.CONTEXT);
-                            } catch (Exception h) { // otherwise, it throws at runtime
-                                throw new NotFoundException(value);
-                            }
-                        }
-                    }
-                }
-            } catch (Exception i) {
-                throw new NotFoundException(value);
-            }
+        BigdataValue bdValue = getValue(value, type);
+        return getId(bdValue, type);
+    }
+
+    @Override
+    public IV getId(BigdataValue bigdataValue, int... type) {
+        // It uses an inefficient function marked deprecated on purpose:
+        // this is meant to be used only once per constant. Not everytime a value is needed.
+        IV toReturn = store.getIV(bigdataValue);
+        if (Objects.isNull(toReturn)) {
+            throw new NotFoundException(bigdataValue.toString());
+        } else {
+            return toReturn;
         }
-
-        IAccessPath<ISPO> accessPath = switch(type[0]) {
-            case SPOC.SUBJECT -> {
-                Resource res = (value.startsWith("<") && value.endsWith(">")) ?
-                        new URIImpl(value.substring(1, value.length()-1)):
-                        new URIImpl(value);
-                yield store.getAccessPath(res, null, null);
-            }
-            case SPOC.PREDICATE -> {
-                URIImpl uri = (value.startsWith("<") && value.endsWith(">")) ?
-                    new URIImpl(value.substring(1, value.length()-1)):
-                    new URIImpl(value);
-                yield store.getAccessPath(null, uri, null);
-            }
-            case SPOC.OBJECT -> {
-                if (value.startsWith("<") && value.endsWith(">")) {
-                    URIImpl uri = new URIImpl(value.substring(1, value.length()-1));
-                    yield store.getAccessPath(null,null, uri);
-                }
-                Value object = (value.startsWith("\"") && value.endsWith("\"")) ?
-                        store.getValueFactory().createLiteral(value.substring(1, value.length()-1)):
-                        store.getValueFactory().createLiteral(value);
-
-                // The string might be too long to be inlined in the identifier,
-                // therefore, we need to proceed differently.
-                // IV possiblyNotInline = store.getVocabulary().get(object);
-                IV possiblyNotInline = store.getIV(object);
-                if (Objects.isNull(possiblyNotInline)) {   // could not be inlined must do something else…
-                    BigdataLiteral blob = store.getValueFactory().createLiteral(value.substring(1, value.length()-1), new URIImpl("http://www.w3.org/2001/XMLSchema#string" ));
-                    IV possiblyABlob = store.getIV(blob);
-                    BigdataValue bdv = store.getLexiconRelation().getTerm(possiblyABlob);
-                    yield store.getAccessPath(null,null, bdv);
-                }
-                BigdataValue bdv = store.getLexiconRelation().getTerm(possiblyNotInline);
-                yield store.getAccessPath(null,null, bdv);
-            }
-            case SPOC.GRAPH -> {
-                Resource res = (value.startsWith("<") && value.endsWith(">")) ?
-                        new URIImpl(value.substring(1, value.length()-1)):
-                        new URIImpl(value);
-                yield store.getAccessPath(null, null, null, res);
-            }
-            default -> throw new UnsupportedOperationException("Unknown SPOC: " + type[0]);
-        };
-
-        IChunkedOrderedIterator<ISPO> it = accessPath.iterator();
-        if (!it.hasNext()) throw new NotFoundException(value); // not found
-        ISPO spo = it.next();
-
-        IV result = switch(type[0]){
-            case SPOC.SUBJECT -> get(spo.getSubject());
-            case SPOC.PREDICATE -> get(spo.getPredicate());
-            case SPOC.OBJECT -> get(spo.getObject());
-            case SPOC.CONTEXT-> get(spo.getContext());
-            default -> throw new IllegalStateException("Unexpected value: " + type[0]);
-        };
-        it.close();
-        return result;
     }
 
     private static IV get(Value sOrPOrO) {
@@ -213,10 +146,6 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
         };
     }
 
-    @Override
-    public IV getId(BigdataValue bigdataValue, int... type) {
-        throw new UnsupportedOperationException("TODO"); // TODO
-    }
 
     @Override
     public String getString(IV id, int... type) {
@@ -234,10 +163,17 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
 
     @Override
     public BigdataValue getValue(String valueAsString, int... type) {
-        if (valueAsString.startsWith("<") && valueAsString.endsWith(">")) {
-            return store.getValueFactory().asValue(new URIImpl(valueAsString));
-        } else {
-            return store.getValueFactory().createLiteral(valueAsString);
+        GetValueStatementHandler handler = new GetValueStatementHandler();
+        //RDFParser parser = RDFParserRegistry.getInstance().get(RDFFormat.NTRIPLES).getParser();
+        final RDFParser parser = new NTriplesParser();
+        parser.setValueFactory(this.connection.getValueFactory());
+        parser.setRDFHandler(handler);
+        String fakeNTriple = "<:_> <:_> " + valueAsString + " .";
+        try {
+            parser.parse(new StringReader(fakeNTriple), "");
+            return (BigdataValue) handler.get();
+        } catch (Exception e) {
+            throw new UnsupportedOperationException(valueAsString);
         }
     }
 

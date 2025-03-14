@@ -70,7 +70,8 @@ public class RawOpExecutorFactory implements OpExecutorFactory {
             BindingBuilder builder = BindingFactory.builder();
             Set<Var> vars = next.variables();
             for (Var v : vars) {
-                builder.add(v, NodeValueNode.parse(next.getBinding(v).getString()).getNode());
+                //builder.add(v, NodeValueNode.parse(next.getBinding(v).getString()).getNode());
+                builder.add(v, next.get(v));
             }
             return builder.build();
         }
