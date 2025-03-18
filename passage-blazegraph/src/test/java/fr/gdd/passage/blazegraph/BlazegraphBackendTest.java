@@ -1,9 +1,9 @@
 package fr.gdd.passage.blazegraph;
 
+import com.bigdata.rdf.internal.DTE;
 import com.bigdata.rdf.internal.IV;
-import com.bigdata.rdf.model.BigdataLiteral;
-import com.bigdata.rdf.model.BigdataURI;
-import com.bigdata.rdf.model.BigdataValue;
+import com.bigdata.rdf.internal.impl.literal.XSDDecimalIV;
+import com.bigdata.rdf.model.*;
 import com.bigdata.rdf.spo.ISPO;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
@@ -91,6 +91,13 @@ public class BlazegraphBackendTest {
     @Test
     public void create_values_with_string_repr () throws RepositoryException, SailException {
         BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+        BigdataValue actualTwelve = bb.getValue("12");
+        assertInstanceOf(BigdataLiteral.class, actualTwelve);
+        assertEquals(DTE.XSDInteger.getDatatypeURI(), ((BigdataLiteralImpl) actualTwelve).getDatatype());
+        BigdataValue decimalValue = bb.getValue("611.1");
+        assertInstanceOf(BigdataLiteral.class, decimalValue);
+        assertEquals(DTE.XSDDecimal.getDatatypeURI(), ((BigdataLiteralImpl) decimalValue).getDatatype());
+
         BigdataValue twelve = bb.getValue("\"12\"");
         assertInstanceOf(BigdataLiteral.class, twelve);
         assertEquals("\"12\"", twelve.toString());

@@ -5,6 +5,7 @@ import com.bigdata.journal.Options;
 import com.bigdata.rdf.internal.IV;
 import com.bigdata.rdf.model.BigdataURI;
 import com.bigdata.rdf.model.BigdataValue;
+import com.bigdata.rdf.rio.ntriples.BigdataNTriplesParser;
 import com.bigdata.rdf.sail.BigdataSail;
 import com.bigdata.rdf.sail.BigdataSailRepository;
 import com.bigdata.rdf.sail.BigdataSailRepositoryConnection;
@@ -21,6 +22,7 @@ import org.openrdf.query.*;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.rio.RDFParser;
 import org.openrdf.rio.ntriples.NTriplesParser;
+import org.openrdf.rio.turtle.TurtleParser;
 import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +53,7 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
     final static IV UNION_OF_GRAPHS = null; // TODO better handling of this, ie. comes from journal
 
     // solely used to parse a term into a bigdatavalue
-    final RDFParser parser = new NTriplesParser();
+    final RDFParser parser = new TurtleParser();
     final GetValueStatementHandler handler = new GetValueStatementHandler();
 
     /**
