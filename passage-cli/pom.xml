@@ -22,7 +22,8 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-    </dependency> <!-- end logger -->
+    </dependency>
+    <!-- end logger -->
 
     <dependency>
       <groupId>fr.gdd</groupId>
@@ -33,6 +34,12 @@
       <groupId>info.picocli</groupId>
       <artifactId>picocli</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.11.0</version>
+    </dependency>
+
 
     <dependency>
       <!-- to get ShiroEnvironmentLoader; or
@@ -51,17 +58,19 @@
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>
-      <version>12.0.16</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-util</artifactId>
-      <version>12.0.16</version>
     </dependency>
     <dependency>
       <groupId>org.apache.lucene</groupId>
       <artifactId>lucene-core</artifactId>
       <version>9.11.1</version>
+    </dependency>
+    <dependency>
+      <groupId>fr.gdd</groupId>
+      <artifactId>passage-blazegraph</artifactId>
     </dependency>
   </dependencies>
 

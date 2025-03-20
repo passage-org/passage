@@ -155,7 +155,7 @@ public class PassageCLI {
         Backend<?,?> backend = null;
         try {
             backend = getBackend(passageOptions.database);
-        } catch (SailException | RepositoryException | IOException e) {
+        } catch (IOException | RepositoryException | SailException e) {
             log.error("Error: could not get backend: {}", e.getMessage());
             System.exit(CommandLine.ExitCode.USAGE);
         }
@@ -235,7 +235,7 @@ public class PassageCLI {
      * @param toDatabase The path to the database as a string.
      * @return The backend as a generic interface.
      */
-    public static Backend<?,?> getBackend (String toDatabase) throws IOException, SailException, RepositoryException {
+    public static Backend<?,?> getBackend (String toDatabase) throws IOException, RepositoryException, SailException {
         Path pathToDatabase = Path.of(toDatabase);
         if (!pathToDatabase.toFile().exists()) {
             throw new IOException("The path to the database does not seem right.");

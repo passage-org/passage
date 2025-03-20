@@ -19,10 +19,6 @@
         </dependency>
         <dependency>
             <groupId>fr.gdd</groupId>
-            <artifactId>passage-blazegraph</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>fr.gdd</groupId>
             <artifactId>passage-hdt</artifactId>
         </dependency>
         <dependency>
@@ -34,6 +30,13 @@
             <artifactId>commons-lang3</artifactId>
         </dependency>
 
+
+        <!-- Test dependencies only: -->
+        <dependency>
+            <groupId>fr.gdd</groupId>
+            <artifactId>passage-blazegraph</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>

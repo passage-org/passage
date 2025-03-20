@@ -14,6 +14,18 @@
     <version>0.1.0</version>
   </parent>
 
+  <repositories>
+    <repository>
+      <id>wikimedia</id>
+      <url>https://archiva.wikimedia.org/repository/releases/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
 
   <dependencies>
     <dependency>
@@ -23,6 +35,21 @@
     <dependency>
       <groupId>com.blazegraph</groupId>
       <artifactId>bigdata-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.wikidata.query.rdf</groupId>
+      <artifactId>blazegraph</artifactId>
+      <version>0.3.155</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.jena</groupId>
+          <artifactId>jena-tdb</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency> <!-- to get multisets -->

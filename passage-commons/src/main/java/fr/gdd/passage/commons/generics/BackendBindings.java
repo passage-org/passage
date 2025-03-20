@@ -2,6 +2,7 @@ package fr.gdd.passage.commons.generics;
 
 import fr.gdd.passage.commons.interfaces.Backend;
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.sparql.algebra.Op;
@@ -233,8 +234,13 @@ public class BackendBindings<ID, VALUE> implements Binding {
     }
 
     @Override
-    public Node get(Var var) { // TODO cache this probably, put it in the specific binding?
-        return NodeValue.parse(getBinding(var).getString()).asNode();
+    public Node get(Var var)
+    { // TODO cache this probably, put it in the specific binding?
+        try {
+            return NodeValue.parse(getBinding(var).getString()).asNode();
+        } catch (Exception e) { // mostly for quotes in quotes
+            return NodeFactory.createLiteralString(getBinding(var).getString());
+        }
     }
 
     @Override

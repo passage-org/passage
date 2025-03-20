@@ -52,7 +52,7 @@ public class DatasetAssemblerBlazegraph extends DatasetAssembler {
             BlazegraphBackend backend = (BlazegraphBackend) manager.addBackend(path2database, new BlazegraphBackendFactory());
             dsg.getContext().set(BackendConstants.BACKEND, backend);
         } catch (Exception e) {
-            throw new AssemblerException(root, "No valid location given");
+            throw e;
         }
 
         // #2 the engine is defined with the backend for now (TODO) engine should have their own assembler

@@ -27,6 +27,10 @@ import java.util.Objects;
 
 import static org.apache.jena.riot.rowset.rw.JSONResultsKW.*;
 
+// Disclaimer, this comes  from Apache Jena's `RowSetWriterJSON`.
+// Most of the code is identical, except for a call to
+// a metadata writer.
+
 /** Write results in {@code application/sparql-results+json} format. */
 public class ExtensibleRowSetWriterJSON implements RowSetWriter {
 

@@ -40,10 +40,12 @@
     <hdt.version>3.0.10</hdt.version>
     <junit.version>5.11.1</junit.version>
     <jena.version>5.3.0</jena.version> <!-- for some reason, 5.1.0 makes tests not discoverable to intellij... -->
+    <jetty.version>12.0.16</jetty.version>
     <slf4j.version>2.0.6</slf4j.version>
     <args4j.version>2.33</args4j.version>
     <common.compress.version>1.23.0</common.compress.version>
-    <blazegraph.version>2.1.4</blazegraph.version>
+    <blazegraph.version>2.1.6-wmf.1</blazegraph.version> <!-- suffixed by wmf for wikimedia fondation -->
+    <wikimedia.version>0.3.155</wikimedia.version>
     <guava.version>33.1.0-jre</guava.version>
     <apache.lang3.version>3.17.0</apache.lang3.version>
     <picocli.version>4.7.6</picocli.version>
@@ -180,6 +182,16 @@
         <artifactId>slf4j-simple</artifactId>
         <version>${slf4j.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-util</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-server</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
 
       <dependency>
         <groupId>org.rdfhdt</groupId>
@@ -187,9 +199,21 @@
         <version>${hdt.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.wikidata.query.rdf</groupId>
+        <artifactId>blazegraph</artifactId>
+        <version>${wikimedia.version}</version>
+        <scope>runtime</scope>
+      </dependency>
+      <dependency>
         <groupId>com.blazegraph</groupId>
         <artifactId>bigdata-core</artifactId>
         <version>${blazegraph.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>*</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <dependency> <!-- to get multisets -->

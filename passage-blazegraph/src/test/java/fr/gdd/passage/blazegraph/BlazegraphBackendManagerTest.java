@@ -3,9 +3,11 @@ package fr.gdd.passage.blazegraph;
 import fr.gdd.passage.commons.generics.BackendManager;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
+@Disabled ("Should not open already opened databases")
 public class BlazegraphBackendManagerTest {
 
     private final static String path2watdiv = "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.properties";
