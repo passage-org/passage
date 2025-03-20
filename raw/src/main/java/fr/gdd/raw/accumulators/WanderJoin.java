@@ -1,5 +1,6 @@
 package fr.gdd.raw.accumulators;
 
+import fr.gdd.jena.utils.OpLeftJoinFail;
 import fr.gdd.jena.visitors.ReturningOpVisitor;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.passage.commons.generics.BackendSaver;
@@ -71,6 +72,7 @@ public class WanderJoin<ID, VALUE> extends ReturningOpVisitor<Double> {
             Double rightProba = ReturningOpVisitorRouter.visit(this, leftJoin.getRight());
             return leftProba * rightProba;
         } catch (Exception e) {
+            if(leftJoin instanceof OpLeftJoinFail) return 0.0;
             return leftProba;
         }
     }
