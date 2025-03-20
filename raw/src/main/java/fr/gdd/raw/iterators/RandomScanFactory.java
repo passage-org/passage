@@ -8,7 +8,8 @@ import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.generics.Substitutor;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.raw.executor.RawConstants;
-import jakarta.json.*;
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.graph.Node;
@@ -20,6 +21,8 @@ import org.openrdf.util.iterators.EmptyIterator;
 
 import java.io.StringReader;
 import java.util.Iterator;
+
+import static fr.gdd.raw.iterators.RawUtils.*;
 
 public class RandomScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE>> {
 
@@ -80,13 +83,13 @@ public class RandomScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID
 
     @Override
     public BackendBindings<ID, VALUE> next() {
-        // TODO : add the logic for random walker holder here
-
         BackendBindings<ID, VALUE> binding = instantiated.next();
 
         RandomScan instantiatedScan = (RandomScan) instantiated;
 
         Double probability = instantiatedScan.getProbability();
+
+
 
         JsonObject scanJson = buildScan(binding, probability);
 
@@ -107,60 +110,6 @@ public class RandomScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID
         }
 
         return binding.setParent(inputBinding);
-    }
-
-    public static JsonObject buildScan(BackendBindings binding, Double probability){
-        binding.vars();
-        JsonArrayBuilder jab = Json.createArrayBuilder();
-        binding.vars().forEachRemaining(var -> jab.add(Json.createValue(var.toString())));
-
-        JsonArray jsonArray = jab.build();
-
-        JsonObject scanJson = Json.createObjectBuilder()
-                .add("type", "scan")
-                .add("vars", jsonArray)
-                .add("probability", probability)
-                .build();
-
-        return scanJson;
-    }
-
-    public static JsonObject buildJoin(JsonObject left, JsonObject right){
-        // Computing probabilities for current join
-        JsonValue probabilityLeftJson = left.get("probability");
-        Double probabilityLeft = Double.valueOf(probabilityLeftJson.toString());
-        JsonValue probabilityRightJson = right.get("probability");
-        Double probabilityRight = Double.valueOf(probabilityRightJson.toString());
-
-        Double probability = probabilityLeft.doubleValue() * probabilityRight.doubleValue();
-
-        JsonArray varsLeft = left.getJsonArray("vars");
-        JsonArray varsRight = right.getJsonArray("vars");
-
-        JsonArrayBuilder varsBuilder = Json.createArrayBuilder();
-        for(JsonValue var : varsLeft){
-            varsBuilder.add(var);
-        }
-        for(JsonValue var : varsRight){
-            varsBuilder.add(var);
-        }
-
-        JsonArray vars = varsBuilder.build();
-
-        JsonObject joinJson = Json.createObjectBuilder()
-                .add("type", "join")
-                .add("left", left)
-                .add("right", right)
-                .add("probability", probability)
-                .add("vars", vars)
-                .build();
-
-        return joinJson;
-    }
-
-    public static String stringify(JsonObject json){
-        // Needed so that a json can be used as a rdf term inside a mapping. Implies that it is "destringified" before being parsed again
-        return "\"" + json.toString().replace("\"", "\\\"") + "\"";
     }
 
 }

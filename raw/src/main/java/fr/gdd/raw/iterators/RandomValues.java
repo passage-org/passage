@@ -16,8 +16,8 @@ import org.apache.jena.sparql.engine.binding.Binding;
 
 import java.util.*;
 
-import static fr.gdd.raw.iterators.RandomScanFactory.buildScan;
-import static fr.gdd.raw.iterators.RandomScanFactory.stringify;
+import static fr.gdd.raw.iterators.RawUtils.buildScan;
+import static fr.gdd.raw.iterators.RawUtils.stringify;
 
 public class RandomValues<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE>> {
 
@@ -124,17 +124,4 @@ public class RandomValues<ID, VALUE> implements Iterator<BackendBindings<ID, VAL
 
         return binding;
     }
-
-        //        // index positioned in hasNext
-//        consumed = true;
-//
-//        BackendBindings<ID,VALUE> newBinding = new BackendBindings<>(
-//                values.get(index), // copy
-//                values.get(index).variables().stream().toList())
-//                .setParent(current);
-//
-//        index += 1;
-//
-//        return newBinding;
-//    }
 }
