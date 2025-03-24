@@ -170,4 +170,76 @@ public class OptionalTest {
         blazegraph.close();
     }
 
+    @ParameterizedTest
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
+    public void a_tp_with_then_a_list_of_optionals (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+        builder.setBackend(blazegraph);
+        String queryAsString = """
+                SELECT * WHERE {
+                  ?person <http://address> ?address .
+                  OPTIONAL { ?person <http://nothing> ?nothing }
+                  OPTIONAL { ?person  <http://own>  ?animal }
+                }""";
+
+        var results = ExecutorUtils.execute(queryAsString, builder);
+        assertEquals(5, results.size()); // (Everyone with their animal optionally)
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("person", "animal", "address"),
+                List.of("Alice", "cat", "nantes"),
+                List.of("Alice", "dog", "nantes"),
+                List.of("Alice", "snake", "nantes"),
+                Arrays.asList("Bob", null, "paris"),
+                Arrays.asList("Carol", null, "nantes")));
+        blazegraph.close();
+    }
+
+    @ParameterizedTest
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
+    public void an_optional_filtered (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+        builder.setBackend(blazegraph);
+        String queryAsString = """
+                SELECT * WHERE {
+                  ?person <http://own> ?animal .
+                  OPTIONAL { ?animal  <http://species>  ?species . FILTER (regex(str(?species), "feline")) }
+                }""";
+
+        // It used to throw, but not anymore:
+        // assertThrows(UnsupportedOperationException.class, () -> ExecutorUtils.execute(queryAsString, builder));
+
+        var results = ExecutorUtils.execute(queryAsString, builder);
+        assertEquals(3, results.size());
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("person", "animal", "species"),
+                List.of("Alice", "cat", "feline"),
+                Arrays.asList("Alice", "dog", null),
+                Arrays.asList("Alice", "snake", null)));
+        blazegraph.close();
+    }
+
+    @ParameterizedTest
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
+    public void an_optional_filtered_intermediate (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+        builder.setBackend(blazegraph);
+        String queryAsString = """
+                SELECT * WHERE {
+                { SELECT  *  WHERE  { ?person  <http://own>  ?animal } OFFSET  1 }
+                  OPTIONAL { {
+                      ?animal  <http://species>  ?species
+                      FILTER regex(str(?species), "feline") }  }  }
+                """;
+
+        // It used to throw, but not anymore:
+        // assertThrows(UnsupportedOperationException.class, () -> ExecutorUtils.execute(queryAsString, builder));
+
+        var results = ExecutorUtils.execute(queryAsString, builder);
+        assertEquals(2, results.size()); // species are filtered out, but Alice remains
+        blazegraph.close();
+    }
+
 }

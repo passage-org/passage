@@ -16,21 +16,21 @@ PREFIX psg:     <http://fr.gdd.passage/engine-vocabulary#>
 
 [] rdf:type fuseki:Server ;
    fuseki:services (
-#     :service_watdiv
+     :service_watdiv
      :service_wikidata
    )
    .
 
 ## SERVICES
 
-#:service_watdiv rdf:type fuseki:Service ;
-#    fuseki:name "watdiv" ;
-#    fuseki:endpoint [
-#        fuseki:operation psg:query_w_args ;
-#        fuseki:name "passage" ;
-#    ];
-#    fuseki:dataset :dataset_watdiv ;
-#    .
+:service_watdiv rdf:type fuseki:Service ;
+    fuseki:name "watdiv" ;
+    fuseki:endpoint [
+        fuseki:operation psg:query_w_args ;
+        fuseki:name "passage" ;
+    ];
+    fuseki:dataset :dataset_watdiv ;
+    .
 
 :service_wikidata rdf:type fuseki:Service ;
     fuseki:name "wikidata" ;
@@ -44,12 +44,12 @@ PREFIX psg:     <http://fr.gdd.passage/engine-vocabulary#>
 
 ## DATASETS
 
-#:dataset_watdiv rdf:type psg:DatasetBlazegraph ;
+:dataset_watdiv rdf:type psg:DatasetBlazegraph ;
 #    psg:location           "/DATA/datasets/watdiv10m-blaze/watdiv10M.jnl" ;
-#    psg:location           "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl" ;
-#    psg:timeout            1000 ;
-#    psg:engine             psg:PassageEngine ;
-#    .
+    psg:location           "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.properties" ;
+    psg:timeout            1000 ;
+    psg:engine             psg:PassageEngine ;
+    .
 
 :dataset_wikidata rdf:type psg:DatasetBlazegraph ;
 #    psg:location           "/DATA/projects/ingester/RWStore.properties" ;

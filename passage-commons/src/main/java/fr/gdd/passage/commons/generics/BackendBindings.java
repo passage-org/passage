@@ -12,6 +12,7 @@ import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.expr.ExprList;
 import org.apache.jena.sparql.expr.NodeValue;
+import org.apache.jena.sparql.expr.nodevalue.NodeValueNode;
 import org.apache.jena.sparql.util.ExprUtils;
 
 import java.util.*;
@@ -236,10 +237,20 @@ public class BackendBindings<ID, VALUE> implements Binding {
     @Override
     public Node get(Var var)
     { // TODO cache this probably, put it in the specific binding?
+        if (Objects.isNull(getBinding(var))) {
+            // The variable does not have a value associated. Could happen
+            // among other, when the query has optionals.
+            return null;
+        }
         try {
             return NodeValue.parse(getBinding(var).getString()).asNode();
         } catch (Exception e) { // mostly for quotes in quotes
-            return NodeFactory.createLiteralString(getBinding(var).getString());
+            try {
+                return NodeFactory.createLiteralString(getBinding(var).getString());
+            } catch (Exception e1) {
+                System.err.println("Error getting binding for " + var.getVarName());
+                throw e1;
+            }
         }
     }
 

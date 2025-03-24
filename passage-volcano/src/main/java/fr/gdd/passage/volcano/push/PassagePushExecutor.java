@@ -1,5 +1,6 @@
 package fr.gdd.passage.volcano.push;
 
+import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
@@ -120,7 +121,12 @@ public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
     @Override
     public PausableStream<ID, VALUE> visit(OpLeftJoin lj, BackendBindings<ID, VALUE> input) {
         if (Objects.nonNull(lj.getExprs()) && !lj.getExprs().isEmpty()) {
-            throw new UnsupportedOperationException("Conditions in left joins are not handled yet.");
+            // throw new UnsupportedOperationException("Conditions in left joins are not handled yet.");
+            // TODO actually modify the logical plan beforehand
+            OpLeftJoin withoutExpr = OpLeftJoin.createLeftJoin(lj.getLeft(),
+                    OpFilter.filterDirect(lj.getExprs(), lj.getRight()),
+                    null);
+            return this.visit(withoutExpr, input);
         }
         return new PausableStreamWrapper<>(context, input, lj, SpliteratorOptional::new);
     }

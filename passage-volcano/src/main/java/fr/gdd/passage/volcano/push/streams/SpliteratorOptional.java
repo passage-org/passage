@@ -72,6 +72,9 @@ public class SpliteratorOptional<ID,VALUE> implements Spliterator<BackendBinding
             } else {
                 if (!matchOptional) {
                     action.accept(inputOfOptional); // default value if nothing matched
+                    matchOptional = false;
+                    rightSplit = null;
+                    return true;
                 }
                 matchOptional = false;
                 rightSplit = null;
@@ -143,8 +146,13 @@ public class SpliteratorOptional<ID,VALUE> implements Spliterator<BackendBinding
             return OpUnion.create(pausedRight, // right alone contains all, as a join
                     OpCloningUtil.clone(lj, pausedLeft, lj.getRight())); // the rest remains a left join
         } else { // otherwise we continue as a left join everywhere
-            return OpUnion.create(input.leftJoinWith(pausedRight),
-                    OpCloningUtil.clone(lj, pausedLeft, lj.getRight()));
+            if (Objects.nonNull(inputOfOptional)) {
+                return OpUnion.create(inputOfOptional.leftJoinWith(pausedRight),
+                        OpCloningUtil.clone(lj, pausedLeft, lj.getRight()));
+            } else {
+                return OpUnion.create(input.leftJoinWith(pausedRight),
+                        OpCloningUtil.clone(lj, pausedLeft, lj.getRight()));
+            }
         }
     }
 
