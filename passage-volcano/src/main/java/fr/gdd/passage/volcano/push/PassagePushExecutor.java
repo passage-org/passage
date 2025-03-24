@@ -1,6 +1,5 @@
 package fr.gdd.passage.volcano.push;
 
-import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;

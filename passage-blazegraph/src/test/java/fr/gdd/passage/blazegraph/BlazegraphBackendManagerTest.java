@@ -5,7 +5,9 @@ import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Disabled ("Should not open already opened databases")
 public class BlazegraphBackendManagerTest {

@@ -16,7 +16,7 @@ PREFIX psg:     <http://fr.gdd.passage/engine-vocabulary#>
 
 [] rdf:type fuseki:Server ;
    fuseki:services (
-     :service_watdiv
+     #:service_watdiv
      :service_wikidata
    )
    .

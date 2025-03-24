@@ -1,7 +1,6 @@
 package fr.gdd.passage.cli;
 
 import org.apache.jena.cmd.TerminationException;
-import org.apache.jena.fuseki.Fuseki;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.fuseki.main.cmds.FusekiMain;
 import org.apache.jena.fuseki.main.sys.FusekiModules;

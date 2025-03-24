@@ -1,7 +1,10 @@
 package fr.gdd.passage.cli.vocabularies;
 /* CVS $Id: $ */
- 
-import org.apache.jena.rdf.model.*;
+
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.Resource;
  
 /**
  * Vocabulary definitions from ./engine-vocabulary.ttl 

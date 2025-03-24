@@ -97,4 +97,44 @@ public class ProjectTest {
         blazegraph.close();
     }
 
+    @ParameterizedTest
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    public void a_project_with_function_in_it (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9PlusLiterals());
+        builder.setBackend(blazegraph);
+        String queryAsString = """
+               SELECT ?a (lang(?l) AS ?lang)  WHERE {
+                ?a <http://labeled> ?l
+               }""";
+
+        var results = ExecutorUtils.execute(queryAsString, builder);
+        assertEquals(1, results.size());
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("a", "lang"),
+                Arrays.asList("cat", "en")));
+        blazegraph.close();
+    }
+
+    @ParameterizedTest
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
+    public void a_project_with_function_in_it_with_null_remains_empty (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
+        final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9PlusLiterals());
+        builder.setBackend(blazegraph);
+        String queryAsString = """
+               SELECT ?person (str(?a) AS ?animal)  WHERE {
+                ?person <http://address> ?address
+                OPTIONAL { ?person <http://own> ?a }
+               }""";
+
+        var results = ExecutorUtils.execute(queryAsString, builder);
+        assertEquals(5, results.size());
+        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("person", "animal"),
+                Arrays.asList("Alice", "dog"),
+                Arrays.asList("Alice", "cat"),
+                Arrays.asList("Alice", "snake"),
+                Arrays.asList("Bob", null),
+                Arrays.asList("Carol", null)));
+        blazegraph.close();
+    }
+
 }

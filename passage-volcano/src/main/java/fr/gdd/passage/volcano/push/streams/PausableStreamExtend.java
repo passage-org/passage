@@ -43,9 +43,14 @@ public class PausableStreamExtend<ID,VALUE> implements PausableStream<ID, VALUE>
                 if (varAndExpr.getValue() instanceof NodeValueNode toCache) {
                     context.bindingsFactory.cache.register(toCache.asNode(), null);
                 }
-                b.put(varAndExpr.getKey(), new BackendBindings.IdValueBackend<ID, VALUE>()
-                        .setBackend(context.backend)
-                        .setString(NodeFmtLib.strNT(varAndExpr.getValue().eval(i, context).asNode())));
+                try {
+                    String success = NodeFmtLib.strNT(varAndExpr.getValue().eval(i, context).asNode());
+                    b.put(varAndExpr.getKey(), new BackendBindings.IdValueBackend<ID, VALUE>()
+                            .setBackend(context.backend)
+                            .setString(success));
+                } catch (Exception e) {
+                    // nothing to put in the binding if error
+                }
             }
 
             return b;
