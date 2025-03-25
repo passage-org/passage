@@ -115,8 +115,8 @@ public class ProjectTest {
     }
 
     @ParameterizedTest
-    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
+    // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
     public void a_project_with_function_in_it_with_null_remains_empty (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9PlusLiterals());
         builder.setBackend(blazegraph);

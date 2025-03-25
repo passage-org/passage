@@ -25,6 +25,10 @@ public class BackendManager implements AutoCloseable {
                 backend.get(absolutePath));
     }
 
+    public Backend<?,?> getBackend(String path) {
+        return path2backend.get(path);
+    }
+
     public int size () {
         return path2backend.size();
     }
