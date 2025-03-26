@@ -4,13 +4,18 @@ import org.apache.jena.sparql.algebra.op.OpN;
 import se.liu.ida.hefquin.base.queryplan.ExpectedVariables;
 import se.liu.ida.hefquin.engine.queryplan.logical.LogicalPlanVisitor;
 import se.liu.ida.hefquin.engine.queryplan.logical.NaryLogicalOp;
+import se.liu.ida.hefquin.engine.queryplan.logical.impl.LogicalOperatorBase;
 
-public class OpNAsNAryLogicalOp implements NaryLogicalOp {
+public class OpNAsNAryLogicalOp extends LogicalOperatorBase implements NaryLogicalOp {
 
     final OpN op;
 
     public OpNAsNAryLogicalOp(OpN op) {
         this.op = op;
+    }
+
+    public OpN getOp() {
+        return op;
     }
 
     @Override
@@ -25,6 +30,7 @@ public class OpNAsNAryLogicalOp implements NaryLogicalOp {
 
     @Override
     public void visit(LogicalPlanVisitor visitor) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        // Do nothing
+        // throw new UnsupportedOperationException("Not supported yet.");
     }
 }

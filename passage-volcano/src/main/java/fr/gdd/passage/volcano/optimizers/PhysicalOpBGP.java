@@ -2,6 +2,7 @@ package fr.gdd.passage.volcano.optimizers;
 
 import org.apache.jena.query.Query;
 import org.apache.jena.sparql.algebra.OpAsQuery;
+import org.apache.jena.sparql.algebra.op.OpBGP;
 import se.liu.ida.hefquin.base.query.SPARQLGraphPattern;
 import se.liu.ida.hefquin.base.query.SPARQLQuery;
 import se.liu.ida.hefquin.base.queryplan.ExpectedVariables;
@@ -15,9 +16,9 @@ import se.liu.ida.hefquin.engine.queryplan.physical.impl.BaseForPhysicalOps;
 
 public class PhysicalOpBGP extends BaseForPhysicalOps implements NullaryPhysicalOp, PhysicalOperatorForLogicalOperator, SPARQLQuery, SPARQLRequest {
 
-    final LogicalOpBGP opBGP;
+    final Op0AsNullaryLogicalOp opBGP;
 
-    PhysicalOpBGP(LogicalOpBGP opBGP) {
+    PhysicalOpBGP(Op0AsNullaryLogicalOp opBGP) {
         this.opBGP = opBGP;
     }
 
@@ -43,7 +44,7 @@ public class PhysicalOpBGP extends BaseForPhysicalOps implements NullaryPhysical
 
     @Override
     public Query asJenaQuery() {
-        return OpAsQuery.asQuery(opBGP.opBGP);
+        return OpAsQuery.asQuery(opBGP.getOp());
     }
 
     @Override
