@@ -27,6 +27,7 @@ import se.liu.ida.hefquin.engine.queryproc.impl.loptimizer.heuristics.Cardinalit
 import se.liu.ida.hefquin.engine.queryproc.impl.loptimizer.heuristics.CardinalityBasedJoinOrderingWithRequests;
 import se.liu.ida.hefquin.engine.queryproc.impl.poptimizer.cardinality.CardinalityEstimationImpl;
 import se.liu.ida.hefquin.engine.queryproc.impl.poptimizer.costmodel.CostModelImpl;
+import se.liu.ida.hefquin.engine.queryproc.impl.poptimizer.costmodel.MyCostModel;
 import se.liu.ida.hefquin.engine.queryproc.impl.poptimizer.randomized.EquilibriumConditionByRelativeSubplanCount;
 import se.liu.ida.hefquin.engine.queryproc.impl.poptimizer.randomized.SimulatedAnnealing;
 import se.liu.ida.hefquin.engine.queryproc.impl.poptimizer.randomized.StoppingConditionByNumberOfGenerations;
@@ -82,14 +83,14 @@ public class OpOrderingUsingHeFQUINTest {
 
         SimulatedAnnealing annealingOpt = new SimulatedAnnealing(condition2,
                 new Logical2PassagePlan(),
-                new CostModelImpl(new CardinalityEstimationImpl(context)),
+                new MyCostModel(new LocalCardinalityEstimationImpl((FederationAccessManagerLocal) federationManager)),
                 new SPARQLRuleInstances()
                 );
 
-        // var pair = annealingOpt.optimize(lPlan);
+        var pair = annealingOpt.optimize(lPlan);
 
         CardinalityBasedJoinOrderingBase cardinalityOpt = new CardinalityBasedJoinOrderingWithRequests(context);
-        cardinalityOpt.apply(lPlan);
+        // cardinalityOpt.apply(lPlan);
 
         System.out.println("Meow");
     }
