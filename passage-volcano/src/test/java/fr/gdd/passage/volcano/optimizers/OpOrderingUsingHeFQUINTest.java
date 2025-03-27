@@ -13,8 +13,6 @@ import se.liu.ida.hefquin.engine.queryplan.logical.LogicalPlan;
 import se.liu.ida.hefquin.engine.queryproc.LogicalOptimizationException;
 import se.liu.ida.hefquin.engine.queryproc.PhysicalOptimizationException;
 import se.liu.ida.hefquin.engine.queryproc.SourcePlanningException;
-import se.liu.ida.hefquin.engine.queryproc.impl.loptimizer.heuristics.CardinalityBasedJoinOrderingBase;
-import se.liu.ida.hefquin.engine.queryproc.impl.loptimizer.heuristics.CardinalityBasedJoinOrderingWithRequests;
 import se.liu.ida.hefquin.engine.queryproc.impl.poptimizer.costmodel.CostDimension;
 import se.liu.ida.hefquin.engine.queryproc.impl.poptimizer.costmodel.CostModelImpl;
 import se.liu.ida.hefquin.engine.queryproc.impl.poptimizer.randomized.EquilibriumConditionByRelativeSubplanCount;
@@ -38,7 +36,8 @@ public class OpOrderingUsingHeFQUINTest {
                                 estimator.initiateCardinalityEstimation(plan)) // cardinality dimension
         }; // possibly add other dimensions, e.g. using costs
 
-        Op query = Algebra.compile(QueryFactory.create("SELECT * WHERE  { ?s ?p ?o }"));
+        // Op query = Algebra.compile(QueryFactory.create("SELECT * WHERE  { { ?s ?p ?o } { ?o <http://meow> ?o2 } }"));
+        Op query = Algebra.compile(QueryFactory.create("SELECT * WHERE  { ?s ?p ?o . ?o <http://meow> ?o2 }"));
         LogicalPlan lPlan = Jena2HeFQUINLogicalPlans.convert(query);
 
         // vvvv from ExempleEngineConf.ttl
@@ -52,7 +51,7 @@ public class OpOrderingUsingHeFQUINTest {
                 /* rulesinstance */ new SPARQLRuleInstances() // TODO implements the rules
         );
 
-        // var pair = twoPhaseQueryOpt.optimize(lPlan);
+        var pair = twoPhaseQueryOpt.optimize(lPlan);
 
         SimulatedAnnealing annealingOpt = new SimulatedAnnealing(condition2,
                 new Jena2HeFQUINLogicalPlans(),
@@ -60,7 +59,7 @@ public class OpOrderingUsingHeFQUINTest {
                 new SPARQLRuleInstances()
                 );
 
-        var pair = annealingOpt.optimize(lPlan);
+        pair = annealingOpt.optimize(Jena2HeFQUINLogicalPlans.convert(lPlan), 1);
 
         System.out.println("Meow");
     }

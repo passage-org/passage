@@ -1,5 +1,7 @@
 package fr.gdd.passage.volcano.optimizers;
 
+import fr.gdd.passage.volcano.optimizers.rules.RuleDividingBGP2TP;
+import fr.gdd.passage.volcano.optimizers.rules.RuleMergingTP2BGP;
 import se.liu.ida.hefquin.engine.queryproc.impl.poptimizer.rewriting.RewritingRule;
 import se.liu.ida.hefquin.engine.queryproc.impl.poptimizer.rewriting.RuleInstances;
 
@@ -18,12 +20,16 @@ public class SPARQLRuleInstances extends RuleInstances {
 
     @Override
     protected Set<RewritingRule> addRuleInstancesForMerging() {
-        return new HashSet<>(); // TODO
+        Set<RewritingRule> mergingRules = new HashSet<>();
+        mergingRules.add(new RuleMergingTP2BGP(0.35)); // a bit higher than dividing
+        return mergingRules;
     }
 
     @Override
     protected Set<RewritingRule> addRuleInstancesForDividing() {
-        return new HashSet<>(); // TODO
+        Set<RewritingRule> dividingRules = new HashSet<>();
+        dividingRules.add(new RuleDividingBGP2TP(0.3));
+        return dividingRules;
     }
 
     @Override
