@@ -19,11 +19,12 @@ import org.slf4j.LoggerFactory;
 public class RawWatdivCountTest {
 
     private final static Logger log = LoggerFactory.getLogger(RawWatdivCountTest.class);
+    private final static String WATDIV_PATH = "/Users/skoazell/Desktop/Projects/datasets/watdiv10m-blaze/watdiv10M.jnl";
 
     @Disabled
     @Test
     public void count_star_on_spo () throws RepositoryException, SailException {
-        final BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl");
+        final BlazegraphBackend watdivBlazegraph = new BlazegraphBackend(WATDIV_PATH);
         String queryAsString = "SELECT (COUNT(*) AS ?count) WHERE { ?s ?p ?o }";
         RawOpExecutorUtils.execute(queryAsString, watdivBlazegraph, 1L); // 10,916,457 triples
         // the count is exact with blazegraph, do not need anything but getting a cardinality
@@ -33,7 +34,7 @@ public class RawWatdivCountTest {
     @Disabled
     @Test
     public void count_s_on_spo () throws RepositoryException, SailException {
-        final BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl");
+        final BlazegraphBackend watdivBlazegraph = new BlazegraphBackend(WATDIV_PATH);
         // TODO TODO TODO variable bound in COUNT
         // TODO same for p, and o
         String queryAsString = "SELECT (COUNT(?s) AS ?count) WHERE { ?s ?p ?o }";
@@ -43,7 +44,7 @@ public class RawWatdivCountTest {
     @Disabled
     @Test
     public void count_distinct_on_2_tps () throws RepositoryException, SailException {
-        final BlazegraphBackend watdivBlazegraph = new BlazegraphBackend("/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.jnl");
+        final BlazegraphBackend watdivBlazegraph = new BlazegraphBackend(WATDIV_PATH);
         String twoTPsQuery = """
                 SELECT (COUNT(*) AS ?count) WHERE {
                     ?v0 <http://db.uwaterloo.ca/~galuc/wsdbm/gender> <http://db.uwaterloo.ca/~galuc/wsdbm/Gender1> .

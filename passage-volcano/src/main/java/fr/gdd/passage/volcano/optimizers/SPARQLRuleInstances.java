@@ -2,6 +2,7 @@ package fr.gdd.passage.volcano.optimizers;
 
 import fr.gdd.passage.volcano.optimizers.rules.RuleDividingBGP2TP;
 import fr.gdd.passage.volcano.optimizers.rules.RuleMergingTP2BGP;
+import fr.gdd.passage.volcano.optimizers.rules.RuleOrderBinaryJoin;
 import se.liu.ida.hefquin.engine.queryproc.impl.poptimizer.rewriting.RewritingRule;
 import se.liu.ida.hefquin.engine.queryproc.impl.poptimizer.rewriting.RuleInstances;
 
@@ -15,7 +16,9 @@ public class SPARQLRuleInstances extends RuleInstances {
 
     @Override
     protected Set<RewritingRule> addRuleInstancesForOrdering() {
-        return super.addRuleInstancesForOrdering();
+        Set<RewritingRule> orderingRules = new HashSet<>();
+        orderingRules.add(new RuleOrderBinaryJoin(0.3));
+        return orderingRules;
     }
 
     @Override

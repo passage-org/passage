@@ -25,9 +25,9 @@
     <module>passage-hdt</module> <!-- uncomment when issue_#7 is solved -->
     <module>passage-volcano</module>
     <module>passage-cli</module>
-    <!-- <module>raw-tdb2</module>
+    <!-- <module>raw-tdb2</module> -->
     <module>raw</module>
-    <module>raw-cli</module> -->
+    <!-- <module>raw-cli</module> -->
   </modules>
 
   <properties>

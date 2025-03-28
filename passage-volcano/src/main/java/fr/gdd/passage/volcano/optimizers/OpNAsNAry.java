@@ -1,6 +1,9 @@
 package fr.gdd.passage.volcano.optimizers;
 
+import org.apache.jena.query.Query;
+import org.apache.jena.sparql.algebra.OpAsQuery;
 import org.apache.jena.sparql.algebra.op.OpN;
+import se.liu.ida.hefquin.base.query.SPARQLQuery;
 import se.liu.ida.hefquin.base.queryplan.ExpectedVariables;
 import se.liu.ida.hefquin.engine.queryplan.executable.NaryExecutableOp;
 import se.liu.ida.hefquin.engine.queryplan.logical.LogicalOperator;
@@ -11,7 +14,7 @@ import se.liu.ida.hefquin.engine.queryplan.physical.NaryPhysicalOp;
 import se.liu.ida.hefquin.engine.queryplan.physical.PhysicalOperatorForLogicalOperator;
 import se.liu.ida.hefquin.engine.queryplan.physical.PhysicalPlanVisitor;
 
-public class OpNAsNAry extends LogicalOperatorBase implements NaryLogicalOp, NaryPhysicalOp, PhysicalOperatorForLogicalOperator {
+public class OpNAsNAry extends LogicalOperatorBase implements NaryLogicalOp, NaryPhysicalOp, PhysicalOperatorForLogicalOperator, SPARQLQuery {
 
     final OpN op;
 
@@ -53,5 +56,10 @@ public class OpNAsNAry extends LogicalOperatorBase implements NaryLogicalOp, Nar
     @Override
     public LogicalOperator getLogicalOperator() {
         return this;
+    }
+
+    @Override
+    public Query asJenaQuery() {
+        return OpAsQuery.asQuery(op);
     }
 }

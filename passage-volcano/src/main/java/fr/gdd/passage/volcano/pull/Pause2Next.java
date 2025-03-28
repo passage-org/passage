@@ -9,7 +9,7 @@ import fr.gdd.passage.volcano.pull.iterators.*;
 import fr.gdd.passage.volcano.querypatterns.IsSkippableQuery;
 import fr.gdd.passage.volcano.transforms.Quad2Pattern;
 import fr.gdd.passage.volcano.transforms.Subqueries2LeftOfJoins;
-import fr.gdd.passage.volcano.transforms.Triples2BGP;
+import fr.gdd.passage.commons.transforms.Triples2BGP;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.engine.ExecutionContext;

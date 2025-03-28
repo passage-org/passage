@@ -1,4 +1,4 @@
-package fr.gdd.passage.volcano.transforms;
+package fr.gdd.passage.commons.transforms;
 
 import fr.gdd.jena.visitors.ReturningOpBaseVisitor;
 import org.apache.jena.query.QueryExecException;

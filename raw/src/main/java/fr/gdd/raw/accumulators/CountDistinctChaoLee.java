@@ -6,9 +6,9 @@ import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.generics.BackendSaver;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendAccumulator;
-import fr.gdd.passage.volcano.optimizers.CardinalityJoinOrdering;
-import fr.gdd.passage.volcano.transforms.BGP2Triples;
-import fr.gdd.passage.volcano.transforms.Triples2BGP;
+import fr.gdd.passage.commons.transforms.BGP2Triples;
+import fr.gdd.passage.commons.transforms.Triples2BGP;
+// import fr.gdd.passage.volcano.optimizers.CardinalityJoinOrdering;
 import fr.gdd.raw.executor.RawConstants;
 import fr.gdd.raw.executor.RawOpExecutor;
 import fr.gdd.raw.iterators.RandomAggregator;
@@ -98,7 +98,8 @@ public class CountDistinctChaoLee<ID,VALUE> implements BackendAccumulator<ID, VA
         // need same join order to bootstrap
         if (context.getContext().isFalseOrUndef(RawConstants.FORCE_ORDER)) {
             countQuery = ReturningOpVisitorRouter.visit(new Triples2BGP(), countQuery);
-            countQuery = new CardinalityJoinOrdering<>(backend, cache).visit(countQuery); // need to have bgp to optimize, no tps
+            // TODO change this to the new one
+            // countQuery = new CardinalityJoinOrdering<>(backend, cache).visit(countQuery); // need to have bgp to optimize, no tps
         } else {
             fmuExecutor.forceOrder();
         }

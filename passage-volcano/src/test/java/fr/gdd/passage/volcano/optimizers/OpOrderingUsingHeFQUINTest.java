@@ -37,7 +37,15 @@ public class OpOrderingUsingHeFQUINTest {
         }; // possibly add other dimensions, e.g. using costs
 
         // Op query = Algebra.compile(QueryFactory.create("SELECT * WHERE  { { ?s ?p ?o } { ?o <http://meow> ?o2 } }"));
-        Op query = Algebra.compile(QueryFactory.create("SELECT * WHERE  { ?s ?p ?o . ?o <http://meow> ?o2 }"));
+        // Op query = Algebra.compile(QueryFactory.create("SELECT * WHERE  { ?s ?p ?o . ?o <http://meow> ?o2 }"));
+        Op query = Algebra.compile(QueryFactory.create("""
+                SELECT ?item (STR(?label) AS ?itemLabel) WHERE {
+                  {
+                    ?item <http://www.w3.org/2000/01/rdf-schema#label> ?label.
+                    FILTER((((LANG(?label)) = "en") || ((LANG(?label)) = "mul")) || ((LANG(?label)) = "fr"))
+                  }
+                  ?item <http://www.wikidata.org/prop/direct/P31> <http://www.wikidata.org/entity/Q146>.
+                }"""));
         LogicalPlan lPlan = Jena2HeFQUINLogicalPlans.convert(query);
 
         // vvvv from ExempleEngineConf.ttl

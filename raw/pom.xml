@@ -17,10 +17,10 @@
             <groupId>fr.gdd</groupId>
             <artifactId>jena-utils</artifactId>
         </dependency>
-        <dependency>
+        <!-- <dependency>
             <groupId>fr.gdd</groupId>
             <artifactId>passage-volcano</artifactId>
-        </dependency>
+        </dependency> -->
         <dependency>
             <groupId>fr.gdd</groupId>
             <artifactId>passage-blazegraph</artifactId>

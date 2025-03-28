@@ -2,6 +2,10 @@ package fr.gdd.passage.volcano.optimizers;
 
 import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.interfaces.Backend;
+import fr.gdd.passage.commons.transforms.BGP2Triples;
+import fr.gdd.passage.commons.transforms.Graph2Quads;
+import fr.gdd.passage.commons.transforms.Patterns2Quad;
+import fr.gdd.passage.commons.transforms.Triples2BGP;
 import fr.gdd.passage.volcano.transforms.*;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpAsQuery;

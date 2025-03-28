@@ -12,11 +12,10 @@ import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.iterators.BackendBind;
 import fr.gdd.passage.commons.iterators.BackendFilter;
 import fr.gdd.passage.commons.iterators.BackendProject;
+import fr.gdd.passage.commons.transforms.BGP2Triples;
 import fr.gdd.passage.commons.transforms.DefaultGraphUriQueryModifier;
-import fr.gdd.passage.volcano.optimizers.CardinalityJoinOrdering;
-import fr.gdd.passage.volcano.transforms.BGP2Triples;
-import fr.gdd.passage.volcano.transforms.Graph2Quads;
-import fr.gdd.passage.volcano.transforms.Triples2BGP;
+import fr.gdd.passage.commons.transforms.Graph2Quads;
+import fr.gdd.passage.commons.transforms.Triples2BGP;
 import fr.gdd.raw.accumulators.AccumulatorFactory;
 import fr.gdd.raw.budgeting.NaiveBudgeting;
 import fr.gdd.raw.iterators.ProjectIterator;
@@ -149,7 +148,7 @@ public class RawOpExecutor<ID, VALUE> extends BackendPullExecutor<ID, VALUE> { /
         root = ReturningOpVisitorRouter.visit(new Graph2Quads(), root);
         if (execCxt.getContext().isFalseOrUndef(RawConstants.FORCE_ORDER)) {
             root = ReturningOpVisitorRouter.visit(new Triples2BGP(), root);
-            root = new CardinalityJoinOrdering<>(backend, cache).visit(root); // need to have bgp to optimize, no tps
+            // root = new CardinalityJoinOrdering<>(backend, cache).visit(root); // need to have bgp to optimize, no tps
         }
         root = ReturningOpVisitorRouter.visit(new BGP2Triples(), root);
         root = new DefaultGraphUriQueryModifier(execCxt).visit(root);
