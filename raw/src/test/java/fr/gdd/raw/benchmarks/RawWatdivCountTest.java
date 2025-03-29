@@ -29,6 +29,7 @@ public class RawWatdivCountTest {
         RawOpExecutorUtils.execute(queryAsString, watdivBlazegraph, 1L); // 10,916,457 triples
         // the count is exact with blazegraph, do not need anything but getting a cardinality
         // of spo.
+        watdivBlazegraph.close();
     }
 
     @Disabled
@@ -39,13 +40,14 @@ public class RawWatdivCountTest {
         // TODO same for p, and o
         String queryAsString = "SELECT (COUNT(?s) AS ?count) WHERE { ?s ?p ?o }";
         RawOpExecutorUtils.execute(queryAsString, watdivBlazegraph, 1L); // 10,916,457 since 10M triples
+        watdivBlazegraph.close();
     }
 
     @Disabled
     @Test
     public void count_distinct_on_2_tps () throws RepositoryException, SailException {
         final BlazegraphBackend watdivBlazegraph = new BlazegraphBackend(WATDIV_PATH);
-        String twoTPsQuery = """
+        String bgpCount = """
                 SELECT (COUNT(*) AS ?count) WHERE {
                     ?v0 <http://db.uwaterloo.ca/~galuc/wsdbm/gender> <http://db.uwaterloo.ca/~galuc/wsdbm/Gender1> .
                     ?v0 <http://xmlns.com/foaf/givenName> ?v1 .
@@ -53,7 +55,8 @@ public class RawWatdivCountTest {
                     ?v2 <http://www.geonames.org/ontology#parentCountry> ?v3 .
                     ?v4 <http://schema.org/eligibleRegion> ?v3 .
                 }""";
-        RawOpExecutorUtils.execute(twoTPsQuery, watdivBlazegraph, 10_000_000L);
+        RawOpExecutorUtils.execute(bgpCount, watdivBlazegraph, 10_000_000L);
+        watdivBlazegraph.close();
     }
 
 }

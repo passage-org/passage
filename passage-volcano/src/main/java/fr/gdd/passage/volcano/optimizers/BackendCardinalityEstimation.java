@@ -32,21 +32,29 @@ public class BackendCardinalityEstimation implements CardinalityEstimation {
             // i.e., the space to explore which also includes failures on the path.
             final int cardinality = (int)(Math.random()*50000); // TODO actually execute the request
 
-            RawOpExecutor executor = new RawOpExecutor();
-            executor.setBackend(backend);
-            executor.setTimeout(500L);
+            RawOpExecutor executor = new RawOpExecutor()
+                    .setBackend(backend)
+                    .setTimeout(500L);
+                    // .setLimit(10000L);
+
             // TODO remove the toOp -> toQuery -> toOp
-            String asCOUNT = String.format ( "SELECT (COUNT(*) AS ?c) WHERE {%s}",
+
+            String asCOUNT = String.format ( "SELECT (COUNT(*) AS ?c) WHERE {%n%s}",
                     ((SPARQLQuery) plan.getRootOperator()).asJenaQuery().toString());
 
             Iterator<BackendBindings> it = executor.execute(asCOUNT);
 
-            // only one result
-            var count = it.next().get(Var.alloc("c"));
+            if (it.hasNext()) {
+                // only one result
+                System.out.println();
+                System.out.println(asCOUNT);
+                var count = it.next().get(Var.alloc("c"));
+                System.out.println("Cardinality estimation: " + count);
+            }
 
             // final Date stop = new Date();
             // if none, the cardinality should be high
-            return cardinality;
+            return cardinality; // TODO Integer.MAXVALUE
         });
     }
 }

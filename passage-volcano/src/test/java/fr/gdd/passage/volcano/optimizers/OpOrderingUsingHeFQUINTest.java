@@ -1,7 +1,6 @@
 package fr.gdd.passage.volcano.optimizers;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
-import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.commons.interfaces.Backend;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.algebra.Algebra;
@@ -9,6 +8,7 @@ import org.apache.jena.sparql.algebra.Op;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrdf.repository.RepositoryException;
+import org.openrdf.sail.SailException;
 import se.liu.ida.hefquin.engine.queryplan.logical.LogicalPlan;
 import se.liu.ida.hefquin.engine.queryproc.LogicalOptimizationException;
 import se.liu.ida.hefquin.engine.queryproc.PhysicalOptimizationException;
@@ -24,10 +24,14 @@ import java.util.concurrent.CompletableFuture;
 
 public class OpOrderingUsingHeFQUINTest {
 
+    // TODO create a fake blazegraph graph for wikidata queries.
+    final static String WDBENCH_PATH = "/Users/skoazell/Desktop/Projects/datasets/wdbench-blaze/wdbench-blaze.jnl";
+
     @Disabled
     @Test
-    public void start_testing_an_approach_to_support_hefquins_optimizers () throws SourcePlanningException, PhysicalOptimizationException, LogicalOptimizationException, RepositoryException {
-        Backend<?,?> backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+    public void start_testing_an_approach_to_support_hefquins_optimizers () throws SourcePlanningException, PhysicalOptimizationException, LogicalOptimizationException, RepositoryException, SailException {
+        // Backend<?,?> backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+        Backend<?,?> backend = new BlazegraphBackend(WDBENCH_PATH);
         BackendCardinalityEstimation estimator = new BackendCardinalityEstimation(backend);
         CostDimension[] dimensions = new CostDimension[] {
                 new CostDimension(1.0,

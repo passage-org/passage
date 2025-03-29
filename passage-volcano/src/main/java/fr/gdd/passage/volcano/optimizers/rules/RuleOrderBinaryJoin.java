@@ -25,7 +25,7 @@ public class RuleOrderBinaryJoin extends AbstractRewritingRuleImpl {
             @Override
             protected PhysicalPlan rewritePlan( final PhysicalPlan plan ) {
                 OpJoin join = (OpJoin) ((Op2AsBinary) plan.getRootOperator()).getOp();
-                Op newJoin = OpJoin.create(join.getLeft(),join.getRight());
+                Op newJoin = OpJoin.create(join.getRight(),join.getLeft());
 
                 return Jena2HeFQUINLogicalPlans.convert(Jena2HeFQUINLogicalPlans.convert(newJoin));
             }
