@@ -6,7 +6,6 @@ import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.raw.executor.RawConstants;
-import jakarta.json.JsonObject;
 import org.apache.jena.graph.Node;
 import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.sparql.algebra.op.OpTable;
@@ -15,9 +14,6 @@ import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.engine.binding.Binding;
 
 import java.util.*;
-
-import static fr.gdd.raw.iterators.RawUtils.buildScan;
-import static fr.gdd.raw.iterators.RawUtils.stringify;
 
 public class RandomValues<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE>> {
 
@@ -67,7 +63,7 @@ public class RandomValues<ID, VALUE> implements Iterator<BackendBindings<ID, VAL
                 if (Objects.isNull(cache.getId(node))) {
                     // cache it
                     try {
-                        ID id = backend.getId(node.toString());
+                        ID id = backend.getId(val);
                         cache.register(node, id);
                     } catch (NotFoundException e) {
                         // the ID was not found in the database, so nothing
@@ -113,12 +109,12 @@ public class RandomValues<ID, VALUE> implements Iterator<BackendBindings<ID, VAL
                 random.variables().stream().toList())
                 .setParent(current);
 
-        Double probability = 1.0 / compatibleValues.size();
-
-        // Is it relevant to have a buildValue? or is a build scan enough?
-        JsonObject scanJson = buildScan(binding, probability);
-
-        binding.put(RawConstants.RANDOM_WALK_HOLDER, new BackendBindings.IdValueBackend<ID,VALUE>().setString(stringify(scanJson)));
+//        Double probability = 1.0 / compatibleValues.size();
+//
+//        // Is it relevant to have a buildValue? or is a build scan enough?
+//        JsonObject scanJson = buildScan(binding, probability);
+//
+//        binding.put(RawConstants.RANDOM_WALK_HOLDER, new BackendBindings.IdValueBackend<ID,VALUE>().setString(stringify(scanJson)));
 
         hasProduced = true;
 

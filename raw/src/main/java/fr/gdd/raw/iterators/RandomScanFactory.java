@@ -8,21 +8,15 @@ import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.generics.Substitutor;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.raw.executor.RawConstants;
-import jakarta.json.Json;
-import jakarta.json.JsonObject;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.atlas.lib.tuple.Tuple;
-import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.algebra.op.Op0;
 import org.apache.jena.sparql.algebra.op.OpQuad;
 import org.apache.jena.sparql.algebra.op.OpTriple;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.openrdf.util.iterators.EmptyIterator;
 
-import java.io.StringReader;
 import java.util.Iterator;
-
-import static fr.gdd.raw.iterators.RawUtils.*;
 
 public class RandomScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE>> {
 
@@ -85,29 +79,27 @@ public class RandomScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID
     public BackendBindings<ID, VALUE> next() {
         BackendBindings<ID, VALUE> binding = instantiated.next();
 
-        RandomScan instantiatedScan = (RandomScan) instantiated;
-
-        Double probability = instantiatedScan.getProbability();
-
-
-
-        JsonObject scanJson = buildScan(binding, probability);
-
-        Node inputRwhNode = inputBinding.get(RawConstants.RANDOM_WALK_HOLDER);
-
-        if(inputRwhNode != null){
-            // there is an input binding, so this random scan operator represents a bound join, and thus we create a join object
-            if(inputRwhNode.isLiteral()){
-                JsonObject inputRwhJson = Json.createReader(new StringReader(inputRwhNode.getLiteralValue().toString())).readObject();
-                binding.put(RawConstants.RANDOM_WALK_HOLDER, new BackendBindings.IdValueBackend<ID,VALUE>().setString(stringify(buildJoin(inputRwhJson, scanJson))));
-            }else {
-                throw new RuntimeException("Not a literal node: " + inputRwhNode + ", even though it's a meta binding " +
-                        "and shouldn't ever be associated with a non literal value");
-            }
-        }else {
-            // there is no input binding, so this random scan operator represents only a scan
-            binding.put(RawConstants.RANDOM_WALK_HOLDER, new BackendBindings.IdValueBackend<ID,VALUE>().setString(stringify(scanJson)));
-        }
+//        RandomScan instantiatedScan = (RandomScan) instantiated;
+//
+//        Double probability = instantiatedScan.getProbability();
+//
+//        JsonObject scanJson = buildScan(binding, probability);
+//
+//        Node inputRwhNode = inputBinding.get(RawConstants.RANDOM_WALK_HOLDER);
+//
+//        if(inputRwhNode != null){
+//            // there is an input binding, so this random scan operator represents a bound join, and thus we create a join object
+//            if(inputRwhNode.isLiteral()){
+//                JsonObject inputRwhJson = Json.createReader(new StringReader(inputRwhNode.getLiteralValue().toString())).readObject();
+//                binding.put(RawConstants.RANDOM_WALK_HOLDER, new BackendBindings.IdValueBackend<ID,VALUE>().setString(stringify(buildJoin(inputRwhJson, scanJson))));
+//            }else {
+//                throw new RuntimeException("Not a literal node: " + inputRwhNode + ", even though it's a meta binding " +
+//                        "and shouldn't ever be associated with a non literal value");
+//            }
+//        }else {
+//            // there is no input binding, so this random scan operator represents only a scan
+//            binding.put(RawConstants.RANDOM_WALK_HOLDER, new BackendBindings.IdValueBackend<ID,VALUE>().setString(stringify(scanJson)));
+//        }
 
         return binding.setParent(inputBinding);
     }
