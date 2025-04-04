@@ -5,6 +5,8 @@ import fr.gdd.jena.visitors.ReturningOpBaseVisitor;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpBGP;
+import org.apache.jena.sparql.algebra.op.OpGroup;
+import org.apache.jena.sparql.algebra.op.OpTable;
 import org.apache.jena.sparql.algebra.op.OpTriple;
 import org.apache.jena.sparql.core.Var;
 
@@ -13,11 +15,18 @@ import java.util.List;
 
 public class LeftJoinizeNonGroupKeys extends ReturningOpBaseVisitor {
 
+
+    public Op visit(OpGroup opGroup) {
+        // This is an aggregate query; it is not meant to produce random walks.
+        // Thus, we do not need to go deeper to "optionalize" BGPs, as this is likely an optimization (count) query
+        return opGroup;
+    }
+
     public Op visit(OpBGP op) {
         List<Triple> triples = op.getPattern().getList();
         if (triples.isEmpty()) return op;
 
-        Op transformed = new OpTriple(triples.remove(0));
+        Op transformed = OpTable.unit();
 
         while(!triples.isEmpty()){
             Triple optionalTriple = triples.remove(0);

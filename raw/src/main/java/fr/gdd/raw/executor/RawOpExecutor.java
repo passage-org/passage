@@ -22,7 +22,9 @@ import fr.gdd.raw.accumulators.AccumulatorFactory;
 import fr.gdd.raw.budgeting.NaiveBudgeting;
 import fr.gdd.raw.iterators.*;
 import org.apache.jena.query.DatasetFactory;
+import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryFactory;
+import org.apache.jena.sparql.ARQConstants;
 import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
@@ -143,13 +145,19 @@ public class RawOpExecutor<ID, VALUE> extends BackendOpExecutor<ID, VALUE> { // 
 
     public Iterator<BackendBindings<ID, VALUE>> execute(Op root) {
         // #A reordering of bgps if need be
-
         root = ReturningOpVisitorRouter.visit(new Graph2Quads(), root);
         if (execCxt.getContext().isFalseOrUndef(RawConstants.FORCE_ORDER)) {
             root = ReturningOpVisitorRouter.visit(new Triples2BGP(), root);
             root = new CardinalityJoinOrdering<>(backend, cache).visit(root); // need to have bgp to optimize, no tps
+
+        }
+
+        // If a select query, apply optional to everything, to retrieve incomplete random walks
+        Query currentQuery = context.getContext().get(ARQConstants.sysCurrentQuery);
+        if(currentQuery.isSelectType()){
             root = ReturningOpVisitorRouter.visit(new LeftJoinizeNonGroupKeys(), root);
         }
+
         root = ReturningOpVisitorRouter.visit(new BGP2Triples(), root);
         root = new DefaultGraphUriQueryModifier(execCxt).visit(root);
         execCxt.getContext().set(RawConstants.SAVER, new BackendSaver<>(backend, root));

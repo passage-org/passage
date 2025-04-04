@@ -2,9 +2,7 @@ package fr.gdd.raw.iterators;
 
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.passage.commons.generics.BackendBindings;
-import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.generics.BackendSaver;
-import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.raw.accumulators.WanderJoin;
 import fr.gdd.raw.executor.RawConstants;
 import fr.gdd.raw.executor.RawOpExecutor;
@@ -77,20 +75,21 @@ public class RandomRoot<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE
         ++count;
         BackendBindings<ID, VALUE> toReturn = produced; // ugly :(
 
-        Backend backend = this.context.getContext().get(RawConstants.BACKEND);
-        BackendCache<ID, VALUE> cache = this.context.getContext().get(RawConstants.CACHE);
-
         produced = null;
-        WanderJoin wj = new WanderJoin<>(context.getContext().get(RawConstants.SAVER));
+
+        BackendSaver bs = context.getContext().get(RawConstants.SAVER);
+
+        WanderJoin wj = new WanderJoin<>(bs);
+
         try{
-            Double proba = (Double) wj.visit(((BackendSaver) context.getContext().get(RawConstants.SAVER)).getRoot());
+            Double proba = (Double) wj.visit(bs.getRoot());
             RawConstants.saveScanProbabilities(context, proba);
 
             toReturn.put(RawConstants.MAPPING_PROBABILITY, new BackendBindings.IdValueBackend<ID,VALUE>().setString(proba.toString()));
 
         }catch (Exception e){
-            // TODO : to remove eventually, useful for debugging while still in the works
-            // System.out.println("Can't compute probability of retrieving the binding (with wander join) on " + e.getMessage());
+            // nothing to do, we end here when the iterator tree contains an operator for which computing a probability
+            // for wander join has not been implemented.
         }
         return toReturn;
     }
