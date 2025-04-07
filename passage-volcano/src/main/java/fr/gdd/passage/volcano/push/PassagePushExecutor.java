@@ -23,10 +23,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
-public class PassagePushExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
-        PausableStream<ID,VALUE>,
-        BackendBindings<ID,VALUE>>
-        implements PassageExecutor<ID,VALUE> {
+/**
+ * Engine for Passage that create streams of bindings that can be paused, producing
+ * a SPARQL continuation query that can be used to resume query execution until getting complete
+ * and correct results.
+ */
+public class PassagePushExecutor<ID,VALUE> implements PassageExecutor<ID,VALUE>,
+        ReturningArgsOpVisitor<PausableStream<ID,VALUE>,BackendBindings<ID,VALUE>> {
 
     final PassageExecutionContext<ID,VALUE> context;
     final AtomicBoolean gotPaused = new AtomicBoolean(false);

@@ -17,7 +17,7 @@ public class SPARQLRuleInstances extends RuleInstances {
     @Override
     protected Set<RewritingRule> addRuleInstancesForOrdering() {
         Set<RewritingRule> orderingRules = new HashSet<>();
-        orderingRules.add(new RuleOrderBinaryJoin(0.3));
+        orderingRules.add(new RuleOrderBinaryJoin(0.9));
         return orderingRules;
     }
 

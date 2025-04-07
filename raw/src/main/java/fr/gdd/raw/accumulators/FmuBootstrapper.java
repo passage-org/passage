@@ -36,7 +36,7 @@ import java.util.Set;
  * a Wander Join based on this specific successful random walk.
  * This aims at avoiding zero-knowledge issues.
  */
-public class FmuBootstrapper<ID,VALUE> extends ReturningArgsOpVisitor<Double, Set<Var>> {
+public class FmuBootstrapper<ID,VALUE> implements ReturningArgsOpVisitor<Double, Set<Var>> {
 
     final Backend<ID,VALUE> backend;
     final BackendCache<ID,VALUE> cache;

@@ -1,8 +1,8 @@
 package fr.gdd.passage.volcano.optimizers.rules;
 
+import fr.gdd.passage.commons.transforms.BGP2Triples;
 import fr.gdd.passage.volcano.optimizers.Jena2HeFQUINLogicalPlans;
 import fr.gdd.passage.volcano.optimizers.Op0AsNullary;
-import fr.gdd.passage.commons.transforms.BGP2Triples;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.algebra.op.OpBGP;
 import org.apache.jena.sparql.algebra.op.OpTriple;

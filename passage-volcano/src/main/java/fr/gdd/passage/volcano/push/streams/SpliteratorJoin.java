@@ -1,5 +1,6 @@
 package fr.gdd.passage.volcano.push.streams;
 
+import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.exceptions.BackjumpException;
@@ -20,7 +21,7 @@ public class SpliteratorJoin<ID,VALUE> implements Spliterator<BackendBindings<ID
 
     final PassageExecutionContext<ID,VALUE> context;
     final BackendBindings<ID,VALUE> input;
-    final PassagePushExecutor<ID,VALUE> executor;
+    final ReturningArgsOpVisitor<PausableStream<ID,VALUE>,BackendBindings<ID,VALUE>> executor;
     final OpJoin join;
     PausableStream<ID,VALUE> leftStream;
     final Spliterator<BackendBindings<ID,VALUE>> left;
@@ -35,7 +36,7 @@ public class SpliteratorJoin<ID,VALUE> implements Spliterator<BackendBindings<ID
         this.context = context;
         this.input = input;
         this.join = join;
-        this.executor = (PassagePushExecutor<ID, VALUE>) context.executor;
+        this.executor = (ReturningArgsOpVisitor<PausableStream<ID,VALUE>,BackendBindings<ID,VALUE>>) context.executor;
         this.leftStream = executor.visit(join.getLeft(), input);
         this.left = leftStream.stream().spliterator();
         this.id = ids.incrementAndGet();
@@ -46,7 +47,7 @@ public class SpliteratorJoin<ID,VALUE> implements Spliterator<BackendBindings<ID
         this.context = context;
         this.input = input;
         this.join = join;
-        this.executor = (PassagePushExecutor<ID, VALUE>) context.executor;
+        this.executor = (ReturningArgsOpVisitor<PausableStream<ID,VALUE>,BackendBindings<ID,VALUE>>) context.executor;
         this.left = left;
         this.id = ids.incrementAndGet();
         register(joins);

@@ -1,9 +1,6 @@
 package fr.gdd.passage.volcano.optimizers;
 
-import org.apache.jena.query.Query;
-import org.apache.jena.sparql.algebra.OpAsQuery;
 import org.apache.jena.sparql.algebra.op.Op1;
-import se.liu.ida.hefquin.base.query.SPARQLQuery;
 import se.liu.ida.hefquin.base.queryplan.ExpectedVariables;
 import se.liu.ida.hefquin.engine.queryplan.executable.UnaryExecutableOp;
 import se.liu.ida.hefquin.engine.queryplan.logical.LogicalOperator;
@@ -14,7 +11,7 @@ import se.liu.ida.hefquin.engine.queryplan.physical.PhysicalOperatorForLogicalOp
 import se.liu.ida.hefquin.engine.queryplan.physical.PhysicalPlanVisitor;
 import se.liu.ida.hefquin.engine.queryplan.physical.UnaryPhysicalOp;
 
-public class Op1AsUnary extends LogicalOperatorBase implements UnaryLogicalOp, UnaryPhysicalOp, PhysicalOperatorForLogicalOperator, SPARQLQuery {
+public class Op1AsUnary extends LogicalOperatorBase implements UnaryLogicalOp, UnaryPhysicalOp, PhysicalOperatorForLogicalOperator {
 
     final Op1 op;
 
@@ -26,15 +23,9 @@ public class Op1AsUnary extends LogicalOperatorBase implements UnaryLogicalOp, U
         return op;
     }
 
-
     @Override
     public ExpectedVariables getExpectedVariables(ExpectedVariables... inputVars) {
         throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public int getID() {
-        return 0;
     }
 
     @Override
@@ -58,8 +49,4 @@ public class Op1AsUnary extends LogicalOperatorBase implements UnaryLogicalOp, U
         return this;
     }
 
-    @Override
-    public Query asJenaQuery() {
-        return OpAsQuery.asQuery(op);
-    }
 }

@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
  * about cardinality is provided, it resorts to variable counting, i.e., it
  * favors the execution of triple patterns with bounded variables.
  */
-public class CardinalityJoinOrdering<ID,VALUE> extends ReturningArgsOpVisitor<
+public class CardinalityJoinOrdering<ID,VALUE> implements ReturningArgsOpVisitor<
         Op, // built operator.
         Set<Var>> { // the variables already set when the operator is visited.
 
