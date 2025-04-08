@@ -4,6 +4,7 @@ import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.exceptions.BackjumpException;
 import fr.gdd.passage.volcano.push.streams.PausableSpliterator;
+import org.apache.commons.lang3.function.TriFunction;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpVars;
 import org.apache.jena.sparql.algebra.op.OpTriple;
@@ -26,63 +27,41 @@ import java.util.function.Consumer;
  * This implementation aims at providing a generic base that other operator-specialized iterators
  * can use.
  */
-public class SpliteratorBackJump<ID,VALUE> implements PausableSpliterator<ID,VALUE> {
+public class SpliteratorProducerBackJump<ID,VALUE,OP extends Op> implements PausableSpliterator<ID,VALUE> {
 
     final PassageExecutionContext<ID,VALUE> context;
     final PausableSpliterator<ID,VALUE> wrapped;
     final BackendBindings<ID,VALUE> input;
     final Op op;
 
-
-    /**
-     * @return A root backjumper, It's important when the top most producer fails. TODO double check this
-     */
-    @Deprecated // TODO double check this
-    public static<ID,VALUE> SpliteratorBackJump<ID,VALUE> createRoot(PassageExecutionContext<ID,VALUE> context,
-                                                                     PausableSpliterator<ID,VALUE> wrapped) {
-        return new SpliteratorBackJump<>(context, new BackendBindings<>(), null, wrapped);
-    }
-
-    public SpliteratorBackJump(PassageExecutionContext<ID,VALUE> context, BackendBindings<ID,VALUE> input, Op op, PausableSpliterator<ID,VALUE> wrapped) {
+    public SpliteratorProducerBackJump(PassageExecutionContext<ID,VALUE> context, BackendBindings<ID,VALUE> input, OP op,
+                                       TriFunction<PassageExecutionContext<ID,VALUE>, BackendBindings<ID,VALUE>, OP,
+            PausableSpliterator<ID,VALUE>> supplier) {
         this.context = context;
         this.op = op;
         this.input = input;
-        this.wrapped = wrapped; // TODO, probably add a check on creation would be easier, instead of in scan
+        try {
+            // we try to produce a value if it's a producer.
+            this.wrapped = supplier.apply(context, input, op);
+            this.tryAdvance(value -> {}); // there must have one value
+        } catch (BackjumpException bje) {
+            throw bje;
+        }
     }
 
     @Override
     public boolean tryAdvance(Consumer<? super BackendBindings<ID, VALUE>> action) {
         AtomicReference<BackendBindings<ID, VALUE>> produced = new AtomicReference<>();
-        boolean advanced = false;
 
-        while (!advanced) {
-            try {
-                advanced = wrapped.tryAdvance(produced::set);
-            } catch (BackjumpException bje) {
-                Set<Var> producedVars = getProducedVars(op, input);
-                if (producedVars.stream().noneMatch(bje.problematicVariables::contains)) {
-                    throw bje;
-                }
-            }
-
-            if (!advanced) {
-                Set<Var> consumed = getConsumedVars(op, input);
-                if (!consumed.isEmpty()) {
-                    throw new BackjumpException(consumed);
-                }
-            }
-
-            try {
-                action.accept(produced.get());
-            } catch (BackjumpException bje) {
-                advanced = false;
-                Set<Var> producedVars = getProducedVars(op, input);
-                if (!bje.matches(producedVars)) {
-                    throw bje;
-                }
+        try {
+            return wrapped.tryAdvance(action);
+        } catch (BackjumpException bje) {
+            Set<Var> producedVars = getProducedVars(op, input); // TODO lazy
+            if (producedVars.stream().noneMatch(bje.problematicVariables::contains)) {
+                throw bje;
             }
         }
-        return true;
+        return false;
     }
 
     @Override

@@ -2,6 +2,7 @@ package fr.gdd.passage.volcano.push;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
+import fr.gdd.passage.random.push.PassRawPushExecutor;
 import fr.gdd.passage.volcano.ExecutorUtils;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
@@ -47,7 +48,7 @@ public class PassageBackjumpTest {
         }
         for (int i = 0; i < FIRST_LAYER; ++i) {
             for (int j = 0; j < THIRD_LAYER; ++j) {
-                if (i % 10 == 0)
+                if (i % 50 == 0)
                     statements.add(String.format("<https://subject%s> <https://predicate3> <https://object%s> .\n", i, j));
             }
         }
@@ -106,5 +107,49 @@ public class PassageBackjumpTest {
         // [main] DEBUG PassageBackjumpTest - Took 1944ms to get 100000 results.
         // [main] DEBUG PassageBackjumpTest - Took 1948ms to get 100000 results.
         // [main] DEBUG PassageBackjumpTest - Took 1930ms to get 100000 results.
+    }
+
+
+    @RepeatedTest(5)
+    public void measuring_some_performance_of_backjumps_with_random_walks () {
+        ExecutorUtils.log = LoggerFactory.getLogger("none");
+        PassageExecutionContextBuilder<?,?> builder = new PassageExecutionContextBuilder<>()
+                .setBackend(backend)
+                .setMaxResults(100L)
+                .setExecutorFactory((ec)-> new PassRawPushExecutor<>((PassageExecutionContext<?,?>) ec));
+
+        LongAdder counter = new LongAdder();
+        log.debug("Started the execution…");
+        long start = System.currentTimeMillis();
+        ExecutorUtils.executeOnce(QUERY, builder, i -> counter.increment());
+        long elapsed = System.currentTimeMillis() - start;
+        log.debug("Took {}ms to get {} results.", elapsed, counter.longValue());
+
+//        [main] DEBUG PassageBackjumpTest - Started the execution…
+//[main] DEBUG PassageBackjumpTest - Took 4387ms to get 998631 results.
+//[main] DEBUG PassageBackjumpTest - Started the execution…
+//[main] DEBUG PassageBackjumpTest - Took 3725ms to get 998631 results.
+//[main] DEBUG PassageBackjumpTest - Started the execution…
+//[main] DEBUG PassageBackjumpTest - Took 3710ms to get 998631 results.
+//[main] DEBUG PassageBackjumpTest - Started the execution…
+//[main] DEBUG PassageBackjumpTest - Took 3662ms to get 998631 results.
+//[main] DEBUG PassageBackjumpTest - Started the execution…
+//[main] DEBUG PassageBackjumpTest - Took 3650ms to get 998631 results.
+//
+
+        // TODO by desabling backjumping, we have this, which should not be the case
+        // 10_000 per sub sample
+//        WARN	2025-04-08 11:19:41,348	0	com.bigdata.rdf.ServiceProviderHook	[com.bigdata.journal.Journal.executorService1]	Running.
+//[main] DEBUG PassageBackjumpTest - Started the execution…
+//[main] DEBUG PassageBackjumpTest - Took 2777ms to get 1000000 results.
+//[main] DEBUG PassageBackjumpTest - Started the execution…
+//[main] DEBUG PassageBackjumpTest - Took 2589ms to get 1000000 results.
+//[main] DEBUG PassageBackjumpTest - Started the execution…
+//[main] DEBUG PassageBackjumpTest - Took 2588ms to get 1000000 results.
+//[main] DEBUG PassageBackjumpTest - Started the execution…
+//[main] DEBUG PassageBackjumpTest - Took 2167ms to get 1000000 results.
+//[main] DEBUG PassageBackjumpTest - Started the execution…
+//[main] DEBUG PassageBackjumpTest - Took 2383ms to get 1000000 results.
+
     }
 }

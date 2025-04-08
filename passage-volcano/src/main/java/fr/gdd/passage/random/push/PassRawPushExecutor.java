@@ -4,9 +4,11 @@ import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.transforms.DefaultGraphUriQueryModifier;
+import fr.gdd.passage.random.push.streams.SpliteratorRawRoot;
 import fr.gdd.passage.random.push.streams.SpliteratorRawScan;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutor;
+import fr.gdd.passage.volcano.exceptions.InvalidContexException;
 import fr.gdd.passage.volcano.exceptions.PauseException;
 import fr.gdd.passage.volcano.push.streams.PausableStream;
 import fr.gdd.passage.volcano.push.streams.PausableStreamWrapper;
@@ -36,17 +38,20 @@ public class PassRawPushExecutor<ID,VALUE> implements PassageExecutor<ID,VALUE>,
     public PassRawPushExecutor(PassageExecutionContext<ID,VALUE> context) {
         this.context = context;
         this.context.getContext().set(BackendConstants.EXECUTOR, this); // TODO, let a super do the job
+        if (this.context.stoppingConditions.isEmpty()) {
+            throw new InvalidContexException("The engine does not support running without stopping conditions");
+        }
     }
 
     @Override
     public Op execute(Op root, Consumer<BackendBindings<ID, VALUE>> consumer) {
-        root = context.optimizer.optimize(root);
+        root = context.optimizer.optimize(root); // TODO improve this…
         final Op _root = new DefaultGraphUriQueryModifier(context).visit(root);
         AtomicReference<PausableStream<ID,VALUE>> pausable = new AtomicReference<>();
         try (ForkJoinPool customPool = new ForkJoinPool(context.maxParallelism)) {
             customPool.submit(() -> {
                 try {
-                    pausable.set(this.visit(_root, new BackendBindings<>()));
+                    pausable.set(this.execute(_root, new BackendBindings<>()));
                     pausable.get().stream().forEach(consumer);
                 } catch (PauseException pe) {
                     gotPaused.set(true);
@@ -67,6 +72,13 @@ public class PassRawPushExecutor<ID,VALUE> implements PassageExecutor<ID,VALUE>,
 
     /* **************************** OPERATORS ************************************* */
 
+    /**
+     * @return The top most stream producing random walks guided by the query.
+     */
+    public PausableStream<ID,VALUE> execute(Op root, BackendBindings<ID, VALUE> input) {
+        return new PausableStreamWrapper<>(context, input, root, SpliteratorRawRoot::new);
+    }
+
     @Override
     public PausableStream<ID, VALUE> visit(OpTriple triple, BackendBindings<ID, VALUE> input) {
         return new PausableStreamWrapper<>(context, input, triple, SpliteratorRawScan::new, true);
@@ -74,6 +86,6 @@ public class PassRawPushExecutor<ID,VALUE> implements PassageExecutor<ID,VALUE>,
 
     @Override
     public PausableStream<ID, VALUE> visit(OpJoin join, BackendBindings<ID, VALUE> input) {
-        return new PausableStreamWrapper<>(context, input, join, SpliteratorJoin::new);
+        return new PausableStreamWrapper<>(context, input, join, SpliteratorJoin::new); // already enable back jump TODO more generic
     }
 }

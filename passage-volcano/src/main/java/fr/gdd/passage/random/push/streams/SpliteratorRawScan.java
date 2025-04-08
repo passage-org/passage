@@ -8,8 +8,6 @@ import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
 import fr.gdd.passage.volcano.PassageExecutionContext;
-import fr.gdd.passage.volcano.exceptions.BackjumpException;
-import fr.gdd.passage.volcano.exceptions.PauseException;
 import fr.gdd.passage.volcano.push.streams.PausableSpliterator;
 import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.atlas.lib.tuple.TupleFactory;
@@ -59,9 +57,9 @@ public class SpliteratorRawScan<ID,VALUE> implements PausableSpliterator<ID,VALU
         }
 
         if (Objects.nonNull(wrapped) && !wrapped.hasNext()) { this.wrapped = null; }
-        if (Objects.isNull(this.wrapped)) {throw new BackjumpException(op, input);}
 
         this.limit = this.context.getLimit(); // if null, stays null
+        this.limit = Objects.isNull(limit) ? (long) Math.log(this.wrapped.cardinality() + 2) : limit; // +2 so limit ≥ 1
         this.offset = Objects.nonNull(this.context.getOffset()) ? this.context.getOffset() : 0;
         this.id = this.offset;
 
@@ -89,9 +87,9 @@ public class SpliteratorRawScan<ID,VALUE> implements PausableSpliterator<ID,VALU
         }
 
         if (Objects.nonNull(wrapped) && !wrapped.hasNext()) { this.wrapped = null; }
-        if (Objects.isNull(this.wrapped)) {throw new BackjumpException(op, input);}
 
         this.limit = this.context.getLimit(); // if null, stays null
+        this.limit = Objects.isNull(limit) ? (long) Math.log(this.wrapped.cardinality() + 2) : limit; // +2 so limit ≥ 1
         this.offset = Objects.nonNull(this.context.getOffset()) ? this.context.getOffset() : 0;
         this.id = this.offset;
 
@@ -105,33 +103,23 @@ public class SpliteratorRawScan<ID,VALUE> implements PausableSpliterator<ID,VALU
 
     @Override
     public boolean tryAdvance(Consumer<? super BackendBindings<ID, VALUE>> action) {
-        // The stopping condition are the only factor that can stop the random iterator
-        // of randomly iterating.
         if (Objects.isNull(wrapped)) {
-            if (context.maxScans != Long.MAX_VALUE) { context.scans.getAndIncrement(); } // even failure are counted
+            context.incrementNbScans(); // even failures are counted
             return false;
         }
         if (Objects.nonNull(limit) && limit == 0) { return false; } // we produced all
 
-        if (!context.paused.isPaused() && context.stoppingCondition.apply(context)) { // unless we must stop
-            throw new PauseException(op); // execution stops immediately, caught at the root
-        }
-
-        // offset do not move.
-        if (Objects.nonNull(limit)) { limit -= 1 ; } // TODO maybe force a limit ?
+        // offset never moves.
+        limit -= 1; // forced limit decreases
+        context.incrementNbScans(); // success are counted globally
 
         // use the underlying iterator to get a new random value
         double proba = wrapped.random(); // TODO what to do about the proba?…
         wrapped.hasNext();
         wrapped.next();
-
-        if (context.maxScans != Long.MAX_VALUE) { context.scans.getAndIncrement(); } // don't even try if not useful
-
         BackendBindings<ID, VALUE> newBinding = context.bindingsFactory.get();
         Arrays.stream(SPOC.spoc).forEach(code -> registerMapping(newBinding, code));
-
         action.accept(newBinding.setParent(input));
-
         return true;
     }
 
@@ -156,7 +144,20 @@ public class SpliteratorRawScan<ID,VALUE> implements PausableSpliterator<ID,VALU
 
     @Override
     public long estimateSize() {
-        return (long) wrapped.cardinality();
+        if (Objects.isNull(wrapped)) { return 0; }
+        return limit; // produce only `limit` number of elements
+    }
+
+    @Override
+    public double estimateCost() {
+        // the same as estimated size since it would require enumerating all.
+        if (Objects.isNull(wrapped)) { return 0; }
+        return Math.min((long) (wrapped.cardinality() - offset), limit);
+    }
+
+    @Override
+    public double estimateCardinality() {
+        return estimateCost();
     }
 
     @Override

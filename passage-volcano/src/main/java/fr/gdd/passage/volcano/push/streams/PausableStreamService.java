@@ -50,7 +50,7 @@ public class PausableStreamService<ID,VALUE> implements PausableStream<ID,VALUE>
                 .query(OpAsQuery.asQuery(service.getSubOp()));
 
         // before creating a new call, we check if we should, but then, wrapped can be null
-        if (!this.context.paused.isPaused() && context.stoppingCondition.apply(this.context)) { throw new PauseException(service); }
+        if (!this.context.paused.isPaused() && context.stoppingConditions.stream().anyMatch(c -> c.test(context))) { throw new PauseException(service); }
 
         RowSetReaderJSONWithMetadata.install(); // making sure that the http handler can read json *WITH* metadata…
         wrapped = builder.select();

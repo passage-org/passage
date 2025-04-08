@@ -5,6 +5,7 @@ import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.volcano.ExecutorUtils;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
+import fr.gdd.passage.volcano.exceptions.InvalidContexException;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.openrdf.repository.RepositoryException;
@@ -14,8 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class RandomBGPTest {
 
@@ -30,8 +30,9 @@ class RandomBGPTest {
         builder.setBackend(bb);
         String queryAsString = "SELECT * WHERE { ?p <http://do_not_exist> ?c }";
 
-        var results = ExecutorUtils.executeOnce(queryAsString, builder);
-        assertEquals(0, results.elementSet().size()); // whp
+        assertThrows(InvalidContexException.class, () -> {
+            var ignored = ExecutorUtils.executeOnce(queryAsString, builder);
+        });
         bb.close();
     }
 

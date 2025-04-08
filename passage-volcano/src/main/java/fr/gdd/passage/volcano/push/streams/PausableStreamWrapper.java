@@ -1,7 +1,7 @@
 package fr.gdd.passage.volcano.push.streams;
 
 import fr.gdd.passage.commons.generics.BackendBindings;
-import fr.gdd.passage.random.push.streams.SpliteratorBackJump;
+import fr.gdd.passage.random.push.streams.SpliteratorProducerBackJump;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import org.apache.commons.lang3.function.TriFunction;
 import org.apache.jena.sparql.algebra.Op;
@@ -32,7 +32,7 @@ public class PausableStreamWrapper<ID,VALUE,OP extends Op> implements PausableSt
         this.op = op;
         this.context = context;
         this.wrapped = enableBackJump ?
-                new SpliteratorBackJump<>(context, input, op, supplier.apply(context, input, op)):
+                new SpliteratorProducerBackJump<>(context, input, op, supplier):
                 supplier.apply(context, input, op);
     }
 

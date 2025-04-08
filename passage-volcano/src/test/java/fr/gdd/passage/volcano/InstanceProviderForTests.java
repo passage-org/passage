@@ -12,13 +12,12 @@ public class InstanceProviderForTests {
 
     /**
      * @return A builder for a random walk SPARQL engine, without any limit, so be careful you need
-     *         be. It could run infinitely.
+     *         be. It could run infinitely. We actually throw now, since it's highly unusable.
      */
-    public static Stream<PassageExecutionContextBuilder<?,?>> rawNoLimit () {
+    public static Stream<PassageExecutionContextBuilder<?,?>> rawNoLimit() {
         return IntStream.rangeClosed(1, 5).mapToObj(ignored ->
                         new PassageExecutionContextBuilder<>()
                                 .setName("PUSH")
-                                .setMaxParallel(1)
                                 .setExecutorFactory((ec)-> new PassRawPushExecutor<>((PassageExecutionContext<?,?>) ec)));
     }
 
@@ -29,7 +28,7 @@ public class InstanceProviderForTests {
         return IntStream.rangeClosed(1, 5).mapToObj(ignored ->
                         new PassageExecutionContextBuilder<>()
                                 .setName("PUSH")
-                                .setMaxScans(100L)
+                                .setMaxResults(100L)
                                 .setMaxParallel(1)
                                 .setExecutorFactory((ec)-> new PassRawPushExecutor<>((PassageExecutionContext<?,?>) ec)));
     }
