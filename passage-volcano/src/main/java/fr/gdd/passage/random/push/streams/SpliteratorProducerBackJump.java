@@ -13,7 +13,6 @@ import org.apache.jena.sparql.core.Var;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Spliterator;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 /**
@@ -40,19 +39,17 @@ public class SpliteratorProducerBackJump<ID,VALUE,OP extends Op> implements Paus
         this.context = context;
         this.op = op;
         this.input = input;
-        try {
-            // we try to produce a value if it's a producer.
-            this.wrapped = supplier.apply(context, input, op);
-            this.tryAdvance(value -> {}); // there must have one value
-        } catch (BackjumpException bje) {
-            throw bje;
+
+        this.wrapped = supplier.apply(context, input, op); // we try to produce a value if it's a producer.
+
+        // an estimated cardinality of 0 should be 0 for sure, otherwise it misses possible elements
+        if (this.estimateCardinality() == 0) {
+            throw new BackjumpException(op, input);
         }
     }
 
     @Override
     public boolean tryAdvance(Consumer<? super BackendBindings<ID, VALUE>> action) {
-        AtomicReference<BackendBindings<ID, VALUE>> produced = new AtomicReference<>();
-
         try {
             return wrapped.tryAdvance(action);
         } catch (BackjumpException bje) {

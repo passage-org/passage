@@ -4,15 +4,16 @@ import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.transforms.DefaultGraphUriQueryModifier;
-import fr.gdd.passage.random.push.streams.SpliteratorRawRoot;
 import fr.gdd.passage.random.push.streams.SpliteratorRawScan;
+import fr.gdd.passage.random.push.streams.StreamJoin;
+import fr.gdd.passage.random.push.streams.StreamRawRoot;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutor;
 import fr.gdd.passage.volcano.exceptions.InvalidContexException;
 import fr.gdd.passage.volcano.exceptions.PauseException;
+import fr.gdd.passage.volcano.push.streams.PausableSpliterator;
 import fr.gdd.passage.volcano.push.streams.PausableStream;
 import fr.gdd.passage.volcano.push.streams.PausableStreamWrapper;
-import fr.gdd.passage.volcano.push.streams.SpliteratorJoin;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
@@ -69,6 +70,24 @@ public class PassRawPushExecutor<ID,VALUE> implements PassageExecutor<ID,VALUE>,
         return execute(Algebra.compile(QueryFactory.create(query)), consumer);
     }
 
+    @Override
+    public double estimateCost(Op root) { // TODO create a more
+        root = context.optimizer.optimize(root); // TODO improve this…
+        final Op _root = new DefaultGraphUriQueryModifier(context).visit(root);
+        AtomicReference<PausableStream<ID,VALUE>> pausable = new AtomicReference<>();
+        try (ForkJoinPool customPool = new ForkJoinPool(context.maxParallelism)) {
+            customPool.submit(() -> {
+                try {
+                    pausable.set(this.execute(_root, new BackendBindings<>()));
+                    pausable.get().stream().forEach(i -> {});
+                } catch (PauseException pe) {
+                    gotPaused.set(true);
+                }
+            }).join();
+        }
+
+        return ((PausableSpliterator) pausable.get().stream().spliterator()).estimateCost();
+    }
 
     /* **************************** OPERATORS ************************************* */
 
@@ -76,16 +95,18 @@ public class PassRawPushExecutor<ID,VALUE> implements PassageExecutor<ID,VALUE>,
      * @return The top most stream producing random walks guided by the query.
      */
     public PausableStream<ID,VALUE> execute(Op root, BackendBindings<ID, VALUE> input) {
-        return new PausableStreamWrapper<>(context, input, root, SpliteratorRawRoot::new);
+        return new StreamRawRoot<>(context, input, root);
     }
 
     @Override
     public PausableStream<ID, VALUE> visit(OpTriple triple, BackendBindings<ID, VALUE> input) {
         return new PausableStreamWrapper<>(context, input, triple, SpliteratorRawScan::new, true);
+        // return new PausableStreamWrapper<>(context, input, triple, BackJumpWrapper::new);
     }
 
     @Override
     public PausableStream<ID, VALUE> visit(OpJoin join, BackendBindings<ID, VALUE> input) {
-        return new PausableStreamWrapper<>(context, input, join, SpliteratorJoin::new); // already enable back jump TODO more generic
+        return new StreamJoin<>(context, input, join);
+        // return new PausableStreamWrapper<>(context, input, join, SpliteratorJoin::new); // already enable back jump TODO more generic
     }
 }

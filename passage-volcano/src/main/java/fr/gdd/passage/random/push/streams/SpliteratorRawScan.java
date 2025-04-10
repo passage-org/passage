@@ -58,10 +58,13 @@ public class SpliteratorRawScan<ID,VALUE> implements PausableSpliterator<ID,VALU
 
         if (Objects.nonNull(wrapped) && !wrapped.hasNext()) { this.wrapped = null; }
 
-        this.limit = this.context.getLimit(); // if null, stays null
-        this.limit = Objects.isNull(limit) ? (long) Math.log(this.wrapped.cardinality() + 2) : limit; // +2 so limit ≥ 1
         this.offset = Objects.nonNull(this.context.getOffset()) ? this.context.getOffset() : 0;
         this.id = this.offset;
+
+        if (Objects.nonNull(this.wrapped)) {
+            this.limit = this.context.getLimit(); // if null, stays null
+            this.limit = Objects.isNull(limit) ? (long) Math.log(this.wrapped.cardinality() + 2) : limit; // +2 so limit ≥ 1
+        }
 
         if (Objects.nonNull(wrapped) && offset > 0) wrapped.skip(offset); // quick skip (useful when bucketing)
     }
@@ -119,6 +122,7 @@ public class SpliteratorRawScan<ID,VALUE> implements PausableSpliterator<ID,VALU
         wrapped.next();
         BackendBindings<ID, VALUE> newBinding = context.bindingsFactory.get();
         Arrays.stream(SPOC.spoc).forEach(code -> registerMapping(newBinding, code));
+        newBinding.put(Var.alloc("_probability"), new BackendBindings.IdValueBackend<ID,VALUE>().setString(String.valueOf(proba)));
         action.accept(newBinding.setParent(input));
         return true;
     }

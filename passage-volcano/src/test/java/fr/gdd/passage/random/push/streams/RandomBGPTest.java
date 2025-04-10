@@ -6,6 +6,10 @@ import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.volcano.ExecutorUtils;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.exceptions.InvalidContexException;
+import org.apache.jena.query.QueryFactory;
+import org.apache.jena.sparql.algebra.Algebra;
+import org.apache.jena.sparql.algebra.Op;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.openrdf.repository.RepositoryException;
@@ -85,6 +89,19 @@ class RandomBGPTest {
                 List.of("Alice", "snake", "reptile"),
                 List.of("Alice", "dog", "canine"),
                 List.of("Alice", "cat", "feline")));
+        bb.close();
+    }
+
+    @Disabled
+    @ParameterizedTest
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#raw")
+    public void a_simple_bgp_with_multiple_roots_estimate_cost (PassageExecutionContextBuilder<?, ?> builder) throws RepositoryException, SailException {
+        final BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+        builder.setBackend(bb);
+        String queryAsString = "SELECT * WHERE { ?p <http://own> ?a . ?a <http://species> ?s}";
+        Op query = Algebra.compile(QueryFactory.create(queryAsString));
+
+        var results = builder.build().executor.estimateCost(query);
         bb.close();
     }
 
