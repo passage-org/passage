@@ -17,7 +17,6 @@ import java.util.stream.Stream;
 public class StreamRawRoot<ID,VALUE> implements PausableStream<ID,VALUE> {
 
     final PassageExecutionContext<ID,VALUE> context;
-    PausableStream<ID,VALUE> wrapped;
     final PassRawPushExecutor<ID,VALUE> executor;
     final Op root;
     final BackendBindings<ID,VALUE> input;
