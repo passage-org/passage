@@ -8,6 +8,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 
+/**
+ * This is a very specific class that summarizes following FedUP's strategy
+ * of summarizing terms.
+ */
 public class ToSummaryPattern {
 
     // it needs to change variable names to work

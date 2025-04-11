@@ -14,10 +14,11 @@ class ToAllIncludedQueryTest {
 
     @Test
     public void transform_a_simple_triple_pattern_to_include_its_source_selection () {
-        Op query = Algebra.compile(QueryFactory.create("""
-                SELECT * WHERE { ?s ?p ?o }
-                """
-        ));
+        Op query = Algebra.compile(QueryFactory.create("SELECT * WHERE { ?s ?p ?o }"));
+
+        ToSourceAssignmentQuery tsaq = new ToSourceAssignmentQuery("http://meow");
+        Op ss = tsaq.visit(query);
+        log.debug("Source assignment query: {}", OpAsQuery.asQuery(ss));
 
         ToAllIncludedQuery taiq = new ToAllIncludedQuery("http://meow");
         Op allIncluded = taiq.visit(query);
@@ -61,6 +62,19 @@ class ToAllIncludedQueryTest {
 
         ToAllIncludedQuery taiq = new ToAllIncludedQuery("http://meow");
         Op allIncluded = taiq.visit(query);
+        log.debug("{}", OpAsQuery.asQuery(allIncluded));
+    }
+
+    @Test
+    public void a_simple_optional () {
+        Op query = Algebra.compile(QueryFactory.create("""
+                SELECT * WHERE {
+                    ?s <http://predicate> <http://rating_site.fr/something/product12>.
+                    OPTIONAL {?s <http://has_review> ?review}}
+                """));
+
+        ToAllIncludedQuery taiq = new ToAllIncludedQuery();
+        Op allIncluded = taiq.create(query);
         log.debug("{}", OpAsQuery.asQuery(allIncluded));
     }
 
