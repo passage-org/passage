@@ -11,16 +11,23 @@ import org.apache.jena.sparql.engine.binding.Binding;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A service that uses Passage to process the query. Useful for testing and debugging
+ * federations.
+ */
 public class LocalServicePassage<ID,VALUE> implements ILocalService {
 
     final PassageExecutionContextBuilder<ID,VALUE> builder;
 
-    LocalServicePassage(PassageExecutionContextBuilder<ID,VALUE> builder) {
+    public LocalServicePassage(PassageExecutionContextBuilder<ID,VALUE> builder) {
         this.builder = builder;
     }
 
-    public Pair<Multiset<Binding>, Map<String, ?>> query(String query, String... args) {
+    @Override
+    public Pair<Multiset<Binding>, Map<String, ?>> query(Op query, Map<String, ?> args) throws RuntimeException {
         // TODO parse args
+        //      so we can test by passing downsized argument
+        //      so it becomes executable within boundaries
         Multiset<Binding> results = HashMultiset.create();
         Op continuation = new PassagePushExecutor<>(builder.build()).execute(query, results::add);
 

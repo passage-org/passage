@@ -3,22 +3,25 @@ package fr.gdd.passage.volcano.push.streams;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.exceptions.PauseException;
+import fr.gdd.passage.volcano.federation.LocalServices;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.riot.rowset.rw.rs_json.RowSetBuffered;
 import org.apache.jena.riot.rowset.rw.rs_json.RowSetJSONStreamingWithMetadata;
 import org.apache.jena.riot.rowset.rw.rs_json.RowSetReaderJSONWithMetadata;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpAsQuery;
+import org.apache.jena.sparql.algebra.OpVars;
 import org.apache.jena.sparql.algebra.Table;
 import org.apache.jena.sparql.algebra.op.OpService;
 import org.apache.jena.sparql.algebra.op.OpTable;
 import org.apache.jena.sparql.algebra.op.OpUnion;
 import org.apache.jena.sparql.algebra.table.TableN;
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.engine.ResultSetStream;
 import org.apache.jena.sparql.exec.ResultSetAdapter;
 import org.apache.jena.sparql.exec.http.QueryExecutionHTTPBuilder;
 
-import java.util.Objects;
-import java.util.Spliterators;
+import java.util.*;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -38,7 +41,8 @@ public class PausableStreamService<ID,VALUE> implements PausableStream<ID,VALUE>
     final OpService service;
     final PassageExecutionContext<ID,VALUE> context;
     final QueryExecutionHTTPBuilder builder;
-    final ResultSet wrapped;
+    ResultSet wrapped; // not final because of possible throw
+    final LocalServices localServices;
 
     public PausableStreamService(PassageExecutionContext<ID,VALUE> context, BackendBindings<ID,VALUE> input, OpService service) {
         this.context = context;
@@ -48,12 +52,29 @@ public class PausableStreamService<ID,VALUE> implements PausableStream<ID,VALUE>
                 .service(service.getService().getURI())
                 .substitution(input)
                 .query(OpAsQuery.asQuery(service.getSubOp()));
+        this.localServices = context.localServices;
 
         // before creating a new call, we check if we should, but then, wrapped can be null
         if (!this.context.paused.isPaused() && context.stoppingCondition.apply(this.context)) { throw new PauseException(service); }
 
-        RowSetReaderJSONWithMetadata.install(); // making sure that the http handler can read json *WITH* metadata…
-        wrapped = builder.select();
+        // TODO change this to all handled by the service handler
+        try {
+            if (this.localServices.contains(service.getService().getURI())) {
+                var result = this.localServices.query(service.getService().getURI(), service.getSubOp(), input);
+                Set<Var> projected = OpVars.visibleVars(service.getSubOp());
+                wrapped = ResultSetStream.create(projected.stream().toList(), result.getLeft().stream().iterator());
+            } else {
+                // TODO include this in service handler
+                RowSetReaderJSONWithMetadata.install(); // making sure that the http handler can read json *WITH* metadata…
+                wrapped = builder.select();
+            }
+        } catch (RuntimeException e) {
+            if (service.getSilent()) {
+                wrapped = ResultSetStream.create(List.of(), Collections.emptyIterator());
+            } else {
+                throw e;
+            }
+        }
     }
 
     @Override

@@ -3,6 +3,8 @@ package fr.gdd.passage.volcano;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.exceptions.InvalidContexException;
+import fr.gdd.passage.volcano.federation.ILocalService;
+import fr.gdd.passage.volcano.federation.LocalServices;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
@@ -24,6 +26,7 @@ public class PassageExecutionContextBuilder<ID,VALUE> {
     private Boolean forceOrder = false;
     private Boolean backjump = false;
     private Long splitScans = 2L;
+    private LocalServices localServices = new LocalServices();
 
     private Function<ExecutionContext, PassageExecutor> executorFactory;
     private Function<PassageExecutionContext<ID,VALUE>, Boolean> stoppingCondition = (ec) ->
@@ -41,6 +44,11 @@ public class PassageExecutionContextBuilder<ID,VALUE> {
             ec.getContext().setIfUndef(BackendConstants.BACKEND, backend);
         }
 
+        try {
+            ec.getContext().set(PassageConstants.SERVICES, localServices.clone()); // TODO maybe ifUndef?
+        } catch (CloneNotSupportedException e) {
+            throw new InvalidContexException("Local service did not setup properly.");
+        }
 
         if (ec.getContext().isUndef(BackendConstants.EXECUTOR_FACTORY) && Objects.isNull(executorFactory)) {
             throw new InvalidContexException("Executor factory undefined.");
@@ -139,6 +147,11 @@ public class PassageExecutionContextBuilder<ID,VALUE> {
 
     public PassageExecutionContextBuilder<ID,VALUE> setName(String name) {
         this.name = name;
+        return this;
+    }
+
+    public PassageExecutionContextBuilder<ID,VALUE> registerService (String uri, ILocalService service) {
+        localServices.register(uri, service);
         return this;
     }
 

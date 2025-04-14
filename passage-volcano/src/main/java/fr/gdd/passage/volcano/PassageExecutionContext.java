@@ -5,6 +5,7 @@ import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.generics.BackendSaver;
 import fr.gdd.passage.commons.interfaces.Backend;
+import fr.gdd.passage.volcano.federation.LocalServices;
 import fr.gdd.passage.volcano.optimizers.PassageOptimizer;
 import fr.gdd.passage.volcano.pull.Pause2Next;
 import org.apache.jena.sparql.algebra.Op;
@@ -42,6 +43,7 @@ public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
     public final Function<ExecutionContext, PassageExecutor<ID,VALUE>> executorFactory;
     public final BackendBindingsFactory<ID,VALUE> bindingsFactory;
     public final Function<PassageExecutionContext<ID,VALUE>, Boolean> stoppingCondition;
+    public final LocalServices localServices;
 
     public PassageExecutionContext(ExecutionContext context) {
         super(context);
@@ -53,6 +55,7 @@ public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
         this.backend = context.getContext().get(BackendConstants.BACKEND);
         this.bindingsFactory = new BackendBindingsFactory<>(backend);
         this.maxParallelism = context.getContext().get(PassageConstants.MAX_PARALLELISM);
+        this.localServices = context.getContext().get(PassageConstants.SERVICES);
 
         context.getContext().setIfUndef(PassageConstants.SCANS, new AtomicLong());
         this.scans = context.getContext().get(PassageConstants.SCANS);

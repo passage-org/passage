@@ -19,6 +19,7 @@ public class PassageConstants {
     static public final Symbol MAX_SCANS = allocConstantSymbol("MaxScans"); // max number of scans
     static public final Symbol MAX_RESULTS = allocConstantSymbol("MaxResults"); // max number of results whatever the query
     static public final Symbol SERVICE_CALLS = allocVariableSymbol("ServiceCalls"); // number of service calls performed
+    static public final Symbol SERVICES = allocVariableSymbol("Services"); // the service calling center
 
     static public final Symbol LIMIT = allocConstantSymbol("Limit"); // The limit of the subquery
     static public final Symbol OFFSET = allocConstantSymbol("Offset"); // The offset of the subquery
@@ -27,7 +28,7 @@ public class PassageConstants {
     static public final Symbol PAUSED = allocVariableSymbol("Paused"); // is the execution paused/stopped.
 
     static public final Symbol FORCE_ORDER = allocConstantSymbol("ForceOrder");
-    static public final Symbol BACKJUMP = allocConstantSymbol("Backjump");
+    static public final Symbol BACKJUMP = allocConstantSymbol("Backjump"); // TODO when sufficiently tested, should be defaulted
     static public final Symbol SPLIT_SCANS = allocConstantSymbol("SplitScans"); // for parallel streams
     static public final Symbol STOPPING_CONDITION = allocConstantSymbol("StoppingCondition");
 
