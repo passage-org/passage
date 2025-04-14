@@ -48,7 +48,7 @@ public class ToSummaryPattern {
     }
 
     public Quad toSummaryQuad (Quad quad, int modulo) {
-        throw new UnsupportedOperationException("Quads are not supported yet.");
+        return Quad.create(quad.getGraph(), toSummaryTriple(quad.asTriple(), modulo));
     }
 
 }

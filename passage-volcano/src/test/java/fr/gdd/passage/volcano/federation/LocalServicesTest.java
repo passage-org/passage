@@ -1,5 +1,6 @@
 package fr.gdd.passage.volcano.federation;
 
+import com.bigdata.rdf.sail.BigdataSail;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
@@ -7,13 +8,18 @@ import fr.gdd.passage.volcano.ExecutorUtils;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.push.PassagePushExecutor;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.riot.writer.NQuadsWriter;
+import org.apache.jena.sparql.core.Quad;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.sail.SailException;
 
-import java.util.List;
+import java.io.ByteArrayOutputStream;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -95,4 +101,44 @@ class LocalServicesTest {
         other.close();
     }
 
+    @ParameterizedTest
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneThreadPush")
+    public void summary_local_calling_fake_remotes (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
+        final BlazegraphBackend v0 = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.vendor0());
+        final BlazegraphBackend rs41 = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.rating_site_41());
+        final Map<String, BlazegraphBackend> federation = new HashMap<>();
+        federation.put("http://www.vendor0.fr", v0);
+        federation.put("http://www.ratingsite41.fr", rs41);
+
+        // TODO create the summary of v0 and rs41
+        final BlazegraphBackend summary = new BlazegraphBackend(summarize(federation));
+
+
+        v0.close();
+        rs41.close();
+    }
+
+
+    static public BigdataSail summarize(Map<String, BlazegraphBackend> endpoints) {
+        List<Quad> quads2add = new ArrayList<>();
+        endpoints.entrySet().forEach(e-> {
+            String uri = e.getKey();
+            BlazegraphBackend endpoint = e.getValue();
+            PassageExecutionContextBuilder<?, ?> builder = new PassageExecutionContextBuilder<>();
+            builder.setBackend(endpoint).setExecutorFactory((ec) -> new PassagePushExecutor<>((PassageExecutionContext<?,?>) ec));
+            PassagePushExecutor<?, ?> engine = new PassagePushExecutor<>(builder.build());
+
+            engine.execute("SELECT * WHERE {?s ?p ?o}", b -> {
+                quads2add.add((new ToSummaryPattern()).toSummaryQuad(new Quad(
+                        NodeFactory.createURI(uri),
+                        Triple.create(b.get("s"), b.get("p"), b.get("o"))), 1));
+            });
+        });
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        NQuadsWriter.write(out, quads2add.iterator());
+        String result = out.toString();
+
+        return BlazegraphInMemoryDatasetsFactory.getDataset(Arrays.asList(result.split("\n")));
+    }
 }

@@ -8,7 +8,7 @@ import fr.gdd.passage.commons.transforms.Graph2Quads;
 import fr.gdd.passage.commons.transforms.Patterns2Quad;
 import fr.gdd.passage.commons.transforms.Triples2BGP;
 import fr.gdd.passage.volcano.pull.iterators.PassageScan;
-import fr.gdd.passage.volcano.transforms.*;
+import fr.gdd.passage.volcano.transforms.Quad2Patterns;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;

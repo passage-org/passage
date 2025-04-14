@@ -27,6 +27,9 @@ public class BlazegraphInMemoryDatasetsFactory {
     public static BigdataSail triples9 () { return getDataset(InMemoryStatements.triples9); }
     public static BigdataSail triples9PlusLiterals () { return getDataset(InMemoryStatements.triples9PlusLiterals); }
 
+    public static BigdataSail vendor0 () { return getDataset(InMemoryStatements.vendor0); }
+    public static BigdataSail rating_site_41 () { return getDataset(InMemoryStatements.rating_site_41); }
+
     // for now, stars are not supported by Blazegraph. It needs a workaround.
     // public static BigdataSail stars () { return getDataset(InMemoryStatements.triples9PlusLiteralsPlusStars); }
 

@@ -3,6 +3,10 @@ package fr.gdd.passage.commons.utils;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * The list of statements (triples or quads) as strings. They
+ * are mostly used for testing.
+ */
 public class InMemoryStatements {
 
     public static final List<String> triples3 = Arrays.asList(
@@ -99,6 +103,23 @@ public class InMemoryStatements {
             "<http://Alice> <http://address> <http://nantes> <http://Carol> .",
             "<http://Bob>   <http://address> <http://paris>  <http://Carol> .",
             "<http://Carol> <http://address> <http://nantes> <http://Carol> ."
+    );
+
+    /* *************************** DERIVED FROM FEDSHOP ******************************* */
+
+    public static final List<String> vendor0 = Arrays.asList(
+            "<http://www.vendor0.fr/Offer0> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/vendor> <http://www.vendor0.fr/Vendor0> .",
+            "<http://www.vendor0.fr/Offer0> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/product> <http://www.vendor0.fr/Product118465> .",
+            "<http://www.vendor0.fr/Offer0> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/price> \"42.0\" .",
+            "<http://www.vendor0.fr/Product118465> <http://www.w3.org/2002/07/owl#sameAs> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/Product118465> .",
+            "<http://www.vendor0.fr/Vendor0> <http://www.w3.org/2002/07/owl#sameAs> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/Vendor0> . ",
+            "<http://www.vendor0.fr/Product118465> <http://www.w3.org/2000/01/rdf-schema#label> \"steadiness\" . "
+    );
+
+    public static final List<String> rating_site_41 = Arrays.asList(
+            "<http://www.ratingsite41.fr/Product118465> <http://www.w3.org/2002/07/owl#sameAs> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/Product118465> .",
+            "<http://www.ratingsite41.fr/Product118465> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyNumeric1> \"843\" .",
+            "<http://www.ratingsite41.fr/Product118465> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/publishDate> \"2001-05-14T00:00:00\" ."
     );
 
     /* *************************** EXTRACTED FROM WATDIV ****************************** */
