@@ -11,9 +11,11 @@ import fr.gdd.passage.volcano.pull.Pause2Next;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Quick access to mandatory things of passage to execute properly.
@@ -24,10 +26,9 @@ public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
     public BackendCache<ID,VALUE> cache;
     public final PassageOptimizer<ID,VALUE> optimizer;
 
-    @Deprecated
+    @Deprecated // should be removed with the pull iterator model
     public BackendSaver<ID,VALUE,Long> saver;
 
-    public final Integer maxParallelism;
 
     public final PassagePaused paused;
     public Op query;
@@ -38,17 +39,22 @@ public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
     public final long splitScans;
     public final Long maxScans;
     public final AtomicLong scans;
+    public final Long maxResults;
+    public final AtomicLong results;
+    public final Integer maxParallelism;
+
+    @Deprecated // should be removed when configurable engine factory
     public final Boolean backjump;
     public final PassageExecutor<ID,VALUE> executor;
     public final Function<ExecutionContext, PassageExecutor<ID,VALUE>> executorFactory;
     public final BackendBindingsFactory<ID,VALUE> bindingsFactory;
-    public final Function<PassageExecutionContext<ID,VALUE>, Boolean> stoppingCondition;
     public final LocalServices localServices;
+    public final List<Predicate<PassageExecutionContext<ID,VALUE>>> stoppingConditions;
 
     public PassageExecutionContext(ExecutionContext context) {
         super(context);
         this.executorFactory = context.getContext().get(BackendConstants.EXECUTOR_FACTORY);
-        this.stoppingCondition = context.getContext().get(PassageConstants.STOPPING_CONDITION);
+        this.stoppingConditions = context.getContext().get(PassageConstants.STOPPING_CONDITIONS);
 
         this.backjump = context.getContext().get(PassageConstants.BACKJUMP);
         this.maxScans = context.getContext().get(PassageConstants.MAX_SCANS);
@@ -74,17 +80,11 @@ public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
         this.deadline = this.getContext().get(PassageConstants.DEADLINE);
         this.splitScans = this.getContext().get(PassageConstants.SPLIT_SCANS);
 
-        this.executor = executorFactory.apply(this); // last just in case
-    }
+        this.maxResults = this.getContext().get(PassageConstants.MAX_RESULTS);
+        context.getContext().setIfUndef(PassageConstants.RESULTS, new AtomicLong());
+        this.results = context.getContext().get(PassageConstants.RESULTS);
 
-    /**
-     * @param maxResults The number of results that will be returned, whatever the query
-     *                   and their LIMIT.
-     * @return itself for convenience.
-     */
-    public PassageExecutionContext<ID,VALUE> setMaxResults(Long maxResults) {
-        this.getContext().set(PassageConstants.MAX_RESULTS, maxResults);
-        return this;
+        this.executor = executorFactory.apply(this); // last just in case
     }
 
     /**
@@ -138,5 +138,13 @@ public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
         ExecutionContext context =  new ExecutionContext(this.getContext().copy(), this.getActiveGraph(),
                 this.getDataset(), this.getExecutor());
         return new PassageExecutionContext<>(context);
+    }
+
+    public void incrementNbScans() {
+        if (maxScans != Long.MAX_VALUE) { scans.getAndIncrement(); }
+    }
+
+    public void incrementNbResults() {
+        if (maxResults != Long.MAX_VALUE) { results.getAndIncrement(); }
     }
 }

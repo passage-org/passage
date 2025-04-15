@@ -20,7 +20,7 @@ import java.util.Objects;
  * Base executor of operators that compose the logical plan.
  * Mostly exist to ease the creation of executor configurations.
  */
-public class BackendPullExecutor<ID,VALUE> extends ReturningArgsOpVisitor<
+public class BackendPullExecutor<ID,VALUE> implements ReturningArgsOpVisitor<
         Iterator<BackendBindings<ID, VALUE>>, // input
         Iterator<BackendBindings<ID, VALUE>>> { // output
 

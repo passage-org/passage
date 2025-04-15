@@ -1,12 +1,37 @@
 package fr.gdd.passage.volcano;
 
+import fr.gdd.passage.random.push.PassRawPushExecutor;
 import fr.gdd.passage.volcano.pull.PassagePullExecutor;
 import fr.gdd.passage.volcano.push.PassagePushExecutor;
 
 import java.util.Arrays;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class InstanceProviderForTests {
+
+    /**
+     * @return A builder for a random walk SPARQL engine, without any limit, so be careful you need
+     *         be. It could run infinitely. We actually throw now, since it's highly unusable.
+     */
+    public static Stream<PassageExecutionContextBuilder<?,?>> rawNoLimit() {
+        return IntStream.rangeClosed(1, 5).mapToObj(ignored ->
+                        new PassageExecutionContextBuilder<>()
+                                .setName("PUSH")
+                                .setExecutorFactory((ec)-> new PassRawPushExecutor<>((PassageExecutionContext<?,?>) ec)));
+    }
+
+    /**
+     * @return A builder for a random walk SPARQL engine.
+     */
+    public static Stream<PassageExecutionContextBuilder<?,?>> raw () {
+        return IntStream.rangeClosed(1, 5).mapToObj(ignored ->
+                        new PassageExecutionContextBuilder<>()
+                                .setName("PUSH")
+                                .setMaxResults(100L)
+                                .setMaxParallel(1)
+                                .setExecutorFactory((ec)-> new PassRawPushExecutor<>((PassageExecutionContext<?,?>) ec)));
+    }
 
     /**
      * @return A simple builder to test the push iterator model when only one scan

@@ -55,7 +55,7 @@ public class PausableStreamService<ID,VALUE> implements PausableStream<ID,VALUE>
         this.localServices = context.localServices;
 
         // before creating a new call, we check if we should, but then, wrapped can be null
-        if (!this.context.paused.isPaused() && context.stoppingCondition.apply(this.context)) { throw new PauseException(service); }
+        if (!this.context.paused.isPaused() && context.stoppingConditions.stream().anyMatch(c -> c.test(context))) { throw new PauseException(service); }
 
         // TODO change this to all handled by the service handler
         try {

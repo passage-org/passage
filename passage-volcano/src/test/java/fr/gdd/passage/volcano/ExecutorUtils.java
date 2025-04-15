@@ -23,6 +23,36 @@ public class ExecutorUtils {
     public static Logger log = LoggerFactory.getLogger(ExecutorUtils.class);
 
     /**
+     * @param queryAsString The SPARQL query to sample.
+     * @param builder The builder that contains the whole environment to build the query engine.
+     * @return The bag of mappings that constitutes the sampled results of the query.
+     */
+    public static <ID,VALUE> Multiset<BackendBindings<?,?>> executeOnce(String queryAsString, PassageExecutionContextBuilder<ID,VALUE> builder) {
+        Multiset<BackendBindings<?,?>> results = ConcurrentHashMultiset.create();
+        PassageExecutionContext<ID,VALUE> context = builder.build();
+        log.debug("Initial query to sample {}", queryAsString);
+        Op query = Algebra.compile(QueryFactory.create(queryAsString));
+        Op paused = context.executor.execute(query, results::add); // log results in test if need be
+        queryAsString = Objects.nonNull(paused) ? OpAsQuery.asQuery(new Quad2Pattern().visit(paused)).toString() : null;
+        log.debug("Continuation for sampled query: {}", queryAsString);
+        return results;
+    }
+
+    /**
+     * @param queryAsString The SPARQL query to sample.
+     * @param builder The builder that contains the whole environment to build the query engine.
+     * @param consumer The consumer that will be applied to each result mapping.
+     */
+    public static <ID,VALUE> void executeOnce(String queryAsString, PassageExecutionContextBuilder<ID,VALUE> builder,  Consumer<BackendBindings<ID,VALUE>> consumer) {
+        PassageExecutionContext<ID,VALUE> context = builder.build();
+        log.debug("Initial query to sample {}", queryAsString);
+        Op query = Algebra.compile(QueryFactory.create(queryAsString));
+        Op paused = context.executor.execute(query, consumer); // log results in test if need be
+        queryAsString = Objects.nonNull(paused) ? OpAsQuery.asQuery(new Quad2Pattern().visit(paused)).toString() : null;
+        log.debug("Continuation for sampled query: {}", queryAsString);
+    }
+
+    /**
      * @param queryAsString The SPARQL query to execute.
      * @param builder The builder that contains the whole environment to build the query engine.
      * @return The bag of mappings that constitutes the complete and correct results of the query.

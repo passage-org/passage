@@ -17,6 +17,7 @@ public class PassageConstants {
     static public final Symbol DEADLINE = allocConstantSymbol("Deadline"); // when to stop execution
     static public final Symbol SCANS = allocVariableSymbol("Scans"); // current number of scans
     static public final Symbol MAX_SCANS = allocConstantSymbol("MaxScans"); // max number of scans
+    static public final Symbol RESULTS = allocConstantSymbol("Results"); // number of results
     static public final Symbol MAX_RESULTS = allocConstantSymbol("MaxResults"); // max number of results whatever the query
     static public final Symbol SERVICE_CALLS = allocVariableSymbol("ServiceCalls"); // number of service calls performed
     static public final Symbol SERVICES = allocVariableSymbol("Services"); // the service calling center
@@ -30,7 +31,7 @@ public class PassageConstants {
     static public final Symbol FORCE_ORDER = allocConstantSymbol("ForceOrder");
     static public final Symbol BACKJUMP = allocConstantSymbol("Backjump"); // TODO when sufficiently tested, should be defaulted
     static public final Symbol SPLIT_SCANS = allocConstantSymbol("SplitScans"); // for parallel streams
-    static public final Symbol STOPPING_CONDITION = allocConstantSymbol("StoppingCondition");
+    static public final Symbol STOPPING_CONDITIONS = allocConstantSymbol("StoppingCondition");
 
     /* ********************************************************************** */
 

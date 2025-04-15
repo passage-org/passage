@@ -128,7 +128,7 @@ public class SpliteratorScan<ID,VALUE> implements Spliterator<BackendBindings<ID
         if (Objects.nonNull(limit) && limit == 0) { unregister(); return false; } // we produced all
 
         if (wrapped.hasNext()) { // actually iterates over the dataset
-            if (!context.paused.isPaused() && context.stoppingCondition.apply(context)) { // unless we must stop
+            if (!context.paused.isPaused() && context.stoppingConditions.stream().anyMatch(c -> c.test(context))) { // unless we must stop
                 throw new PauseException(op); // execution stops immediately, caught at the root
             }
 

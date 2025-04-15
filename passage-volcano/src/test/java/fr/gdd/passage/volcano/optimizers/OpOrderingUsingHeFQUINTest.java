@@ -16,7 +16,6 @@ import se.liu.ida.hefquin.engine.queryproc.SourcePlanningException;
 import se.liu.ida.hefquin.engine.queryproc.impl.poptimizer.costmodel.CostDimension;
 import se.liu.ida.hefquin.engine.queryproc.impl.poptimizer.costmodel.CostModelImpl;
 import se.liu.ida.hefquin.engine.queryproc.impl.poptimizer.randomized.EquilibriumConditionByRelativeSubplanCount;
-import se.liu.ida.hefquin.engine.queryproc.impl.poptimizer.randomized.SimulatedAnnealing;
 import se.liu.ida.hefquin.engine.queryproc.impl.poptimizer.randomized.StoppingConditionByNumberOfGenerations;
 import se.liu.ida.hefquin.engine.queryproc.impl.poptimizer.randomized.TwoPhaseQueryOptimizer;
 
@@ -25,7 +24,8 @@ import java.util.concurrent.CompletableFuture;
 public class OpOrderingUsingHeFQUINTest {
 
     // TODO create a fake blazegraph graph for wikidata queries.
-    final static String WDBENCH_PATH = "/Users/skoazell/Desktop/Projects/datasets/wdbench-blaze/wdbench-blaze.jnl";
+    // final static String WDBENCH_PATH = "/Users/skoazell/Desktop/Projects/datasets/wdbench-blaze/wdbench-blaze.jnl";
+    final static String WDBENCH_PATH = "/Users/nedelec-b-2/Desktop/Projects/temp/wdbench-blaze/wdbench-blaze.jnl";
 
     @Disabled
     @Test
@@ -65,13 +65,14 @@ public class OpOrderingUsingHeFQUINTest {
 
         var pair = twoPhaseQueryOpt.optimize(lPlan);
 
+        /*
         SimulatedAnnealing annealingOpt = new SimulatedAnnealing(condition2,
                 new Jena2HeFQUINLogicalPlans(),
                 new CostModelImpl(dimensions),
                 new SPARQLRuleInstances()
                 );
 
-        pair = annealingOpt.optimize(Jena2HeFQUINLogicalPlans.convert(lPlan), 1);
+        pair = annealingOpt.optimize(Jena2HeFQUINLogicalPlans.convert(lPlan), 1);*/
 
         System.out.println("Meow");
     }

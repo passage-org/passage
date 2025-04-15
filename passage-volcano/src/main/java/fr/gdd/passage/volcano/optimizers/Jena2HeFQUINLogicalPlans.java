@@ -17,6 +17,7 @@ import se.liu.ida.hefquin.engine.queryplan.utils.PhysicalPlanFactory;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
 
 /**
@@ -66,5 +67,17 @@ public class Jena2HeFQUINLogicalPlans implements LogicalToPhysicalPlanConverter 
     @Override
     public PhysicalPlan convert(LogicalPlan lp, boolean keepMultiwayJoins) {
         return convert(lp);
+    }
+
+
+    public static Op convert(PhysicalPlan pp) {
+        return switch (pp) {
+            case PhysicalPlanWithNullaryRoot p0 -> ((Op0AsNullary) p0.getRootOperator()).getOp();
+            case PhysicalPlanWithUnaryRoot p1 -> ((Op1AsUnary) p1.getRootOperator()).getOp().copy(convert(p1.getSubPlan()));
+            case PhysicalPlanWithBinaryRoot p2 -> ((Op2AsBinary) p2.getRootOperator()).getOp().copy(convert(p2.getSubPlan1()), convert(p2.getSubPlan2()));
+            case PhysicalPlanWithNaryRoot pn -> ((OpNAsNAry) pn.getRootOperator()).getOp().copy(
+                    IntStream.rangeClosed(0,pn.numberOfSubPlans()).mapToObj((i)-> convert(pn.getSubPlan(i))).toList());
+            default -> throw new UnsupportedOperationException("There should not exist other type of physical plans.");
+        };
     }
 }

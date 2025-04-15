@@ -23,6 +23,7 @@ import java.util.function.Consumer;
  * That's why it does not extend `OpExecutor` since the latter
  * works on `QueryIterator` that returns `Binding` that provides `Node`.
  */
+@Deprecated
 public class PassagePullExecutor<ID,VALUE> extends BackendPullExecutor<ID,VALUE> implements PassageExecutor<ID,VALUE> {
 
     public final PassageExecutionContext<ID,VALUE> context;
@@ -58,12 +59,12 @@ public class PassagePullExecutor<ID,VALUE> extends BackendPullExecutor<ID,VALUE>
         return new PassageRoot<>(context, super.execute(root)); // super  must be called because it sets Executor in context.
     }
 
-    @Override
+    // @Override // came from PassagePushExecutor
     public Op execute(String query, Consumer<BackendBindings<ID, VALUE>> consumer) {
         return execute(Algebra.compile(QueryFactory.create(query)), consumer);
     }
 
-    @Override
+    // @Override // came from PassagePushExecutor
     public Op execute(Op query, Consumer<BackendBindings<ID, VALUE>> consumer) {
         execute(query).forEachRemaining(consumer);
         return pause();
