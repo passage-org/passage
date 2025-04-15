@@ -110,8 +110,15 @@ class LocalServicesTest {
         federation.put("http://www.vendor0.fr", v0);
         federation.put("http://www.ratingsite41.fr", rs41);
 
-        // TODO create the summary of v0 and rs41
         final BlazegraphBackend summary = new BlazegraphBackend(summarize(federation));
+        builder.setBackend(summary);
+
+        String summaryQuery = "SELECT DISTINCT ?g WHERE { GRAPH ?g { ?s ?p ?o } }";
+
+        var results = ExecutorUtils.execute(summaryQuery, builder);
+        assertEquals(2, results.size());
+        assertTrue(MultisetResultChecking.containsAllResults(results,
+                List.of("g"), List.of("vendor0"), List.of("ratingsite41")));
 
 
         v0.close();
@@ -119,13 +126,15 @@ class LocalServicesTest {
     }
 
 
+    /**
+     * @param endpoints Every endpoint url and dataset to summarize.
+     * @return A `BigdataSail` containing the summarized information of the designated endpoint.
+     */
     static public BigdataSail summarize(Map<String, BlazegraphBackend> endpoints) {
         List<Quad> quads2add = new ArrayList<>();
-        endpoints.entrySet().forEach(e-> {
-            String uri = e.getKey();
-            BlazegraphBackend endpoint = e.getValue();
+        endpoints.forEach((uri, endpoint) -> {
             PassageExecutionContextBuilder<?, ?> builder = new PassageExecutionContextBuilder<>();
-            builder.setBackend(endpoint).setExecutorFactory((ec) -> new PassagePushExecutor<>((PassageExecutionContext<?,?>) ec));
+            builder.setBackend(endpoint).setExecutorFactory((ec) -> new PassagePushExecutor<>((PassageExecutionContext<?, ?>) ec));
             PassagePushExecutor<?, ?> engine = new PassagePushExecutor<>(builder.build());
 
             engine.execute("SELECT * WHERE {?s ?p ?o}", b -> {
@@ -135,10 +144,10 @@ class LocalServicesTest {
             });
         });
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ByteArrayOutputStream out = new ByteArrayOutputStream(); // ugly
         NQuadsWriter.write(out, quads2add.iterator());
         String result = out.toString();
 
-        return BlazegraphInMemoryDatasetsFactory.getDataset(Arrays.asList(result.split("\n")));
+        return BlazegraphInMemoryDatasetsFactory.getDataset(Arrays.asList(result.split("\n"))); // ugly x2
     }
 }
