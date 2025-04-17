@@ -54,6 +54,7 @@ PREFIX psg:     <http://fr.gdd.passage/engine-vocabulary#>
 :dataset_wikidata rdf:type psg:DatasetBlazegraph ;
 #    psg:location           "/DATA/projects/ingester/RWStore.properties" ;
     psg:location           "/Users/nedelec-b-2/Desktop/Projects/temp/ingester/RWStore.properties" ;
-    psg:timeout            1000 ;
+    psg:timeout            60000 ;
+    psg:max_results        10000 ;
     psg:engine             psg:PassageEngine ;
     .

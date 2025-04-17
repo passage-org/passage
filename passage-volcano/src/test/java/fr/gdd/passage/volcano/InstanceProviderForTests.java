@@ -84,8 +84,8 @@ public class InstanceProviderForTests {
 
     /**
      * @return A stream of builder that set the execution context of Passage for
-     * the *push* iterator model. We leave `setBackend` for the body of the
-     * tested function.
+     *         the *push* iterator model. We leave `setBackend` for the body of the
+     *         tested function.
      */
     static Stream<PassageExecutionContextBuilder<?,?>> pushProvider () {
         Long[] maxScans = {null, 1L, 2L, 3L};
@@ -103,8 +103,8 @@ public class InstanceProviderForTests {
 
     /**
      * @return A stream of builder that set the execution context of Passage for
-     * the *pull* iterator model. We leave `setBackend` for the body of the
-     * tested function.
+     *         the *pull* iterator model. We leave `setBackend` for the body of the
+     *         tested function.
      */
     static Stream<PassageExecutionContextBuilder<?,?>> singleThreadPushProvider() {
         Long[] maxScans = {null, 1L, 2L, 3L};
@@ -113,6 +113,19 @@ public class InstanceProviderForTests {
                         .setExecutorFactory((ec) -> new PassagePushExecutor<>((PassageExecutionContext<?,?>) ec))
                         .setMaxScans(s)
                 ); // setBackend should be in the test function
+    }
+
+    /**
+     * @return A stream of a single builder to test a limit on the number of
+     *         results for push iterators.
+     */
+    static Stream<PassageExecutionContextBuilder<?,?>> pushOneResultAtATime() {
+        return Stream.of(
+                new PassageExecutionContextBuilder<>()
+                        .setName("PUSH ONE RESULT AT A TIME")
+                        .setMaxResults(1L)
+                        .setExecutorFactory((ec -> new PassagePushExecutor<>((PassageExecutionContext<?,?>) ec)))
+        );
     }
 
 

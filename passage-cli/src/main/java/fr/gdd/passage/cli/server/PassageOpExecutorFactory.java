@@ -41,6 +41,7 @@ public class PassageOpExecutorFactory implements OpExecutorFactory {
         final PassagePushExecutor<?,?> executor;
 
         private static final Symbol userTimeoutSymbol = Symbol.create("userTimeout");
+        private static final Symbol userMaxResultsSymbol = Symbol.create("userMaxResults");
 
         public OpExecutorWrapper(ExecutionContext ec) {
             super(ec);
@@ -56,9 +57,22 @@ public class PassageOpExecutorFactory implements OpExecutorFactory {
                 ec.getContext().set(PassageConstants.TIMEOUT, Math.min(serverTimeout, userTimeout));
             }
 
+            if (ec.getContext().isDefined(userMaxResultsSymbol)) {
+                long userMaxResults;
+                try {
+                    userMaxResults = Long.parseLong(ec.getContext().get(userMaxResultsSymbol));
+                } catch (NumberFormatException | NullPointerException e) {
+                    userMaxResults = Long.MAX_VALUE;
+                }
+                long serverMaxResults = ec.getContext().getLong(PassageConstants.MAX_RESULTS, Long.MAX_VALUE);
+                ec.getContext().set(PassageConstants.MAX_RESULTS, Math.min(serverMaxResults, userMaxResults));
+            }
+
+
             executor = new PassagePushExecutor<>(new PassageExecutionContextBuilder<>()
                     .setTimeout(ec.getContext().getLong(PassageConstants.TIMEOUT, Long.MAX_VALUE))
                     .setBackend(ec.getContext().get(BackendConstants.BACKEND))
+                    .setMaxResults(ec.getContext().getLong(PassageConstants.MAX_RESULTS, Long.MAX_VALUE))
                     .setMaxScans(ec.getContext().getLong(PassageConstants.MAX_SCANS, Long.MAX_VALUE))
                     .setMaxParallel(ec.getContext().getInt(PassageConstants.MAX_PARALLELISM, 1))
                     .setExecutorFactory((_ec) -> new PassagePushExecutor<>((PassageExecutionContext<?,?>) _ec))
@@ -94,9 +108,7 @@ public class PassageOpExecutorFactory implements OpExecutorFactory {
             this.query = query;
             this.executor = executor;
             this.buffer = new LinkedBlockingDeque<>(); // TODO put this as an argument
-            this.paused = this.executor.execute(query, binding -> {
-                buffer.add(binding);
-            });
+            this.paused = this.executor.execute(query, buffer::add);
             PassagePaused p = context.getContext().get(PassageConstants.PAUSED);
             p.setPausedQuery(this.paused);
         }

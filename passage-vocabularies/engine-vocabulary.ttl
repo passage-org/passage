@@ -82,6 +82,10 @@ psg:timeout rdf:type rdf:Property;
     rdfs:label       "Query execution timeout"@en ;
     rdfs:comment     "Timeout on SPARQL query execution. Depending on the query engine, a specific behavior is associated."@en .
 
+psg:max_results rdf:type rdf:Property;
+    rdfs:label       "Maximum number of results"@en ;
+    rdfs:comment     "Maximum number of results returned by a query execution."@en .
+
 psg:parallel rdf:type rdf:Property;
     rdfs:label       "Maximum number of threads"@en ;
     rdfs:comment     "Maximum number of threads allocated to each SPARQL query execution."@en .

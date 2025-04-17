@@ -4,6 +4,8 @@ import com.google.common.collect.ConcurrentHashMultiset;
 import com.google.common.collect.Multiset;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.transforms.Quad2Pattern;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
@@ -58,21 +60,7 @@ public class ExecutorUtils {
      * @return The bag of mappings that constitutes the complete and correct results of the query.
      */
     public static <ID,VALUE> Multiset<BackendBindings<?,?>> execute(String queryAsString, PassageExecutionContextBuilder<ID,VALUE> builder) {
-        Multiset<BackendBindings<?,?>> results = ConcurrentHashMultiset.create();
-        int nbContinuations = -1;
-        while (Objects.nonNull(queryAsString)) {
-            nbContinuations++;
-            PassageExecutionContext<?,?> context = builder.build();
-            log.debug(queryAsString);
-            Op query = Algebra.compile(QueryFactory.create(queryAsString));
-            Op paused = context.executor.execute(query, (i) -> {
-                log.debug("{}", i);
-                results.add(i);
-            });
-            queryAsString = Objects.nonNull(paused) ? OpAsQuery.asQuery(new Quad2Pattern().visit(paused)).toString() : null;
-        }
-        if (nbContinuations > 0) log.debug("Number of continuations queries: {}.", nbContinuations);
-        return results;
+        return executeWithNbContinuations(queryAsString, builder).getLeft();
     }
 
     /**
@@ -96,5 +84,29 @@ public class ExecutorUtils {
             queryAsString = Objects.nonNull(paused) ? OpAsQuery.asQuery(new Quad2Pattern().visit(paused)).toString() : null;
         }
         if (nbContinuations > 0) log.debug("Number of continuations queries: {}.", nbContinuations);
+    }
+
+
+    /**
+     * @param queryAsString The SPARQL query to execute.
+     * @param builder The builder that contains the whole environment to build the query engine.
+     * @return The bag of mappings that constitutes the complete and correct results of the query.
+     */
+    public static <ID,VALUE> Pair<Multiset<BackendBindings<?,?>>, Integer>  executeWithNbContinuations(String queryAsString, PassageExecutionContextBuilder<ID,VALUE> builder) {
+        Multiset<BackendBindings<?,?>> results = ConcurrentHashMultiset.create();
+        int nbContinuations = -1;
+        while (Objects.nonNull(queryAsString)) {
+            nbContinuations++;
+            PassageExecutionContext<?,?> context = builder.build();
+            log.debug(queryAsString);
+            Op query = Algebra.compile(QueryFactory.create(queryAsString));
+            Op paused = context.executor.execute(query, (i) -> {
+                log.debug("{}", i);
+                results.add(i);
+            });
+            queryAsString = Objects.nonNull(paused) ? OpAsQuery.asQuery(new Quad2Pattern().visit(paused)).toString() : null;
+        }
+        if (nbContinuations > 0) log.debug("Number of continuations queries: {}.", nbContinuations);
+        return new ImmutablePair<>(results, nbContinuations);
     }
 }

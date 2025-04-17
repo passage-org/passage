@@ -53,7 +53,7 @@ public class PassagePushExecutor<ID,VALUE> implements PassageExecutor<ID,VALUE>,
         try (ForkJoinPool customPool = new ForkJoinPool(context.maxParallelism)) {
             customPool.submit(() -> {
                 try {
-                    pausable.set(this.visit(_root, new BackendBindings<>()));
+                    pausable.set(this.execute(_root, new BackendBindings<>()));
                     pausable.get().stream().forEach(consumer);
                 } catch (PauseException pe) {
                     gotPaused.set(true);
@@ -74,6 +74,10 @@ public class PassagePushExecutor<ID,VALUE> implements PassageExecutor<ID,VALUE>,
     public boolean isDone() { return isDone; }
 
     /* *********************************** OPERATORS ************************************** */
+
+    public PausableStream<ID,VALUE> execute(Op root, BackendBindings<ID, VALUE> input) {
+        return new PausableStreamRoot<>(context, input, root);
+    }
 
     @Override
     public PausableStream<ID, VALUE> visit(OpTriple triple, BackendBindings<ID, VALUE> input) {

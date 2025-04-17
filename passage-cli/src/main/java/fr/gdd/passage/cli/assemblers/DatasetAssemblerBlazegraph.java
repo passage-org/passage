@@ -69,6 +69,8 @@ public class DatasetAssemblerBlazegraph extends DatasetAssembler {
         // #B get its build argument
         Literal lTimeout = getUniqueLiteral(root, PassageVocabulary.timeout); // default unset
         if (Objects.nonNull(lTimeout)) { dsg.getContext().set(PassageConstants.TIMEOUT, lTimeout.getLong()); }
+        Literal lMaxResults = getUniqueLiteral(root, PassageVocabulary.max_results); // default unset
+        if (Objects.nonNull(lMaxResults)) { dsg.getContext().set(PassageConstants.MAX_RESULTS, lMaxResults.getLong()); }
         Literal lForceOrder = getUniqueLiteral(root, PassageVocabulary.force_order); // default false
         dsg.getContext().set(PassageConstants.FORCE_ORDER, !Objects.isNull(lForceOrder) && lForceOrder.getBoolean());
         Literal lParallel = getUniqueLiteral(root, PassageVocabulary.parallel); // default 1
