@@ -4,7 +4,7 @@ import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.passage.commons.factories.IBackendOptionalsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
-import fr.gdd.passage.commons.generics.BackendPullExecutor;
+import fr.gdd.passage.commons.engines.BackendPullExecutor;
 import fr.gdd.passage.commons.generics.BackendSaver;
 import fr.gdd.passage.volcano.PassageConstants;
 import fr.gdd.passage.volcano.pull.Pause2Next;

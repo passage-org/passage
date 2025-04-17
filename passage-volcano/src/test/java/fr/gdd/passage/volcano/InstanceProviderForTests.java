@@ -3,6 +3,7 @@ package fr.gdd.passage.volcano;
 import fr.gdd.passage.random.push.PassRawPushExecutor;
 import fr.gdd.passage.volcano.pull.PassagePullExecutor;
 import fr.gdd.passage.volcano.push.PassagePushExecutor;
+import fr.gdd.passage.volcano.push.PassagePushExecutorV2;
 
 import java.util.Arrays;
 import java.util.stream.IntStream;
@@ -97,7 +98,7 @@ public class InstanceProviderForTests {
                         .setName("PUSH")
                         .setMaxScans(s)
                         .setMaxParallel(p)
-                        .setExecutorFactory((ec) -> new PassagePushExecutor<>((PassageExecutionContext<?,?>) ec))
+                        .setExecutorFactory((ec) -> new PassagePushExecutorV2<>((PassageExecutionContext<?,?>) ec))
         ));
     }
 

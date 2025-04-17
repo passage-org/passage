@@ -5,7 +5,14 @@ import org.apache.jena.sparql.algebra.op.OpExtend;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
 import java.util.Iterator;
+import java.util.List;
+import java.util.Spliterators;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
+/**
+ * Create iterators for BIND clauses.
+ */
 public interface IBackendBindsFactory<ID, VALUE> {
 
     /**
@@ -18,4 +25,12 @@ public interface IBackendBindsFactory<ID, VALUE> {
     Iterator<BackendBindings<ID, VALUE>> get(ExecutionContext context,
                                              Iterator<BackendBindings<ID, VALUE>> input,
                                              OpExtend op);
+
+    default Stream<BackendBindings<ID,VALUE>> get(ExecutionContext context,
+                                                  BackendBindings<ID, VALUE> input,
+                                                  OpExtend op) {
+        return StreamSupport.stream(
+                Spliterators.spliteratorUnknownSize(get(context, List.of(input).iterator(), op), 0),
+                false);
+    }
 }

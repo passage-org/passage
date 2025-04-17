@@ -2,7 +2,7 @@ package fr.gdd.passage.volcano.pull;
 
 import fr.gdd.passage.commons.factories.BackendNestedLoopJoinFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
-import fr.gdd.passage.commons.generics.BackendPullExecutor;
+import fr.gdd.passage.commons.engines.BackendPullExecutor;
 import fr.gdd.passage.commons.iterators.BackendBind;
 import fr.gdd.passage.commons.iterators.BackendFilter;
 import fr.gdd.passage.commons.iterators.BackendProject;

@@ -3,6 +3,7 @@ package fr.gdd.passage.volcano.push;
 import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
+import fr.gdd.passage.volcano.push.streams.PausableStream;
 import fr.gdd.passage.commons.transforms.DefaultGraphUriQueryModifier;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutor;

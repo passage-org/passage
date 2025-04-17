@@ -1,7 +1,9 @@
-package fr.gdd.passage.commons.generics;
+package fr.gdd.passage.commons.engines;
 
 import fr.gdd.jena.visitors.ReturningArgsOpVisitor;
 import fr.gdd.passage.commons.factories.*;
+import fr.gdd.passage.commons.generics.BackendBindings;
+import fr.gdd.passage.commons.generics.BackendConstants;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.algebra.Algebra;

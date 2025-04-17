@@ -4,7 +4,7 @@ import fr.gdd.jena.utils.OpCloningUtil;
 import fr.gdd.passage.commons.factories.IBackendCountsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
-import fr.gdd.passage.commons.generics.BackendPullExecutor;
+import fr.gdd.passage.commons.engines.BackendPullExecutor;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendAccumulator;
 import fr.gdd.passage.commons.iterators.BackendIteratorOverInput;

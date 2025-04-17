@@ -6,7 +6,7 @@ import fr.gdd.passage.commons.factories.BackendNestedLoopJoinFactory;
 import fr.gdd.passage.commons.factories.IBackendBindsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendCache;
-import fr.gdd.passage.commons.generics.BackendPullExecutor;
+import fr.gdd.passage.commons.engines.BackendPullExecutor;
 import fr.gdd.passage.commons.generics.BackendSaver;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.iterators.BackendBind;

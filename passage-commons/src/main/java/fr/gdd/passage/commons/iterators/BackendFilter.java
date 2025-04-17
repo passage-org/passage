@@ -3,7 +3,7 @@ package fr.gdd.passage.commons.iterators;
 import fr.gdd.passage.commons.factories.IBackendFiltersFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
-import fr.gdd.passage.commons.generics.BackendPullExecutor;
+import fr.gdd.passage.commons.engines.BackendPullExecutor;
 import org.apache.jena.sparql.algebra.op.OpFilter;
 import org.apache.jena.sparql.expr.E_LogicalOr;
 import org.apache.jena.sparql.expr.E_NotEquals;

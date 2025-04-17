@@ -1,5 +1,6 @@
 package fr.gdd.passage.volcano;
 
+import fr.gdd.passage.commons.engines.BackendPushExecutor;
 import fr.gdd.passage.commons.generics.BackendBindingsFactory;
 import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.generics.BackendConstants;
@@ -45,8 +46,8 @@ public class PassageExecutionContext<ID,VALUE> extends ExecutionContext {
 
     @Deprecated // should be removed when configurable engine factory
     public final Boolean backjump;
-    public final PassageExecutor<ID,VALUE> executor;
-    public final Function<ExecutionContext, PassageExecutor<ID,VALUE>> executorFactory;
+    public final BackendPushExecutor<ID,VALUE> executor;
+    public final Function<ExecutionContext, BackendPushExecutor<ID,VALUE>> executorFactory;
     public final BackendBindingsFactory<ID,VALUE> bindingsFactory;
     public final LocalServices localServices;
     public final List<Predicate<PassageExecutionContext<ID,VALUE>>> stoppingConditions;

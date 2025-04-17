@@ -2,7 +2,6 @@ package fr.gdd.passage.volcano.push.streams;
 
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.PassageExecutionContext;
-import fr.gdd.passage.volcano.push.PassagePushExecutor;
 import org.apache.jena.sparql.algebra.Op;
 
 import java.util.stream.Stream;
@@ -22,7 +21,7 @@ public class PausableStreamRoot<ID,VALUE> implements PausableStream<ID,VALUE> {
 
     public PausableStreamRoot(PassageExecutionContext<ID,VALUE> context, BackendBindings<ID,VALUE> input, Op root) {
         this.context = context;
-        this.wrapped = ((PassagePushExecutor<ID, VALUE>) context.executor).visit(root, input);
+        this.wrapped = (PausableStream<ID, VALUE>) context.executor.visit(root, input);
     }
 
     @Override
