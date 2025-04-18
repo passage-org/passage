@@ -2,7 +2,6 @@ package fr.gdd.passage.volcano.push.streams;
 
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.PassageExecutionContext;
-import fr.gdd.passage.volcano.push.PassagePushExecutor;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpUnion;
 
@@ -27,10 +26,9 @@ public class SpliteratorUnion<ID,VALUE> implements Spliterator<BackendBindings<I
 
     public SpliteratorUnion(PassageExecutionContext<ID,VALUE> context, BackendBindings<ID,VALUE> input, OpUnion union) {
         this.union = union;
-        var executor = (PassagePushExecutor<ID, VALUE>) context.executor;
-        this.main = executor.visit(union.getLeft(), input);
+        this.main = (PausableStream<ID,VALUE>) context.executor.visit(union.getLeft(), input);
         this.mainSplit = this.main.stream().spliterator();
-        this.secondary = executor.visit(union.getRight(), input);
+        this.secondary = (PausableStream<ID, VALUE>) context.executor.visit(union.getRight(), input);
         this.secondarySplit = this.secondary.stream().spliterator();
     }
 

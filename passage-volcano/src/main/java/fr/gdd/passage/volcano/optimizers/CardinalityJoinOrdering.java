@@ -8,8 +8,8 @@ import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
-import fr.gdd.passage.volcano.pull.PassagePullExecutor;
 import fr.gdd.passage.volcano.pull.iterators.PassageScan;
+import fr.gdd.passage.volcano.push.PassagePushExecutor;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.graph.Triple;
@@ -44,13 +44,13 @@ public class CardinalityJoinOrdering<ID,VALUE> implements ReturningArgsOpVisitor
 
     public CardinalityJoinOrdering(Backend<ID,VALUE> backend) {
         this.fakeContext = new PassageExecutionContextBuilder<ID,VALUE>()
-                .setExecutorFactory(ec -> new PassagePullExecutor<>((PassageExecutionContext<?,?>)ec))
+                .setExecutorFactory(ec -> new PassagePushExecutor<>((PassageExecutionContext<?,?>)ec))
                 .setBackend(backend).build().setQuery(null);
     }
 
     public CardinalityJoinOrdering(Backend<?,?> backend, BackendCache<ID,VALUE> cache) {
         this.fakeContext = new PassageExecutionContextBuilder<ID,VALUE>()
-                .setExecutorFactory(ec -> new PassagePullExecutor<>((PassageExecutionContext<?,?>)ec))
+                .setExecutorFactory(ec -> new PassagePushExecutor<>((PassageExecutionContext<?,?>)ec))
                 .setBackend(backend).build().setCache(cache).setQuery(null);
     }
 

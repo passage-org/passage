@@ -1,9 +1,9 @@
 package fr.gdd.passage.commons.factories;
 
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
+import fr.gdd.passage.commons.engines.BackendPullExecutor;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
-import fr.gdd.passage.commons.engines.BackendPullExecutor;
 import org.apache.jena.sparql.algebra.op.OpJoin;
 import org.apache.jena.sparql.engine.ExecutionContext;
 

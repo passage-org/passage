@@ -29,7 +29,6 @@ public class LimitOffsetTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void when_limit_is_0_then_not_results_ofc (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -42,7 +41,6 @@ public class LimitOffsetTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void simple_limit_offset_on_single_triple_pattern (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(backend);
@@ -62,7 +60,6 @@ public class LimitOffsetTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void overestimated_limit_for_tp (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -79,7 +76,6 @@ public class LimitOffsetTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void limit_on_a_bgp (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -99,7 +95,6 @@ public class LimitOffsetTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
     public void limit_as_a_nested_subquery (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
@@ -127,7 +122,6 @@ public class LimitOffsetTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
     public void offset_alone (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException, QueryEvaluationException, MalformedQueryException {
         final BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
@@ -151,7 +145,6 @@ public class LimitOffsetTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
     // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#justGo")
     public void limit_of_a_limit_of_a_triple_pattern (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException, QueryEvaluationException, MalformedQueryException {
@@ -176,7 +169,6 @@ public class LimitOffsetTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
     public void offset_alone_on_bgp (PassageExecutionContextBuilder<?,?> builder) throws QueryEvaluationException, MalformedQueryException, RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
@@ -197,7 +189,6 @@ public class LimitOffsetTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
     public void offset_alone_on_bgp_above_nb_results (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
@@ -217,7 +208,6 @@ public class LimitOffsetTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
     public void limit_offset_on_bgp (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend backend = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
@@ -239,7 +229,6 @@ public class LimitOffsetTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void limit_offset_on_simple_triple_pattern (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -264,7 +253,6 @@ public class LimitOffsetTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#multiThreadsPush")
     public void limit_offset_in_bgp_but_on_tp (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
@@ -281,7 +269,6 @@ public class LimitOffsetTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void limit_offset_on_bgp_should_work_now (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -321,7 +308,6 @@ public class LimitOffsetTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     public void should_take_into_account_the_compatibility_of_input (PassageExecutionContextBuilder<?,?> builder) throws Exception {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
         builder.setBackend(blazegraph);
@@ -341,7 +327,6 @@ public class LimitOffsetTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
     // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#multiThreadsPush")
     public void make_sure_that_the_limit_offset_is_not_applies_to_each_tp_in_bgp (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, QueryEvaluationException, MalformedQueryException, SailException {
@@ -370,7 +355,6 @@ public class LimitOffsetTest {
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
-    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pullProvider")
     // @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
     public void issue_with_two_subqueries_that_are_joined (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException, QueryEvaluationException, MalformedQueryException {
         final BlazegraphBackend blazegraph = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());

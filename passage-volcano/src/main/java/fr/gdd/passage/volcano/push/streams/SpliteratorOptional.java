@@ -1,9 +1,9 @@
 package fr.gdd.passage.volcano.push.streams;
 
 import fr.gdd.jena.utils.OpCloningUtil;
+import fr.gdd.passage.commons.engines.BackendPushExecutor;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.PassageExecutionContext;
-import fr.gdd.passage.volcano.push.PassagePushExecutor;
 import fr.gdd.passage.volcano.push.Pause2Continuation;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpLeftJoin;
@@ -23,7 +23,7 @@ public class SpliteratorOptional<ID,VALUE> implements Spliterator<BackendBinding
 
     final PassageExecutionContext<ID,VALUE> context;
     final BackendBindings<ID,VALUE> input;
-    final PassagePushExecutor<ID,VALUE> executor;
+    final BackendPushExecutor<ID,VALUE> executor;
     final OpLeftJoin lj;
     PausableStream<ID,VALUE> leftStream;
     final Spliterator<BackendBindings<ID,VALUE>> left;
@@ -40,8 +40,8 @@ public class SpliteratorOptional<ID,VALUE> implements Spliterator<BackendBinding
         this.context = context;
         this.input = input;
         this.lj = lj;
-        this.executor = (PassagePushExecutor<ID, VALUE>) context.executor;
-        this.leftStream = executor.visit(lj.getLeft(), input);
+        this.executor = (BackendPushExecutor<ID, VALUE>) context.executor;
+        this.leftStream = (PausableStream<ID, VALUE>) executor.visit(lj.getLeft(), input);
         this.left = leftStream.stream().spliterator();
         this.id = ids.incrementAndGet();
         register(optionals);
@@ -51,7 +51,7 @@ public class SpliteratorOptional<ID,VALUE> implements Spliterator<BackendBinding
         this.context = context;
         this.input = input;
         this.lj = lj;
-        this.executor = (PassagePushExecutor<ID, VALUE>) context.executor;
+        this.executor = context.executor;
         this.left = left;
         this.id = ids.incrementAndGet();
         register(optionals);
@@ -82,7 +82,7 @@ public class SpliteratorOptional<ID,VALUE> implements Spliterator<BackendBinding
         }
 
         if (left.tryAdvance(b -> {
-            right = executor.visit(lj.getRight(), b);
+            right = (PausableStream<ID, VALUE>) executor.visit(lj.getRight(), b);
             inputOfOptional = b;
             rightSplit = right.stream().spliterator();
         })) {

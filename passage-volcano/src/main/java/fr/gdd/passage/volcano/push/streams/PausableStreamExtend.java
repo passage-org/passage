@@ -1,9 +1,9 @@
 package fr.gdd.passage.volcano.push.streams;
 
 import fr.gdd.jena.utils.OpCloningUtil;
+import fr.gdd.passage.commons.engines.BackendPushExecutor;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.volcano.PassageExecutionContext;
-import fr.gdd.passage.volcano.push.PassagePushExecutor;
 import fr.gdd.passage.volcano.querypatterns.IsGroupByQuery;
 import fr.gdd.passage.volcano.transforms.FactorizeExtends;
 import org.apache.jena.riot.out.NodeFmtLib;
@@ -22,13 +22,13 @@ import static fr.gdd.passage.volcano.push.Pause2Continuation.*;
 public class PausableStreamExtend<ID,VALUE> implements PausableStream<ID, VALUE> {
 
     final PausableStream<ID,VALUE> wrapped;
-    final PassagePushExecutor<ID, VALUE> executor;
+    final BackendPushExecutor<ID, VALUE> executor;
     final OpExtend extend;
     final PassageExecutionContext<ID,VALUE> context;
 
     public PausableStreamExtend(PassageExecutionContext<ID,VALUE> context, BackendBindings<ID,VALUE> input, OpExtend extend) {
-        this.executor = (PassagePushExecutor<ID, VALUE>) context.executor;
-        this.wrapped = executor.visit(extend.getSubOp(), input);
+        this.executor = context.executor;
+        this.wrapped = (PausableStream<ID, VALUE>) executor.visit(extend.getSubOp(), input);
         this.extend = extend;
         this.context = context;
     }

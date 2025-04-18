@@ -5,7 +5,6 @@ import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.interfaces.BackendAccumulator;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.pull.iterators.PassageCountAccumulator;
-import fr.gdd.passage.volcano.push.PassagePushExecutor;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpExtend;
 import org.apache.jena.sparql.algebra.op.OpGroup;
@@ -67,7 +66,7 @@ public class PausableStreamCount<ID,VALUE> implements PausableStream<ID,VALUE> {
         }
 
         // automatically join with the input, but only on keys
-        wrapped = ((PassagePushExecutor<ID,VALUE>) context.executor).visit(count.getSubOp(), keys);
+        wrapped = (PausableStream<ID, VALUE>) context.executor.visit(count.getSubOp(), keys);
     }
 
     @Override

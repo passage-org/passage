@@ -1,10 +1,10 @@
 package fr.gdd.passage.commons.iterators;
 
+import fr.gdd.passage.commons.engines.BackendPullExecutor;
 import fr.gdd.passage.commons.factories.IBackendBindsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.generics.BackendConstants;
-import fr.gdd.passage.commons.engines.BackendPullExecutor;
 import fr.gdd.passage.commons.interfaces.Backend;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.riot.out.NodeFmtLib;

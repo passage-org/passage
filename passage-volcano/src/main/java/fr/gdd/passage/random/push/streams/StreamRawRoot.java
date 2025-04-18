@@ -1,7 +1,7 @@
 package fr.gdd.passage.random.push.streams;
 
+import fr.gdd.passage.commons.engines.BackendPushExecutor;
 import fr.gdd.passage.commons.generics.BackendBindings;
-import fr.gdd.passage.random.push.PassRawPushExecutor;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.push.streams.PausableStream;
 import org.apache.jena.sparql.algebra.Op;
@@ -17,18 +17,18 @@ import java.util.stream.Stream;
 public class StreamRawRoot<ID,VALUE> implements PausableStream<ID,VALUE> {
 
     final PassageExecutionContext<ID,VALUE> context;
-    final PassRawPushExecutor<ID,VALUE> executor;
+    final BackendPushExecutor<ID,VALUE> executor;
     final Op root;
     final BackendBindings<ID,VALUE> input;
     final Supplier<PausableStream<ID,VALUE>> streamSupplier;
 
     public StreamRawRoot(PassageExecutionContext<ID,VALUE> context, BackendBindings<ID,VALUE> input, Op root) {
         this.context = context;
-        this.executor = (PassRawPushExecutor<ID, VALUE>) context.executor;
+        this.executor = context.executor;
         // this.wrapped = executor.visit(root, input); // check if could be a problem to inject the input in the subquery
         this.root = root;
         this.input = input;
-        this.streamSupplier = () -> executor.visit(root, input);
+        this.streamSupplier = () -> (PausableStream<ID, VALUE>) executor.visit(root, input);
     }
 
     @Override

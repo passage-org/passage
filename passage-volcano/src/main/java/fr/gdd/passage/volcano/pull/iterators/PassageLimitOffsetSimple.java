@@ -1,7 +1,7 @@
 package fr.gdd.passage.volcano.pull.iterators;
 
-import fr.gdd.passage.commons.factories.BackendNestedLoopJoinFactory;
 import fr.gdd.passage.commons.engines.BackendPullExecutor;
+import fr.gdd.passage.commons.factories.BackendNestedLoopJoinFactory;
 import fr.gdd.passage.commons.iterators.BackendBind;
 import fr.gdd.passage.commons.iterators.BackendProject;
 import org.apache.jena.sparql.engine.ExecutionContext;

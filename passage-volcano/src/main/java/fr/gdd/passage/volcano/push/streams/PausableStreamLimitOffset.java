@@ -1,5 +1,6 @@
 package fr.gdd.passage.volcano.push.streams;
 
+import fr.gdd.passage.commons.engines.BackendPushExecutor;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.volcano.PassageExecutionContext;
@@ -18,7 +19,7 @@ public class PausableStreamLimitOffset<ID,VALUE> implements PausableStream<ID,VA
     final PausableStream<ID,VALUE> wrapped;
     final BackendBindings<ID,VALUE> input;
     final OpSlice slice;
-    final PassagePushExecutor<ID,VALUE> executor;
+    final BackendPushExecutor<ID,VALUE> executor;
 
     final AtomicLong actuallyProduced = new AtomicLong();
     final AtomicLong totalProduced = new AtomicLong();
@@ -39,7 +40,7 @@ public class PausableStreamLimitOffset<ID,VALUE> implements PausableStream<ID,VA
                         new PassageExecutionContext<ID,VALUE>(((PassageExecutionContext<?, ?>) context).clone())
                                 .setLimit(null)
                                 .setOffset(null));
-        this.wrapped = newExecutor.visit(slice.getSubOp(), context.bindingsFactory.get());
+        this.wrapped = (PausableStream<ID, VALUE>) newExecutor.visit(slice.getSubOp(), context.bindingsFactory.get());
     }
 
     public Stream<BackendBindings<ID,VALUE>> stream() {

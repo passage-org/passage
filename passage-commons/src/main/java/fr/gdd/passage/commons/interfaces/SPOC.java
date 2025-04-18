@@ -2,9 +2,6 @@ package fr.gdd.passage.commons.interfaces;
 
 import fr.gdd.passage.commons.exceptions.UndefinedCode;
 
-import java.util.HashSet;
-import java.util.Set;
-
 /**
  * Code used by iterators for basic term types.
  */

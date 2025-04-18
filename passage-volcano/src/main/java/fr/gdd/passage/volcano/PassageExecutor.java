@@ -10,7 +10,7 @@ import java.util.function.Consumer;
  * may return another SPARQL query to retrieve missing results. It returns null if
  * the query execution is fully over.
  */
-public interface PassageExecutor<ID,VALUE> {
+public interface PassageExecutor<ID,VALUE>  {
 
     Op execute(Op query, Consumer<BackendBindings<ID,VALUE>> consumer);
     Op execute(String query, Consumer<BackendBindings<ID,VALUE>> consumer);

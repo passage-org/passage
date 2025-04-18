@@ -101,7 +101,7 @@ class RandomBGPTest {
         String queryAsString = "SELECT * WHERE { ?p <http://own> ?a . ?a <http://species> ?s}";
         Op query = Algebra.compile(QueryFactory.create(queryAsString));
 
-        var results = builder.build().executor.estimateCost(query);
+        // var results = builder.build().executor.estimateCost(query);
         bb.close();
     }
 

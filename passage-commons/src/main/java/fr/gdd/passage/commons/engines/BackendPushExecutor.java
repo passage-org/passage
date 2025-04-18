@@ -5,7 +5,9 @@ import fr.gdd.passage.commons.factories.IBackendOperatorFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.streams.IWrappedStream;
-import fr.gdd.passage.commons.streams.WrappedStreamSingleton;
+import org.apache.jena.query.QueryFactory;
+import org.apache.jena.sparql.algebra.Algebra;
+import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.expr.aggregate.AggCount;
@@ -14,6 +16,7 @@ import org.apache.jena.sparql.expr.aggregate.AggCountVar;
 import org.apache.jena.sparql.expr.aggregate.AggCountVarDistinct;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * Base executor of operators that compose the logical plan.
@@ -22,6 +25,7 @@ import java.util.Objects;
 public class BackendPushExecutor<ID,VALUE> implements ReturningArgsOpVisitor<IWrappedStream<BackendBindings<ID,VALUE>>,BackendBindings<ID,VALUE>> {
 
     public final ExecutionContext context;
+    private final IBackendOperatorFactory<ID,VALUE,Op> roots;
     private final IBackendOperatorFactory<ID,VALUE,OpProject> projects;
     private final IBackendOperatorFactory<ID,VALUE,OpTriple> triples;
     private final IBackendOperatorFactory<ID,VALUE,OpQuad> quads;
@@ -37,6 +41,7 @@ public class BackendPushExecutor<ID,VALUE> implements ReturningArgsOpVisitor<IWr
     private final IBackendOperatorFactory<ID,VALUE,OpService> services;
 
     public BackendPushExecutor(ExecutionContext context,
+                               IBackendOperatorFactory<ID,VALUE,Op> roots,
                                IBackendOperatorFactory<ID,VALUE,OpProject> projects,
                                IBackendOperatorFactory<ID,VALUE,OpTriple> triples,
                                IBackendOperatorFactory<ID,VALUE,OpQuad> quads,
@@ -52,6 +57,7 @@ public class BackendPushExecutor<ID,VALUE> implements ReturningArgsOpVisitor<IWr
                                IBackendOperatorFactory<ID,VALUE,OpService> services) {
         this.context = context;
         this.context.getContext().set(BackendConstants.EXECUTOR, this);
+        this.roots = roots;
         this.triples = triples;
         this.quads = quads;
         this.projects = projects;
@@ -66,6 +72,20 @@ public class BackendPushExecutor<ID,VALUE> implements ReturningArgsOpVisitor<IWr
         this.counts = counts;
         this.services = services;
     }
+
+    public Op execute(String query, Consumer<BackendBindings<ID, VALUE>> consumer) {
+        return this.execute(Algebra.compile(QueryFactory.create(query)), consumer);
+    }
+
+    public Op execute(Op root, Consumer<BackendBindings<ID, VALUE>> consumer) {
+        throw new UnsupportedOperationException("This method should override this method.");
+    }
+
+    public IWrappedStream<BackendBindings<ID,VALUE>> execute(Op root, BackendBindings<ID, VALUE> input) {
+        return roots.get(context, input, root);
+    }
+
+    /* ****************************** OPERATORS ****************************** */
 
     @Override
     public IWrappedStream<BackendBindings<ID, VALUE>> visit(OpTriple triple, BackendBindings<ID, VALUE> input) {
@@ -89,9 +109,10 @@ public class BackendPushExecutor<ID,VALUE> implements ReturningArgsOpVisitor<IWr
 
     @Override
     public IWrappedStream<BackendBindings<ID, VALUE>> visit(OpTable table, BackendBindings<ID, VALUE> input) {
-        if (table.isJoinIdentity()) {
+        // this specific case should be handled within the VALUES provider
+        /* if (table.isJoinIdentity()) {
             return new WrappedStreamSingleton<>(input);
-        }
+        }*/
         return values.get(context, input, table);
     }
 
