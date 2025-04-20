@@ -16,7 +16,7 @@ import java.util.Objects;
 public class ToSourceAssignmentQuery extends ReturningOpBaseVisitor {
 
     final IdentityHashMap<Op, Var> op2graph = new IdentityHashMap<>();
-    final ToSummaryPattern toSummaryPattern = new ToSummaryPattern();
+    final ToFedUPSummary toSummaryPattern = new ToFedUPSummary();
     final Node remoteURI;
     final boolean silent = true;
     final IdentityHashMap<Var, Var> graph2graph = new IdentityHashMap<>(); // if modified with transforms

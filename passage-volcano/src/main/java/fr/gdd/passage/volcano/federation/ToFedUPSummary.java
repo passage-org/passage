@@ -11,8 +11,10 @@ import java.util.HashMap;
 /**
  * This is a very specific class that summarizes following FedUP's strategy
  * of summarizing terms.
+ * *
+ * TODO More general summary interface/class
  */
-public class ToSummaryPattern {
+public class ToFedUPSummary {
 
     // it needs to change variable names to work
     HashMap<Var, Var> original2modified = new HashMap<>();

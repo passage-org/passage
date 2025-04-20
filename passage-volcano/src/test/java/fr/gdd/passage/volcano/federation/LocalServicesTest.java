@@ -139,7 +139,7 @@ class LocalServicesTest {
             PassagePushExecutor<?, ?> engine = new PassagePushExecutor<>(builder.build());
 
             engine.execute("SELECT * WHERE {?s ?p ?o}", b -> {
-                quads2add.add((new ToSummaryPattern()).toSummaryQuad(new Quad(
+                quads2add.add((new ToFedUPSummary()).toSummaryQuad(new Quad(
                         NodeFactory.createURI(uri),
                         Triple.create(b.get("s"), b.get("p"), b.get("o"))), 1));
             });
