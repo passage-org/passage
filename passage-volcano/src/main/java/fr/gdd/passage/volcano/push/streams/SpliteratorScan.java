@@ -9,18 +9,18 @@ import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
-import fr.gdd.passage.volcano.exceptions.BackjumpException;
 import fr.gdd.passage.volcano.exceptions.PauseException;
 import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.atlas.lib.tuple.TupleFactory;
 import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.algebra.op.*;
+import org.apache.jena.sparql.algebra.op.Op0;
+import org.apache.jena.sparql.algebra.op.OpQuad;
+import org.apache.jena.sparql.algebra.op.OpSlice;
+import org.apache.jena.sparql.algebra.op.OpTriple;
 import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.util.VarUtils;
 
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.Objects;
-import java.util.Set;
 import java.util.Spliterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
@@ -35,77 +35,82 @@ import static fr.gdd.passage.volcano.push.Pause2Continuation.removeEmptyOfUnion;
  */
 public class SpliteratorScan<ID,VALUE> implements Spliterator<BackendBindings<ID,VALUE>>, PausableSpliterator<ID,VALUE> {
 
-    final PassageExecutionContext<ID,VALUE> context;
-    final BackendBindings<ID,VALUE> input;
-    final Backend<ID,VALUE> backend;
-    final BackendCache<ID,VALUE> cache;
-    final Op0 op;
-    final Long id; // The identifier is actually the starting offset
-    ConcurrentHashMap<Long, SpliteratorScan<ID,VALUE>> siblings = new ConcurrentHashMap<>(); // offset -> sibling
-    Set<Var> producedVars;
-    Set<Var> consumedVars;
+    protected final PassageExecutionContext<ID,VALUE> context;
+    protected final BackendBindings<ID,VALUE> input;
+    protected final Backend<ID,VALUE> backend;
+    protected final BackendCache<ID,VALUE> cache;
+    protected final Op0 op;
+    protected final Long id; // The identifier is actually the starting offset
+    protected ConcurrentHashMap<Long, SpliteratorScan<ID,VALUE>> siblings = new ConcurrentHashMap<>(); // offset -> sibling
 
-    Long offset;
-    Long limit;
+    protected Long offset;
+    protected Long limit;
 
-    BackendIterator<ID, VALUE> wrapped;
-    Tuple<Var> vars; // needed to create bindings var -> value
+    protected BackendIterator<ID, VALUE> wrapped;
+    protected Tuple<Var> vars; // needed to create bindings var -> value
 
-    public SpliteratorScan(PassageExecutionContext<ID,VALUE> context, BackendBindings<ID,VALUE> input, Op0 tripleOrQuad) {
+    public SpliteratorScan(PassageExecutionContext<ID,VALUE> context, BackendBindings<ID,VALUE> input, OpTriple triple) {
         this.context = context;
         this.backend = this.context.backend;
         this.cache = this.context.cache;
-        this.op = tripleOrQuad;
+        this.op = triple;
         this.input = input;
 
         try {
-            switch (tripleOrQuad) {
-                case OpTriple opTriple -> {
-                    Tuple<ID> spo = Substitutor.substitute(opTriple.getTriple(), input, cache);
-                    this.vars = TupleFactory.create3(
-                            opTriple.getTriple().getSubject().isVariable() && Objects.isNull(spo.get(SPOC.SUBJECT)) ? Var.alloc(opTriple.getTriple().getSubject()) : null,
-                            opTriple.getTriple().getPredicate().isVariable() && Objects.isNull(spo.get(SPOC.PREDICATE)) ? Var.alloc(opTriple.getTriple().getPredicate()) : null,
-                            opTriple.getTriple().getObject().isVariable() && Objects.isNull(spo.get(SPOC.OBJECT)) ? Var.alloc(opTriple.getTriple().getObject()) : null);
-                    this.wrapped = backend.search(spo.get(SPOC.SUBJECT), spo.get(SPOC.PREDICATE), spo.get(SPOC.OBJECT));
-                }
-                case OpQuad opQuad -> {
-                    Tuple<ID> spoc = Substitutor.substitute(opQuad.getQuad(), input, cache);
-                    this.vars = TupleFactory.create4(
-                            opQuad.getQuad().getSubject().isVariable() && Objects.isNull(spoc.get(SPOC.SUBJECT)) ? Var.alloc(opQuad.getQuad().getSubject()) : null,
-                            opQuad.getQuad().getPredicate().isVariable() && Objects.isNull(spoc.get(SPOC.PREDICATE)) ? Var.alloc(opQuad.getQuad().getPredicate()) : null,
-                            opQuad.getQuad().getObject().isVariable() && Objects.isNull(spoc.get(SPOC.OBJECT)) ? Var.alloc(opQuad.getQuad().getObject()) : null,
-                            opQuad.getQuad().getGraph().isVariable() && Objects.isNull(spoc.get(SPOC.GRAPH)) ? Var.alloc(opQuad.getQuad().getGraph()) : null);
-                    this.wrapped = backend.search(spoc.get(SPOC.SUBJECT), spoc.get(SPOC.PREDICATE), spoc.get(SPOC.OBJECT), spoc.get(SPOC.GRAPH));
-                }
-                default -> throw new UnsupportedOperationException("Operator not handle here: " + tripleOrQuad);
-            }
+            Tuple<ID> spo = Substitutor.substitute(triple.getTriple(), input, cache);
+            this.vars = TupleFactory.create3(
+                    triple.getTriple().getSubject().isVariable() && Objects.isNull(spo.get(SPOC.SUBJECT)) ? Var.alloc(triple.getTriple().getSubject()) : null,
+                    triple.getTriple().getPredicate().isVariable() && Objects.isNull(spo.get(SPOC.PREDICATE)) ? Var.alloc(triple.getTriple().getPredicate()) : null,
+                    triple.getTriple().getObject().isVariable() && Objects.isNull(spo.get(SPOC.OBJECT)) ? Var.alloc(triple.getTriple().getObject()) : null);
+            this.wrapped = backend.search(spo.get(SPOC.SUBJECT), spo.get(SPOC.PREDICATE), spo.get(SPOC.OBJECT));
         } catch (NotFoundException | IllegalArgumentException e) {
             this.vars = null;
             this.wrapped = null;
         }
 
-        if (Objects.nonNull(wrapped)) {
-            if (!wrapped.hasNext()) {
-                wrapped = null;
-            }
+        if (Objects.nonNull(wrapped) && !wrapped.hasNext()) { wrapped = null; }
+
+        this.offset = Objects.nonNull(this.context.getOffset()) ? this.context.getOffset() : 0;
+        this.id = this.offset;
+        this.siblings.put(id, this);
+
+        this.limit = this.context.getLimit(); // if null, stays null
+
+        if (Objects.nonNull(wrapped) && offset > 0) wrapped.skip(offset); // quick skip
+    }
+
+    public SpliteratorScan(PassageExecutionContext<ID,VALUE> context, BackendBindings<ID,VALUE> input, OpQuad quad) {
+        this.context = context;
+        this.backend = this.context.backend;
+        this.cache = this.context.cache;
+        this.op = quad;
+        this.input = input;
+
+        try {
+            Tuple<ID> spoc = Substitutor.substitute(quad.getQuad(), input, cache);
+            this.vars = TupleFactory.create4(
+                    quad.getQuad().getSubject().isVariable() && Objects.isNull(spoc.get(SPOC.SUBJECT)) ? Var.alloc(quad.getQuad().getSubject()) : null,
+                    quad.getQuad().getPredicate().isVariable() && Objects.isNull(spoc.get(SPOC.PREDICATE)) ? Var.alloc(quad.getQuad().getPredicate()) : null,
+                    quad.getQuad().getObject().isVariable() && Objects.isNull(spoc.get(SPOC.OBJECT)) ? Var.alloc(quad.getQuad().getObject()) : null,
+                    quad.getQuad().getGraph().isVariable() && Objects.isNull(spoc.get(SPOC.GRAPH)) ? Var.alloc(quad.getQuad().getGraph()) : null);
+            this.wrapped = backend.search(spoc.get(SPOC.SUBJECT), spoc.get(SPOC.PREDICATE), spoc.get(SPOC.OBJECT), spoc.get(SPOC.GRAPH));
+        } catch (NotFoundException | IllegalArgumentException e) {
+            this.vars = null;
+            this.wrapped = null;
         }
+
+        if (Objects.nonNull(wrapped) && !wrapped.hasNext()) { wrapped = null; }
 
         this.limit = this.context.getLimit(); // if null, stays null
         this.offset = Objects.nonNull(this.context.getOffset()) ? this.context.getOffset() : 0;
         this.id = this.offset;
         this.siblings.put(id, this);
 
-        if (this.context.backjump && Objects.isNull(wrapped)) { // no throw, no overhead
-            unregister();
-            getLazyProducedConsumed(input);
-            // throws immediately if there are no results, no need to try advance
-            if (!consumedVars.isEmpty()) {
-                throw new BackjumpException(consumedVars);
-            }
-        }
-
         if (Objects.nonNull(wrapped) && offset > 0) wrapped.skip(offset); // quick skip
     }
+
+    public Long getOffset() { return offset; }
+    public Long getLimit() { return limit; }
 
     /**
      * When parallel, it allows keeping track of all spliterators running for this
@@ -122,6 +127,8 @@ public class SpliteratorScan<ID,VALUE> implements Spliterator<BackendBindings<ID
         this.siblings.remove(id);
     }
 
+    /* ******************************* SPLITERATOR *********************************** */
+
     @Override
     public boolean tryAdvance(Consumer<? super BackendBindings<ID, VALUE>> action) {
         if (Objects.isNull(wrapped)) { unregister(); return false; }
@@ -136,36 +143,28 @@ public class SpliteratorScan<ID,VALUE> implements Spliterator<BackendBindings<ID
             offset += 1;
             if (Objects.nonNull(limit)) { limit -= 1 ; }
             wrapped.next();
-            if (context.maxScans != Long.MAX_VALUE) { context.scans.getAndIncrement(); } // don't even try if not useful
+            context.incrementNbScans();
+
             BackendBindings<ID, VALUE> newBinding = context.bindingsFactory.get();
-
-            if (Objects.nonNull(vars.get(SPOC.SUBJECT))) { // ugly x4
-                newBinding.put(vars.get(SPOC.SUBJECT), wrapped.getId(SPOC.SUBJECT), context.backend).setCode(vars.get(SPOC.SUBJECT), SPOC.SUBJECT);
-            }
-            if (Objects.nonNull(vars.get(SPOC.PREDICATE))) {
-                newBinding.put(vars.get(SPOC.PREDICATE), wrapped.getId(SPOC.PREDICATE), context.backend).setCode(vars.get(SPOC.PREDICATE), SPOC.PREDICATE);
-            }
-            if (Objects.nonNull(vars.get(SPOC.OBJECT))) {
-                newBinding.put(vars.get(SPOC.OBJECT), wrapped.getId(SPOC.OBJECT), context.backend).setCode(vars.get(SPOC.OBJECT), SPOC.OBJECT);
-            }
-            if (vars.len() > 3 && Objects.nonNull(vars.get(SPOC.GRAPH))) {
-                newBinding.put(vars.get(SPOC.GRAPH), wrapped.getId(SPOC.GRAPH), context.backend).setCode(vars.get(SPOC.GRAPH), SPOC.GRAPH);
-            }
-
-            try {
-                action.accept(newBinding.setParent(input));
-            } catch (BackjumpException bje) {
-                getLazyProducedConsumed(input);
-                if (producedVars.stream().noneMatch(bje.problematicVariables::contains)) {
-                    unregister();
-                    throw bje; // forward the exception
-                }
-            }
+            Arrays.stream(SPOC.spoc).forEach(code -> registerMapping(newBinding, code));
+            action.accept(newBinding.setParent(input));
             return true;
         }
 
         unregister();
         return false;
+    }
+
+    /**
+     * Utils to register a mapping key->value in the binding being constructed.
+     * @param newBinding The mapping being constructed.
+     * @param code The SPOC code of the value to add, e.g., SPOC.SUBJECT.
+     */
+    public void registerMapping(BackendBindings<ID,VALUE> newBinding, int code) {
+        if ((code != SPOC.GRAPH && Objects.nonNull(vars.get(code))) || // spo
+                (code == SPOC.GRAPH && vars.len() > 3 && Objects.nonNull(vars.get(code)))) { // spoc
+            newBinding.put(vars.get(code), wrapped.getId(code), context.backend).setCode(vars.get(code), code);
+        }
     }
 
     @Override
@@ -186,7 +185,11 @@ public class SpliteratorScan<ID,VALUE> implements Spliterator<BackendBindings<ID
 
         this.limit = splitIndex - offset;
 
-        return new SpliteratorScan<>(newContext, input, op).register(this.siblings);
+        return switch (op) {
+            case OpTriple t -> new SpliteratorScan<>(newContext, input, t).register(this.siblings);
+            case OpQuad q -> new SpliteratorScan<>(newContext, input, q).register(this.siblings);
+            default -> throw new IllegalStateException("Scan does not handle " + op);
+        };
     }
 
     @Override
@@ -222,49 +225,5 @@ public class SpliteratorScan<ID,VALUE> implements Spliterator<BackendBindings<ID
         } else { // if either LIMIT or OFFSET, we need to create a subquery
             return new OpSlice(toSave, newOffset, newLimit);
         }
-    }
-
-    /* *********************************** UTILS ************************************ */
-
-    private void getLazyProducedConsumed(BackendBindings<ID,VALUE> input) {
-        if (Objects.nonNull(this.producedVars)) { return ; }
-        this.producedVars = switch (op) {
-            case OpTriple triple -> {
-                Set<Var> _producedVars = VarUtils.getVars(triple.getTriple());
-                _producedVars.removeAll(input.variables());
-                yield _producedVars;
-            }
-            case OpQuad quad -> {
-                Set<Var> _producedVars = VarUtils.getVars(quad.getQuad().asTriple());
-                if (quad.getQuad().getGraph() instanceof Var _v) {
-                    _producedVars.add(_v);
-                }
-                _producedVars.removeAll(input.variables());
-                yield _producedVars;
-            }
-            case OpTable table -> {
-                Set<Var> _producedVars = new HashSet<>(table.getTable().getVars());
-                _producedVars.removeAll(input.variables());
-                yield _producedVars;
-            }
-            default -> Set.of();
-        };
-        this.consumedVars = switch (op) {
-            case OpTriple triple -> {
-                Set<Var> _consumedVars = VarUtils.getVars(triple.getTriple());
-                _consumedVars.removeAll(producedVars);
-                yield _consumedVars;
-            }
-            default -> Set.of();
-        };
-    }
-
-
-    public Long getOffset() {
-        return offset;
-    }
-
-    public Long getLimit() {
-        return limit;
     }
 }
