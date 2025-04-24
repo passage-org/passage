@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class RandomBGPTest {
 
-    private static final Logger logger = LoggerFactory.getLogger(RandomBGPTest.class);
+    private static final Logger log = LoggerFactory.getLogger(RandomBGPTest.class);
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#rawNoLimit")
@@ -48,7 +48,7 @@ class RandomBGPTest {
         String queryAsString = "SELECT * WHERE { ?p <http://address> ?c }";
 
         var results = ExecutorUtils.executeOnce(queryAsString, builder);
-        logger.debug(results.toString());
+        log.debug(results.toString());
         assertEquals(3, results.elementSet().size()); // whp
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "c"),
                 List.of("Alice", "nantes"),
@@ -66,7 +66,7 @@ class RandomBGPTest {
         String queryAsString = "SELECT * WHERE { ?p <http://address> ?c . ?p <http://own> ?a }";
 
         var results = ExecutorUtils.executeOnce(queryAsString, builder);
-        logger.debug(results.toString());
+        log.debug(results.toString());
         assertEquals(3, results.elementSet().size()); // whp
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "c", "a"),
                 List.of("Alice", "nantes", "snake"),
@@ -83,7 +83,7 @@ class RandomBGPTest {
         String queryAsString = "SELECT * WHERE { ?p <http://own> ?a . ?a <http://species> ?s}";
 
         var results = ExecutorUtils.executeOnce(queryAsString, builder);
-        logger.debug(results.toString());
+        log.debug(results.toString());
         assertEquals(3, results.elementSet().size()); // whp
         assertTrue(MultisetResultChecking.containsAllResults(results, List.of("p", "a", "s"),
                 List.of("Alice", "snake", "reptile"),

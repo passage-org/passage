@@ -6,12 +6,15 @@ import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.transforms.DefaultGraphUriQueryModifier;
 import fr.gdd.passage.random.push.streams.SpliteratorRawScan;
 import fr.gdd.passage.random.push.streams.StreamJoin;
+import fr.gdd.passage.random.push.streams.StreamRawCount;
 import fr.gdd.passage.random.push.streams.StreamRawRoot;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutor;
 import fr.gdd.passage.volcano.exceptions.InvalidContexException;
 import fr.gdd.passage.volcano.exceptions.PauseException;
 import fr.gdd.passage.volcano.push.streams.PausableStream;
+import fr.gdd.passage.volcano.push.streams.PausableStreamExtend;
+import fr.gdd.passage.volcano.push.streams.PausableStreamProject;
 import fr.gdd.passage.volcano.push.streams.PausableStreamWrapper;
 import org.apache.jena.sparql.algebra.Op;
 
@@ -20,6 +23,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
+/**
+ * An executor that focuses on approximate query processing. It relies on random walks
+ * on the dataset graph, guided by the SPARQL query as input.
+ */
 public class PassRawPushExecutor<ID,VALUE> extends BackendPushExecutor<ID,VALUE> implements PassageExecutor<ID,VALUE> {
 
     final PassageExecutionContext<ID,VALUE> context;
@@ -29,19 +36,19 @@ public class PassRawPushExecutor<ID,VALUE> extends BackendPushExecutor<ID,VALUE>
     public PassRawPushExecutor(PassageExecutionContext<ID,VALUE> ec) {
         super(ec,
                 (c,i,o) -> new StreamRawRoot<>((PassageExecutionContext<ID, VALUE>) c, i, o),
-                null,
+                (c,i,o) -> new PausableStreamProject<>((PassageExecutionContext<ID, VALUE>) c, i, o),
                 (c,i,o) -> new PausableStreamWrapper<>((PassageExecutionContext<ID, VALUE>) c, i, o, SpliteratorRawScan::new),
                 (c,i,o) -> new PausableStreamWrapper<>((PassageExecutionContext<ID, VALUE>) c, i, o, SpliteratorRawScan::new),
                 (c,i,o) -> new StreamJoin<>((PassageExecutionContext<ID, VALUE>) c, i, o),
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
+                null /* unions */,
+                null /* values */,
+                (c,i,o) -> new PausableStreamExtend<>((PassageExecutionContext<ID, VALUE>) c, i, o) /* binds */,
+                null /* filters */,
+                null /* distincts */,
+                null /* limit offsets */,
+                null /* optionals */,
+                (c,i,o) -> new StreamRawCount<>((PassageExecutionContext<ID, VALUE>) c, i, o) /* counts */,
+                null /* services */
         );
         this.context = ec;
         this.context.getContext().set(BackendConstants.EXECUTOR, this); // TODO, let a super do the job
