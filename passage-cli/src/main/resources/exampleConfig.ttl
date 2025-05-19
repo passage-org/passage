@@ -51,6 +51,7 @@ PREFIX psg:     <http://fr.gdd.passage/engine-vocabulary#>
 :dataset_watdiv rdf:type psg:DatasetBlazegraph ;
     psg:location           "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.properties" ;
     psg:timeout            1000 ;
+    psg:max_results        10000 ;
     psg:engine             psg:PassageEngine ;
     .
 

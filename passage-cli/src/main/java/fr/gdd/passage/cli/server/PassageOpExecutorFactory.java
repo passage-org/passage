@@ -40,8 +40,8 @@ public class PassageOpExecutorFactory implements OpExecutorFactory {
 
         final PassagePushExecutor<?,?> executor;
 
-        private static final Symbol userTimeoutSymbol = Symbol.create("userTimeout");
-        private static final Symbol userMaxResultsSymbol = Symbol.create("userMaxResults");
+        private static final Symbol userTimeoutSymbol = Symbol.create("timeout");
+        private static final Symbol userMaxResultsSymbol = Symbol.create("limit");
 
         public OpExecutorWrapper(ExecutionContext ec) {
             super(ec);

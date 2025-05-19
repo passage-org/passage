@@ -16,8 +16,8 @@ PREFIX psg:     <http://fr.gdd.passage/engine-vocabulary#>
 
 [] rdf:type fuseki:Server ;
    fuseki:services (
-     #:service_watdiv
-     :service_wikidata
+     :service_watdiv
+#     :service_wikidata
    )
    .
 
@@ -48,6 +48,7 @@ PREFIX psg:     <http://fr.gdd.passage/engine-vocabulary#>
 #    psg:location           "/DATA/datasets/watdiv10m-blaze/watdiv10M.jnl" ;
     psg:location           "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.properties" ;
     psg:timeout            1000 ;
+    psg:max_results        10000 ;
     psg:engine             psg:PassageEngine ;
     .
 
@@ -55,6 +56,6 @@ PREFIX psg:     <http://fr.gdd.passage/engine-vocabulary#>
 #    psg:location           "/DATA/projects/ingester/RWStore.properties" ;
     psg:location           "/Users/nedelec-b-2/Desktop/Projects/temp/ingester/RWStore.properties" ;
     psg:timeout            60000 ;
-    psg:max_results        10000 ;
+    psg:max_results        100000 ;
     psg:engine             psg:PassageEngine ;
     .
