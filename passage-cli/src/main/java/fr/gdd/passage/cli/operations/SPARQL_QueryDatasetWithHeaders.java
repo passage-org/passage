@@ -1,12 +1,22 @@
 package fr.gdd.passage.cli.operations;
 
+import fr.gdd.passage.commons.generics.BackendConstants;
 import jakarta.servlet.http.HttpServletRequest;
+import org.apache.jena.fuseki.servlets.ActionErrorException;
 import org.apache.jena.fuseki.servlets.HttpAction;
 import org.apache.jena.fuseki.servlets.SPARQL_QueryDataset;
+import org.apache.jena.fuseki.servlets.ServletOps;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.web.HttpNames;
 import org.apache.jena.sparql.util.Symbol;
 
+import java.io.StringWriter;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.apache.jena.atlas.lib.Lib.uppercase;
 
 /**
  * This allows requesters to put additional arguments within the headers of the HTTP request.
@@ -41,5 +51,42 @@ public class SPARQL_QueryDatasetWithHeaders extends SPARQL_QueryDataset {
         req.getParameterNames().asIterator().forEachRemaining(k -> k2v.put(k, req.getParameter(k)));
         req.getHeaderNames().asIterator().forEachRemaining(k -> k2v.put(k, req.getHeader(k)));
         return k2v;
+    }
+
+
+    // (mostly comes from Apache Jena's `SPARQLQueryProcessor`)
+    @Override
+    public void validate(HttpAction action) {
+        String method = uppercase(action.getRequestMethod());
+
+        if ( HttpNames.METHOD_OPTIONS.equals(method) )
+            return;
+
+        if ( !HttpNames.METHOD_POST.equals(method) && !HttpNames.METHOD_GET.equals(method) ) {
+            ServletOps.errorMethodNotAllowed("Not a GET or POST request");
+            return;
+        }
+
+        if ( HttpNames.METHOD_GET.equals(method) && action.getRequestQueryString() == null ) {
+            if (action.getContext().isDefined(BackendConstants.DESCRIPTION)) {
+                Model description = action.getContext().get(BackendConstants.DESCRIPTION);
+                // TODO not only as turtle, try to get the targeted content if possible
+                StringWriter sw = new StringWriter();
+                description.write(sw, Lang.TURTLE.getLabel());
+                action.setResponseContentType(Lang.TURTLE.getLabel());
+                ServletOps.writeMessagePlainTextError(action.getResponse(), sw.toString());
+            }
+            return; // 200
+        }
+
+        // Use of the dataset describing parameters is checked later.
+        try {
+            Collection<String> x = acceptedParams(action);
+            validateParams(action, x);
+            validateRequest(action);
+        } catch (ActionErrorException ex) {
+            throw ex;
+        }
+        // Query not yet parsed.
     }
 }

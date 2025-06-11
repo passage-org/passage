@@ -7,6 +7,7 @@ public class BackendConstants {
     public static final String systemVarNS = "https://passage.gdd.fr/Common#";
     public static final String passageSymbolPrefix = "common";
 
+    static public final Symbol DESCRIPTION = allocVariableSymbol("Description"); // the model describing the endpoint
     static public final Symbol EXECUTOR = allocConstantSymbol("Executor"); // The current executor executing
     static public final Symbol EXECUTOR_FACTORY = allocConstantSymbol("ExecutorFactory"); // Create executors
     static public final Symbol BACKEND = allocConstantSymbol("Backend"); // The backend in question

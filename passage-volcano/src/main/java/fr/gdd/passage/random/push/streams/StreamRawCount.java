@@ -59,7 +59,7 @@ public class StreamRawCount<ID,VALUE> implements PausableStream<ID,VALUE> {
 
     /* ******************************** UTIL *********************************** */
 
-    public static <ID,VALUE> Map<Var, BackendAccumulator<ID,VALUE>> createVar2Accumulator(PassageExecutionContext<ID,VALUE> context, List<ExprAggregator> aggregators) {
+    /*public static <ID,VALUE> Map<Var, BackendAccumulator<ID,VALUE>> createVar2Accumulator(PassageExecutionContext<ID,VALUE> context, List<ExprAggregator> aggregators) {
         Map<Var, BackendAccumulator<ID,VALUE>> var2accumulator = new HashMap<>();
         for (ExprAggregator agg : aggregators) {
             BackendAccumulator<ID,VALUE> sagerX = switch (agg.getAggregator()) {
@@ -77,5 +77,5 @@ public class StreamRawCount<ID,VALUE> implements PausableStream<ID,VALUE> {
             return new ImmutablePair<>(v, sagerX);
         }
         return null;
-    }
+    }*/
 }

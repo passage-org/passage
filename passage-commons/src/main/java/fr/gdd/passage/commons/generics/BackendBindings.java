@@ -341,7 +341,7 @@ public class BackendBindings<ID, VALUE> implements Binding {
 
 
     public Op toOp () {
-        return this.asValues(); // TODO depending on configuration
+        return this.asBindAs(); // TODO depending on configuration
     }
 
     /**

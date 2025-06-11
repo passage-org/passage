@@ -94,6 +94,16 @@ psg:force_order rdf:type rdf:Property ;
     rdfs:label       "Force order of triple/quad patterns"@en ;
     rdfs:comment     "Defines if the engine should try to optimize the join order or not."@en .
 
-## TODO describe supported operators
+## Description of supported operators
+## TODO do that for engines and not for datasets
+## TODO possibly use an already defined ontology for that
 
-## TODO Custom engines
+psg:description rdf:type rdf:Property ;
+    rdfs:label       "Describes the kind of service offered with SPARQL handled operators"@en ;
+    rdfs:comment     "Describes the features of the service."@en .
+
+psg:support rdf:type rdf:Property .
+
+psg:Operation rdf:type owl:Class .
+
+## TODO possibly go for <https://spinrdf.org/sp.html> instead of defining ourself operations

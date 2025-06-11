@@ -9,7 +9,13 @@ import fr.gdd.passage.commons.generics.BackendManager;
 import fr.gdd.passage.volcano.PassageConstants;
 import org.apache.jena.assembler.Assembler;
 import org.apache.jena.assembler.exceptions.AssemblerException;
+import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.QueryExecutionFactory;
+import org.apache.jena.query.QueryFactory;
 import org.apache.jena.rdf.model.Literal;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
@@ -18,10 +24,12 @@ import org.apache.jena.sparql.core.assembler.DatasetAssembler;
 import org.apache.jena.sparql.engine.main.QC;
 import org.apache.jena.sys.JenaSystem;
 
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
+import java.util.Stack;
 
-import static org.apache.jena.sparql.util.graph.GraphUtils.exactlyOneProperty;
-import static org.apache.jena.sparql.util.graph.GraphUtils.getStringValue;
+import static org.apache.jena.sparql.util.graph.GraphUtils.*;
 
 public class DatasetAssemblerBlazegraph extends DatasetAssembler {
     // This is not a NamedDatasetAssembler
@@ -66,6 +74,16 @@ public class DatasetAssemblerBlazegraph extends DatasetAssembler {
             throw new AssemblerException(root, "No valid engine given"); // unknown engine
         }
 
+        atmostOneProperty(root, PassageVocabulary.description);
+        try {
+            // TODO should not be here, should be in an assembler for Engines
+            Resource descriptionEntryPoint = getUniqueResource(root, PassageVocabulary.description);
+            Model description = getDescription(root.getModel(), descriptionEntryPoint);
+            dsg.getContext().put(BackendConstants.DESCRIPTION, description);
+        } catch (Exception e) {
+            // ignored
+        }
+
         // #B get its build argument
         Literal lTimeout = getUniqueLiteral(root, PassageVocabulary.timeout); // default unset
         if (Objects.nonNull(lTimeout)) { dsg.getContext().set(PassageConstants.TIMEOUT, lTimeout.getLong()); }
@@ -78,5 +96,37 @@ public class DatasetAssemblerBlazegraph extends DatasetAssembler {
 
         AssemblerUtils.mergeContext(root, dsg.getContext());
         return dsg;
+    }
+
+    /**
+     * Retrieves the description of the endpoint by performing the transitive closure
+     * on the description predicate.
+     * @param root The root model.
+     * @param entryPoint The object of the description predicate.
+     * @return The model containing all descriptive information about the endpoint.
+     */
+    public static Model getDescription(Model root, Resource entryPoint) {
+        Model description = ModelFactory.createDefaultModel();
+        Set<Resource> explored = new HashSet<>();
+        Stack<Resource> toExplore = new Stack<>();
+        toExplore.add(entryPoint);
+        while (!toExplore.empty()) {
+            Resource exploring = toExplore.pop();
+            explored.add(exploring); // only once
+            if (!exploring.isURIResource()){continue;}
+            String describeQuery = String.format("DESCRIBE <%s>", exploring);
+            Query query = QueryFactory.create(describeQuery);
+
+            try (QueryExecution qexec = QueryExecutionFactory.create(query, root)) {
+                Model result = qexec.execDescribe();
+                description = description.union(result);
+                result.listStatements().forEach(s -> {
+                    if (!explored.contains(s.getResource())) {
+                        toExplore.add(s.getResource());
+                    }
+                });
+            }
+        }
+        return description;
     }
 }

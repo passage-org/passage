@@ -5,6 +5,8 @@ PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX ja:      <http://jena.hpl.hp.com/2005/11/Assembler#>
 PREFIX tdb2:    <http://jena.apache.org/2016/tdb#>
 PREFIX psg:     <http://fr.gdd.passage/engine-vocabulary#>
+PREFIX sd:      <http://www.w3.org/ns/sparql-service-description#>
+PREFIX void:    <http://rdfs.org/ns/void#>
 
 ## For more information about Fuseki configurations, take a look at:
 ## <https://jena.apache.org/documentation/fuseki2/fuseki-configuration.html>
@@ -41,7 +43,6 @@ PREFIX psg:     <http://fr.gdd.passage/engine-vocabulary#>
     fuseki:dataset :dataset_wikidata ;
     .
 
-
 ## DATASETS
 
 :dataset_watdiv rdf:type psg:DatasetBlazegraph ;
@@ -50,6 +51,7 @@ PREFIX psg:     <http://fr.gdd.passage/engine-vocabulary#>
     psg:timeout            1000 ;
     psg:max_results        10000 ;
     psg:engine             psg:PassageEngine ;
+    psg:description        :watdiv_description ;
     .
 
 :dataset_wikidata rdf:type psg:DatasetBlazegraph ;
@@ -58,4 +60,24 @@ PREFIX psg:     <http://fr.gdd.passage/engine-vocabulary#>
     psg:timeout            60000 ;
     psg:max_results        100000 ;
     psg:engine             psg:PassageEngine ;
+    .
+
+## DESCRIPTIONS (take a look at: <https://www.w3.org/TR/sparql11-service-description/>)
+
+:watdiv_description rdf:type sd:Service ;
+    sd:endpoint          "watdiv/passage" ;
+    sd:supportedLanguage :passage-0.0.3 ;
+    ## TODO advertise random walk interface
+    .
+
+:passage-0.0.3 rdf:type sd:Language ;
+    psg:support psg:project ,
+                psg:values ,
+                psg:union ,
+                psg:join ,
+                psg:bgp ,
+                psg:pattern ,
+                psg:extend ,
+                psg:filter ,
+                psg:optional
     .
