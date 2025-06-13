@@ -3,38 +3,31 @@ package fr.gdd.passage.blazegraph;
 import com.bigdata.concurrent.TimeoutException;
 import com.bigdata.journal.Options;
 import com.bigdata.rdf.internal.IV;
-import com.bigdata.rdf.internal.impl.TermId;
-import com.bigdata.rdf.internal.impl.uri.VocabURIByteIV;
-import com.bigdata.rdf.model.BigdataLiteral;
+import com.bigdata.rdf.model.BigdataURI;
 import com.bigdata.rdf.model.BigdataValue;
 import com.bigdata.rdf.sail.BigdataSail;
 import com.bigdata.rdf.sail.BigdataSailRepository;
 import com.bigdata.rdf.sail.BigdataSailRepositoryConnection;
-import com.bigdata.rdf.spo.ISPO;
 import com.bigdata.rdf.store.AbstractTripleStore;
-import com.bigdata.relation.accesspath.IAccessPath;
-import com.bigdata.striterator.IChunkedOrderedIterator;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
+import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.commons.exceptions.NotFoundException;
-import fr.gdd.passage.commons.iterators.BackendLazyIterator;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
-import fr.gdd.passage.commons.interfaces.SPOC;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Value;
-import org.openrdf.model.impl.URIImpl;
+import fr.gdd.passage.commons.iterators.BackendLazyIterator;
 import org.openrdf.query.*;
 import org.openrdf.repository.RepositoryException;
-import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFParser;
-import org.openrdf.rio.RDFParserRegistry;
-import org.openrdf.rio.ntriples.NTriplesParser;
+import org.openrdf.rio.turtle.TurtleParser;
 import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.StringReader;
+import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Properties;
@@ -52,31 +45,46 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
 
     private final static Logger log = LoggerFactory.getLogger(BlazegraphBackend.class);
 
-    AbstractTripleStore store;
-    BigdataSailRepository repository;
-    BigdataSailRepositoryConnection connection;
+    final AbstractTripleStore store;
+    final BigdataSailRepository repository;
+    final BigdataSailRepositoryConnection connection;
+    final BigdataSail sail;
+    final static IV UNION_OF_GRAPHS = null; // TODO better handling of this, ie. comes from journal
 
+    // solely used to parse a term into a bigdatavalue
+
+
+    /**
+     * Creates an empty Blazegraph Backend, only useful for debug purpose
+     */
     public BlazegraphBackend() throws SailException, RepositoryException {
         System.setProperty("com.bigdata.Banner.quiet", "true"); // banner is annoying, sorry blazegraph
-        final Properties props = new Properties();
-        props.put(BigdataSail.Options.CREATE_TEMP_FILE, "true");
-        props.put(BigdataSail.Options.DELETE_ON_CLOSE, "true");
-        props.put(BigdataSail.Options.DELETE_ON_EXIT, "true");
+        final Properties props = BlazegraphInMemoryDatasetsFactory.getDefaultProps();
 
-        final BigdataSail sail = new BigdataSail(props);
+        this.sail = new BigdataSail(props);
         this.repository = new BigdataSailRepository(sail);
         sail.initialize();
         this.connection = repository.getReadOnlyConnection();
         store = connection.getTripleStore();
+
     }
 
     public BlazegraphBackend(String path) throws SailException, RepositoryException {
         System.setProperty("com.bigdata.Banner.quiet", "true"); // banner is annoying, sorry blazegraph
 
-        final Properties props = new Properties();
-        props.put(Options.FILE, path);
+        Properties props = new Properties();
+        if (path.endsWith(".properties")) {
+            try {
+                props.load(new FileReader(Path.of(path).toFile()));
+            } catch (IOException e) {
+                throw new RepositoryException(e);
+            }
+        } else {
+            // resort to default, with `path` being the file path.
+            props.put(Options.FILE, path);
+        }
 
-        final BigdataSail sail = new BigdataSail(props);
+        this.sail = new BigdataSail(props);
         this.repository = new BigdataSailRepository(sail);
         sail.initialize();
         this.connection = repository.getReadOnlyConnection();
@@ -89,18 +97,20 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
     public BlazegraphBackend(BigdataSail sail) throws RepositoryException {
         System.setProperty("com.bigdata.Banner.quiet", "true"); // banner is annoying, sorry blazegraph
         this.repository = new BigdataSailRepository(sail);
+        // this.connection = repository.getConnection();
         this.connection = repository.getReadOnlyConnection();
-        store = connection.getTripleStore();
+        this.store = connection.getTripleStore();
+        this.sail = sail;
     }
 
-    public void close() throws RepositoryException {
+    public void close() throws RepositoryException, SailException {
         connection.close();
-        store = null;
+        sail.shutDown();
     }
 
     @Override
     public BackendIterator<IV, BigdataValue, Long> search(IV s, IV p, IV o) {
-        return new BackendLazyIterator<>(this,new BlazegraphIterator(store, s, p, o, null));
+        return new BackendLazyIterator<>(this,new BlazegraphIterator(store, s, p, o, UNION_OF_GRAPHS));
     }
 
     @Override
@@ -138,36 +148,30 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
         }
     }
 
-    private static IV get(Value sOrPOrO) {
-        return switch (sOrPOrO) {
-            case TermId t -> t;
-            case VocabURIByteIV v -> v;
-            default -> TermId.fromString(sOrPOrO.toString());
-        };
-    }
-
-
     @Override
     public String getString(IV id, int... type) {
-        if (id.isURI()) {
-            return "<"+ store.getLexiconRelation().getTerm(id).toString() + ">";
-        } else {
-            return store.getLexiconRelation().getTerm(id).toString();
-        }
+        return getString(getValue(id, type));
+    }
+
+    public String getString(BigdataValue bigdataValue, int... type) {
+        return switch (bigdataValue) {
+            case BigdataURI uri ->  "<" + uri + ">";
+            default -> bigdataValue.toString();
+        };
     }
 
     @Override
     public BigdataValue getValue(IV iv, int... type) {
-        throw new UnsupportedOperationException("TODO"); // TODO
+        return store.getTerm(iv);
     }
 
     @Override
     public BigdataValue getValue(String valueAsString, int... type) {
-        GetValueStatementHandler handler = new GetValueStatementHandler();
-        //RDFParser parser = RDFParserRegistry.getInstance().get(RDFFormat.NTRIPLES).getParser();
-        final RDFParser parser = new NTriplesParser();
+        final RDFParser parser = new TurtleParser();
+        final GetValueStatementHandler handler = new GetValueStatementHandler();
         parser.setValueFactory(this.connection.getValueFactory());
         parser.setRDFHandler(handler);
+
         String fakeNTriple = "<:_> <:_> " + valueAsString + " .";
         try {
             parser.parse(new StringReader(fakeNTriple), "");
@@ -178,9 +182,15 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
     }
 
     @Override
-    public IV any() {
-        return null;
+    public IV any() { return null; }
+
+    // comes from : <https://github.com/blazegraph/database/blob/829ce8241ec29fddf7c893f431b57c8cf4221baf/bigdata-core/bigdata-rdf/src/java/com/bigdata/rdf/sparql/ast/eval/AST2BOpUpdateContext.java#L140>
+    public IV getDefaultGraph() {
+        BigdataURI nullGraph = store.getValueFactory().asValue(BigdataSail.NULL_GRAPH);
+        return store.addTerm(nullGraph);
     }
+
+    /* ****************************************************************************** */
 
     /**
      * For debug purposes, this executes the query using blazegraph's engine.

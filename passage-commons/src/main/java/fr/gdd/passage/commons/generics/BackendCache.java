@@ -24,14 +24,23 @@ public class BackendCache<ID,VALUE> {
 
     public ID getId(Node node, Integer spoc) {
         ID id = node2id.get(node);
+        ID id2 = null;
 
         if (Objects.isNull(id)) {
             if (node.isURI()) { // ugly…
                 id = backend.getId("<" + node + ">", spoc);
+
+                String str = backend.getString(id, spoc);
+                id2 = backend.getId(str, spoc);
+                String str2 = backend.getString(id2);
+                if(!Objects.equals(id, id2)){
+                    System.out.println(str);
+                    System.out.println(str2);
+                }
             } else {
                 id = backend.getId(node.toString(), spoc);
             }
-            node2id.put(node, id);
+            // node2id.put(node, id);
         }
 
         return id;
