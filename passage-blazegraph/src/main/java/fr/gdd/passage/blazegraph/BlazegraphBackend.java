@@ -50,10 +50,6 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
     final IV defaultGraph; // TODO better handling of this, ie. comes from journal
     final static IV UNION_OF_GRAPHS = null; // TODO better handling of this, ie. comes from journal
 
-    // solely used to parse a term into a bigdatavalue
-    final RDFParser parser = new TurtleParser();
-    final GetValueStatementHandler handler = new GetValueStatementHandler();
-
     /**
      * Creates an empty Blazegraph Backend, only useful for debug purpose
      */
@@ -67,8 +63,6 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
         this.connection = repository.getReadOnlyConnection();
         store = connection.getTripleStore();
         defaultGraph = getDefaultGraph();
-        parser.setValueFactory(this.connection.getValueFactory());
-        parser.setRDFHandler(handler);
 
     }
 
@@ -100,8 +94,6 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
         this.connection = repository.getReadOnlyConnection();
         store = connection.getTripleStore();
         defaultGraph = getDefaultGraph();
-        parser.setValueFactory(this.connection.getValueFactory());
-        parser.setRDFHandler(handler);
     }
 
     /**
@@ -116,8 +108,6 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
         this.store = connection.getTripleStore();
         this.sail = sail;
         defaultGraph = getDefaultGraph();
-        parser.setValueFactory(this.connection.getValueFactory());
-        parser.setRDFHandler(handler);
     }
 
     @Override
@@ -191,6 +181,13 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
 
     @Override
     public BigdataValue getValue(String valueAsString, int... type) {
+        // solely used to parse a term into a bigdatavalue
+        // Though inefficient, we need to resintantiate the parser for every call of this function to avoid concurrency
+        // issues. Without this block, two different threads calling getValue() may get their return values mixed up.
+         final RDFParser parser = new TurtleParser(this.connection.getValueFactory());
+        final GetValueStatementHandler handler = new GetValueStatementHandler();
+        parser.setRDFHandler(handler);
+
         String fakeNTriple = "<:_> <:_> " + valueAsString + " .";
         try {
             parser.parse(new StringReader(fakeNTriple), "");
