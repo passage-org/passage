@@ -53,7 +53,6 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
 
     // solely used to parse a term into a bigdatavalue
 
-
     /**
      * Creates an empty Blazegraph Backend, only useful for debug purpose
      */
@@ -167,9 +166,8 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue, Long> {
 
     @Override
     public BigdataValue getValue(String valueAsString, int... type) {
-        final RDFParser parser = new TurtleParser();
+        final RDFParser parser = new TurtleParser(this.connection.getValueFactory());
         final GetValueStatementHandler handler = new GetValueStatementHandler();
-        parser.setValueFactory(this.connection.getValueFactory());
         parser.setRDFHandler(handler);
 
         String fakeNTriple = "<:_> <:_> " + valueAsString + " .";
