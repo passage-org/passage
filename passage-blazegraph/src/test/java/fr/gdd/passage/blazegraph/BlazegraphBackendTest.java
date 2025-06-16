@@ -16,6 +16,7 @@ import fr.gdd.passage.commons.interfaces.SPOC;
 import fr.gdd.passage.commons.iterators.BackendLazyIterator;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.MalformedQueryException;
@@ -106,6 +107,19 @@ public class BlazegraphBackendTest {
         BigdataValue uri = bb.getValue("<https://uri>");
         assertInstanceOf(BigdataURI.class, uri);
         assertEquals("<https://uri>", bb.getString(uri));
+        bb.close();
+    }
+
+    public void repeatedly_get_id_and_string ( ) throws RepositoryException, SailException {
+        // The issue was actually coming from parallel execution while the
+        // parser was shared. Which was mixing the results of getId getString
+        BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+        IV nantes = bb.getId("<http://nantes>", SPOC.OBJECT);
+        String nantesAsString = bb.getString(nantes, SPOC.OBJECT);
+        IV nantes2 = bb.getId(nantesAsString, SPOC.OBJECT);
+        String nantesAsString2 = bb.getString(nantes2, SPOC.OBJECT);
+        assertEquals(nantesAsString2, nantesAsString);
+        assertEquals(nantes2, nantes);
         bb.close();
     }
 

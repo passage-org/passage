@@ -75,6 +75,9 @@ public class SPARQL_QueryDatasetWithHeaders extends SPARQL_QueryDataset {
                 description.write(sw, Lang.TURTLE.getLabel());
                 action.setResponseContentType(Lang.TURTLE.getLabel());
                 ServletOps.writeMessagePlainTextError(action.getResponse(), sw.toString());
+            } else {
+                ServletOps.warning(action, "Service Description / SPARQL Query / " + action.getRequestRequestURI());
+                ServletOps.errorNotFound("Service Description: " + action.getRequestRequestURI());
             }
             return; // 200
         }
