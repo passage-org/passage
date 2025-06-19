@@ -8,6 +8,7 @@ import fr.gdd.passage.volcano.querypatterns.IsGroupByQuery;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpJoin;
 import org.apache.jena.sparql.algebra.op.OpProject;
+import org.apache.jena.sparql.algebra.op.OpSlice;
 
 import java.util.stream.Stream;
 
@@ -46,6 +47,14 @@ public class PausableStreamProject<ID,VALUE> implements PausableStream<ID,VALUE>
             Op groupByToKeep = join.getRight();
 
             return OpJoin.create(inputToPushUp, OpCloningUtil.clone(project, groupByToKeep));
+        }
+
+        // when we have a pattern like:
+        // `SELECT ?s ?p ?o { SELECT * WHERE { ?s ?p ?o } OFFSET 100 } ` (the second SELECT comes from the slice)
+        // we invert the slice and project so it becomes:
+        // `SELECT ?s ?p ?o WHERE { ?s ?p ?o } OFFSET 100`
+        if (subop instanceof OpSlice slice) {
+            return OpCloningUtil.clone(slice, OpCloningUtil.clone(project, slice.getSubOp()));
         }
 
         return OpCloningUtil.clone(project, subop);

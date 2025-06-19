@@ -110,6 +110,7 @@ public class BlazegraphBackendTest {
         bb.close();
     }
 
+    @RepeatedTest(10)
     public void repeatedly_get_id_and_string ( ) throws RepositoryException, SailException {
         // The issue was actually coming from parallel execution while the
         // parser was shared. Which was mixing the results of getId getString
