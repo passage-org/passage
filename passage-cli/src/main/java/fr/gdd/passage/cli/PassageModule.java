@@ -20,7 +20,7 @@ import java.util.Objects;
 
 public class PassageModule implements FusekiModule {
 
-    private static PassageModule singleton;
+    protected static PassageModule singleton;
 
 //    public final static ArgDecl argDatabase = new ArgDecl(ArgDecl.HasValue, "database");
 //    public final static ArgDecl argThreads = new ArgDecl(ArgDecl.NoValue, "threads");

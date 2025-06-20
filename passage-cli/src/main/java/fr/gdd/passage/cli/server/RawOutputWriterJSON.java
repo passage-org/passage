@@ -1,4 +1,4 @@
-package fr.gdd.raw.cli.server;
+package fr.gdd.passage.cli.server;
 
 import fr.gdd.passage.commons.io.ModuleOutputWriter;
 import fr.gdd.raw.executor.RawConstants;

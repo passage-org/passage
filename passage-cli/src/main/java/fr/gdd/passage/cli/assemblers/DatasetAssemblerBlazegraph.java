@@ -3,10 +3,12 @@ package fr.gdd.passage.cli.assemblers;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.blazegraph.BlazegraphBackendFactory;
 import fr.gdd.passage.cli.server.PassageOpExecutorFactory;
+import fr.gdd.passage.cli.server.RawOpExecutorFactory;
 import fr.gdd.passage.cli.vocabularies.PassageVocabulary;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.generics.BackendManager;
 import fr.gdd.passage.volcano.PassageConstants;
+import fr.gdd.raw.executor.RawConstants;
 import org.apache.jena.assembler.Assembler;
 import org.apache.jena.assembler.exceptions.AssemblerException;
 import org.apache.jena.query.Query;
@@ -69,7 +71,7 @@ public class DatasetAssemblerBlazegraph extends DatasetAssembler {
         if (Objects.isNull(lEngine) || lEngine.equals(PassageVocabulary.PassageEngine)) {
             QC.setFactory(dsg.getContext(), new PassageOpExecutorFactory()); // is also the default if none is given
         } else if (lEngine.equals(PassageVocabulary.RawEngine)) {
-            throw new UnsupportedOperationException("Raw is not supported yet.");
+            QC.setFactory(dsg.getContext(), new RawOpExecutorFactory());
         } else {
             throw new AssemblerException(root, "No valid engine given"); // unknown engine
         }
@@ -86,9 +88,9 @@ public class DatasetAssemblerBlazegraph extends DatasetAssembler {
 
         // #B get its build argument
         Literal lTimeout = getUniqueLiteral(root, PassageVocabulary.timeout); // default unset
-        if (Objects.nonNull(lTimeout)) { dsg.getContext().set(PassageConstants.TIMEOUT, lTimeout.getLong()); }
+        if (Objects.nonNull(lTimeout)) { dsg.getContext().set(PassageConstants.TIMEOUT, lTimeout.getLong()); dsg.getContext().put(RawConstants.TIMEOUT, lTimeout.getLong()); }
         Literal lMaxResults = getUniqueLiteral(root, PassageVocabulary.max_results); // default unset
-        if (Objects.nonNull(lMaxResults)) { dsg.getContext().set(PassageConstants.MAX_RESULTS, lMaxResults.getLong()); }
+        if (Objects.nonNull(lMaxResults)) { dsg.getContext().set(PassageConstants.MAX_RESULTS, lMaxResults.getLong()); dsg.getContext().put(RawConstants.ATTEMPT_LIMIT, lMaxResults.getLong()); }
         Literal lForceOrder = getUniqueLiteral(root, PassageVocabulary.force_order); // default false
         dsg.getContext().set(PassageConstants.FORCE_ORDER, !Objects.isNull(lForceOrder) && lForceOrder.getBoolean());
         Literal lParallel = getUniqueLiteral(root, PassageVocabulary.parallel); // default 1

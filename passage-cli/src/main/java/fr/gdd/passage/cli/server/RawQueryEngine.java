@@ -1,4 +1,4 @@
-package fr.gdd.raw.cli.server;
+package fr.gdd.passage.cli.server;
 
 import org.apache.jena.query.Query;
 import org.apache.jena.sparql.algebra.Op;

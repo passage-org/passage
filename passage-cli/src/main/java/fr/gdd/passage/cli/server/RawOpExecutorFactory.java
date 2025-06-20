@@ -1,4 +1,4 @@
-package fr.gdd.raw.cli.server;
+package fr.gdd.passage.cli.server;
 
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;

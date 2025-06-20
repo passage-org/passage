@@ -77,7 +77,7 @@
                             <appendAssemblyId>false</appendAssemblyId>
                             <archive>
                                 <manifest>
-                                    <mainClass>fr.gdd.raw.cli.RawCLI</mainClass>
+                                    <mainClass>fr.gdd.passage.cli.RawCLI</mainClass>
                                 </manifest>
                             </archive>
                             <finalName>raw</finalName>
@@ -96,7 +96,7 @@
                             <appendAssemblyId>false</appendAssemblyId>
                             <archive>
                                 <manifest>
-                                    <mainClass>fr.gdd.raw.cli.RawServerCLI</mainClass>
+                                    <mainClass>fr.gdd.passage.cli.RawServerCLI</mainClass>
                                 </manifest>
                             </archive>
                             <finalName>raw-server</finalName>
