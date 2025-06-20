@@ -31,6 +31,10 @@ public class OpCloningUtil {
         return OpLeftJoin.createLeftJoin(left, right, lj.getExprs());
     }
 
+    public static OpLeftJoinFail clone(OpLeftJoinFail ljf, Op left, Op right) {
+        return OpLeftJoinFail.createLeftJoinFail(left, right, ljf.getExprs());
+    }
+
     public static OpConditional clone(OpConditional lj, Op left, Op right) {
         return new OpConditional(left, right);
     }

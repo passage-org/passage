@@ -54,10 +54,11 @@ public class RandomRoot<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE
             if(current.hasNext()) {
                 produced = current.next();
             } else {
+                RawConstants.incrementRandomWalkAttempts(context);
                 current = null;
             }
 
-            RawConstants.incrementRandomWalkAttempts(context);
+
         }
         return true;
     }
@@ -73,17 +74,23 @@ public class RandomRoot<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE
     public BackendBindings<ID, VALUE> next() {
         ++count;
         BackendBindings<ID, VALUE> toReturn = produced; // ugly :(
+
         produced = null;
 
-        WanderJoin wj = new WanderJoin<>(context.getContext().get(RawConstants.SAVER));
-        try{
-            Double proba = (Double) wj.visit(((BackendSaver) context.getContext().get(RawConstants.SAVER)).getRoot());
-            RawConstants.saveScanProbabilities(context, proba);
-        }catch (Exception e){
-            // TODO : to remove eventually, useful for debugging while still in the works
-            // System.out.println("Can't execute wander join on " + e.getMessage());
-        }
+        BackendSaver bs = context.getContext().get(RawConstants.SAVER);
 
+        WanderJoin wj = new WanderJoin<>(bs);
+
+        try{
+            Double proba = (Double) wj.visit(bs.getRoot());
+            RawConstants.saveScanProbabilities(context, proba);
+
+            toReturn.put(RawConstants.MAPPING_PROBABILITY, new BackendBindings.IdValueBackend<ID,VALUE>().setString(proba.toString()));
+
+        }catch (Exception e){
+            // nothing to do, we end here when the iterator tree contains an operator for which computing a probability
+            // for wander join has not been implemented.
+        }
         return toReturn;
     }
 }

@@ -99,6 +99,7 @@ public class RandomScan<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE
     }
 
     public double getProbability() {
+        //if currentProbability == null throw new NullProbaException()
         return currentProbability;
     }
 

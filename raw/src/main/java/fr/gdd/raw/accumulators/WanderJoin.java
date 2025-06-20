@@ -1,5 +1,6 @@
 package fr.gdd.raw.accumulators;
 
+import fr.gdd.jena.utils.OpLeftJoinFail;
 import fr.gdd.jena.visitors.ReturningOpVisitor;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
 import fr.gdd.passage.commons.generics.BackendSaver;
@@ -53,6 +54,26 @@ public class WanderJoin<ID, VALUE> extends ReturningOpVisitor<Double> {
         if (table.isJoinIdentity()) {
             return 1.;
         }
-        throw new UnsupportedOperationException("Tables are not handled properly yet…");
+        return table.getTable().size() == 0 ? 0.0 : 1.0 / table.getTable().size();
+    }
+
+    @Override
+    public Double visit(OpFilter filter) {
+        // TODO : make sure this is correct?
+        // answer : yes it is. For one random walk, it is true that this way look weird, but at the scale of an entire
+        // wander join, the increasing number of fail because of the filter will balance the overestimated probability
+        return 1. * ReturningOpVisitorRouter.visit(this, filter.getSubOp());
+    }
+
+    @Override
+    public Double visit(OpLeftJoin leftJoin) {
+        Double leftProba = ReturningOpVisitorRouter.visit(this, leftJoin.getLeft());
+        try {
+            Double rightProba = ReturningOpVisitorRouter.visit(this, leftJoin.getRight());
+            return leftProba * rightProba;
+        } catch (Exception e) {
+            if(leftJoin instanceof OpLeftJoinFail) return 0.0;
+            return leftProba;
+        }
     }
 }

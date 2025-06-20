@@ -1,6 +1,7 @@
 package fr.gdd.jena.visitors;
 
 import fr.gdd.jena.utils.OpCloningUtil;
+import fr.gdd.jena.utils.OpLeftJoinFail;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
 
@@ -56,6 +57,9 @@ public class ReturningOpBaseVisitor extends ReturningOpVisitor<Op> {
 
     @Override
     public Op visit(OpLeftJoin lj) {
+        if(lj instanceof OpLeftJoinFail)
+            return OpCloningUtil.clone((OpLeftJoinFail) lj, ReturningOpVisitorRouter.visit(this, lj.getLeft()),
+                    ReturningOpVisitorRouter.visit(this, lj.getRight()));
         return OpCloningUtil.clone(lj, ReturningOpVisitorRouter.visit(this, lj.getLeft()),
                 ReturningOpVisitorRouter.visit(this, lj.getRight()));
     }
