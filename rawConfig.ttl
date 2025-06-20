@@ -42,7 +42,7 @@ PREFIX psg:     <http://fr.gdd.passage/engine-vocabulary#>
 
 :dataset_fedshop200 rdf:type psg:DatasetBlazegraph ;
     psg:location           "/Users/boisteau-desdevises-e/Documents/datasets/fedshop200.properties" ;
-    psg:timeout            1 ;
+    psg:timeout            10000 ;
     psg:max_results        10 ;
     psg:engine             psg:RawEngine ;
     .

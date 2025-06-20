@@ -2,11 +2,11 @@ package fr.gdd.raw.executor;
 
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
+import fr.gdd.passage.commons.engines.BackendPullExecutor;
 import fr.gdd.passage.commons.factories.BackendNestedLoopJoinFactory;
 import fr.gdd.passage.commons.factories.IBackendBindsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendCache;
-import fr.gdd.passage.commons.engines.BackendPullExecutor;
 import fr.gdd.passage.commons.generics.BackendSaver;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.iterators.BackendBind;
@@ -16,11 +16,6 @@ import fr.gdd.passage.commons.transforms.BGP2Triples;
 import fr.gdd.passage.commons.transforms.DefaultGraphUriQueryModifier;
 import fr.gdd.passage.commons.transforms.Graph2Quads;
 import fr.gdd.passage.commons.transforms.Triples2BGP;
-import fr.gdd.passage.commons.transforms.DefaultGraphUriQueryModifier;
-import fr.gdd.passage.volcano.optimizers.CardinalityJoinOrdering;
-import fr.gdd.passage.volcano.transforms.BGP2Triples;
-import fr.gdd.passage.volcano.transforms.Graph2Quads;
-import fr.gdd.passage.volcano.transforms.Triples2BGP;
 import fr.gdd.raw.LeftJoinizeNonGroupKeys;
 import fr.gdd.raw.accumulators.AccumulatorFactory;
 import fr.gdd.raw.budgeting.NaiveBudgeting;
@@ -57,7 +52,7 @@ public class RawOpExecutor<ID, VALUE> extends BackendPullExecutor<ID, VALUE> { /
         super(context, BackendProject.factory(), RandomScanFactory.tripleFactory(),
                 RandomScanFactory.quadFactory(), new BackendNestedLoopJoinFactory<>(), null, RandomValues.factory(),
                 BackendBind.factory(), BackendFilter.factory(), null,
-                null, RawOptional.factory(), null);
+                null, RawOptional.factory(), null, null);
         this.execCxt = context;
         this.execCxt.getContext().setIfUndef(RawConstants.SCAN_PROBABILITIES, new ArrayList<>());
         this.execCxt.getContext().setIfUndef(RawConstants.RANDOM_WALK_ATTEMPTS, new RawConstants.Wrapper<Long>(0L));
@@ -71,7 +66,7 @@ public class RawOpExecutor<ID, VALUE> extends BackendPullExecutor<ID, VALUE> { /
         super(new ExecutionContext(DatasetFactory.empty().asDatasetGraph()), BackendProject.factory(), RandomScanFactory.tripleFactory(),
                 RandomScanFactory.quadFactory(), new BackendNestedLoopJoinFactory<>(), null, RandomValues.factory(),
                 BackendBind.factory(), BackendFilter.factory(), null,
-                null, RawOptional.factory(), null);
+                null, RawOptional.factory(), null, null);
 
         execCxt = context;
 

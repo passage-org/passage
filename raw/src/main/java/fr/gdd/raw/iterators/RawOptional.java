@@ -1,18 +1,16 @@
 package fr.gdd.raw.iterators;
 
-import fr.gdd.passage.commons.generics.BackendBindings;
+import fr.gdd.passage.commons.engines.BackendPullExecutor;
 import fr.gdd.passage.commons.factories.IBackendOptionalsFactory;
+import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendCache;
 import fr.gdd.passage.commons.generics.BackendConstants;
-import fr.gdd.passage.commons.generics.BackendOpExecutor;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.raw.executor.RawConstants;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.engine.ExecutionContext;
 
 import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
 
 public class RawOptional<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE>> {
 
@@ -21,7 +19,7 @@ public class RawOptional<ID, VALUE> implements Iterator<BackendBindings<ID, VALU
     private final ExecutionContext execCxt;
     private Iterator<BackendBindings<ID, VALUE>> currentOptionalResults;
     private BackendBindings<ID, VALUE> nextBinding;
-    final Backend<ID, VALUE, ?> backend;
+    final Backend<ID, VALUE> backend;
     final BackendCache<ID,VALUE> cache;
 
     public RawOptional(Iterator<BackendBindings<ID, VALUE>> leftInput, Op optionalOp, ExecutionContext execCxt) {
@@ -44,7 +42,7 @@ public class RawOptional<ID, VALUE> implements Iterator<BackendBindings<ID, VALU
             BackendBindings<ID, VALUE> leftBinding = leftInput.next();
 
             // Evaluate the optional part using the current left binding
-            BackendOpExecutor<ID, VALUE> executor = (BackendOpExecutor<ID, VALUE>) execCxt.getContext().get(BackendConstants.EXECUTOR);
+            BackendPullExecutor<ID, VALUE> executor = execCxt.getContext().get(BackendConstants.EXECUTOR);
             currentOptionalResults = executor.visit(optionalOp, new SingletonIterator<>(leftBinding));
 
             if (currentOptionalResults.hasNext()) {

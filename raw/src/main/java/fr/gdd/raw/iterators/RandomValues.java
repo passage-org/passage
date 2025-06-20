@@ -27,7 +27,7 @@ public class RandomValues<ID, VALUE> implements Iterator<BackendBindings<ID, VAL
     }
 
     final ExecutionContext context;
-    final Backend<ID,VALUE,?> backend;
+    final Backend<ID,VALUE> backend;
     final BackendCache<ID,VALUE> cache;
     final List<BackendBindings<ID,VALUE>> values;
     final List<BackendBindings<ID,VALUE>> compatibleValues;

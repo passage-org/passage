@@ -27,8 +27,7 @@
     <module>passage-cli</module>
     <!-- <module>raw-tdb2</module> -->
     <module>raw</module>
-      <module>commons-cli</module>
-      <!-- <module>raw-cli</module> -->
+    <!-- <module>raw-cli</module> -->
   </modules>
 
   <properties>

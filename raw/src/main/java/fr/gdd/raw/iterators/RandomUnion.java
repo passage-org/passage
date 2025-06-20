@@ -20,7 +20,7 @@ public class RandomUnion<ID, VALUE> implements Iterator<BackendBindings<ID, VALU
     }
 
     final ExecutionContext context;
-    final Backend<ID,VALUE,?> backend;
+    final Backend<ID,VALUE> backend;
     final BackendCache<ID,VALUE> cache;
     final OpUnion opUnion;
 
