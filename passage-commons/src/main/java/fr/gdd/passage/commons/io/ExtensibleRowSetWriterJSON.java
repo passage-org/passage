@@ -34,13 +34,16 @@ import static org.apache.jena.riot.rowset.rw.JSONResultsKW.*;
 /** Write results in {@code application/sparql-results+json} format. */
 public class ExtensibleRowSetWriterJSON implements RowSetWriter {
 
+    protected final Boolean printMissingVariables;
+
     public static RowSetWriterFactory factory = lang -> {
         if (!Objects.equals(lang, ResultSetLang.RS_JSON ) )
             throw new ResultSetException("ResultSetWriter for JSON asked for a "+lang);
         return new ExtensibleRowSetWriterJSON();
     };
 
-    private ExtensibleRowSetWriterJSON() { }
+    private ExtensibleRowSetWriterJSON() { this.printMissingVariables = Boolean.TRUE; }
+    private ExtensibleRowSetWriterJSON(Boolean printMissingVariables) { this.printMissingVariables = printMissingVariables; }
 
     // We use an inner object for writing of one result set so that the
     // ResultSetWriter has no per-write state variables.
@@ -71,7 +74,7 @@ public class ExtensibleRowSetWriterJSON implements RowSetWriter {
     public void write(OutputStream outStream, RowSet rowSet, Context context) {
         IndentedWriter out = new IndentedWriter(outStream);
         try {
-            ResultSetWriterTableJSON x = new ResultSetWriterTableJSON(out, context);
+            ResultSetWriterTableJSON x = new ResultSetWriterTableJSON(out, context, this.printMissingVariables);
             x.write(rowSet);
         }
         finally {
@@ -86,6 +89,7 @@ public class ExtensibleRowSetWriterJSON implements RowSetWriter {
         private final  IndentedWriter out;
 
         private final Context context;
+        private final Boolean printMissingVariables;
 
         
         /** Control whether the type/literal/fileds all go on one line. */
@@ -97,12 +101,13 @@ public class ExtensibleRowSetWriterJSON implements RowSetWriter {
         private static final int VarIndent = 2 ;
         private static final int OuterIndent = Math.min(2, MainIndent);
 
-        private ResultSetWriterTableJSON(OutputStream outStream, Context context) {
-            this(new IndentedWriter(outStream), context);
+        private ResultSetWriterTableJSON(OutputStream outStream, Context context, Boolean printMissingVariables) {
+            this(new IndentedWriter(outStream), context, printMissingVariables);
         }
 
-        private ResultSetWriterTableJSON(IndentedWriter indentedOut, Context context) {
+        private ResultSetWriterTableJSON(IndentedWriter indentedOut, Context context, Boolean printMissingVariable) {
             this.context = context;
+            this.printMissingVariables = printMissingVariable;
             out = indentedOut;
             out.setUnitIndent(MainIndent);
 
@@ -213,7 +218,7 @@ public class ExtensibleRowSetWriterJSON implements RowSetWriter {
                 firstInRow = false;
             }
 
-            if ( false ) {
+            if ( this.printMissingVariables ) {
                 // Print "missing" variables.
                 // If the header is right, this should not be necessary.
                 for ( Iterator<Var> vars = binding.vars() ; vars.hasNext() ; ) {
