@@ -14,29 +14,29 @@ PREFIX psg:     <http://fr.gdd.passage/engine-vocabulary#>
 [] rdf:type fuseki:Server ;
    fuseki:services (
      :service_fedshop200
-     #:service_fedshop200_raw
+     :service_fedshop200_raw
    )
    .
 
 ## SERVICES
 
 :service_fedshop200 rdf:type fuseki:Service ;
+    fuseki:name "fedshop200p" ;
+    fuseki:endpoint [
+        fuseki:operation psg:query_w_args ;
+        fuseki:name "passage" ;
+    ];
+    fuseki:dataset :dataset_fedshop200 ;
+    .
+
+:service_fedshop200_raw rdf:type fuseki:Service ;
     fuseki:name "fedshop200" ;
     fuseki:endpoint [
         fuseki:operation psg:query_w_args ;
         fuseki:name "raw" ;
     ];
-    fuseki:dataset :dataset_fedshop200 ;
+    fuseki:dataset :dataset_fedshop200_raw ;
     .
-
-#:service_fedshop200_raw rdf:type fuseki:Service ;
-#    fuseki:name "fedshop200" ;
-#    fuseki:endpoint [
-#        fuseki:operation psg:query_w_headers ;
-#        fuseki:name "raw" ;
-#    ];
-#    fuseki:dataset :dataset_fedshop200_raw ;
-#    .
 
 ## DATASETS
 
@@ -44,11 +44,12 @@ PREFIX psg:     <http://fr.gdd.passage/engine-vocabulary#>
     psg:location           "/Users/boisteau-desdevises-e/Documents/datasets/fedshop200.properties" ;
     psg:timeout            10000 ;
     psg:max_results        10 ;
-    psg:engine             psg:RawEngine ;
+    psg:engine             psg:PassageEngine ;
     .
 
 :dataset_fedshop200_raw rdf:type psg:DatasetBlazegraph ;
     psg:location           "/Users/boisteau-desdevises-e/Documents/datasets/fedshop200.properties" ;
-    psg:timeout            1000 ;
+    psg:timeout            10000 ;
+    psg:max_results        10 ;
     psg:engine             psg:RawEngine ; ## TODO change this engine for RAW
     .
