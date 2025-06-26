@@ -2,11 +2,11 @@ package fr.gdd.raw.executor;
 
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
+import fr.gdd.passage.commons.engines.BackendPullExecutor;
 import fr.gdd.passage.commons.factories.BackendNestedLoopJoinFactory;
 import fr.gdd.passage.commons.factories.IBackendBindsFactory;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendCache;
-import fr.gdd.passage.commons.engines.BackendPullExecutor;
 import fr.gdd.passage.commons.generics.BackendSaver;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.iterators.BackendBind;
@@ -16,14 +16,14 @@ import fr.gdd.passage.commons.transforms.BGP2Triples;
 import fr.gdd.passage.commons.transforms.DefaultGraphUriQueryModifier;
 import fr.gdd.passage.commons.transforms.Graph2Quads;
 import fr.gdd.passage.commons.transforms.Triples2BGP;
+import fr.gdd.raw.LeftJoinizeNonGroupKeys;
 import fr.gdd.raw.accumulators.AccumulatorFactory;
 import fr.gdd.raw.budgeting.NaiveBudgeting;
-import fr.gdd.raw.iterators.ProjectIterator;
-import fr.gdd.raw.iterators.RandomAggregator;
-import fr.gdd.raw.iterators.RandomRoot;
-import fr.gdd.raw.iterators.RandomScanFactory;
+import fr.gdd.raw.iterators.*;
 import org.apache.jena.query.DatasetFactory;
+import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryFactory;
+import org.apache.jena.sparql.ARQConstants;
 import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.*;
@@ -50,9 +50,9 @@ public class RawOpExecutor<ID, VALUE> extends BackendPullExecutor<ID, VALUE> { /
         // TODO default execution context to unburden this class
 
         super(context, BackendProject.factory(), RandomScanFactory.tripleFactory(),
-                RandomScanFactory.quadFactory(), new BackendNestedLoopJoinFactory<>(), null, null,
+                RandomScanFactory.quadFactory(), new BackendNestedLoopJoinFactory<>(), null, RandomValues.factory(),
                 BackendBind.factory(), BackendFilter.factory(), null,
-                null, null, null, null);
+                null, RawOptional.factory(), null, null);
         this.execCxt = context;
         this.execCxt.getContext().setIfUndef(RawConstants.SCAN_PROBABILITIES, new ArrayList<>());
         this.execCxt.getContext().setIfUndef(RawConstants.RANDOM_WALK_ATTEMPTS, new RawConstants.Wrapper<Long>(0L));
@@ -64,9 +64,9 @@ public class RawOpExecutor<ID, VALUE> extends BackendPullExecutor<ID, VALUE> { /
         // that `setBackend` is called, or it will throw at runtime.
 
         super(new ExecutionContext(DatasetFactory.empty().asDatasetGraph()), BackendProject.factory(), RandomScanFactory.tripleFactory(),
-                RandomScanFactory.quadFactory(), new BackendNestedLoopJoinFactory<>(), null, null,
+                RandomScanFactory.quadFactory(), new BackendNestedLoopJoinFactory<>(), null, RandomValues.factory(),
                 BackendBind.factory(), BackendFilter.factory(), null,
-                null, null, null, null);
+                null, RawOptional.factory(), null, null);
 
         execCxt = context;
 
@@ -144,12 +144,18 @@ public class RawOpExecutor<ID, VALUE> extends BackendPullExecutor<ID, VALUE> { /
 
     public Iterator<BackendBindings<ID, VALUE>> execute(Op root) {
         // #A reordering of bgps if need be
-
         root = ReturningOpVisitorRouter.visit(new Graph2Quads(), root);
         if (execCxt.getContext().isFalseOrUndef(RawConstants.FORCE_ORDER)) {
             root = ReturningOpVisitorRouter.visit(new Triples2BGP(), root);
             // root = new CardinalityJoinOrdering<>(backend, cache).visit(root); // need to have bgp to optimize, no tps
         }
+
+        // If a select query, apply optional to everything, to retrieve incomplete random walks
+        Query currentQuery = context.getContext().get(ARQConstants.sysCurrentQuery);
+        if(currentQuery.isSelectType()){
+            root = ReturningOpVisitorRouter.visit(new LeftJoinizeNonGroupKeys(), root);
+        }
+
         root = ReturningOpVisitorRouter.visit(new BGP2Triples(), root);
         root = new DefaultGraphUriQueryModifier(execCxt).visit(root);
         execCxt.getContext().set(RawConstants.SAVER, new BackendSaver<>(backend, root));
@@ -185,11 +191,12 @@ public class RawOpExecutor<ID, VALUE> extends BackendPullExecutor<ID, VALUE> { /
         return ReturningArgsOpVisitorRouter.visit(this, join.getRight(), input);
     }
 
+
     @Override
     public Iterator<BackendBindings<ID, VALUE>> visit(OpTable table, Iterator<BackendBindings<ID, VALUE>> input) {
         if (table.isJoinIdentity())
             return input;
-        throw new UnsupportedOperationException("TODO: VALUES…"); // TODO
+        return new RandomValues<>(context, input, table);
     }
 
     @Override
@@ -215,4 +222,9 @@ public class RawOpExecutor<ID, VALUE> extends BackendPullExecutor<ID, VALUE> { /
         return new RandomAggregator<>(this, groupBy, input);
     }
 
+    @Override
+    public Iterator<BackendBindings<ID, VALUE>> visit(OpLeftJoin leftJoin, Iterator<BackendBindings<ID, VALUE>> input) {
+        Iterator<BackendBindings<ID, VALUE>> leftInput = ReturningArgsOpVisitorRouter.visit(this, leftJoin.getLeft(), input);
+        return new RawOptional<>(leftInput, leftJoin.getRight(), execCxt);
+    }
 }

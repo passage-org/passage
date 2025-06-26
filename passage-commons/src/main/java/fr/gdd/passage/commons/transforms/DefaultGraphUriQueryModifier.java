@@ -56,6 +56,7 @@ public class DefaultGraphUriQueryModifier extends ReturningOpBaseVisitor {
         Node dfg = dfgs.get(0);
         // we force the default graph ONLY if a graph isn't already specified
         // should we force default graph when graph is just not binded as well?
+        // TODO : check the answer and make sure this behaviour is correct
         Node graphToVisit = ObjectUtils.defaultIfNull(opQuad.getQuad().getGraph(), dfg);
         return new OpQuad(new Quad(graphToVisit, opQuad.getQuad().asTriple()));
     }

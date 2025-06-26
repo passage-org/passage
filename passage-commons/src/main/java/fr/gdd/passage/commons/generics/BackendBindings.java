@@ -53,6 +53,7 @@ public class BackendBindings<ID, VALUE> implements Binding {
         Integer code = null;
         Backend<ID, VALUE> backend = null;
 
+
         public IdValueBackend<ID, VALUE> setString(String asString) {
             this.asString = asString;
             return this;
@@ -205,6 +206,15 @@ public class BackendBindings<ID, VALUE> implements Binding {
         Set<Var> result = new HashSet<>(this.var2binding.keySet());
         result.addAll(parent.variables());
         return result;
+    }
+    public BackendBindings(Map<ID, VALUE> bindings) {
+        for (Map.Entry<ID, VALUE> entry : bindings.entrySet()) {
+            Var var = Var.alloc(entry.getKey().toString());
+            IdValueBackend<ID, VALUE> idValueBackend = new IdValueBackend<ID, VALUE>()
+                    .setId(entry.getKey())
+                    .setValue(entry.getValue());
+            this.put(var, idValueBackend);
+        }
     }
 
     /* **************************** JENA BINDING INTERFACE *************************** */

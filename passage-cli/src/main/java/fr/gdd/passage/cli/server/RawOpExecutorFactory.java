@@ -1,4 +1,4 @@
-package fr.gdd.raw.cli.server;
+package fr.gdd.passage.cli.server;
 
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.generics.BackendConstants;
@@ -37,7 +37,7 @@ public class RawOpExecutorFactory implements OpExecutorFactory {
             rawer = new RawOpExecutor(ec);
             rawer.setBackend(ec.getContext().get(BackendConstants.BACKEND));
             rawer.setLimit(ec.getContext().get(RawConstants.LIMIT));
-//            rawer.setTimeout(ec.getContext().get(RawConstants.TIMEOUT));
+            rawer.setTimeout(ec.getContext().get(RawConstants.TIMEOUT));
         }
 
         @Override
@@ -70,7 +70,8 @@ public class RawOpExecutorFactory implements OpExecutorFactory {
             BindingBuilder builder = BindingFactory.builder();
             Set<Var> vars = next.variables();
             for (Var v : vars) {
-                builder.add(v, NodeValueNode.parse(next.getBinding(v).getString()).getNode());
+                //builder.add(v, NodeValueNode.parse(next.getBinding(v).getString()).getNode());
+                builder.add(v, next.get(v));
             }
             return builder.build();
         }

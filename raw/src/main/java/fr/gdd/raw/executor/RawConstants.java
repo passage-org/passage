@@ -1,5 +1,6 @@
 package fr.gdd.raw.executor;
 
+import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.util.Context;
 import org.apache.jena.sparql.util.Symbol;
@@ -35,6 +36,12 @@ public class RawConstants {
     static public final Symbol MAX_THREADS = allocConstantSymbol("MaxThread");
 
     static public final Symbol FORCE_ORDER = allocConstantSymbol("ForceOrder");
+
+    static public final Var MAPPING_PROBABILITY = Var.alloc("probabilityOfRetrievingRestOfMapping");
+
+    static public final String VAR_PROBABILITY_PREFIX = "probabilityOfRetrievingVariable_";
+
+    static public final Var RANDOM_WALK_HOLDER = Var.alloc("randomWalkHolder");
 
     /**
      * Symbol in use in the global context.

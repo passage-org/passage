@@ -1,4 +1,4 @@
-package fr.gdd.raw.cli;
+package fr.gdd.passage.cli;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.blazegraph.BlazegraphIterator;

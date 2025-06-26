@@ -2,6 +2,7 @@ package fr.gdd.raw;
 
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
+import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.raw.executor.RawOpExecutor;
@@ -12,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
+import java.util.List;
 
 public class RawOpExecutorUtils {
 

@@ -77,7 +77,31 @@ public class RandomScanFactory<ID, VALUE> implements Iterator<BackendBindings<ID
 
     @Override
     public BackendBindings<ID, VALUE> next() {
-        return instantiated.next().setParent(inputBinding);
+        BackendBindings<ID, VALUE> binding = instantiated.next();
+
+//        RandomScan instantiatedScan = (RandomScan) instantiated;
+//
+//        Double probability = instantiatedScan.getProbability();
+//
+//        JsonObject scanJson = buildScan(binding, probability);
+//
+//        Node inputRwhNode = inputBinding.get(RawConstants.RANDOM_WALK_HOLDER);
+//
+//        if(inputRwhNode != null){
+//            // there is an input binding, so this random scan operator represents a bound join, and thus we create a join object
+//            if(inputRwhNode.isLiteral()){
+//                JsonObject inputRwhJson = Json.createReader(new StringReader(inputRwhNode.getLiteralValue().toString())).readObject();
+//                binding.put(RawConstants.RANDOM_WALK_HOLDER, new BackendBindings.IdValueBackend<ID,VALUE>().setString(stringify(buildJoin(inputRwhJson, scanJson))));
+//            }else {
+//                throw new RuntimeException("Not a literal node: " + inputRwhNode + ", even though it's a meta binding " +
+//                        "and shouldn't ever be associated with a non literal value");
+//            }
+//        }else {
+//            // there is no input binding, so this random scan operator represents only a scan
+//            binding.put(RawConstants.RANDOM_WALK_HOLDER, new BackendBindings.IdValueBackend<ID,VALUE>().setString(stringify(scanJson)));
+//        }
+
+        return binding.setParent(inputBinding);
     }
 
 }
