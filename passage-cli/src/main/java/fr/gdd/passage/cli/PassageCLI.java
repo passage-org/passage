@@ -2,7 +2,6 @@ package fr.gdd.passage.cli;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.interfaces.Backend;
-import fr.gdd.passage.hdt.HDTBackend;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.push.PassagePushExecutor;
@@ -27,7 +26,7 @@ import java.util.concurrent.atomic.LongAdder;
  */
 @CommandLine.Command(
         name = "passage",
-        version = "0.1.0",
+        version = "0.2.0",
         description = "SPARQL continuation query processing. Looping until done!",
         usageHelpAutoWidth = true, // adapt to the screen size instead of new line on 80 chars
         sortOptions = false,
@@ -244,7 +243,7 @@ public class PassageCLI {
         String extension = FilenameUtils.getExtension(pathToDatabase.toString());
         return switch (extension) {
             case "jnl" -> new BlazegraphBackend(toDatabase);
-            case "hdt" -> new HDTBackend(toDatabase);
+            // case "hdt" -> new HDTBackend(toDatabase);
             default -> throw new IOException("The database is of unknown type.");
         };
     }

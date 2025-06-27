@@ -7,7 +7,7 @@
     <parent>
         <groupId>fr.gdd</groupId>
         <artifactId>passage</artifactId>
-        <version>0.1.0</version>
+        <version>0.2.0</version>
     </parent>
 
     <artifactId>passage-volcano</artifactId>
@@ -19,8 +19,14 @@
         </dependency>
         <dependency>
             <groupId>fr.gdd</groupId>
-            <artifactId>passage-hdt</artifactId>
+            <artifactId>passage-commons</artifactId>
         </dependency>
+        <dependency>
+            <groupId>fr.gdd</groupId>
+            <artifactId>raw</artifactId>
+        </dependency>
+
+
         <dependency>
             <groupId>org.apache.jena</groupId>
             <artifactId>jena-base</artifactId>
@@ -29,11 +35,8 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
         </dependency>
-        <dependency>
-            <groupId>fr.gdd</groupId>
-            <artifactId>raw</artifactId>
-        </dependency>
 
+        <!-- Important for their query optimizers -->
         <dependency>
             <groupId>se.liu.research.hefquin</groupId>
             <artifactId>hefquin</artifactId>

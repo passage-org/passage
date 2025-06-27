@@ -71,6 +71,9 @@ public class DatasetAssemblerBlazegraph extends DatasetAssembler {
         if (Objects.isNull(lEngine) || lEngine.equals(PassageVocabulary.PassageEngine)) {
             QC.setFactory(dsg.getContext(), new PassageOpExecutorFactory()); // is also the default if none is given
         } else if (lEngine.equals(PassageVocabulary.RawEngine)) {
+            // TODO subtimeout and sublimit should be defined, also
+            //      which count distinct to choose etc.
+            //      A seed would be nice.
             QC.setFactory(dsg.getContext(), new RawOpExecutorFactory());
         } else {
             throw new AssemblerException(root, "No valid engine given"); // unknown engine

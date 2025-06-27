@@ -49,7 +49,7 @@ public class PassageModule implements FusekiModule {
     }
 
     @Override
-    public String name() { return "Passage (configured by a regular Fuseki --config=FILE)"; }
+    public String name() { return "Passage v0.2.0 (configured by a regular Fuseki --config=FILE)"; }
 
     @Override
     public void serverArgsModify(CmdGeneral fusekiCmd, ServerArgs serverArgs) {

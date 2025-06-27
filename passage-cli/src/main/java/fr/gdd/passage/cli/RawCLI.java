@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @CommandLine.Command(
         name = "raw",
-        version = "0.0.3",
+        version = "0.2.0",
         description = "RAndom-Walk-based SPARQL query processing.",
         usageHelpAutoWidth = true, // adapt to the screen size instead of new line on 80 chars
         sortOptions = false,

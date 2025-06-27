@@ -8,7 +8,7 @@
   <groupId>fr.gdd</groupId>
   <artifactId>passage</artifactId>
   <packaging>pom</packaging>
-  <version>0.1.0</version>
+  <version>0.2.0</version>
 
 
   <distributionManagement>
@@ -21,13 +21,15 @@
   <modules>
     <module>jena-utils</module>
     <module>passage-commons</module>
-    <module>passage-blazegraph</module>
-    <module>passage-hdt</module> <!-- uncomment when issue_#7 is solved -->
+    <!-- backends -->
+    <module>passage-blazegraph</module> <!-- the main backend for now -->
+    <!-- <module>passage-hdt</module> --> <!-- uncomment when issue_#7 is solved -->
+    <!-- <module>raw-tdb2</module> --> <!-- TODO update to current version -->
+    <!-- engines -->
     <module>passage-volcano</module>
-    <module>passage-cli</module>
-    <!-- <module>raw-tdb2</module> -->
     <module>raw</module>
-    <!-- <module>raw-cli</module> -->
+    <!-- cli(s) -->
+    <module>passage-cli</module>
   </modules>
 
   <properties>
@@ -44,7 +46,7 @@
     <slf4j.version>2.0.6</slf4j.version>
     <args4j.version>2.33</args4j.version>
     <common.compress.version>1.23.0</common.compress.version>
-    <blazegraph.version>2.1.6-wmf.1</blazegraph.version> <!-- suffixed by wmf for wikimedia fondation -->
+    <blazegraph.version>2.1.6-wmf.1</blazegraph.version> <!-- suffixed by wmf for wikimedia foundation -->
     <wikimedia.version>0.3.155</wikimedia.version>
     <guava.version>33.1.0-jre</guava.version>
     <apache.lang3.version>3.17.0</apache.lang3.version>

@@ -1,7 +1,6 @@
 package fr.gdd.passage.volcano.benchmarks;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
-import fr.gdd.passage.hdt.HDTBackend;
 import fr.gdd.passage.volcano.ExecutorUtils;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
@@ -49,6 +48,7 @@ public class WatDivTest {
         }
     }
 
+    /*
     public static final String PATH_HDT = "/Users/skoazell/Desktop/Projects/datasets/watdiv10m-hdt/watdiv.10M.hdt";
     public static HDTBackend watdivHDT;
     static {
@@ -57,7 +57,7 @@ public class WatDivTest {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
+    }*/
 
     private static Stream<Pair<String, String>> queries() throws IOException {
         List<Pair<String,String>> queries = new ArrayList<>();
@@ -71,7 +71,7 @@ public class WatDivTest {
 
     public static Stream<Arguments> configurations () {
         Integer[] parallels = {1, 4}; // 1 and 4 to compare with paper's measurements
-        return Stream.of(watdiv, watdivHDT).flatMap(backend ->
+        return Stream.of(watdiv /*, watdivHDT */).flatMap(backend ->
                 Arrays.stream(parallels).flatMap(parallel -> {
                     try {
                         return queries().flatMap(q ->
