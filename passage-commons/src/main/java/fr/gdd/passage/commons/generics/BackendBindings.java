@@ -34,6 +34,13 @@ import java.util.stream.Collectors;
  */
 public class BackendBindings<ID, VALUE> implements Binding {
 
+    // yes or nay it should use VALUES to bind the input of continuation
+    // queries. When false, it uses BIND. A limitation of BIND is that it cannot
+    // be used twice with a same variable or it throws (see <https://www.w3.org/TR/sparql11-query/#bind>)
+    // VALUES has a better behavior for Passage, but it has a weird behavior Comunica 4.3.0…
+    // TODO should not be static and depend on configuration.
+    public static boolean SHOULD_USE_VALUES = false;
+
     @Override
     public int hashCode() {
         return Objects.hash(variables().stream()
@@ -351,7 +358,7 @@ public class BackendBindings<ID, VALUE> implements Binding {
 
 
     public Op toOp () {
-        return this.asBindAs(); // TODO depending on configuration
+        return SHOULD_USE_VALUES ? this.asValues() : this.asBindAs();
     }
 
     /**

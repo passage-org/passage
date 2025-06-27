@@ -33,6 +33,7 @@ import org.apache.jena.sparql.expr.aggregate.AggCountVarDistinct;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Objects;
 
 /**
  * Execute the query and exactly the query that has been asked.
@@ -152,7 +153,7 @@ public class RawOpExecutor<ID, VALUE> extends BackendPullExecutor<ID, VALUE> { /
 
         // If a select query, apply optional to everything, to retrieve incomplete random walks
         Query currentQuery = context.getContext().get(ARQConstants.sysCurrentQuery);
-        if(currentQuery.isSelectType()){
+        if(Objects.nonNull(currentQuery) && currentQuery.isSelectType()){
             root = ReturningOpVisitorRouter.visit(new LeftJoinizeNonGroupKeys(), root);
         }
 

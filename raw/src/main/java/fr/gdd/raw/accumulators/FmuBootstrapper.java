@@ -54,7 +54,7 @@ public class FmuBootstrapper<ID,VALUE> implements ReturningArgsOpVisitor<Double,
             // take a look at CountSubqueryBuilder comment to understand why we do this.
             // (tldr: to work on ID, not on String)
             Node valueAsNode = CountSubqueryBuilder.placeholderNode(toBind);
-            dedicatedCache.register(valueAsNode, bindings.getBinding(toBind).getId());
+            dedicatedCache.register(valueAsNode, bindings.getBinding(toBind).setBackend(backend).getId());
         }
     }
 

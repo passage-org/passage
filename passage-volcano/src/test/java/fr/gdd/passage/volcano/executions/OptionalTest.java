@@ -17,8 +17,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class OptionalTest {
 
@@ -194,14 +193,14 @@ public class OptionalTest {
                 }""";
 
         // It used to throw, but not anymore: // TODO throw again to fix
-        // assertThrows(UnsupportedOperationException.class, () -> ExecutorUtils.execute(queryAsString, builder));
+        assertThrows(UnsupportedOperationException.class, () -> ExecutorUtils.execute(queryAsString, builder));
 
-        var results = ExecutorUtils.execute(queryAsString, builder);
-        assertEquals(3, results.size());
-        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("person", "animal", "species"),
-                List.of("Alice", "cat", "feline"),
-                Arrays.asList("Alice", "dog", null),
-                Arrays.asList("Alice", "snake", null)));
+//        var results = ExecutorUtils.execute(queryAsString, builder);
+//        assertEquals(3, results.size());
+//        assertTrue(MultisetResultChecking.containsAllResults(results, List.of("person", "animal", "species"),
+//                List.of("Alice", "cat", "feline"),
+//                Arrays.asList("Alice", "dog", null),
+//                Arrays.asList("Alice", "snake", null)));
         blazegraph.close();
     }
 

@@ -2,9 +2,12 @@ package fr.gdd.passage.volcano.executions;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
+import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.volcano.ExecutorUtils;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.openrdf.query.MalformedQueryException;
@@ -21,6 +24,21 @@ import static org.junit.jupiter.api.Assertions.*;
 public class CountTest {
 
     private final static Logger log = LoggerFactory.getLogger(CountTest.class);
+
+    // TODO shouldn't have to switch, but unfortunately, VALUES do not work well with
+    //      the smart client Comunica 4.2.0…
+    private static boolean oldBehaviorOfBackendBindings;
+
+    @BeforeAll
+    public static void setup() {
+        oldBehaviorOfBackendBindings = BackendBindings.SHOULD_USE_VALUES;
+        BackendBindings.SHOULD_USE_VALUES = true;
+    }
+
+    @AfterAll
+    public static void teardown() {
+        BackendBindings.SHOULD_USE_VALUES = oldBehaviorOfBackendBindings;
+    }
 
     @ParameterizedTest
     @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#pushProvider")
