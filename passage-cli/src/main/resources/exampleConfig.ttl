@@ -2,61 +2,131 @@ PREFIX :        <#>
 PREFIX fuseki:  <http://jena.apache.org/fuseki#>
 PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl:     <http://www.w3.org/2002/07/owl#>
 PREFIX ja:      <http://jena.hpl.hp.com/2005/11/Assembler#>
 PREFIX tdb2:    <http://jena.apache.org/2016/tdb#>
 PREFIX psg:     <http://fr.gdd.passage/engine-vocabulary#>
+PREFIX sd:      <http://www.w3.org/ns/sparql-service-description#>
+PREFIX void:    <http://rdfs.org/ns/void#>
 
+## - This is mainly about deploying a live 1.7TB Wikidata for everyone to use
+##   with continuation queries to ensure completeness of results.
+## - We also deploy a WatDiv10M endpoint for toy demonstration: the timeout is
+##   smaller to showcase quick continuations.
+## - We also deploy the corresponding raw engine, that allows for online
+##   sampling-based query processing.
+
+## Depending on your need, you may comment/uncomment services. Make sure
+## that your services target properly set dataset, i.e., the path to the
+## database is sound.
 ## For more information about Fuseki configurations, take a look at:
 ## <https://jena.apache.org/documentation/fuseki2/fuseki-configuration.html>
 
 ## SERVER
-
 [] rdf:type fuseki:Server ;
    fuseki:services (
      :service_watdiv
      :service_watdiv_raw
+#     :service_wikidata
+#     :service_wikidata_raw
    )
    .
 
-## SERVICES
 
+## SERVICES
+### WATDIV
 :service_watdiv rdf:type fuseki:Service ;
     fuseki:name "watdiv" ;
     fuseki:endpoint [
         fuseki:operation psg:query_w_args ;
         fuseki:name "passage" ;
     ];
-    ## TODO create "raw" services for random walks
-    ## fuseki:endpoint [
-    ##    fuseki:operation psg:query_w_args ;
-    ##    psg:engine  psg:RawEngine ; ## something like this would be nice(r)
-    ##    fuseki:name "raw" ;
-    ##];
     fuseki:dataset :dataset_watdiv ;
     .
-## For now, we have to specify two services with different names
-## to provide random sampling on the same dataset
-## TODO while we would prefer the above solution in the endpoint
+
 :service_watdiv_raw rdf:type fuseki:Service ;
-    fuseki:name "watdiv-raw" ;
+    fuseki:name "watdiv-raw" ; ## TODO make this "watdiv" as well
     fuseki:endpoint [
-        fuseki:operation psg:query_w_headers ;
+        fuseki:operation psg:query_w_args ;
         fuseki:name "raw" ;
     ];
     fuseki:dataset :dataset_watdiv_raw ;
     .
 
-## DATASETS
+### WIKIDATA
+:service_wikidata rdf:type fuseki:Service ;
+    fuseki:name "wikidata" ;
+    fuseki:endpoint [
+        fuseki:operation psg:query_w_args ;
+        fuseki:name "passage" ;
+    ];
+    fuseki:dataset :dataset_wikidata ;
+    .
 
+:service_wikidata_raw rdf:type fuseki:Service ;
+    fuseki:name "wikidata-raw" ; ## TODO make this "wikidata" as well
+    fuseki:endpoint [
+        fuseki:operation psg:query_w_args ;
+        fuseki:name "raw" ;
+    ];
+    fuseki:dataset :dataset_wikidata_raw ;
+    .
+
+
+## DATASETS
+### WATDIV
 :dataset_watdiv rdf:type psg:DatasetBlazegraph ;
+#    psg:location           "/DATA/datasets/watdiv10m-blaze/watdiv10M.jnl" ;
     psg:location           "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.properties" ;
     psg:timeout            1000 ;
     psg:max_results        10000 ;
     psg:engine             psg:PassageEngine ;
+    psg:description        :watdiv_description ;
     .
 
 :dataset_watdiv_raw rdf:type psg:DatasetBlazegraph ;
+#    psg:location           "/DATA/datasets/watdiv10m-blaze/watdiv10M.jnl" ;
     psg:location           "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.properties" ;
     psg:timeout            1000 ;
-    psg:engine             psg:PassageEngine ; ## TODO change this engine for RAW
+    psg:max_results        10000 ;
+    psg:engine             psg:RawEngine ;
+    .
+
+
+### WIKIDATA
+:dataset_wikidata rdf:type psg:DatasetBlazegraph ;
+#    psg:location           "/DATA/projects/ingester/RWStore.properties" ;
+    psg:location           "/Users/nedelec-b-2/Desktop/Projects/temp/ingester/RWStore.properties" ;
+    psg:timeout            60000 ;
+    psg:max_results        100000 ;
+    psg:engine             psg:PassageEngine ;
+    .
+
+:dataset_wikidata_raw rdf:type psg:DatasetBlazegraph ;
+#    psg:location           "/DATA/projects/ingester/RWStore.properties" ;
+    psg:location           "/Users/nedelec-b-2/Desktop/Projects/temp/ingester/RWStore.properties" ;
+    psg:timeout            1000 ;
+    psg:max_results        10000 ;
+    psg:engine             psg:RawEngine ;
+
+
+## DESCRIPTIONS (take a look at: <https://www.w3.org/TR/sparql11-service-description/>)
+### WATDIV
+:watdiv_description rdf:type sd:Service ;
+    sd:endpoint          "watdiv/passage" ;
+    sd:supportedLanguage :passage-0.2.0 ;
+    ## TODO advertise random walk interface
+    .
+
+:passage-0.2.0 owl:sameAs :passage-0.0.3 .
+:passage-0.0.3 rdf:type sd:Language ;
+    psg:support psg:project ,
+                psg:values ,
+                psg:union ,
+                psg:join ,
+                psg:bgp ,
+                psg:pattern ,
+                psg:extend ,
+                psg:filter ,
+                psg:optional
     .
