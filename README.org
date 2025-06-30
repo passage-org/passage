@@ -22,7 +22,7 @@ continuation query; until termination.
 
 - =passage.jar= provides a one time execution without server.
 - =passage-server.jar= provides a server running passage/raw as a SPARQL endpoint.
-- [[https://github.com/passage-org/passage-comunica][=passage-comunica=]] provides a client to automate the continuation loop.
+- [[https://github.com/passage-org/passage-comunica][~passage-comunica~]] provides a client to automate the continuation loop.
 
 - =raw.jar= provides a one time execution of a online sample-based query execution.
 
