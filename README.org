@@ -1,4 +1,4 @@
-# Passage
+* Passage
 
 Passage provides correct and complete results for SPARQL queries, despite 
 time quotas enforced by public SPARQL endpoints. Contrarily to state-of-the-art
@@ -7,27 +7,27 @@ returns correct (possibly partial) results along with a SPARQL continuation quer
 executing the continuation query provides missing results, itself with another SPARQL 
 continuation query; until termination.
 
-## Installation
+** Installation
 
-```shell
-git clone https://github.com/Chat-Wane/passage.git
-cd passage
+#+BEGIN_SRC shell :async :session clone-passage :results none
+  git clone https://github.com/Chat-Wane/passage.git
+  cd passage
+#+END_SRC
 
-mvn clean package
-```
+#+BEGIN_SRC shell :async :session build-passage :results none
+  mvn clean package
+#+END_SRC
 
-## Usage
+** Usage
 
-- [X] `passage.jar`[`--help`](./passage-cli) provides a one time execution without server.
-- [X] `passage-server.jar`[`--help`](./passage-cli) provides a server running passage as a SPARQL endpoint.
-- [X] `passage-comunica`[`--help`](https://github.com/Chat-Wane/passage-comunica) provides a client to automate the continuation loop.
+- [X] =passage.jar= provides a one time execution without server.
+- [X] =passage-server.jar= provides a server running passage/raw as a SPARQL endpoint.
+- [X] =passage-comunica=[[https://github.com/Chat-Wane/passage-comunica][[=--help=]]] provides a client to automate the continuation loop.
 
-
-- [X] `raw.jar`[`--help`](./raw-cli) provides a one time execution of a sample-based query.
-- [X] `raw-server.jar`[`--help`](./raw-cli) provides a server running raw for random sampling over SPARQL queries.
+- [X] =raw.jar= provides a one time execution of a online sample-based query execution.
 
 
-## References
+** References
 
 [1] T. Minier, H. Skaf-Molli and P. Molli. __SaGe: Web
  Preemption for Public SPARQL Query services__. In Proceedings of the

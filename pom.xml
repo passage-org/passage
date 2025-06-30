@@ -8,8 +8,23 @@
   <groupId>fr.gdd</groupId>
   <artifactId>passage</artifactId>
   <packaging>pom</packaging>
+  <!-- mvn versions:set -DnewVersion=X.Y.Z -->
+  <!-- Remember to synchronize the CLI/module versions as well -->
   <version>0.2.0</version>
+  <licenses>
+    <!-- When/if we move Blazegraph to an optional dependency,
+         only then we can move on to some other license, possibly
+         more permissive such as Apache v2. -->
+    <license>
+      <name>GNU GENERAL PUBLIC LICENSE v2.0</name>
+      <comments>Must match that of Blazegraph.</comments>
+    </license>
+  </licenses>
 
+  <organization> <!-- Only Ad -->
+    <name>passage-org</name>
+    <url>https://passage-org.github.io/</url>
+  </organization>
 
   <distributionManagement>
     <site>
@@ -99,11 +114,6 @@
       <dependency>
         <groupId>fr.gdd</groupId>
         <artifactId>raw</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>fr.gdd</groupId>
-        <artifactId>raw-cli</artifactId>
         <version>${project.version}</version>
       </dependency>
 
