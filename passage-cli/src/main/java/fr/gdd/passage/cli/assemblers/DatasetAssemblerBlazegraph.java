@@ -2,6 +2,7 @@ package fr.gdd.passage.cli.assemblers;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.blazegraph.BlazegraphBackendFactory;
+import fr.gdd.passage.cli.server.BlazegraphOpExecutorFactory;
 import fr.gdd.passage.cli.server.PassageOpExecutorFactory;
 import fr.gdd.passage.cli.server.RawOpExecutorFactory;
 import fr.gdd.passage.cli.vocabularies.PassageVocabulary;
@@ -75,6 +76,8 @@ public class DatasetAssemblerBlazegraph extends DatasetAssembler {
             //      which count distinct to choose etc.
             //      A seed would be nice.
             QC.setFactory(dsg.getContext(), new RawOpExecutorFactory());
+        } else if (lEngine.equals(PassageVocabulary.SPARQLEngine)) {
+            QC.setFactory(dsg.getContext(), new BlazegraphOpExecutorFactory());
         } else {
             throw new AssemblerException(root, "No valid engine given"); // unknown engine
         }
