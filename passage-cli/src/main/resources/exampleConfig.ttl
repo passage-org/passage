@@ -76,7 +76,7 @@ PREFIX void:    <http://rdfs.org/ns/void#>
 ## DATASETS
 ### WATDIV
 :dataset_watdiv rdf:type psg:DatasetBlazegraph ;
-#    psg:location           "/DATA/datasets/watdiv10m-blaze/watdiv10M.jnl" ;
+#    psg:location           "/DATA/datasets/watdiv10m-blaze-wm-vocab/watdiv10M.properties" ;
     psg:location           "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.properties" ;
     psg:timeout            1000 ;
     psg:max_results        10000 ;
@@ -85,7 +85,7 @@ PREFIX void:    <http://rdfs.org/ns/void#>
     .
 
 :dataset_watdiv_raw rdf:type psg:DatasetBlazegraph ;
-#    psg:location           "/DATA/datasets/watdiv10m-blaze/watdiv10M.jnl" ;
+#    psg:location           "/DATA/datasets/watdiv10m-blaze-wm-vocab/watdiv10M.properties" ;
     psg:location           "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.properties" ;
     psg:timeout            1000 ;
     psg:max_results        10000 ;
@@ -97,8 +97,8 @@ PREFIX void:    <http://rdfs.org/ns/void#>
 :dataset_wikidata rdf:type psg:DatasetBlazegraph ;
 #    psg:location           "/DATA/projects/ingester/RWStore.properties" ;
     psg:location           "/Users/nedelec-b-2/Desktop/Projects/temp/ingester/RWStore.properties" ;
-    psg:timeout            60000 ;
-    psg:max_results        100000 ;
+    psg:timeout            60000 ; ## as in official Wikidata
+    psg:max_results        10000 ; ## as in DBPedia
     psg:engine             psg:PassageEngine ;
     .
 
@@ -108,6 +108,7 @@ PREFIX void:    <http://rdfs.org/ns/void#>
     psg:timeout            1000 ;
     psg:max_results        10000 ;
     psg:engine             psg:RawEngine ;
+    .
 
 
 ## DESCRIPTIONS (take a look at: <https://www.w3.org/TR/sparql11-service-description/>)
