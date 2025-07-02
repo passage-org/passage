@@ -3,8 +3,11 @@ package fr.gdd.passage.commons.transforms;
 import fr.gdd.jena.visitors.ReturningOpBaseVisitor;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.ARQConstants;
 import org.apache.jena.sparql.algebra.Op;
+import org.apache.jena.sparql.algebra.op.OpBGP;
+import org.apache.jena.sparql.algebra.op.OpJoin;
 import org.apache.jena.sparql.algebra.op.OpQuad;
 import org.apache.jena.sparql.algebra.op.OpTriple;
 import org.apache.jena.sparql.core.Quad;
@@ -26,6 +29,23 @@ public class DefaultGraphUriQueryModifier extends ReturningOpBaseVisitor {
 
     public DefaultGraphUriQueryModifier(ExecutionContext context) {
         this.context = context;
+    }
+
+    @Override
+    public Op visit(OpBGP opBGP) {
+        List<Triple> triples = opBGP.getPattern().getList();
+
+        if (triples.isEmpty()) return opBGP;
+
+        Triple first = triples.removeFirst();
+        Op returnOp = this.visit(new OpTriple(first));
+
+        for(Triple triple : triples) {
+            Op next = this.visit(new OpTriple(triple));
+            returnOp = OpJoin.create(returnOp, next);
+        }
+
+        return returnOp;
     }
 
     @Override
