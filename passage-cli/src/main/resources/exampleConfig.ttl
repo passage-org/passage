@@ -27,8 +27,10 @@ PREFIX void:    <http://rdfs.org/ns/void#>
    fuseki:services (
      :service_watdiv
      :service_watdiv_raw
+     :service_watdiv_sparql
 #     :service_wikidata
 #     :service_wikidata_raw
+#     :service_wikidata_sparql
    )
    .
 
@@ -36,45 +38,56 @@ PREFIX void:    <http://rdfs.org/ns/void#>
 ## SERVICES
 ### WATDIV
 :service_watdiv rdf:type fuseki:Service ;
-    fuseki:name "watdiv" ;
+    fuseki:name "watdiv/passage" ;
     fuseki:endpoint [
         fuseki:operation psg:query_w_args ;
-        fuseki:name "passage" ;
     ];
     fuseki:dataset :dataset_watdiv ;
     .
 
 :service_watdiv_raw rdf:type fuseki:Service ;
-    fuseki:name "watdiv-raw" ; ## TODO make this "watdiv" as well
+    fuseki:name "watdiv/raw" ;
     fuseki:endpoint [
         fuseki:operation psg:query_w_args ;
-        fuseki:name "raw" ;
     ];
     fuseki:dataset :dataset_watdiv_raw ;
     .
 
-### WIKIDATA
-:service_wikidata rdf:type fuseki:Service ;
-    fuseki:name "wikidata" ;
+:service_watdiv_sparql rdf:type fuseki:Service ;
+    fuseki:name "watdiv/sparql" ;
     fuseki:endpoint [
         fuseki:operation psg:query_w_args ;
-        fuseki:name "passage" ;
+    ];
+    fuseki:dataset :dataset_watdiv_sparql ;
+    .
+
+### WIKIDATA
+:service_wikidata rdf:type fuseki:Service ;
+    fuseki:name "wikidata/passage" ;
+    fuseki:endpoint [
+        fuseki:operation psg:query_w_args ;
     ];
     fuseki:dataset :dataset_wikidata ;
     .
 
 :service_wikidata_raw rdf:type fuseki:Service ;
-    fuseki:name "wikidata-raw" ; ## TODO make this "wikidata" as well
+    fuseki:name "wikidata/raw" ;
     fuseki:endpoint [
         fuseki:operation psg:query_w_args ;
-        fuseki:name "raw" ;
     ];
     fuseki:dataset :dataset_wikidata_raw ;
     .
 
+:service_wikidata_sparql rdf:type fuseki:Service ;
+    fuseki:name "wikidata/sparql" ;
+    fuseki:endpoint [
+        fuseki:operation psg:query_w_args ;
+    ];
+    fuseki:dataset :dataset_wikidata_sparql ;
+    .
 
 ## DATASETS
-### WATDIV
+### WATDIV: passage raw sparql
 :dataset_watdiv rdf:type psg:DatasetBlazegraph ;
 #    psg:location           "/DATA/datasets/watdiv10m-blaze-wm-vocab/watdiv10M.properties" ;
     psg:location           "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.properties" ;
@@ -92,8 +105,13 @@ PREFIX void:    <http://rdfs.org/ns/void#>
     psg:engine             psg:RawEngine ;
     .
 
+:dataset_watdiv_sparql rdf:type psg:DatasetBlazegraph ;
+#    psg:location           "/DATA/datasets/watdiv10m-blaze-wm-vocab/watdiv10M.properties" ;
+    psg:location           "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.properties" ;
+    psg:engine             psg:SPARQLEngine ;
+    .
 
-### WIKIDATA
+### WIKIDATA: passage raw sparql
 :dataset_wikidata rdf:type psg:DatasetBlazegraph ;
 #    psg:location           "/DATA/projects/ingester/RWStore.properties" ;
     psg:location           "/Users/nedelec-b-2/Desktop/Projects/temp/ingester/RWStore.properties" ;
@@ -110,7 +128,14 @@ PREFIX void:    <http://rdfs.org/ns/void#>
     psg:engine             psg:RawEngine ;
     .
 
+:dataset_wikidata_sparql rdf:type psg:DatasetBlazegraph ;
+#    psg:location           "/DATA/projects/ingester/RWStore.properties" ;
+    psg:location           "/Users/nedelec-b-2/Desktop/Projects/temp/ingester/RWStore.properties" ;
+    psg:engine             psg:SPARQLEngine ;
+    .
 
+
+## TODO vvvvvv
 ## DESCRIPTIONS (take a look at: <https://www.w3.org/TR/sparql11-service-description/>)
 ### WATDIV
 :watdiv_description rdf:type sd:Service ;

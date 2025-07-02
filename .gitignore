@@ -2,6 +2,9 @@
 *apache-jena*/
 *.tar.gz
 
+### turtles out, except if forced
+*.ttl
+
 *.versionsBackup
 *queries/
 *results/
