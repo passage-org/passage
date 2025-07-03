@@ -224,8 +224,17 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
         return results;
     }
 
-    public Iterator<BindingSet> executeQueryToIterator(String queryString) throws RepositoryException, MalformedQueryException, QueryEvaluationException {
+    public Iterator<BindingSet> executeQueryToIterator(String query) throws QueryEvaluationException, MalformedQueryException, RepositoryException {
+        return executeQueryToIterator(query, null);
+    }
+
+    public Iterator<BindingSet> executeQueryToIterator(String queryString, Long timeoutMillis) throws RepositoryException, MalformedQueryException, QueryEvaluationException {
         TupleQuery tupleQuery = connection.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        if (Objects.nonNull(timeoutMillis)) {
+            // convert milliseconds to seconds
+            tupleQuery.setMaxExecutionTime((int) Math.floor(timeoutMillis/1000.));
+        }
+
         TupleQueryResult result = tupleQuery.evaluate();
         return new Iterator<BindingSet>() {
             @Override
@@ -233,7 +242,7 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
                 try {
                     return result.hasNext();
                 } catch (QueryEvaluationException e) {
-                    return false;
+                    throw new RuntimeException(e);
                 }
             }
 

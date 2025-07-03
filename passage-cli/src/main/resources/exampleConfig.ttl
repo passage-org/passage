@@ -108,6 +108,7 @@ PREFIX void:    <http://rdfs.org/ns/void#>
 :dataset_watdiv_sparql rdf:type psg:DatasetBlazegraph ;
 #    psg:location           "/DATA/datasets/watdiv10m-blaze-wm-vocab/watdiv10M.properties" ;
     psg:location           "/Users/nedelec-b-2/Desktop/Projects/temp/watdiv10m-blaze/watdiv10M.properties" ;
+    psg:timeout            60000 ;
     psg:engine             psg:SPARQLEngine ;
     .
 
@@ -130,6 +131,7 @@ PREFIX void:    <http://rdfs.org/ns/void#>
 
 :dataset_wikidata_sparql rdf:type psg:DatasetBlazegraph ;
 #    psg:location           "/DATA/projects/ingester/RWStore.properties" ;
+    psg:timeout            60000 ;
     psg:location           "/Users/nedelec-b-2/Desktop/Projects/temp/ingester/RWStore.properties" ;
     psg:engine             psg:SPARQLEngine ;
     .

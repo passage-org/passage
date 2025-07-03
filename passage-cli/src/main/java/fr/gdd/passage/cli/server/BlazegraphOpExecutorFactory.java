@@ -7,7 +7,9 @@ import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendConstants;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.transforms.DefaultGraphURIQueryWrapper;
+import fr.gdd.passage.volcano.PassageConstants;
 import org.apache.jena.atlas.io.IndentedWriter;
+import org.apache.jena.query.ARQ;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpAsQuery;
@@ -31,6 +33,11 @@ import org.openrdf.repository.RepositoryException;
 import java.util.Iterator;
 import java.util.Set;
 
+/**
+ * Regular Blazegraph engine to expose to the `sparql`. Blazegraph may consume a lot
+ * of resources (threads + memory). Long query should be deleted properly to avoid consuming
+ * forever the resources.
+ */
 public class BlazegraphOpExecutorFactory implements OpExecutorFactory {
 
     @Override
@@ -41,11 +48,12 @@ public class BlazegraphOpExecutorFactory implements OpExecutorFactory {
     public static class BlazegraphOpExecutor extends OpExecutor {
 
         final BlazegraphBackend backend;
+        final Long timeoutMillis;
 
         protected BlazegraphOpExecutor(ExecutionContext ec) {
             super(ec);
-
-            backend = ec.getContext().get(BackendConstants.BACKEND);
+            this.backend = ec.getContext().get(BackendConstants.BACKEND);
+            this.timeoutMillis = ec.getContext().get(PassageConstants.TIMEOUT); // null is infinity
         }
 
         @Override
@@ -56,22 +64,14 @@ public class BlazegraphOpExecutorFactory implements OpExecutorFactory {
         @Override
         protected QueryIterator exec(Op op, QueryIterator input) {
             try {
-
                 Op opOnGraph = new DefaultGraphURIQueryWrapper(execCxt).visit(op);
-                Iterator<BindingSet> ibs = backend.executeQueryToIterator(OpAsQuery.asQuery(opOnGraph).toString());
-
+                Iterator<BindingSet> ibs = backend.executeQueryToIterator(OpAsQuery.asQuery(opOnGraph).toString(),
+                        this.timeoutMillis);
                 return new BindingWrapper(ibs, backend);
-            } catch (RepositoryException e) {
-                throw new RuntimeException(e);
-            } catch (MalformedQueryException e) {
-                throw new RuntimeException(e);
-            } catch (QueryEvaluationException e) {
+            } catch (RepositoryException | MalformedQueryException | QueryEvaluationException e) {
                 throw new RuntimeException(e);
             }
-
-
         }
-
     }
 
     public static class BindingWrapper implements QueryIterator {
