@@ -5,8 +5,6 @@ import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.util.Context;
 import org.apache.jena.sparql.util.Symbol;
 
-import java.util.List;
-
 public class RawConstants {
 
     public static final String systemVarNS = "https://sage.gdd.fr/Raw#";
@@ -17,7 +15,6 @@ public class RawConstants {
     static public final Symbol DEADLINE = allocConstantSymbol("Deadline"); // when to stop execution
     static public final Symbol LIMIT = allocConstantSymbol("Limit"); // max nb scans to perform
     static public final Symbol SCANS = allocVariableSymbol("Scans"); // nb of scan performed during execution
-    static public final Symbol SCAN_PROBABILITIES = allocConstantSymbol("ScanProbas"); // list of probabilities of retrieving bindings
     static public final Symbol RANDOM_WALK_ATTEMPTS = allocConstantSymbol("RandomWalkAttempts");
     static public final Symbol ATTEMPT_LIMIT = allocConstantSymbol("AttemptLimit");
 
@@ -82,14 +79,6 @@ public class RawConstants {
      */
     public static long getScans(ExecutionContext context) {
         return context.getContext().getLong(RawConstants.SCANS, 0L);
-    }
-
-    public static void saveScanProbabilities(ExecutionContext context, Double proba) {
-        getScanProbabilities(context).add(proba);
-    }
-
-    public static List getScanProbabilities(ExecutionContext context) {
-        return context.getContext().get(SCAN_PROBABILITIES);
     }
 
     public static void setRandomWalkAttemps(ExecutionContext executionContext, Long numberOfAttempts) {

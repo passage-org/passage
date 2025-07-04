@@ -83,8 +83,6 @@ public class RandomRoot<ID, VALUE> implements Iterator<BackendBindings<ID, VALUE
 
         try{
             Double proba = (Double) wj.visit(bs.getRoot());
-            RawConstants.saveScanProbabilities(context, proba);
-
             toReturn.put(RawConstants.MAPPING_PROBABILITY, new BackendBindings.IdValueBackend<ID,VALUE>().setString(proba.toString()));
 
         }catch (Exception e){
