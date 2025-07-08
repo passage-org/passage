@@ -126,6 +126,25 @@
               </descriptorRefs>
             </configuration>
           </execution>
+          <execution>
+            <id>make-assembly-raw</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <appendAssemblyId>false</appendAssemblyId>
+              <archive>
+                <manifest>
+                  <mainClass>fr.gdd.passage.cli.RawCLI</mainClass>
+                </manifest>
+              </archive>
+              <finalName>raw</finalName>
+              <descriptorRefs>
+                <descriptorRef>jar-with-dependencies</descriptorRef>
+              </descriptorRefs>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
     </plugins>
