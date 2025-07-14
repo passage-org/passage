@@ -2,6 +2,7 @@ package fr.gdd.raw.executor;
 
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
+import fr.gdd.passage.commons.CommonsCardinalityJoinOrdering;
 import fr.gdd.passage.commons.engines.BackendPullExecutor;
 import fr.gdd.passage.commons.factories.BackendNestedLoopJoinFactory;
 import fr.gdd.passage.commons.factories.IBackendBindsFactory;
@@ -145,7 +146,7 @@ public class RawOpExecutor<ID, VALUE> extends BackendPullExecutor<ID, VALUE> { /
         root = ReturningOpVisitorRouter.visit(new Graph2Quads(), root);
         if (execCxt.getContext().isFalseOrUndef(RawConstants.FORCE_ORDER)) {
             root = ReturningOpVisitorRouter.visit(new Triples2BGP(), root);
-            // root = new CardinalityJoinOrdering<>(backend, cache).visit(root); // need to have bgp to optimize, no tps
+            root = new CommonsCardinalityJoinOrdering<>(backend).visit(root); // need to have bgp to optimize, no tps
         }
 
         // If a select query, apply optional to everything, to retrieve incomplete random walks
