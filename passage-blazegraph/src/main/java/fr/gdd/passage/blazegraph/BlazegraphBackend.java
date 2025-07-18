@@ -193,7 +193,7 @@ public class BlazegraphBackend implements Backend<IV, BigdataValue>, AutoCloseab
             parser.parse(new StringReader(fakeNTriple), "");
             return (BigdataValue) handler.get();
         } catch (Exception e) {
-            throw new UnsupportedOperationException(valueAsString);
+            throw new UnsupportedOperationException("Cannot get the BigdataValue of: " + valueAsString);
         }
     }
 

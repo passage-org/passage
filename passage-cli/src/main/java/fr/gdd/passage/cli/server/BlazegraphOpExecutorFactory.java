@@ -9,7 +9,7 @@ import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.transforms.DefaultGraphURIQueryWrapper;
 import fr.gdd.passage.volcano.PassageConstants;
 import org.apache.jena.atlas.io.IndentedWriter;
-import org.apache.jena.query.ARQ;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpAsQuery;
@@ -22,8 +22,8 @@ import org.apache.jena.sparql.engine.binding.BindingFactory;
 import org.apache.jena.sparql.engine.main.OpExecutor;
 import org.apache.jena.sparql.engine.main.OpExecutorFactory;
 import org.apache.jena.sparql.expr.NodeValue;
-import org.apache.jena.sparql.expr.nodevalue.NodeValueNode;
 import org.apache.jena.sparql.serializer.SerializationContext;
+import org.openrdf.model.Literal;
 import org.openrdf.model.Value;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.MalformedQueryException;
@@ -35,8 +35,8 @@ import java.util.Set;
 
 /**
  * Regular Blazegraph engine to expose to the `sparql`. Blazegraph may consume a lot
- * of resources (threads + memory). Long query should be deleted properly to avoid consuming
- * forever the resources.
+ * of resources (threads + memory). Long queries should be deleted properly to avoid consuming
+ * the resources forever.
  */
 public class BlazegraphOpExecutorFactory implements OpExecutorFactory {
 
@@ -77,9 +77,9 @@ public class BlazegraphOpExecutorFactory implements OpExecutorFactory {
     public static class BindingWrapper implements QueryIterator {
 
         final Iterator<BindingSet> wrapped;
-        final Backend backend;
+        final Backend<?,?> backend;
 
-        public BindingWrapper(Iterator<BindingSet> wrapped, Backend backend) {
+        public BindingWrapper(Iterator<BindingSet> wrapped, Backend<?,?> backend) {
             this.wrapped = wrapped;
             this.backend = backend;
         }
@@ -91,15 +91,22 @@ public class BlazegraphOpExecutorFactory implements OpExecutorFactory {
 
             BindingBuilder builder = BindingFactory.builder();
             Set<String> varStrings = next.getBindingNames();;
-            for (String v : varStrings) {
+            for (String varAsString : varStrings) {
                 // Is this the best way from openrdf binding to jena binding?
-                builder.add(Var.alloc(v),
-                        NodeValue.toNode(
-                                NodeValueNode.parse(
-                                        stringify(next.getBinding(v).getValue())
-                                )
-                        )
-                );
+                // This should be identical to {@link BackendBindings.get}.
+                Var var = Var.alloc(varAsString);
+                Value value = next.getBinding(varAsString).getValue();
+                try {
+                    builder.add(var, NodeValue.parse(value.toString()).asNode());
+                } catch (Exception e) { // mostly for quotes in quotes
+                    try {
+                        Literal literal = (Literal) value;
+                        builder.add(var, NodeFactory.createLiteralLang(literal.getLabel(), literal.getLanguage()));
+                    } catch (Exception e1) {
+                        System.err.println("Error getting binding for " + var.getVarName() + " whose value is " + value.toString());
+                        throw e1;
+                    }
+                }
             }
             return builder.build();
         }
@@ -109,8 +116,9 @@ public class BlazegraphOpExecutorFactory implements OpExecutorFactory {
             return this.next();
         }
 
+        @Deprecated(forRemoval = true)
         public String stringify(Value value) {
-            return switch (value){
+            return switch (value) {
                 case BigdataURI bigdataURI:
                     yield "<" + bigdataURI.stringValue() + ">";
                 case BigdataLiteral bigdataLiteral:

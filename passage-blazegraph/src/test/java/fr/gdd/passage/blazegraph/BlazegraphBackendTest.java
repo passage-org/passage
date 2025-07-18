@@ -14,10 +14,13 @@ import fr.gdd.passage.commons.exceptions.NotFoundException;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
 import fr.gdd.passage.commons.iterators.BackendLazyIterator;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
+import org.openrdf.model.Literal;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryEvaluationException;
@@ -107,6 +110,23 @@ public class BlazegraphBackendTest {
         BigdataValue uri = bb.getValue("<https://uri>");
         assertInstanceOf(BigdataURI.class, uri);
         assertEquals("<https://uri>", bb.getString(uri));
+        bb.close();
+    }
+
+    @Test
+    public void create_values_with_quote_in_it () throws RepositoryException, SailException {
+        // Related to issues #28 and #24
+        //  - https://github.com/passage-org/passage-comunica/issues/24
+        //  - https://github.com/passage-org/passage-comunica/issues/28
+        // it's actually an issue of quote(s) inside literals
+        BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+        Literal nellySachs = bb.repository.getValueFactory().createLiteral("נלי זק\"ש" , "he");
+        // vvvvv we used to parse like this, but sometimes it throws an exception…
+        // var asNode = NodeValueNode.parse(nellySachs.toString());
+        // so as a backup, we use this vvvvv
+        Node ignored = NodeFactory.createLiteralLang(nellySachs.getLabel(), nellySachs.getLanguage());
+        // Value asBlazegraphValue = bb.getValue(asNode.getLiteral().toString());
+        // assertEquals(asBlazegraphValue.toString(), asNode.getLiteral());
         bb.close();
     }
 

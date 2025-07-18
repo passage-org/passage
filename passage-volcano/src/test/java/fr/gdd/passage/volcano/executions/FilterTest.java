@@ -5,6 +5,7 @@ import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.volcano.ExecutorUtils;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.openrdf.repository.RepositoryException;
@@ -149,5 +150,30 @@ public class FilterTest {
         blazegraph.close();
     }
 
+    @Disabled // TODO
+    @ParameterizedTest
+    @MethodSource("fr.gdd.passage.volcano.InstanceProviderForTests#oneScanOneThreadOnePush")
+    public void filter_should_not_duplicate (PassageExecutionContextBuilder<?,?> builder) throws RepositoryException, SailException {
+        // Related to issue: https://github.com/passage-org/passage-comunica/issues/25
+        // A filter is getting duplicated again and again, until there are a lot of copies
+        // of the same filter; which, even though it's not semantically an issue, can have an impact on
+        // query execution.
+        final BlazegraphBackend bb = new BlazegraphBackend(BlazegraphInMemoryDatasetsFactory.triples9());
+        builder.setBackend(bb);
+        String queryAsString =  """
+                SELECT ?animal WHERE {
+                       { SELECT * WHERE { ?person <http://own> ?animal }  OFFSET 0 }
+                       UNION { SELECT * WHERE { ?person <http://own> ?animal }  OFFSET 0 }
+                       {
+                         ?person <http://own> ?animal
+                       }
+                       FILTER (strlen(str(?animal)) <= 8+3)
+                }""";
+
+        var results = ExecutorUtils.execute(queryAsString, builder);
+        System.out.println(results);
+
+        bb.close();
+    }
 
 }
