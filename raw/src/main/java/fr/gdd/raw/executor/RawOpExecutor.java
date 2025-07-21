@@ -2,6 +2,7 @@ package fr.gdd.raw.executor;
 
 import fr.gdd.jena.visitors.ReturningArgsOpVisitorRouter;
 import fr.gdd.jena.visitors.ReturningOpVisitorRouter;
+import fr.gdd.passage.commons.CommonsCardinalityJoinOrdering;
 import fr.gdd.passage.commons.engines.BackendPullExecutor;
 import fr.gdd.passage.commons.factories.BackendNestedLoopJoinFactory;
 import fr.gdd.passage.commons.factories.IBackendBindsFactory;
@@ -31,7 +32,6 @@ import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.expr.aggregate.AggCount;
 import org.apache.jena.sparql.expr.aggregate.AggCountVarDistinct;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Objects;
 
@@ -55,7 +55,6 @@ public class RawOpExecutor<ID, VALUE> extends BackendPullExecutor<ID, VALUE> { /
                 BackendBind.factory(), BackendFilter.factory(), null,
                 null, RawOptional.factory(), null, null);
         this.execCxt = context;
-        this.execCxt.getContext().setIfUndef(RawConstants.SCAN_PROBABILITIES, new ArrayList<>());
         this.execCxt.getContext().setIfUndef(RawConstants.RANDOM_WALK_ATTEMPTS, new RawConstants.Wrapper<Long>(0L));
 
     }
@@ -73,7 +72,6 @@ public class RawOpExecutor<ID, VALUE> extends BackendPullExecutor<ID, VALUE> { /
 
 
         execCxt.getContext().setIfUndef(RawConstants.SCANS, 0L);
-        execCxt.getContext().setIfUndef(RawConstants.SCAN_PROBABILITIES, new ArrayList<>());
         execCxt.getContext().setIfUndef(RawConstants.RANDOM_WALK_ATTEMPTS, new RawConstants.Wrapper<Long>(0L));
         execCxt.getContext().setIfUndef(RawConstants.LIMIT, Long.MAX_VALUE);
         execCxt.getContext().setIfUndef(RawConstants.TIMEOUT, Long.MAX_VALUE);
@@ -148,7 +146,7 @@ public class RawOpExecutor<ID, VALUE> extends BackendPullExecutor<ID, VALUE> { /
         root = ReturningOpVisitorRouter.visit(new Graph2Quads(), root);
         if (execCxt.getContext().isFalseOrUndef(RawConstants.FORCE_ORDER)) {
             root = ReturningOpVisitorRouter.visit(new Triples2BGP(), root);
-            // root = new CardinalityJoinOrdering<>(backend, cache).visit(root); // need to have bgp to optimize, no tps
+            root = new CommonsCardinalityJoinOrdering<>(backend).visit(root); // need to have bgp to optimize, no tps
         }
 
         // If a select query, apply optional to everything, to retrieve incomplete random walks
