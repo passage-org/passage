@@ -16,6 +16,7 @@ import fr.gdd.passage.commons.interfaces.SPOC;
 import fr.gdd.passage.commons.iterators.BackendLazyIterator;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.sparql.expr.NodeValue;
 import org.apache.jena.sparql.util.NodeFactoryExtra;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Disabled;

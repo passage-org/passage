@@ -1,7 +1,5 @@
 package fr.gdd.passage.cli.server;
 
-import com.bigdata.rdf.model.BigdataBNode;
-import com.bigdata.rdf.model.BigdataLiteral;
 import com.bigdata.rdf.model.BigdataURI;
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
 import fr.gdd.passage.commons.generics.BackendConstants;
@@ -97,7 +95,7 @@ public class BlazegraphOpExecutorFactory implements OpExecutorFactory {
                 Var var = Var.alloc(varAsString);
                 Value value = next.getBinding(varAsString).getValue();
                 try {
-                    builder.add(var, NodeValue.parse(value.toString()).asNode());
+                    builder.add(var, NodeValue.parse(stringify(value)).asNode());
                 } catch (Exception e) { // mostly for quotes in quotes
                     try {
                         Literal literal = (Literal) value;
@@ -109,6 +107,14 @@ public class BlazegraphOpExecutorFactory implements OpExecutorFactory {
                 }
             }
             return builder.build();
+        }
+
+        public String stringify(Value value) {
+            // similar to: BlazegraphBackend.getString();
+            return switch (value) {
+                case BigdataURI uri ->  "<" + uri + ">";
+                default -> value.toString();
+            };
         }
 
         @Override
