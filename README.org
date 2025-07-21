@@ -1,8 +1,8 @@
 * Passage
 
-Passage provides correct and complete results for SPARQL queries, despite 
+Passage [1] provides correct and complete results for SPARQL queries, despite 
 time quotas enforced by public SPARQL endpoints. Contrarily to state-of-the-art
-approaches [1, 2], Passage works solely within SPARQL boundaries: a query execution
+approaches [2, 3], Passage works solely within SPARQL boundaries: a query execution
 returns correct (possibly partial) results along with a SPARQL continuation query; 
 executing the continuation query provides missing results, itself with another SPARQL 
 continuation query; until termination.
@@ -20,16 +20,18 @@ continuation query; until termination.
 
 ** Usage
 
-- =passage.jar= provides a one time execution without server.
-- =raw.jar= provides a one time execution of a online sample-based query execution.
-- =passage-server.jar= provides a server running passage/raw as a SPARQL endpoint.
-  
+- =passage-server.jar= provides a server running passage/raw/blazegraph as a SPARQL endpoint, it requires a few changes to the [[https://github.com/Chat-Wane/passage-secret/blob/main/passage-cli/src/main/resources/exampleConfig.ttl][configuration file]]. =--help= for more information.
+- =passage.jar= provides a one time execution without server. =--help= for more information.
+- =raw.jar= provides a one time execution of a online sample-based query execution. =--help= for more information.
+
 - [[https://github.com/passage-org/passage-comunica][passage-comunica]] provides a client to automate the continuation loop.
 
 ** References
 
-[1] T. Minier, H. Skaf-Molli and P. Molli. /SaGe: Web Preemption for Public SPARQL Query services/.
+[1] T.H.T. Pham, G. Montoya, B. Nédelec, H. Skaf-Molli, and P. Molli. [[https://hal.science/hal-05055927v1/file/rfp2567.pdf][Passage: Ensuring Completeness and Responsiveness of Public SPARQL Endpoints with SPARQL Continuation Queries]]. WWW '25: Proceedings of the ACM on Web Conference 2025.
+
+[2] T. Minier, H. Skaf-Molli and P. Molli. /SaGe: Web Preemption for Public SPARQL Query services/.
     In Proceedings of the World Wide Web Conference (2019).
 
-[2] R. Verborgh, M. Vander Sande, O. Hartig, J. Van Herwegen, L. De Vocht, B. De Meester,  G. Haesendonck and P. Colpaert. /Triple Pattern Fragments: A Low-Cost Knowledge Graph Interface for the Web/.
+[3] R. Verborgh, M. Vander Sande, O. Hartig, J. Van Herwegen, L. De Vocht, B. De Meester,  G. Haesendonck and P. Colpaert. /Triple Pattern Fragments: A Low-Cost Knowledge Graph Interface for the Web/.
     In Journal of Web Semantics (2016).
