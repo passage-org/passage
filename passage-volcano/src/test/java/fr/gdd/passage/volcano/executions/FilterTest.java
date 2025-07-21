@@ -5,7 +5,15 @@ import fr.gdd.passage.blazegraph.datasets.BlazegraphInMemoryDatasetsFactory;
 import fr.gdd.passage.commons.utils.MultisetResultChecking;
 import fr.gdd.passage.volcano.ExecutorUtils;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
+import fr.gdd.passage.volcano.transforms.DeduplicateFilters;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.jena.query.QueryFactory;
+import org.apache.jena.sparql.algebra.Algebra;
+import org.apache.jena.sparql.algebra.Op;
+import org.apache.jena.sparql.algebra.OpAsQuery;
+import org.apache.jena.sparql.algebra.Transformer;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.openrdf.repository.RepositoryException;
@@ -174,6 +182,112 @@ public class FilterTest {
         System.out.println(results);
 
         bb.close();
+    }
+
+    @Test
+    public void workaround_to_remove_duplicated_filters () throws RepositoryException, SailException {
+        String queryAsString = """
+                SELECT ?animal WHERE {
+                 ?s ?p ?animal .
+                 FILTER (strlen(str(?animal)) <= 8+3)
+                 FILTER (strlen(str(?animal)) <= 8+3)
+                }
+        """;
+
+        Op query = Algebra.compile(QueryFactory.create(queryAsString));
+        Op queryDeduplicated = Transformer.transform(new DeduplicateFilters(), query);
+        assertEquals(2, StringUtils.countMatches(OpAsQuery.asQuery(query).toString(), "strlen"));
+        assertEquals(1, StringUtils.countMatches(OpAsQuery.asQuery(queryDeduplicated).toString(), "strlen"));
+
+        // comes from: https://github.com/passage-org/passage-comunica/issues/25
+        String queryAsStringFromIssue25 = """
+                PREFIX wd: <http://www.wikidata.org/entity/>
+                PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+                SELECT ?article1 ?article2 WHERE {
+                  {
+                    {
+                      {
+                        BIND(wd:Q28206160 AS ?article1)
+                        BIND(wd:Q74136123 AS ?article2)
+                      }
+                      ?article2 wdt:P31 wd:Q13442814.
+                    }
+                    ?article2 wdt:P2860 ?article1.
+                  }
+                  UNION
+                  {
+                    {
+                      {
+                        SELECT * WHERE {
+                          BIND(wd:Q28206160 AS ?article1)
+                          ?article1 wdt:P2860 ?article2.
+                        }
+                        OFFSET 31
+                      }
+                      FILTER(?article1 != ?article2)
+                      FILTER(?article1 != ?article2)
+                      FILTER(?article1 != ?article2)
+                      FILTER(?article1 != ?article2)
+                      FILTER(?article1 != ?article2)
+                      FILTER(?article1 != ?article2)
+                      FILTER(?article1 != ?article2)
+                      FILTER(?article1 != ?article2)
+                      FILTER(?article1 != ?article2)
+                      FILTER(?article1 != ?article2)
+                      FILTER(?article1 != ?article2)
+                      FILTER(?article1 != ?article2)
+                      FILTER(?article1 != ?article2)
+                      FILTER(?article1 != ?article2)
+                      FILTER(?article1 != ?article2)
+                      FILTER(?article1 != ?article2)
+                      FILTER(?article1 != ?article2)
+                      FILTER(?article1 != ?article2)
+                      FILTER(?article1 != ?article2)
+                      FILTER(?article1 != ?article2)
+                    }
+                    UNION
+                    {
+                      {
+                        SELECT * WHERE { ?article1 wdt:P31 wd:Q13442814. }
+                        OFFSET 372873
+                      }
+                      {
+                        ?article1 wdt:P2860 ?article2.
+                        FILTER(?article1 != ?article2)
+                        FILTER(?article1 != ?article2)
+                        FILTER(?article1 != ?article2)
+                        FILTER(?article1 != ?article2)
+                        FILTER(?article1 != ?article2)
+                        FILTER(?article1 != ?article2)
+                        FILTER(?article1 != ?article2)
+                        FILTER(?article1 != ?article2)
+                        FILTER(?article1 != ?article2)
+                        FILTER(?article1 != ?article2)
+                        FILTER(?article1 != ?article2)
+                        FILTER(?article1 != ?article2)
+                        FILTER(?article1 != ?article2)
+                        FILTER(?article1 != ?article2)
+                        FILTER(?article1 != ?article2)
+                        FILTER(?article1 != ?article2)
+                        FILTER(?article1 != ?article2)
+                        FILTER(?article1 != ?article2)
+                        FILTER(?article1 != ?article2)
+                        FILTER(?article1 != ?article2)
+                      }
+                    }
+                    {
+                      ?article2 wdt:P31 wd:Q13442814;
+                        wdt:P2860 ?article1.
+                    }
+                  }
+                }
+                """;
+
+        Op queryFromIssue25 = Algebra.compile(QueryFactory.create(queryAsStringFromIssue25));
+        Op queryFromIssue25Deduplicated = Transformer.transform(new DeduplicateFilters(), queryFromIssue25);
+        // the new query should be much smaller
+        assertTrue(OpAsQuery.asQuery(queryFromIssue25).toString().length() >
+                OpAsQuery.asQuery(queryFromIssue25Deduplicated).toString().length());
     }
 
 }

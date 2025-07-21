@@ -1,6 +1,8 @@
 package fr.gdd.passage.volcano.push;
 
+import fr.gdd.passage.volcano.transforms.DeduplicateFilters;
 import org.apache.jena.sparql.algebra.Op;
+import org.apache.jena.sparql.algebra.Transformer;
 import org.apache.jena.sparql.algebra.op.OpTable;
 import org.apache.jena.sparql.algebra.op.OpUnion;
 
@@ -15,6 +17,8 @@ public class Pause2Continuation {
 
     public static final Op DONE = OpTable.empty(); // actually produces an empty `VALUES` clause
     public static boolean isDone(Op op) { return op instanceof OpTable table && table.getTable().isEmpty(); }
+    
+    public static Op removeDuplicatedFilters(Op op) { return Transformer.transform(new DeduplicateFilters(), op); }
 
     public static final BinaryOperator<Op> removeEmptyOfUnion = (l, r) -> {
         if (isDone(l) && isDone(r)) return OpTable.empty();

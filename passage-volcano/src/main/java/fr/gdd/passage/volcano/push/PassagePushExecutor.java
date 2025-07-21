@@ -59,7 +59,7 @@ public class PassagePushExecutor<ID,VALUE> extends BackendPushExecutor<ID,VALUE>
         isDone = true;
 
         return gotPaused.get() ?
-                pausable.get().pause():
+                Pause2Continuation.removeDuplicatedFilters(pausable.get().pause()):
                 null; // null means execution is over: we provided complete and correct results
     }
 
