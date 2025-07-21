@@ -16,6 +16,8 @@ import org.apache.jena.sparql.util.ExprUtils;
 
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -247,7 +249,7 @@ public class BackendBindings<ID, VALUE> implements Binding {
 
     @Override
     public Node get(String varName) { // TODO cache this probably, put it in the specific binding?
-        return NodeValue.parse(getBinding(Var.alloc(varName)).getString()).asNode();
+        return this.get(Var.alloc(varName));
     }
 
     @Override
@@ -258,13 +260,29 @@ public class BackendBindings<ID, VALUE> implements Binding {
             // among other, when the query has optionals.
             return null;
         }
+        String valueAsString = getBinding(var).getString();
         try {
-            return NodeValue.parse(getBinding(var).getString()).asNode();
+            return NodeValue.parse(valueAsString).asNode();
         } catch (Exception e) { // mostly for quotes in quotes
             try {
-                return NodeFactory.createLiteralString(getBinding(var).getString());
+                // If it's a string with a lang, it needs to be split manually
+                // as we don't know anything about the <VALUE> type except it accepts
+                // toString().
+
+                // Careful: this is more expensive, but should be triggered very
+                //          rarely.
+                Pattern pattern = Pattern.compile("\"(.+)\"@([a-zA-Z]+)");
+                Matcher matcher = pattern.matcher(valueAsString);
+                if (matcher.matches()) {
+                    String str = matcher.group(1);
+                    String lang = matcher.group(2);
+                    return NodeFactory.createLiteralLang(str, lang);
+                } else {
+                    // fallback to the general string literal factory
+                    return NodeFactory.createLiteralString(valueAsString);
+                }
             } catch (Exception e1) {
-                System.err.println("Error getting binding for " + var.getVarName());
+                System.err.println("Error getting binding for " + var.getVarName() +  " whose value is " + getBinding(var).getString());
                 throw e1;
             }
         }

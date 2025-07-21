@@ -116,20 +116,6 @@ public class BlazegraphOpExecutorFactory implements OpExecutorFactory {
             return this.next();
         }
 
-        @Deprecated(forRemoval = true)
-        public String stringify(Value value) {
-            return switch (value) {
-                case BigdataURI bigdataURI:
-                    yield "<" + bigdataURI.stringValue() + ">";
-                case BigdataLiteral bigdataLiteral:
-                    yield "\"" + bigdataLiteral.stringValue() + "\"";
-                case BigdataBNode bigdataBNode:
-                    {} // What to do here?
-                default:
-                    throw new IllegalStateException("Unexpected value: " + value);
-            };
-        }
-
         @Override
         public void cancel() {
             // TODO

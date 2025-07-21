@@ -16,6 +16,7 @@ import fr.gdd.passage.commons.interfaces.SPOC;
 import fr.gdd.passage.commons.iterators.BackendLazyIterator;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.sparql.util.NodeFactoryExtra;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.RepeatedTest;
@@ -33,6 +34,8 @@ import org.slf4j.LoggerFactory;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -127,6 +130,22 @@ public class BlazegraphBackendTest {
         Node ignored = NodeFactory.createLiteralLang(nellySachs.getLabel(), nellySachs.getLanguage());
         // Value asBlazegraphValue = bb.getValue(asNode.getLiteral().toString());
         // assertEquals(asBlazegraphValue.toString(), asNode.getLiteral());
+        assertNotNull(ignored.getLiteral().getValue());
+        assertNotNull(ignored.getLiteral().language());
+
+        // For Passage, we still need to get bindings by string
+        // so we need to parse, and see if it has a lang tag ourselves
+        Pattern pattern = Pattern.compile("\"(.+)\"@([a-zA-Z]+)");
+        Matcher matcher = pattern.matcher(nellySachs.toString());
+
+        if (matcher.matches()) {
+            String str = matcher.group(1);   // נלי זק"ש
+            String lang = matcher.group(2);  // he
+            Node asNode = NodeFactory.createLiteralLang(str, lang);
+            assertNotNull(asNode.getLiteral().getValue());
+            assertNotNull(asNode.getLiteral().language());
+        }
+
         bb.close();
     }
 
