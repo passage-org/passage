@@ -75,7 +75,7 @@ public class CommonsCardinalityJoinOrdering<ID,VALUE> implements ReturningArgsOp
                 default -> throw new UnsupportedOperationException("Operator not handle here: " + op);
             }
         } catch (NotFoundException | IllegalArgumentException e) {
-            iterator = null;
+            iterator = BackendIterator.empty();
         }
 
         return iterator;
