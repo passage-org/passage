@@ -26,6 +26,17 @@ continuation query; until termination.
 
 - [[https://github.com/passage-org/passage-comunica][passage-comunica]] provides a client to automate the continuation loop.
 
+  
+** Datasets
+
+Passage relies on a [[https://github.com/blazegraph][Blazegraph storage]]. To ingest your RDF data,
+please follow [[https://github.com/blazegraph/database/wiki/Quick_Start][their instructions]]. Alternatively, we provide a few
+datasets already ingested for trials:
+
+- [[https://zenodo.org/records/14224920][FedShop200]] for federations of SPARQL endpoints;
+- [[https://zenodo.org/records/12744414][WatDiv]] for an e-commerce dataset;
+- WDBench [[https://zenodo.org/records/12510935][(Part A)]] [[https://zenodo.org/records/12511050][(Part B)]] for a sample of Wikidata.
+
 ** References
 
 [1] T.H.T. Pham, G. Montoya, B. Nédelec, H. Skaf-Molli, and P. Molli. [[https://hal.science/hal-05055927v1/file/rfp2567.pdf][Passage: Ensuring Completeness and Responsiveness of Public SPARQL Endpoints with SPARQL Continuation Queries]]. WWW '25: Proceedings of the ACM on Web Conference 2025.
