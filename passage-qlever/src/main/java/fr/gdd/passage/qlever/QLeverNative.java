@@ -83,12 +83,16 @@ public final class QLeverNative {
         } else {
             return false;
         }
-        // `uname -m` says arm64 where the JVM says aarch64, and the resource is
-        // named after the former, so try both rather than pick a side.
+        // The resource is named after `uname -m`, which disagrees with the
+        // JVM's `os.arch` on both common architectures: `arm64` against
+        // `aarch64`, and `x86_64` against `amd64`. Try every spelling of the
+        // architecture at hand rather than pick a side.
         String arch = System.getProperty("os.arch", "");
-        List<String> candidates = arch.equals("aarch64")
-                ? List.of("arm64", "aarch64")
-                : List.of(arch);
+        List<String> candidates = switch (arch) {
+            case "aarch64", "arm64" -> List.of("arm64", "aarch64");
+            case "amd64", "x86_64" -> List.of("x86_64", "amd64");
+            default -> List.of(arch);
+        };
         for (String candidate : candidates) {
             String resource = "native/" + name + "-" + candidate
                     + "/libqleverjni." + extension;
