@@ -95,11 +95,18 @@ a dependency should carry.
 Then run the tests against the two of them:
 
 ```bash
+# $INDEX is the one set above; in a new shell, name the index again.
 JAVA_HOME=$(brew --prefix openjdk@21) \
 mvn -pl passage-qlever,passage-volcano test \
     -Dtest='QLeverBackendTest,QLeverContinuationTest' \
     -Dqlever.test.index="$INDEX"
 ```
+
+An empty `-Dqlever.test.index=`, which is what an unset `$INDEX` gives, counts
+as naming no index. The tests then abort and print `SKIPPING <class>: ...` with
+the reason, because surefire summarises an aborted `@BeforeAll` as zero tests
+run rather than as skipped — so without that line a forgotten variable would
+look exactly like a successful run.
 
 `JAVA_HOME` is on both commands because Maven itself has to run on a 21, the
 modules being compiled with release 21. It can be left out once the default JDK

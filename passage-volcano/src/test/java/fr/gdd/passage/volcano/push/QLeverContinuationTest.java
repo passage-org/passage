@@ -8,6 +8,7 @@ import fr.gdd.passage.volcano.ExecutorUtils;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import org.apache.commons.lang3.tuple.Pair;
+import org.opentest4j.TestAbortedException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -16,7 +17,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * Execute a query over a QLever index with one scan per execution, so that
@@ -45,21 +45,35 @@ class QLeverContinuationTest {
 
     static QLeverBackend backend;
 
+    static final String CLASS_LABEL = "QLeverContinuationTest";
+
+    /**
+     * Abort with a reason that is visible in the build output. A `@BeforeAll`
+     * assumption aborts the container, which surefire summarises as zero tests
+     * run rather than as skipped, so without printing it a missing index looks
+     * exactly like a successful run.
+     */
+    static TestAbortedException skip(String reason) {
+        System.err.println("SKIPPING " + CLASS_LABEL + ": " + reason);
+        return new TestAbortedException(reason);
+    }
+
     @BeforeAll
     static void openTheIndex() {
         String index = System.getProperty(INDEX_PROPERTY);
-        assumeTrue(index != null,
-                "set -D" + INDEX_PROPERTY + "=<index basename>, see passage-qlever/NATIVE.md");
-        assumeTrue(Files.exists(Path.of(index + ".index.pso")),
-                () -> "no QLever index at " + index);
-        boolean loaded;
+        if (index == null || index.isBlank()) {
+            throw skip("-D" + INDEX_PROPERTY + " names no index. NOTE that an"
+                    + " empty value counts as none, which is what an unset"
+                    + " shell variable gives. See passage-qlever/NATIVE.md");
+        }
+        if (!Files.exists(Path.of(index + ".index.pso"))) {
+            throw skip("no QLever index at " + index);
+        }
         try {
             QLeverNative.load();
-            loaded = true;
         } catch (UnsatisfiedLinkError e) {
-            loaded = false;
+            throw skip("the qleverjni library was not found. " + e.getMessage());
         }
-        assumeTrue(loaded, "the qleverjni library was not found, see passage-qlever/NATIVE.md");
         backend = new QLeverBackend(index);
     }
 
