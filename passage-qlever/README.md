@@ -157,7 +157,22 @@ java -cp "$(cat /tmp/cp.txt):passage-volcano/target/classes:passage-volcano/targ
 ```
 
 It reports opening, the query, and time since JVM start separately, so none of
-the three can hide inside another. Run it with `mvn exec:java` instead and the
+the three can hide inside another.
+
+None of these programs execute anything themselves. The query goes through
+Jena — `Algebra.compile(QueryFactory.create(sparql))` — and then through one
+call to `context.executor.execute(op, consumer)` on a `PassagePushExecutor`
+built by the ordinary `PassageExecutionContextBuilder`, which is the same path
+`passage-cli` takes with the same settings: `maxParallel` 1, no `maxScans`, no
+timeout, all three the CLI's own defaults. The only difference is the consumer,
+a `LongAdder` increment instead of a `log.info`. The clock brackets that one
+call and nothing else.
+
+The continuation loop around it never runs twice here. Stopping conditions are
+registered only when `maxScans` or `timeout` differ from `Long.MAX_VALUE`, and
+these runs set neither, so nothing raises `PauseException`, `execute` returns
+null, and the query completes in a single execution. Continuations are measured
+separately, further up this page. Run it with `mvn exec:java` instead and the
 first two stay right while the third becomes useless: it reads the *process*
 start through `ProcessHandle`, which under Maven is Maven's own — about four
 seconds of it, more than the query on anything small.
