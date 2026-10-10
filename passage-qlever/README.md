@@ -63,8 +63,7 @@ cat > $HOME/qlever-fig2/fig2.ttl <<'TTL'
 <http://ex.org/H1> <http://ex.org/occupation> <http://ex.org/O2> .
 <http://ex.org/H3> <http://ex.org/occupation> <http://ex.org/O3> .
 TTL
-passage-qlever/qlever/build/qlever-index \
-    -i $HOME/qlever-fig2/fig2 -f $HOME/qlever-fig2/fig2.ttl -F ttl
+passage-qlever/build-index.sh $HOME/qlever-fig2/fig2 $HOME/qlever-fig2/fig2.ttl
 
 # The backend's own tests, then the continuation test on the engine side.
 mvn -pl passage-qlever,passage-volcano test \
@@ -293,8 +292,8 @@ NOTE: the directory is named after `uname -m`, which says `arm64` where the
 JVM's `os.arch` says `aarch64`, and `x86_64` where it says `amd64`; the lookup
 tries both spellings.
 
-An index is made by `qlever-index` and is a set of files sharing a basename,
-which is what `QLeverBackendFactory` takes as its `Path`:
+An index is a set of files sharing a basename, which is what
+`QLeverBackendFactory` takes as its `Path`. `build-index.sh` makes one:
 
 ```bash
 cat > fig2.ttl <<'TTL'
@@ -305,13 +304,16 @@ cat > fig2.ttl <<'TTL'
 <http://ex.org/H1> <http://ex.org/occupation> <http://ex.org/O2> .
 <http://ex.org/H3> <http://ex.org/occupation> <http://ex.org/O3> .
 TTL
-passage-qlever/qlever/build/qlever-index -i $PWD/fig2 -f fig2.ttl -F ttl
+passage-qlever/build-index.sh $PWD/fig2 fig2.ttl
 ```
 
-The `native` profile builds that tool alongside the library, since an index is
-needed to use this module at all. It stays in the submodule's build directory
-rather than being copied into the jar: it is a 60 MB executable, not something
-a dependency should carry.
+`build-index.sh` wraps QLever's `qlever-index`, which the `native` profile
+builds alongside the library, with the block size Passage wants rather than the
+one QLever defaults to — see [below](#it-is-the-block-size-and-it-is-a-setting)
+for why that matters, and `ROWS_PER_BLOCK=n` to override it. It also pipes a
+`.gz` file in, which `qlever-index` does not decompress for itself. The
+executable stays in the submodule's build directory rather than being copied
+into the jar: it is 60 MB, not something a dependency should carry.
 
 Then run the tests against the two of them:
 
