@@ -59,3 +59,10 @@ cp.txt
 
 #### virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+# QLever index files, which land in the working directory when a tool or a test
+# is given an empty basename. See passage-qlever/NATIVE.md.
+*.index.*
+*.vocabulary.*
+*.meta-data.json
+*.internal.index.*
