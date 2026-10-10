@@ -16,6 +16,7 @@ pinned at the commit this backend was built against, so the dependency is
 recorded in git rather than in prose. After a fresh clone:
 
 ```bash
+export JAVA_HOME=$(brew --prefix openjdk@21)   # or wherever a 21 lives
 git submodule update --init passage-qlever/qlever
 mvn -pl passage-qlever install -Pnative
 ```
@@ -87,10 +88,19 @@ TTL
 Then run the tests against the two of them:
 
 ```bash
+JAVA_HOME=$(brew --prefix openjdk@21) \
 mvn -pl passage-qlever,passage-volcano test \
     -Dtest='QLeverBackendTest,QLeverContinuationTest' \
     -Dqlever.test.index=/path/to/fig2
 ```
+
+`JAVA_HOME` is on both commands on purpose. This project targets release 21,
+so Maven itself has to run on a 21: under a 17 the compile fails outright, and
+if the classes are already built, surefire forks a 17 and dies with `class file
+version 65.0 ... only recognizes class file versions up to 61.0`, which names
+neither Java nor the fix. A version manager pinned to an older default makes
+this the normal case rather than the exception, and `jenv local` does not help,
+since it shims JDK binaries and not `mvn`.
 
 Only the index has to be named, the library having come from the jar. Without
 the index the tests report as skipped, not as passed.
