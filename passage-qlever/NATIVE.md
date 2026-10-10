@@ -74,6 +74,8 @@ An index is made by `qlever-index` and is a set of files sharing a basename,
 which is what `QLeverBackendFactory` takes as its `Path`:
 
 ```bash
+INDEX=$PWD/fig2     # the basename, wherever you want it
+
 cat > fig2.ttl <<'TTL'
 <http://ex.org/H1> <http://ex.org/type> <http://ex.org/Human> .
 <http://ex.org/H2> <http://ex.org/type> <http://ex.org/Human> .
@@ -82,7 +84,7 @@ cat > fig2.ttl <<'TTL'
 <http://ex.org/H1> <http://ex.org/occupation> <http://ex.org/O2> .
 <http://ex.org/H3> <http://ex.org/occupation> <http://ex.org/O3> .
 TTL
-passage-qlever/qlever/build/qlever-index -i fig2 -f fig2.ttl -F ttl
+passage-qlever/qlever/build/qlever-index -i "$INDEX" -f fig2.ttl -F ttl
 ```
 
 The `native` profile builds that tool alongside the library, since an index is
@@ -96,7 +98,7 @@ Then run the tests against the two of them:
 JAVA_HOME=$(brew --prefix openjdk@21) \
 mvn -pl passage-qlever,passage-volcano test \
     -Dtest='QLeverBackendTest,QLeverContinuationTest' \
-    -Dqlever.test.index=/path/to/fig2
+    -Dqlever.test.index="$INDEX"
 ```
 
 `JAVA_HOME` is on both commands because Maven itself has to run on a 21, the
