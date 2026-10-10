@@ -205,28 +205,49 @@ is a no-op — no located triples and `numRowsIsExact` for the graph filter —
 which makes its contents a pure function of its index and the columns read,
 since the base index never changes and updates live in the located triples.
 
-### The comparison, warmed
+### The comparison, at the plateau
 
-Each backend is warmed before it is timed, which matters more than it sounds.
-Blazegraph's scans are Java and get compiled as they run: left cold it reports
-around 800,000 solutions/s on the join and around 2,800,000 once warm.
-QLever's are native and already compiled, so it gains a few percent. A cold
-benchmark therefore flatters QLever, and an earlier version of this section
-claimed it ahead on the join for exactly that reason.
+"Warm" is two things, and calling them one hid a bad protocol. The JVM compiles
+the pipeline as it runs, and a store's working set stays in memory once touched
+— Blazegraph's in its heap, QLever's as compressed pages plus whatever its
+block cache holds. Both stores fit in this machine's 16 GB, so after a few runs
+both are joining in memory. That is the state a running server is in, and it is
+not the state a first query sees.
 
-First 200,000 solutions, median of five after a warm-up:
+`whatWarmingUpActuallyDoes` prints the rate of each successive run rather than
+asserting anything, on `?s a ?c . ?s ?p ?o`, in solutions/s:
 
-| | QLever /s | Blazegraph /s | |
+```
+QLever        405,679  1,226,993  1,142,857  1,388,888  1,324,503  ...  1,418,439
+Blazegraph    471,698  2,222,222  2,469,135  2,702,702  2,816,901  ...  2,816,901
+```
+
+Two things follow. The plateau does not depend on which store runs first, while
+the first run very much does: whichever goes second starts on a JVM that has
+already compiled the pipeline, so measured first Blazegraph opens at 268,456
+and QLever at 405,679, and measured second they open at 471,698 and 847,457.
+And Blazegraph takes four runs to level off where QLever takes two, so throwing
+away one run — which this did at first — under-reports Blazegraph. Three are
+thrown away now.
+
+| first 200,000 solutions, median of 5 at the plateau | QLever /s | Blazegraph /s | |
 |---|---|---|---|
-| `?s ?p ?o` | **5,000,000** | 3,846,153 | QLever 1.3x |
-| `?s a ?c` | **8,012,647** | 4,540,500 | QLever 1.8x |
-| `?s a ?c . ?s ?p ?o` | 1,398,601 | **2,985,074** | Blazegraph 2.1x |
+| `?s ?p ?o` | **5,405,405** | 3,636,363 | QLever 1.5x |
+| `?s a ?c` | **8,513,437** | 4,864,821 | QLever 1.8x |
+| `?s a ?c . ?s ?p ?o` | 1,438,848 | **2,941,176** | Blazegraph 2.0x |
 
 So QLever reads faster and Blazegraph joins faster, and the cache is what makes
-the second a factor of two rather than of ninety-five. A nested-loop join is a
-sequence of point lookups, which is what a B-tree is for and what a
+the second a factor of two rather than of a hundred and twenty. A nested-loop
+join is a sequence of point lookups, which is what a B-tree is for and what a
 block-compressed column store is not; the cache removes the decompression but
-not the indirection. QLever holds the same data in 283 MB against 1.7 GB.
+not the indirection.
+
+On disk QLever holds the same data in 283 MB against 1.7 GB. In memory the
+order reverses and by more than expected: over twelve runs of the join the
+process grows by about 840 MB with QLever and about 206 MB with Blazegraph.
+Both are well under their file sizes, so neither reads everything, but QLever's
+resident footprint exceeds its whole index — its vocabulary and the structures
+it expands at load account for more than the compressed data does.
 
 ### The block size, which the cache settles
 

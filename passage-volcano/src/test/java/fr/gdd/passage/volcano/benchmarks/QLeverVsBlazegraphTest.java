@@ -183,10 +183,16 @@ class QLeverVsBlazegraphTest {
     }
 
     /**
-     * The comparison, with each backend warmed before it is timed. Blazegraph
-     * needs it: left cold it reports around 400,000 solutions/s on the join and
-     * around 800,000 once warm, so a single run of each would have flattered
-     * whichever went second. QLever varies by a few percent either way.
+     * The comparison, each backend measured at its plateau.
+     *
+     * <p>"Warm" is two things and neither is a guess: the JVM compiles the
+     * pipeline as it runs, and a store's working set stays in memory once
+     * touched — Blazegraph's in its heap, QLever's as compressed pages plus
+     * whatever its block cache holds. Both fit in this machine's 16 GB, so from
+     * the fourth run on both are joining in memory, which is the state a
+     * running server is in. `whatWarmingUpActuallyDoes` prints the climb; the
+     * plateau it reaches does not depend on which store is measured first,
+     * while the first run very much does.
      */
     @Test
     void theBenchmark() {
@@ -197,8 +203,8 @@ class QLeverVsBlazegraphTest {
                 new String[]{"?s a ?c", "SELECT * WHERE { ?s a ?c }"},
                 new String[]{"the join", WHOLE});
 
-        System.out.printf("%n== first %,d solutions, median of %d after a warm-up%n",
-                cap, repeats);
+        System.out.printf("%n== first %,d solutions, median of %d runs at the "
+                + "plateau (%d discarded)%n", cap, repeats, DISCARDED_RUNS);
         System.out.printf("   %-12s %14s %14s %10s%n",
                 "shape", "QLever /s", "Blazegraph /s", "ratio");
         for (String[] shape : shapes) {
@@ -209,19 +215,89 @@ class QLeverVsBlazegraphTest {
         }
     }
 
-    /** Solutions per second, median of `repeats` timed runs after one warm-up. */
+    /**
+     * How many runs are thrown away before timing. `whatWarmingUpActuallyDoes`
+     * prints the rate of each successive run: both stores climb and then level
+     * off, QLever by the second run and Blazegraph by the fourth, so three is
+     * what it takes for the slower of the two to be at its plateau. Discarding
+     * only one, which this did at first, under-reported Blazegraph.
+     */
+    static final int DISCARDED_RUNS = 3;
+
+    /** Solutions per second, median of `repeats` runs at the plateau. */
     static <ID, VALUE> long medianRate(Backend<ID, VALUE> backend, String query,
                                        long cap, int repeats) {
-        run(backend, query, 1_000_000L, cap, solution -> { });   // warm-up
+        return rates(backend, query, cap, repeats + DISCARDED_RUNS).stream()
+                .skip(DISCARDED_RUNS).sorted().toList().get(repeats / 2);
+    }
+
+    /**
+     * The rate of each of `runs` successive runs, so that what "warm" means can
+     * be read rather than asserted. There are two effects and they are not the
+     * same: the JVM compiles the code as it runs, and a store's pages stay in
+     * memory once touched — for Blazegraph in its own heap, for QLever in the
+     * page cache as compressed bytes plus whatever the block cache holds. Both
+     * stores fit in this machine's memory, so a long enough sequence ends with
+     * both of them joining in memory, which is the state a running server is
+     * in and not the state a first query sees.
+     */
+    static <ID, VALUE> List<Long> rates(Backend<ID, VALUE> backend, String query,
+                                        long cap, int runs) {
         List<Long> rates = new ArrayList<>();
-        for (int i = 0; i < repeats; ++i) {
+        for (int i = 0; i < runs; ++i) {
             long start = System.nanoTime();
             Outcome outcome = run(backend, query, 1_000_000L, cap, solution -> { });
             long ms = Math.max(1, (System.nanoTime() - start) / 1_000_000);
             rates.add(outcome.solutions() * 1000 / ms);
         }
-        rates.sort(Comparator.naturalOrder());
-        return rates.get(rates.size() / 2);
+        return rates;
+    }
+
+    /** The resident size of this process, which both stores contribute to. */
+    static long residentMegabytes() {
+        try {
+            Process ps = new ProcessBuilder("ps", "-o", "rss=", "-p",
+                    String.valueOf(ProcessHandle.current().pid())).start();
+            try (var reader = new java.io.BufferedReader(
+                    new java.io.InputStreamReader(ps.getInputStream()))) {
+                return Long.parseLong(reader.readLine().trim()) / 1024;
+            }
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    /**
+     * What "warm" is, run by run, with the memory the process holds after each
+     * store has been exercised. This is the measurement behind the choice of
+     * protocol in `theBenchmark`, and the one to look at before believing it.
+     */
+    @Test
+    void whatWarmingUpActuallyDoes() {
+        long cap = Long.parseLong(System.getProperty(CAP_PROPERTY, "200000"));
+        int runs = Integer.parseInt(System.getProperty("bench.runs", "12"));
+        System.out.printf("%n== %s%n== %,d solutions, run by run, in solutions/s%n",
+                WHOLE, cap);
+        System.out.printf("   resident before anything: %d MB%n", residentMegabytes());
+        // Whichever goes second has a JVM that already compiled the pipeline, so
+        // its first run is not comparable to the other's. `bench.first` swaps
+        // them; run it both ways to see which effect is which.
+        boolean blazegraphFirst =
+                "blazegraph".equalsIgnoreCase(System.getProperty("bench.first", ""));
+        var order = blazegraphFirst
+                ? List.of(new Object[]{"Blazegraph", blazegraph},
+                          new Object[]{"QLever", qlever})
+                : List.of(new Object[]{"QLever", qlever},
+                          new Object[]{"Blazegraph", blazegraph});
+        for (var entry : order) {
+            @SuppressWarnings("unchecked")
+            Backend<Object, Object> b = (Backend<Object, Object>) entry[1];
+            List<Long> rates = rates(b, WHOLE, cap, runs);
+            System.out.printf("   %-11s", entry[0]);
+            rates.forEach(r -> System.out.printf(" %,9d", r));
+            System.out.printf("%n   %-11s resident now: %d MB%n", "",
+                    residentMegabytes());
+        }
     }
 
     /**
