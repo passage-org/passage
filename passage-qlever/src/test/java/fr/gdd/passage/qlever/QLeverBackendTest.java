@@ -91,12 +91,21 @@ class QLeverBackendTest {
         return b.getId(value);
     }
 
-    /** The subjects of a scan, in the order the permutation yields them. */
+    /**
+     * The subjects of a scan, in the order the permutation yields them.
+     *
+     * <p>NOTE the order of the two calls: `next()` moves onto a match and
+     * `getString` then reads it, as in `BlazegraphIterator` and `HDTIterator`.
+     * Reading before advancing is self-consistent and was what this backend
+     * did, which made Passage drop the first match of every scan — the whole
+     * query was off by one and the totals still matched, because the last match
+     * came out twice.
+     */
     static List<String> subjectsOf(BackendIterator<Long, String> it) {
         List<String> subjects = new ArrayList<>();
         while (it.hasNext()) {
-            subjects.add(it.getString(SPOC.SUBJECT));
             it.next();
+            subjects.add(it.getString(SPOC.SUBJECT));
         }
         return subjects;
     }
@@ -113,9 +122,23 @@ class QLeverBackendTest {
         BackendIterator<Long, String> it =
                 backend.search(any, lookup(backend, TYPE), any);
         assertEquals(3d, it.cardinality());
+        // The first match included: this is the assertion the convention bug
+        // broke, and it only bites a consumer that advances before reading.
         assertEquals(List.of("<http://ex.org/H1>", "<http://ex.org/H2>",
                              "<http://ex.org/H3>"), subjectsOf(it));
         assertFalse(it.hasNext(), "the scan is exhausted once every match is read");
+    }
+
+    /** As many matches as the cardinality says, no more and no fewer. */
+    @Test
+    void aScanYieldsExactlyAsManyMatchesAsItPromises() {
+        for (String predicate : List.of(TYPE, OCCUPATION)) {
+            BackendIterator<Long, String> it =
+                    backend.search(any, lookup(backend, predicate), any);
+            double promised = it.cardinality();
+            assertEquals((int) promised, subjectsOf(it).size(),
+                    () -> "the scan of " + predicate + " promised " + promised);
+        }
     }
 
     /**
@@ -123,21 +146,29 @@ class QLeverBackendTest {
      * reports repositions a freshly created one on the same solution. This is
      * what lets an execution stop and be resumed by another query.
      */
+    /**
+     * The property every continuation relies on: after consuming some matches,
+     * `current()` is the offset to resume from, and a fresh iterator skipped
+     * there yields exactly the rest. `current()` counts what has been consumed,
+     * so it is the offset of the *next* match rather than of the current one —
+     * as in `BlazegraphIterator`, where `next()` increments before fetching.
+     */
     @Test
     void theReportedOffsetRepositionsAFreshIterator() {
         Long type = lookup(backend, TYPE);
         BackendIterator<Long, String> it = backend.search(any, type, any);
-        it.next();                              // stop after the first match
+        it.next();                              // consume the first match
+        assertEquals("<http://ex.org/H1>", it.getString(SPOC.SUBJECT));
         long continuation = it.current();
-        assertEquals(1L, continuation);
-        String expected = it.getString(SPOC.SUBJECT);
+        assertEquals(1L, continuation, "one match consumed");
+        assertEquals(0L, it.previous(), "whose offset is zero");
 
         BackendIterator<Long, String> resumed = backend.search(any, type, any);
         resumed.skip(continuation);
         assertEquals(continuation, resumed.current());
-        assertEquals(expected, resumed.getString(SPOC.SUBJECT));
         assertEquals(List.of("<http://ex.org/H2>", "<http://ex.org/H3>"),
-                     subjectsOf(resumed));
+                     subjectsOf(resumed),
+                     "a fresh iterator skipped to the reported offset yields the rest");
     }
 
     /**

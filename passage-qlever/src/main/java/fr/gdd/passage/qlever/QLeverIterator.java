@@ -24,7 +24,15 @@ public class QLeverIterator extends BackendIterator<Long, String> {
     /** The current batch, three ids (subject, predicate, object) per match. */
     final long[] batch = new long[3 * BATCH_SIZE];
     int sizeOfBatch = 0;
-    int indexInBatch = 0;
+    /**
+     * The match within the batch that this iterator sits on, or `-1` before the
+     * first one. `next()` moves onto a match and `getId` then reads it, which is
+     * the convention `BlazegraphIterator` and `HDTIterator` both use and the one
+     * `SpliteratorScan` relies on: it calls `next()` before reading anything.
+     */
+    int indexInBatch = -1;
+    /** True once a fill has come back empty, so that `hasNext` stops asking. */
+    boolean exhausted = false;
     /** The offset of `batch[0]`; the offset of the current match adds `indexInBatch`. */
     long offsetOfBatch = 0;
 
@@ -50,20 +58,35 @@ public class QLeverIterator extends BackendIterator<Long, String> {
     /** Pull the next batch, which starts at `offset` in the enumeration. */
     void fillBatch(long offset) {
         offsetOfBatch = offset;
-        indexInBatch = 0;
+        indexInBatch = -1;
         sizeOfBatch = QLeverNative.fill(cursor, batch, BATCH_SIZE);
+        if (sizeOfBatch == 0) {
+            exhausted = true;
+        }
     }
 
+    /**
+     * Whether there is a match to move onto. Pulling the next batch when the
+     * current one is used up happens here rather than in `next()`, because that
+     * is the only way to answer the question; it leaves the batch unconsumed, so
+     * asking twice gives the same answer and costs one fill.
+     */
     @Override
     public boolean hasNext() {
-        return indexInBatch < sizeOfBatch;
+        if (indexInBatch + 1 < sizeOfBatch) {
+            return true;
+        }
+        if (exhausted) {
+            return false;
+        }
+        fillBatch(offsetOfBatch + sizeOfBatch);
+        return sizeOfBatch > 0;
     }
 
     @Override
     public void next() {
-        indexInBatch += 1;
-        if (indexInBatch >= sizeOfBatch && sizeOfBatch > 0) {
-            fillBatch(offsetOfBatch + sizeOfBatch);
+        if (hasNext()) {
+            indexInBatch += 1;
         }
     }
 
@@ -96,19 +119,27 @@ public class QLeverIterator extends BackendIterator<Long, String> {
         // Staying inside the batch that is already in memory avoids a JNI call and
         // a new scan, and is the common case when skipping by a few elements.
         if (to >= offsetOfBatch && to < offsetOfBatch + sizeOfBatch) {
-            indexInBatch = (int) (to - offsetOfBatch);
+            // One before, so that the next `next()` moves onto `to`.
+            indexInBatch = (int) (to - offsetOfBatch) - 1;
             return;
         }
         QLeverNative.skip(cursor, to);
+        exhausted = false;
         fillBatch(to);
     }
 
-    /** The offset of the match that this iterator currently points at. */
+    /**
+     * How many matches have been consumed, which is the offset of the next one
+     * and so what a continuation query resumes from. NOTE: this is one more than
+     * the offset of the match `getId` returns, as in `BlazegraphIterator`, where
+     * `next()` increments the offset before fetching.
+     */
     @Override
     public long current() {
-        return offsetOfBatch + indexInBatch;
+        return offsetOfBatch + indexInBatch + 1;
     }
 
+    /** The offset of the match `getId` returns. */
     @Override
     public long previous() {
         long current = current();

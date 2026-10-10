@@ -205,46 +205,61 @@ is a no-op — no located triples and `numRowsIsExact` for the graph filter —
 which makes its contents a pure function of its index and the columns read,
 since the base index never changes and updates live in the located triples.
 
-### An open correctness bug, found by comparing against Blazegraph
+### A bug this found, and the convention behind it
 
-On WatDiv 10M, `SELECT * WHERE { ?s a ?c . ?s ?p ?o }` run to completion yields
-**10,332,446** solutions through this backend and **10,332,352** through
-Blazegraph. QLever's own engine says 10,332,352, so Blazegraph is right and
-this backend returns 94 too many.
+Run to completion, the join yielded **10,332,446** solutions through this
+backend where Blazegraph and QLever's own engine both say **10,332,352**. The
+cause was a convention, and it is worth recording because nothing in the
+`Backend` interface states it.
 
-`WhichSolutionsDiffer` localises it to a single row, with the help of the fact
-that the two patterns alone agree exactly — `?s ?p ?o` gives 10,916,457 on both
-and `?s a ?c` gives 136,215 on both:
+`BlazegraphIterator` and `HDTIterator` both *fetch* in `next()`: the iterator
+starts before the first match and a consumer advances before reading.
+`QLeverIterator` did the opposite — it started on the first match, and `next()`
+left it — which is self-consistent and what its own tests checked. But
+`SpliteratorScan` calls `next()` before reading anything, so every scan lost its
+first match and, at the end, yielded its last one twice. The totals matched,
+which is why no count ever caught it; the join was off by 94 only because the
+two affected subjects happened to have 7 and 101 triples.
 
-| | QLever | Blazegraph |
-|---|---|---|
-| `wsdbm/Product0` as `?s` of `?s a ?c` | **0** | 1 |
-| `wsdbm/User9998` as `?s` of `?s a ?c` | **2** | 1 |
-| `wsdbm/ProductCategory11` as `?c` | **1,685** | 1,686 |
-| `wsdbm/Role1` as `?c` | **31,174** | 31,173 |
+`current()` was shifted for the same reason. Blazegraph increments its offset
+and then fetches, so `current()` is the number of matches consumed — the offset
+to resume a continuation from — and `previous()` is the offset of the match in
+hand. Ours reported the offset of the match in hand as `current()`. The two
+shifts cancelled under our own convention, which is exactly why
+`offsetRoundTripsThroughAFreshCursor` passed throughout.
 
-So one row of that scan, `(Product0, ProductCategory11)`, comes out as a second
-`(User9998, Role1)`. The totals match because one duplication and one omission
-cancel, which is why counting alone never caught it, and why the join is off by
-94 rather than by 1: Product0 has 7 triples and User9998 has 101.
+What found it was not a test but a second implementation of the same semantics,
+on data large enough for a one-row error to exist.
+`WhichSolutionsDiffer` counts solutions per value of a variable and diffs the
+two backends; `ColdStart` runs a query to completion in a fresh process, which
+is what exposed it, since the capped benchmark measured 2% of the query and the
+error cancelled inside that prefix.
 
-Four candidates are excluded by measurement. It is not the block cache
-(identical with `-Dqlever.block.cache=0`). It is not `skip`: creating a cursor
-and skipping to each of the 136,215 offsets in turn lands on exactly the row a
-plain iteration yields, every time. It is not the scan itself: iterating
-`search(any, rdf:type, any)` through `QLeverBackend` gives 136,215 rows with
-Product0 and User9998 once each. And it is not Passage splitting scans — the
-difference survives `setSplitScans` raised past the cardinality.
+Fixed, both backends now return 10,332,352 and no value of `?s` differs. The
+tests that encoded the wrong convention are rewritten, and one was added:
+a scan must yield exactly as many matches as its cardinality promises.
 
-What is left untested is the rest of what `SpliteratorScan` calls on an
-iterator: `cardinality()` partway through, `previous()`, `reset()` and
-`random()`. The bug is in that interaction, and until it is found the timings
-below describe a backend that is returning a wrong answer.
+### The comparison, in a fresh process
 
-This is also the argument for the exercise. The backend's own tests check it
-against expected values, and no number of them would have found this: it took a
-second implementation of the same semantics, on data large enough for a
-one-row error to exist.
+Each query run to completion, in a JVM of its own so that neither backend
+inherits a compiled pipeline from the other. The page cache is warm — purging
+it needs privileges — so this is a cold process against a hot disk, which is
+the state a restarted server is in.
+
+| | QLever | Blazegraph | |
+|---|---|---|---|
+| `?s ?p ?o`, 10,916,457 solutions | **1,510 ms** | 5,355 ms | QLever 3.5x |
+| `?s a ?c`, 136,215 | **303 ms** | 419 ms | QLever 1.4x |
+| `?s a ?c . ?s ?p ?o`, 10,332,352 | 4,363 ms | **3,198 ms** | Blazegraph 1.4x |
+
+Opening the store costs about 390 ms for QLever and 490 for Blazegraph.
+Blazegraph's join time varies between runs by as much as 1.7x, so the last row
+is the least firm of the three.
+
+So QLever scans faster and Blazegraph joins faster, which is what the two
+designs predict: a nested-loop join is a sequence of point lookups, which a
+B-tree is for and a block-compressed column store is not. The block cache
+below is what brings that from a factor of ninety-five to a factor of 1.4.
 
 ### The comparison, at the plateau
 
