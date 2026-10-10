@@ -185,20 +185,18 @@ of times running.
 `lazy-index-scan-block-cache-size` keeps a few decompressed blocks per thread.
 It is zero in QLever and `QLeverBackend` sets it to 16, which
 `-Dqlever.block.cache` overrides. On the join, first 200,000 solutions, median
-of three runs:
+of five timed runs after a warm-up:
 
 | blocks kept | solutions/s |
 |---|---|
-| 0 | 23,700 |
-| 1 | 945,000 |
-| 4 | 980,000 |
-| **16** | **1,250,000** |
-| Blazegraph, warm | 800,000 |
+| 0 | 24,384 |
+| 1 | 1,081,081 |
+| 4 | 1,136,363 |
+| **16** | **1,418,439** |
 
-Fifty-three times faster than without, and 1.6x Blazegraph. A single entry
-already gets most of it, since a block spans thousands of consecutive subjects
-and they arrive in order; more entries help because a join has more than one
-scan position live at once.
+Fifty-eight times faster than without. A single entry already gets most of it,
+since a block spans thousands of consecutive subjects and they arrive in order;
+more help because a join has more than one scan position live at once.
 
 It changes no answer, which is checked rather than assumed:
 `theBlockCacheChangesNoAnswer` runs the join both ways and compares twenty
@@ -206,6 +204,29 @@ thousand solutions one by one. A block is cached only when its postprocessing
 is a no-op — no located triples and `numRowsIsExact` for the graph filter —
 which makes its contents a pure function of its index and the columns read,
 since the base index never changes and updates live in the located triples.
+
+### The comparison, warmed
+
+Each backend is warmed before it is timed, which matters more than it sounds.
+Blazegraph's scans are Java and get compiled as they run: left cold it reports
+around 800,000 solutions/s on the join and around 2,800,000 once warm.
+QLever's are native and already compiled, so it gains a few percent. A cold
+benchmark therefore flatters QLever, and an earlier version of this section
+claimed it ahead on the join for exactly that reason.
+
+First 200,000 solutions, median of five after a warm-up:
+
+| | QLever /s | Blazegraph /s | |
+|---|---|---|---|
+| `?s ?p ?o` | **5,000,000** | 3,846,153 | QLever 1.3x |
+| `?s a ?c` | **8,012,647** | 4,540,500 | QLever 1.8x |
+| `?s a ?c . ?s ?p ?o` | 1,398,601 | **2,985,074** | Blazegraph 2.1x |
+
+So QLever reads faster and Blazegraph joins faster, and the cache is what makes
+the second a factor of two rather than of ninety-five. A nested-loop join is a
+sequence of point lookups, which is what a B-tree is for and what a
+block-compressed column store is not; the cache removes the decompression but
+not the indirection. QLever holds the same data in 283 MB against 1.7 GB.
 
 ### The block size, which the cache settles
 

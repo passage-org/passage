@@ -183,34 +183,45 @@ class QLeverVsBlazegraphTest {
     }
 
     /**
-     * Where the time goes. The whole query is a nested-loop join, so its inner
-     * pattern is scanned afresh for every outer solution: one scan per typed
-     * subject. A single pattern, by contrast, is one scan for all of its
-     * solutions. Timing both at the same number of solutions separates what a
-     * backend costs per solution from what it costs per scan.
+     * The comparison, with each backend warmed before it is timed. Blazegraph
+     * needs it: left cold it reports around 400,000 solutions/s on the join and
+     * around 800,000 once warm, so a single run of each would have flattered
+     * whichever went second. QLever varies by a few percent either way.
      */
     @Test
-    void whereTheTimeGoes() {
-        long cap = Long.parseLong(System.getProperty(CAP_PROPERTY, "100000"));
+    void theBenchmark() {
+        long cap = Long.parseLong(System.getProperty(CAP_PROPERTY, "200000"));
+        int repeats = Integer.parseInt(System.getProperty("bench.repeats", "5"));
         List<String[]> shapes = List.of(
-                new String[]{"one scan", "SELECT * WHERE { ?s ?p ?o }"},
-                new String[]{"one scan, typed", "SELECT * WHERE { ?s a ?c }"},
-                new String[]{"join", WHOLE});
+                new String[]{"?s ?p ?o", "SELECT * WHERE { ?s ?p ?o }"},
+                new String[]{"?s a ?c", "SELECT * WHERE { ?s a ?c }"},
+                new String[]{"the join", WHOLE});
 
-        System.out.printf("%n== per-solution against per-scan, first %,d solutions each%n", cap);
-        System.out.printf("   %-16s %-12s %12s %12s%n", "shape", "backend", "ms", "solutions/s");
+        System.out.printf("%n== first %,d solutions, median of %d after a warm-up%n",
+                cap, repeats);
+        System.out.printf("   %-12s %14s %14s %10s%n",
+                "shape", "QLever /s", "Blazegraph /s", "ratio");
         for (String[] shape : shapes) {
-            for (var entry : List.of(new Object[]{"QLever", qlever},
-                                     new Object[]{"Blazegraph", blazegraph})) {
-                @SuppressWarnings("unchecked")
-                Backend<Object, Object> b = (Backend<Object, Object>) entry[1];
-                long start = System.nanoTime();
-                Outcome outcome = run(b, shape[1], 1_000_000L, cap, solution -> { });
-                long ms = (System.nanoTime() - start) / 1_000_000;
-                System.out.printf("   %-16s %-12s %,12d %,12d%n", shape[0], entry[0], ms,
-                        ms == 0 ? 0 : outcome.solutions() * 1000 / ms);
-            }
+            long qleverRate = medianRate(qlever, shape[1], cap, repeats);
+            long blazeRate = medianRate(blazegraph, shape[1], cap, repeats);
+            System.out.printf("   %-12s %,14d %,14d %9.2fx%n", shape[0],
+                    qleverRate, blazeRate, qleverRate / (double) blazeRate);
         }
+    }
+
+    /** Solutions per second, median of `repeats` timed runs after one warm-up. */
+    static <ID, VALUE> long medianRate(Backend<ID, VALUE> backend, String query,
+                                       long cap, int repeats) {
+        run(backend, query, 1_000_000L, cap, solution -> { });   // warm-up
+        List<Long> rates = new ArrayList<>();
+        for (int i = 0; i < repeats; ++i) {
+            long start = System.nanoTime();
+            Outcome outcome = run(backend, query, 1_000_000L, cap, solution -> { });
+            long ms = Math.max(1, (System.nanoTime() - start) / 1_000_000);
+            rates.add(outcome.solutions() * 1000 / ms);
+        }
+        rates.sort(Comparator.naturalOrder());
+        return rates.get(rates.size() / 2);
     }
 
     /**
@@ -317,24 +328,19 @@ class QLeverVsBlazegraphTest {
         long original = QLeverNative.getBlockCacheSize();
         System.out.printf("%n== %s%n== first %,d solutions, against the block cache%n",
                 WHOLE, cap);
-        System.out.printf("   %-12s %10s %14s%n", "cache", "ms", "solutions/s");
+        System.out.printf("   %-12s %14s%n", "cache", "solutions/s");
+        int repeats = Integer.parseInt(System.getProperty("bench.repeats", "5"));
         try {
             for (long blocks : List.of(0L, 1L, 4L, 16L)) {
                 QLeverNative.setBlockCacheSize(blocks);
-                long start = System.nanoTime();
-                Outcome outcome = run(qlever, WHOLE, 1_000_000L, cap, s -> { });
-                long ms = (System.nanoTime() - start) / 1_000_000;
-                System.out.printf("   %-12d %,10d %,14d%n", blocks, ms,
-                        ms == 0 ? 0 : outcome.solutions() * 1000 / ms);
+                System.out.printf("   %-12d %,14d%n", blocks,
+                        medianRate(qlever, WHOLE, cap, repeats));
             }
         } finally {
             QLeverNative.setBlockCacheSize(original);
         }
-        long start = System.nanoTime();
-        Outcome outcome = run(blazegraph, WHOLE, 1_000_000L, cap, s -> { });
-        long ms = (System.nanoTime() - start) / 1_000_000;
-        System.out.printf("   %-12s %,10d %,14d%n", "Blazegraph", ms,
-                ms == 0 ? 0 : outcome.solutions() * 1000 / ms);
+        System.out.printf("   %-12s %,14d%n", "Blazegraph",
+                medianRate(blazegraph, WHOLE, cap, repeats));
     }
 
     @Test
