@@ -1,5 +1,12 @@
 package fr.gdd.passage.qlever;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.List;
+
 /**
  * The native methods of the QLever JNI bridge (see `src/libqlever/jni/QleverJni.cpp`
  * in the QLever repository). Handles are opaque pointers; every `openBackend` and
@@ -39,7 +46,7 @@ public final class QLeverNative {
         if (explicit == null) { explicit = System.getenv(LIBRARY_ENV); }
         if (explicit != null) {
             System.load(explicit);
-        } else {
+        } else if (!loadFromClasspath()) {
             try {
                 System.loadLibrary("qleverjni");
             } catch (UnsatisfiedLinkError e) {
@@ -52,6 +59,52 @@ public final class QLeverNative {
             }
         }
         loaded = true;
+    }
+
+    /**
+     * Load the library from `native/<os>-<arch>/` on the classpath, which is
+     * where the `native` Maven profile puts what it builds from the `qlever`
+     * submodule. It has to be copied out before `System.load` can take it,
+     * since that needs a real file and not a resource.
+     *
+     * @return false if there is no such resource, so that the caller can go on
+     *         to try `java.library.path`.
+     */
+    private static boolean loadFromClasspath() {
+        String os = System.getProperty("os.name", "").toLowerCase();
+        String name;
+        String extension;
+        if (os.contains("mac") || os.contains("darwin")) {
+            name = "darwin";
+            extension = "dylib";
+        } else if (os.contains("linux")) {
+            name = "linux";
+            extension = "so";
+        } else {
+            return false;
+        }
+        // `uname -m` says arm64 where the JVM says aarch64, and the resource is
+        // named after the former, so try both rather than pick a side.
+        String arch = System.getProperty("os.arch", "");
+        List<String> candidates = arch.equals("aarch64")
+                ? List.of("arm64", "aarch64")
+                : List.of(arch);
+        for (String candidate : candidates) {
+            String resource = "native/" + name + "-" + candidate
+                    + "/libqleverjni." + extension;
+            try (InputStream in = QLeverNative.class.getClassLoader()
+                    .getResourceAsStream(resource)) {
+                if (in == null) { continue; }
+                Path copy = Files.createTempFile("libqleverjni", "." + extension);
+                Files.copy(in, copy, StandardCopyOption.REPLACE_EXISTING);
+                copy.toFile().deleteOnExit();
+                System.load(copy.toAbsolutePath().toString());
+                return true;
+            } catch (IOException e) {
+                return false;
+            }
+        }
+        return false;
     }
 
     // Backend.

@@ -1,0 +1,4 @@
+[submodule "passage-qlever/qlever"]
+	path = passage-qlever/qlever
+	url = git@gitlab.univ-nantes.fr:molli-p/qlever.git
+	branch = scan-distinct

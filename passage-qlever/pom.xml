@@ -44,4 +44,37 @@
     </dependency>
   </dependencies>
 
+  <profiles>
+    <!-- Build the JNI bridge from the `qlever` submodule and put it where
+         `QLeverNative.load()` finds it on the classpath. Not part of the
+         default build: it needs a C++ toolchain and takes much longer than the
+         rest of this module, so an ordinary `mvn install` leaves it alone and
+         the tests then skip. See NATIVE.md. -->
+    <profile>
+      <id>native</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>3.5.0</version>
+            <executions>
+              <execution>
+                <id>build-qleverjni</id>
+                <phase>process-classes</phase>
+                <goals><goal>exec</goal></goals>
+                <configuration>
+                  <executable>${project.basedir}/build-native.sh</executable>
+                  <arguments>
+                    <argument>${project.build.outputDirectory}</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
 </project>
