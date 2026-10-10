@@ -3,28 +3,27 @@
 # Build a QLever index suited to Passage, which is not what QLever's own
 # defaults are tuned for.
 #
-# A block holds 250 kB per column, so reading a single triple decompresses up
-# to a megabyte. That is the right trade for QLever's engine, which scans many
-# rows at a time, and the wrong one for Passage, whose nested-loop joins open a
-# scan per outer solution and read a handful of rows from each. Measured on
-# WatDiv 10M, 1,000 rows per block instead of the default 31,250 makes opening
-# a scan 19 times cheaper — 0.048 ms against 0.915 — and the join sixteen times
-# faster, for five percent more disk. See README.md.
+# What it does differently from calling `qlever-index` yourself is little: it
+# pipes a `.gz` file in, which `qlever-index` parses as compressed bytes rather
+# than decompressing, and it guesses the format from the name.
 #
 #   ./build-index.sh <basename> <data file> [format]
 #
-# `format` is QLever's `-F`: nt, ttl, nq or trig, guessed from the name when
-# left out. A `.gz` file is decompressed on the way in, which `qlever-index`
-# does not do for itself.
+# `format` is QLever's `-F`: nt, ttl, nq or trig.
 #
-# ROWS_PER_BLOCK=n overrides the block size. Smaller is faster per scan and
-# larger on disk: 100 rows gives 0.016 ms per scan and doubles the index.
+# The block size is QLever's default, which is the right one *provided*
+# `QLeverBackend` keeps its cache of decompressed blocks. Without that cache a
+# block of 250 kB per column is decompressed once per lookup, and smaller blocks
+# are a worthwhile workaround — ROWS_PER_BLOCK=1000 made the join sixteen times
+# faster. With the cache the opposite holds, since one decompressed block then
+# serves thousands of lookups: large blocks reach 1.23M solutions/s against
+# 1.04M for 1,000-row ones, on a smaller index. See README.md.
 #
 set -euo pipefail
 
 BASENAME=${1:?usage: build-index.sh <basename> <data file> [format]}
 DATA=${2:?usage: build-index.sh <basename> <data file> [format]}
-ROWS=${ROWS_PER_BLOCK:-1000}
+ROWS=${ROWS_PER_BLOCK:-}
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 INDEXER=$HERE/qlever/build/qlever-index
@@ -43,16 +42,17 @@ else
   esac
 fi
 
+BLOCK_SIZE=()
+[ -z "$ROWS" ] || BLOCK_SIZE=(--index-rows-per-block "$ROWS")
+
 mkdir -p "$(dirname "$BASENAME")"
-echo "== $BASENAME from $DATA ($FORMAT), $ROWS rows per block"
+echo "== $BASENAME from $DATA ($FORMAT), ${ROWS:-default} rows per block"
 if [ "${DATA##*.}" = gz ]; then
   # `qlever-index` parses the compressed bytes rather than decompressing, so
   # the data goes in over stdin.
   gzip -dc "$DATA" |
-    "$INDEXER" -i "$BASENAME" -f - -F "$FORMAT" -p true \
-               --index-rows-per-block "$ROWS"
+    "$INDEXER" -i "$BASENAME" -f - -F "$FORMAT" -p true "${BLOCK_SIZE[@]}"
 else
-  "$INDEXER" -i "$BASENAME" -f "$DATA" -F "$FORMAT" -p true \
-             --index-rows-per-block "$ROWS"
+  "$INDEXER" -i "$BASENAME" -f "$DATA" -F "$FORMAT" -p true "${BLOCK_SIZE[@]}"
 fi
 echo "== $BASENAME"

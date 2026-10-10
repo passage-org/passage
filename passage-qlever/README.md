@@ -159,52 +159,69 @@ the most triples rather than from an average number of them. The direct figure
 is also consistent with the 0.416 ms that `SearchThenSkipBench` measures in the
 QLever fork on a smaller index.
 
-### It is the block size, and it is a setting
+### It is the first block being decompressed, every time
 
-That cost is **decompressing the first block**, and it is set at index build
-time rather than inherent. Three things establish it.
+Opening a scan decompresses a block, and nothing keeps it. Three measurements
+place that, two of them negative. It is not the index size: 0.853 ms over a
+million triples, 0.861 over eleven million. It is not the prefetch machinery,
+which was the likelier guess — sweeping `lazy-index-scan-num-blocks-in-flight`
+from 20 to 1 moves it from 0.856 ms to 0.860. And it is not the JVM boundary:
+in C++, constructing a cursor costs 0.0004 ms and its first read 0.933.
 
-It does not come from the data: opening a scan costs 0.853 ms over a million
-triples and 0.861 ms over eleven million. It does not come from the prefetch
-machinery either, which was the likelier guess — `lazyScan` builds an
-`AsyncTransformView` over up to 21 concurrent blocks, and sweeping
-`lazy-index-scan-num-blocks-in-flight` from 20 down to 1 moves nothing:
+It is the block. A block holds 250 kB per column, so one triple can cost a
+megabyte of Zstd, and asking for the *same* subject two thousand times still
+costs 0.919 ms each — that one block decompressed two thousand times over,
+because QLever caches query results and vocabulary lookups but not decompressed
+blocks.
 
-| blocks in flight | 20 | 10 | 5 | 2 | 1 |
-|---|---|---|---|---|---|
-| ms per scan | 0.856 | 0.858 | 0.851 | 0.853 | 0.860 |
+Which is a design choice rather than an oversight, and the right one for its
+own engine: a merge join never returns to a block, so a cache would be pure
+overhead. Passage cannot merge-join — a continuation has to stop mid-join and
+resume from a query — so it nests loops and lands in the same block thousands
+of times running.
 
-And it does not come from crossing into the JVM. Timed in C++ with no boundary
-(`ScanCursor.timeCursorCreationAgainstARealIndex` in the QLever fork),
-constructing a cursor costs 0.0004 ms and its first read 0.933 ms.
+### Keeping a few blocks, which this backend does
 
-What does move it is `--index-rows-per-block`. A block holds 250 kB per column,
-so reading one triple decompresses up to a megabyte, which at Zstd's throughput
-is the millisecond observed. Building the same 10,916,457 triples with smaller
-blocks, against Blazegraph's 743,000 solutions/s on the join and 0.072 ms per
-scan:
+`lazy-index-scan-block-cache-size` keeps a few decompressed blocks per thread.
+It is zero in QLever and `QLeverBackend` sets it to 16, which
+`-Dqlever.block.cache` overrides. On the join, first 200,000 solutions, median
+of three runs:
 
-| rows per block | ms per scan | join /s | `?s ?p ?o` /s | index |
-|---|---|---|---|---|
-| 31,250 (default) | 0.915 | 24,000 | 628,930 | 283 MB |
-| 1,000 | **0.048** | 385,356 | 651,465 | 297 MB |
-| 100 | **0.016** | 613,496 | 576,368 | 610 MB |
+| blocks kept | solutions/s |
+|---|---|
+| 0 | 23,700 |
+| 1 | 945,000 |
+| 4 | 980,000 |
+| **16** | **1,250,000** |
+| Blazegraph, warm | 800,000 |
 
-So the thirtyfold gap was a default, not an architecture. At 1,000 rows per
-block the join is sixteen times faster for five percent more disk, long scans
-are unchanged, and the per-scan cost is already below Blazegraph's. At 100 it is
-faster again, but the index doubles and long scans start to give way, which is
-the compression working against you: fewer rows per block is less to decompress
-per lookup and less context to compress with.
+Fifty-three times faster than without, and 1.6x Blazegraph. A single entry
+already gets most of it, since a block spans thousands of consecutive subjects
+and they arrive in order; more entries help because a join has more than one
+scan position live at once.
 
-What remains is modest and in both directions. On the join QLever stays 1.9x
-behind at 1,000 rows and 1.3x at 100; on a scan with the predicate bound it is
-2x ahead; and its index is 283 to 610 MB against Blazegraph's 1.7 GB.
+It changes no answer, which is checked rather than assumed:
+`theBlockCacheChangesNoAnswer` runs the join both ways and compares twenty
+thousand solutions one by one. A block is cached only when its postprocessing
+is a no-op — no located triples and `numRowsIsExact` for the graph filter —
+which makes its contents a pure function of its index and the columns read,
+since the base index never changes and updates live in the located triples.
 
-NOTE: the default is tuned for scans that read many rows, which is what QLever's
-own engine does. Passage does the opposite — a nested-loop join is a sequence of
-point lookups — so an index built for it wants small blocks. That is a
-configuration to get right, not a patch to write.
+### The block size, which the cache settles
+
+Without the cache, smaller blocks are a worthwhile workaround: at 1,000 rows
+per block the join reaches 260,000 solutions/s instead of 23,700, for five
+percent more disk. With the cache the opposite holds, since one decompressed
+block then serves thousands of lookups:
+
+| rows per block | no cache | cache of 16 | index |
+|---|---|---|---|
+| 31,250 (QLever's default) | 23,700 /s | **1,250,000 /s** | **283 MB** |
+| 1,000 | 260,000 /s | 1,040,000 /s | 297 MB |
+
+So `build-index.sh` builds with QLever's default block size, and
+`ROWS_PER_BLOCK` is there for anyone who wants the other trade. Blazegraph
+holds the same data in 1.7 GB.
 
 To run it:
 
@@ -309,7 +326,7 @@ passage-qlever/build-index.sh $PWD/fig2 fig2.ttl
 
 `build-index.sh` wraps QLever's `qlever-index`, which the `native` profile
 builds alongside the library, with the block size Passage wants rather than the
-one QLever defaults to — see [below](#it-is-the-block-size-and-it-is-a-setting)
+one QLever defaults to — see [below](#the-block-size-which-the-cache-settles)
 for why that matters, and `ROWS_PER_BLOCK=n` to override it. It also pipes a
 `.gz` file in, which `qlever-index` does not decompress for itself. The
 executable stays in the submodule's build directory rather than being copied

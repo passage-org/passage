@@ -159,6 +159,22 @@ public final class QLeverNative {
     /** @see #setBlocksInFlight(long) */
     public static native long getBlocksInFlight();
 
+    /**
+     * How many decompressed blocks a thread keeps, QLever's
+     * `lazy-index-scan-block-cache-size`. Zero, the default, keeps none.
+     *
+     * <p>A nested-loop join opens a scan per outer solution and a block spans
+     * thousands of consecutive subjects, so the same block is otherwise
+     * decompressed thousands of times. A handful of entries is enough: one per
+     * scan position live at once, which is the join depth times the
+     * parallelism. QLever defaults it off because a merge join never returns to
+     * a block, so for its own engine every lookup would be a miss.
+     */
+    public static native void setBlockCacheSize(long blocks);
+
+    /** @see #setBlockCacheSize(long) */
+    public static native long getBlockCacheSize();
+
     // Backend.
     public static native long openBackend(String indexBasename);
     public static native void closeBackend(long backend);

@@ -276,6 +276,67 @@ class QLeverVsBlazegraphTest {
         timeScans("-", blazegraph, howMany);
     }
 
+    /**
+     * The cache must not change an answer. A block is cached only when its
+     * postprocessing is a no-op, which should make it invisible, and the first
+     * version of it was not — it was shared across permutations, so one served
+     * another's block 0. This runs the real join both ways and compares the
+     * solutions themselves rather than counting them.
+     */
+    @Test
+    void theBlockCacheChangesNoAnswer() {
+        long cap = Long.parseLong(System.getProperty("bench.check.solutions", "20000"));
+        long original = QLeverNative.getBlockCacheSize();
+        try {
+            List<String> withoutCache = new ArrayList<>();
+            QLeverNative.setBlockCacheSize(0);
+            run(qlever, WHOLE, 1_000_000L, cap, s -> withoutCache.add(render(s)));
+
+            List<String> withCache = new ArrayList<>();
+            QLeverNative.setBlockCacheSize(16);
+            run(qlever, WHOLE, 1_000_000L, cap, s -> withCache.add(render(s)));
+
+            assertEquals(withoutCache.size(), withCache.size());
+            assertEquals(withoutCache, withCache,
+                    "the block cache must not change a single solution");
+            System.out.printf("%n== %,d solutions identical with and without the cache%n",
+                    withCache.size());
+        } finally {
+            QLeverNative.setBlockCacheSize(original);
+        }
+    }
+
+    /**
+     * What a cache of decompressed blocks is worth on the query itself, which
+     * is the question the isolated per-lookup figure does not answer: once
+     * lookups are cheap, the join is bounded by reading its rows.
+     */
+    @Test
+    void doesTheBlockCacheHelpTheQuery() {
+        long cap = Long.parseLong(System.getProperty(CAP_PROPERTY, "200000"));
+        long original = QLeverNative.getBlockCacheSize();
+        System.out.printf("%n== %s%n== first %,d solutions, against the block cache%n",
+                WHOLE, cap);
+        System.out.printf("   %-12s %10s %14s%n", "cache", "ms", "solutions/s");
+        try {
+            for (long blocks : List.of(0L, 1L, 4L, 16L)) {
+                QLeverNative.setBlockCacheSize(blocks);
+                long start = System.nanoTime();
+                Outcome outcome = run(qlever, WHOLE, 1_000_000L, cap, s -> { });
+                long ms = (System.nanoTime() - start) / 1_000_000;
+                System.out.printf("   %-12d %,10d %,14d%n", blocks, ms,
+                        ms == 0 ? 0 : outcome.solutions() * 1000 / ms);
+            }
+        } finally {
+            QLeverNative.setBlockCacheSize(original);
+        }
+        long start = System.nanoTime();
+        Outcome outcome = run(blazegraph, WHOLE, 1_000_000L, cap, s -> { });
+        long ms = (System.nanoTime() - start) / 1_000_000;
+        System.out.printf("   %-12s %,10d %,14d%n", "Blazegraph", ms,
+                ms == 0 ? 0 : outcome.solutions() * 1000 / ms);
+    }
+
     @Test
     void timeTheSameNumberOfSolutions() {
         long cap = Long.parseLong(System.getProperty(CAP_PROPERTY, "100000"));

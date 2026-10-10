@@ -16,6 +16,11 @@ import java.util.Set;
  */
 public class QLeverBackend implements Backend<Long, String> {
 
+    /** How many decompressed blocks a thread keeps; see the constructor. */
+    public static final String BLOCK_CACHE_PROPERTY = "qlever.block.cache";
+    /** One per scan position live at once, which is join depth by parallelism. */
+    public static final long DEFAULT_BLOCK_CACHE = 16;
+
     final long backend;
     final long any;
 
@@ -31,6 +36,14 @@ public class QLeverBackend implements Backend<Long, String> {
         } else {
             QLeverNative.load();
         }
+        // Keep a few decompressed blocks per thread. QLever defaults this off,
+        // because its own engine merge-joins and never returns to a block;
+        // Passage nests loops, so it opens a scan per outer solution and lands
+        // in the same block thousands of times running. On WatDiv 10M that is
+        // the difference between 23,000 and 1,230,000 solutions per second.
+        // `qlever.block.cache` overrides it, 0 turning it off.
+        QLeverNative.setBlockCacheSize(
+                Long.getLong(BLOCK_CACHE_PROPERTY, DEFAULT_BLOCK_CACHE));
         this.backend = QLeverNative.openBackend(indexBasename);
         this.any = QLeverNative.any();
     }
