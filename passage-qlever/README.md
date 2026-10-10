@@ -119,6 +119,66 @@ The jar comes from `mvn -pl passage-cli -am install -DskipTests`, and carries
 the native library through its dependency on this module, so nothing has to be
 pointed at.
 
+## Against Blazegraph, on WatDiv 10M
+
+`QLeverVsBlazegraphTest` in `passage-volcano` compares a QLever index and a
+Blazegraph journal holding the same 10,916,457 triples, as backends of the same
+engine, on `SELECT * WHERE { ?s a ?c . ?s ?p ?o }`. Measured on 2026-10-10,
+Apple M-series, 16 GB; the Blazegraph journal is the pre-ingested one from
+[Zenodo](https://zenodo.org/records/12744414) that the root `README.org` points
+at.
+
+They agree. The query restricted to `wsdbm:Genre8`, the least populated class,
+has eight solutions, identical answer for answer on both.
+
+They do not perform alike, and the interesting part is that it cuts both ways:
+
+| first 200,000 solutions of | QLever | Blazegraph |
+|---|---|---|
+| `?s ?p ?o`, one scan | **628,930 /s** | 552,486 /s |
+| `?s a ?c`, one scan | **3,322,317 /s** | 1,184,478 /s |
+| the join above | 24,000 /s | **732,600 /s** |
+
+Per solution QLever is ahead — 1.1x on an unbound scan and 2.8x on a bound
+predicate, which is what a column store cut into compressed blocks should give.
+On the join it is 30x behind, and the reason is not per-solution work but what
+it costs to *open* a scan. A nested-loop join opens one for every outer
+solution, and `theCostOfOpeningAScan` measures that directly, binding a subject
+and reading one solution from the result:
+
+| | per scan opened |
+|---|---|
+| Blazegraph | **0.072 ms** |
+| QLever | 0.861 ms |
+
+Twelve times more expensive, which a join multiplies by its number of outer
+solutions.
+
+That number is measured, not derived: deriving it from the join's timing gives
+3.16 ms, because the first 200,000 join solutions come from the subjects with
+the most triples rather than from an average number of them. The direct figure
+is also consistent with the 0.416 ms that `SearchThenSkipBench` measures in the
+QLever fork on a smaller index.
+
+Where that cost comes from is not established here. A plausible candidate is
+that `lazyScan` builds an `AsyncTransformView` over up to 21 concurrent blocks
+(`lazy-index-scan-num-blocks-in-flight`) for every scan, which a scan reading
+one block pays for and does not use. Testing it needs that parameter reachable
+from the bridge, which it is not yet.
+
+To run it:
+
+```bash
+mvn -pl passage-volcano test -Dtest=QLeverVsBlazegraphTest \
+    -Dbench.qlever=$HOME/bench-watdiv/qlever/watdiv10m \
+    -Dbench.blazegraph=$HOME/bench-watdiv/blaze/watdiv10m-blaze/watdiv10M.jnl \
+    -Dbench.solutions=200000
+```
+
+It skips, with a reason, when either database is missing. Results are counted
+and never logged: `passage-cli` logs every solution, which at this scale
+measures the logger rather than the engine.
+
 ## Building the library
 
 The QLever fork that carries the bridge is a submodule of this repository,
