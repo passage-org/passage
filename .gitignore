@@ -66,3 +66,6 @@ hs_err_pid*
 *.vocabulary.*
 *.meta-data.json
 *.internal.index.*
+
+# editor state
+.vscode/
