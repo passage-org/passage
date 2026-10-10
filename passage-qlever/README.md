@@ -239,6 +239,25 @@ Fixed, both backends now return 10,332,352 and no value of `?s` differs. The
 tests that encoded the wrong convention are rewritten, and one was added:
 a scan must yield exactly as many matches as its cardinality promises.
 
+### Why not `passage-cli -r`
+
+The CLI reports a total execution time, and it cannot be used for this. Its
+consumer logs every solution, inside the region it times, so on the join it
+reports **147,679 ms** for work that takes about 4,200 — thirty-five times its
+own logging. Silencing the log does not help, because the results go through
+`log.info` and the report through `log.debug` on the same logger: any level that
+shows the report also logs ten million solutions.
+
+Two things to know if you time the CLI from outside instead. Its jar embeds
+**logback**, not slf4j-simple, so `-Dorg.slf4j.simpleLogger.defaultLogLevel`
+is ignored; it takes `-Dlogback.configurationFile` with a `WARN` root. And
+`time` around `java -jar` includes JVM startup and opening the store, which is
+a legitimate thing to measure but is not the query: `ColdStart` separates them,
+and opening costs about 390 ms for QLever and 490 for Blazegraph.
+
+Silenced and timed from outside, the CLI agrees with `ColdStart`: 4,787 to
+4,942 ms for QLever against its 4,836 ms since JVM start.
+
 ### The comparison, in a fresh process
 
 Each query run to completion, in a JVM of its own so that neither backend
@@ -253,8 +272,26 @@ the state a restarted server is in.
 | `?s a ?c . ?s ?p ?o`, 10,332,352 | 4,363 ms | **3,198 ms** | Blazegraph 1.4x |
 
 Opening the store costs about 390 ms for QLever and 490 for Blazegraph.
-Blazegraph's join time varies between runs by as much as 1.7x, so the last row
-is the least firm of the three.
+
+One run of each is not enough, and the last row above is the least firm of the
+three. Six fresh processes per backend, alternating, on the join:
+
+```
+QLever      4,593  4,318  4,147  3,975  4,230  4,475
+Blazegraph  5,550  3,836  3,055  3,118  3,200  3,532
+```
+
+QLever spans 1.16x and Blazegraph 1.8x. Since the JVM is new each time, that is
+not compilation: it is the page cache filling for a 1.7 GB journal, where
+QLever's 283 MB index is resident after one touch and has little left to gain.
+So which of the two wins the join depends on how hot the disk is, and two
+single measurements of mine landed at opposite ends of Blazegraph's range —
+5,523 ms and 3,198 — which is what made an earlier version of this section
+claim the opposite result.
+
+A cold disk is not measured here. Evicting 2 GB of page cache needs `purge`
+and that needs privileges, so what is above is a cold process against a hot
+disk throughout.
 
 So QLever scans faster and Blazegraph joins faster, which is what the two
 designs predict: a nested-loop join is a sequence of point lookups, which a
