@@ -94,13 +94,15 @@ mvn -pl passage-qlever,passage-volcano test \
     -Dqlever.test.index=/path/to/fig2
 ```
 
-`JAVA_HOME` is on both commands on purpose. This project targets release 21,
-so Maven itself has to run on a 21: under a 17 the compile fails outright, and
-if the classes are already built, surefire forks a 17 and dies with `class file
-version 65.0 ... only recognizes class file versions up to 61.0`, which names
-neither Java nor the fix. A version manager pinned to an older default makes
-this the normal case rather than the exception, and `jenv local` does not help,
-since it shims JDK binaries and not `mvn`.
+`JAVA_HOME` is on both commands because Maven itself has to run on a 21, the
+modules being compiled with release 21. It can be left out once the default JDK
+is a 21; a `requireJavaVersion` rule in the root pom refuses at `validate`
+either way, so the failure names Java rather than blaming a test class with
+`class file version 65.0 ... only recognizes class file versions up to 61.0`.
+
+NOTE for `jenv` users: `jenv local` does not help, because jenv shims the JDK
+binaries and not `mvn`. Either `jenv global` a 21, or keep `JAVA_HOME` on the
+command.
 
 Only the index has to be named, the library having come from the jar. Without
 the index the tests report as skipped, not as passed.

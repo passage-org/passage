@@ -299,6 +299,38 @@
         </plugin>
       </plugins>
     </pluginManagement>
+
+    <plugins>
+      <!-- Every module here is compiled with `release 21`, so Maven itself has
+           to run on a 21. Under an older one the failure is otherwise either a
+           compiler error about an unsupported release, or, once the classes
+           exist, surefire forking the older JVM and reporting `class file
+           version 65.0 ... only recognizes class file versions up to 61.0` —
+           which blames the test class and names neither Java nor the fix.
+           Refuse at `validate` instead, with a sentence. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>3.5.0</version>
+        <executions>
+          <execution>
+            <id>require-jdk-21</id>
+            <goals><goal>enforce</goal></goals>
+            <configuration>
+              <rules>
+                <requireJavaVersion>
+                  <version>[21,)</version>
+                  <message>This project needs Maven to run on JDK 21 or later,
+                    because its modules are compiled with release 21. Point
+                    JAVA_HOME at one, e.g. on macOS with Homebrew:
+                    JAVA_HOME=$(brew --prefix openjdk@21) mvn ...</message>
+                </requireJavaVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
   </build>
 
   <reporting>

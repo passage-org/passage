@@ -44,38 +44,6 @@
     </dependency>
   </dependencies>
 
-  <build>
-    <plugins>
-      <!-- Fail with a sentence instead of a riddle. This project targets
-           release 21, so Maven itself must run on a 21; otherwise surefire
-           forks an older JVM and reports `class file version 65.0 ... only
-           recognizes class file versions up to 61.0`, which names neither Java
-           nor what to do about it. -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <version>3.5.0</version>
-        <executions>
-          <execution>
-            <id>require-jdk-21</id>
-            <goals><goal>enforce</goal></goals>
-            <configuration>
-              <rules>
-                <requireJavaVersion>
-                  <version>[21,)</version>
-                  <message>passage-qlever needs Maven to run on JDK 21 or
-                    later. Set JAVA_HOME, e.g. on macOS
-                    JAVA_HOME=$(brew --prefix openjdk@21) mvn ...
-                    See passage-qlever/NATIVE.md.</message>
-                </requireJavaVersion>
-              </rules>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
-
   <profiles>
     <!-- Build the JNI bridge from the `qlever` submodule and put it where
          `QLeverNative.load()` finds it on the classpath. Not part of the
