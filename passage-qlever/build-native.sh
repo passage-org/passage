@@ -64,5 +64,13 @@ DEST=$OUT/native/$OS-$ARCH
 mkdir -p "$DEST"
 cp "$LIB" "$DEST/"
 echo "== $DEST/$(basename "$LIB")"
+
+# Also outside `target`, because a later `mvn install` without this profile
+# rewrites the jar without the library and leaves nothing behind, after which
+# every test here skips for want of it. `QLeverNative.load()` looks here too.
+CACHE=${XDG_CACHE_HOME:-$HOME/.cache}/passage-qlever/$OS-$ARCH
+mkdir -p "$CACHE"
+cp "$LIB" "$CACHE/"
+echo "== $CACHE/$(basename "$LIB")"
 # Not copied anywhere: it is a 60 MB tool, not something to ship in a jar.
 echo "== $BUILD/qlever-index, for building indexes"

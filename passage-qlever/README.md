@@ -244,12 +244,24 @@ the library on the classpath and copies it out to a temporary file, since
 1. the `qlever.jni.library` system property — an absolute path to the library;
 2. the `QLEVER_JNI_LIBRARY` environment variable, likewise;
 3. `native/<os>-<arch>/libqleverjni.<ext>` on the classpath, which is what the
-   `native` profile produces;
-4. `java.library.path` under the plain name `qleverjni`.
+   `native` profile puts under `target`;
+4. `$XDG_CACHE_HOME/passage-qlever/<os>-<arch>/`, defaulting to `~/.cache`,
+   where that profile also puts it;
+5. `java.library.path` under the plain name `qleverjni`.
 
-so a library built elsewhere still wins over the one in the jar. NOTE: the
-resource is named after `uname -m`, which says `arm64` where the JVM's
-`os.arch` says `aarch64`; the lookup tries both.
+so a library built elsewhere still wins over the one in the jar.
+
+The copy under `~/.cache` is not redundant. Anything that empties
+`target/classes` — a `mvn clean`, or simply a build that rebuilds the module —
+takes the classpath copy with it, and then an ordinary `mvn install` *without*
+`-Pnative` reinstalls the jar without a library, silently. Every test here then
+skips for want of it, and the cause looks like the tests rather than the build.
+The cached copy survives any Maven invocation, so this only costs a second
+`-Pnative` run when the library itself has to change.
+
+NOTE: the directory is named after `uname -m`, which says `arm64` where the
+JVM's `os.arch` says `aarch64`, and `x86_64` where it says `amd64`; the lookup
+tries both spellings.
 
 An index is made by `qlever-index` and is a set of files sharing a basename,
 which is what `QLeverBackendFactory` takes as its `Path`:

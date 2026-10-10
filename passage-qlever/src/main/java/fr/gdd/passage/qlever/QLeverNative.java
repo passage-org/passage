@@ -46,7 +46,7 @@ public final class QLeverNative {
         if (explicit == null) { explicit = System.getenv(LIBRARY_ENV); }
         if (explicit != null) {
             System.load(explicit);
-        } else if (!loadFromClasspath()) {
+        } else if (!loadFromClasspath() && !loadFromCache()) {
             try {
                 System.loadLibrary("qleverjni");
             } catch (UnsatisfiedLinkError e) {
@@ -62,6 +62,59 @@ public final class QLeverNative {
     }
 
     /**
+     * Load the library from where the `native` profile also leaves it, outside
+     * `target`. A later `mvn install` without that profile rewrites the jar
+     * without the library, so the classpath copy is the one that goes missing;
+     * this one survives any Maven invocation.
+     *
+     * @return false if it is not there, so that the caller can go on.
+     */
+    private static boolean loadFromCache() {
+        String cache = System.getenv("XDG_CACHE_HOME");
+        if (cache == null || cache.isBlank()) {
+            String home = System.getProperty("user.home");
+            if (home == null) { return false; }
+            cache = home + "/.cache";
+        }
+        for (String name : platformNames()) {
+            Path candidate = Path.of(cache, "passage-qlever", name,
+                    "libqleverjni." + extension());
+            if (Files.isReadable(candidate)) {
+                System.load(candidate.toAbsolutePath().toString());
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * `darwin` or `linux` paired with every spelling of the architecture. The
+     * directory is named after `uname -m`, which disagrees with the JVM's
+     * `os.arch` on both common architectures — `arm64` against `aarch64`, and
+     * `x86_64` against `amd64` — so both are tried rather than picking a side.
+     * Empty when the platform is neither macOS nor Linux.
+     */
+    private static List<String> platformNames() {
+        String os = System.getProperty("os.name", "").toLowerCase();
+        String name = (os.contains("mac") || os.contains("darwin")) ? "darwin"
+                : os.contains("linux") ? "linux" : null;
+        if (name == null) { return List.of(); }
+        String arch = System.getProperty("os.arch", "");
+        List<String> spellings = switch (arch) {
+            case "aarch64", "arm64" -> List.of("arm64", "aarch64");
+            case "amd64", "x86_64" -> List.of("x86_64", "amd64");
+            default -> List.of(arch);
+        };
+        return spellings.stream().map(a -> name + "-" + a).toList();
+    }
+
+    /** `dylib` on macOS, `so` on Linux, empty when neither. */
+    private static String extension() {
+        String os = System.getProperty("os.name", "").toLowerCase();
+        return (os.contains("mac") || os.contains("darwin")) ? "dylib" : "so";
+    }
+
+    /**
      * Load the library from `native/<os>-<arch>/` on the classpath, which is
      * where the `native` Maven profile puts what it builds from the `qlever`
      * submodule. It has to be copied out before `System.load` can take it,
@@ -71,35 +124,12 @@ public final class QLeverNative {
      *         to try `java.library.path`.
      */
     private static boolean loadFromClasspath() {
-        String os = System.getProperty("os.name", "").toLowerCase();
-        String name;
-        String extension;
-        if (os.contains("mac") || os.contains("darwin")) {
-            name = "darwin";
-            extension = "dylib";
-        } else if (os.contains("linux")) {
-            name = "linux";
-            extension = "so";
-        } else {
-            return false;
-        }
-        // The resource is named after `uname -m`, which disagrees with the
-        // JVM's `os.arch` on both common architectures: `arm64` against
-        // `aarch64`, and `x86_64` against `amd64`. Try every spelling of the
-        // architecture at hand rather than pick a side.
-        String arch = System.getProperty("os.arch", "");
-        List<String> candidates = switch (arch) {
-            case "aarch64", "arm64" -> List.of("arm64", "aarch64");
-            case "amd64", "x86_64" -> List.of("x86_64", "amd64");
-            default -> List.of(arch);
-        };
-        for (String candidate : candidates) {
-            String resource = "native/" + name + "-" + candidate
-                    + "/libqleverjni." + extension;
+        for (String candidate : platformNames()) {
+            String resource = "native/" + candidate + "/libqleverjni." + extension();
             try (InputStream in = QLeverNative.class.getClassLoader()
                     .getResourceAsStream(resource)) {
                 if (in == null) { continue; }
-                Path copy = Files.createTempFile("libqleverjni", "." + extension);
+                Path copy = Files.createTempFile("libqleverjni", "." + extension());
                 Files.copy(in, copy, StandardCopyOption.REPLACE_EXISTING);
                 copy.toFile().deleteOnExit();
                 System.load(copy.toAbsolutePath().toString());
