@@ -141,6 +141,24 @@ public final class QLeverNative {
         return false;
     }
 
+    /**
+     * How many blocks a lazy scan reads ahead of its consumer, QLever's
+     * `lazy-index-scan-num-blocks-in-flight`. It is global, not per scan.
+     *
+     * <p>An engine that drives the joins itself opens one scan per outer
+     * solution and so pays whatever a scan costs to start, and a scan that
+     * reads a single block cannot use a prefetch depth of twenty. Lowering this
+     * is therefore worth measuring; QLever's own comment warns that it slows
+     * down queries with prefiltered joins on large relations, which are the
+     * opposite case.
+     *
+     * @throws RuntimeException below `1`, which a parameter constraint rejects.
+     */
+    public static native void setBlocksInFlight(long blocks);
+
+    /** @see #setBlocksInFlight(long) */
+    public static native long getBlocksInFlight();
+
     // Backend.
     public static native long openBackend(String indexBasename);
     public static native void closeBackend(long backend);

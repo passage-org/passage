@@ -160,22 +160,52 @@ the most triples rather than from an average number of them. The direct figure
 is also consistent with the 0.416 ms that `SearchThenSkipBench` measures in the
 QLever fork on a smaller index.
 
-That cost is *fixed*. Opening a scan on an index of 1,000,000 triples costs
-0.853 ms and on one of 10,916,457 costs 0.861 ms — eleven times the data for
-the same price. So it is not the index being consulted, which would grow with
-the number of blocks; it is setup that every scan pays before reading anything.
+### It is the block size, and it is a setting
 
-Which makes the conclusion a narrow one rather than an architectural verdict.
-QLever reads faster than Blazegraph once a scan is running, and loses only on
-how often Passage has to start one. A nested-loop join starts one per outer
-solution, so it multiplies a constant that has nothing to do with the data.
+That cost is **decompressing the first block**, and it is set at index build
+time rather than inherent. Three things establish it.
 
-The likeliest candidate, not verified here, is that `lazyScan` builds an
-`AsyncTransformView` over up to 21 concurrent blocks
-(`lazy-index-scan-num-blocks-in-flight`) for every scan, which a scan that
-reads one block pays for and cannot use. Testing that needs the parameter
-reachable from the bridge, which it is not yet — and if it is the cause, this
-is a fixable constant rather than a reason to prefer another store.
+It does not come from the data: opening a scan costs 0.853 ms over a million
+triples and 0.861 ms over eleven million. It does not come from the prefetch
+machinery either, which was the likelier guess — `lazyScan` builds an
+`AsyncTransformView` over up to 21 concurrent blocks, and sweeping
+`lazy-index-scan-num-blocks-in-flight` from 20 down to 1 moves nothing:
+
+| blocks in flight | 20 | 10 | 5 | 2 | 1 |
+|---|---|---|---|---|---|
+| ms per scan | 0.856 | 0.858 | 0.851 | 0.853 | 0.860 |
+
+And it does not come from crossing into the JVM. Timed in C++ with no boundary
+(`ScanCursor.timeCursorCreationAgainstARealIndex` in the QLever fork),
+constructing a cursor costs 0.0004 ms and its first read 0.933 ms.
+
+What does move it is `--index-rows-per-block`. A block holds 250 kB per column,
+so reading one triple decompresses up to a megabyte, which at Zstd's throughput
+is the millisecond observed. Building the same 10,916,457 triples with smaller
+blocks, against Blazegraph's 743,000 solutions/s on the join and 0.072 ms per
+scan:
+
+| rows per block | ms per scan | join /s | `?s ?p ?o` /s | index |
+|---|---|---|---|---|
+| 31,250 (default) | 0.915 | 24,000 | 628,930 | 283 MB |
+| 1,000 | **0.048** | 385,356 | 651,465 | 297 MB |
+| 100 | **0.016** | 613,496 | 576,368 | 610 MB |
+
+So the thirtyfold gap was a default, not an architecture. At 1,000 rows per
+block the join is sixteen times faster for five percent more disk, long scans
+are unchanged, and the per-scan cost is already below Blazegraph's. At 100 it is
+faster again, but the index doubles and long scans start to give way, which is
+the compression working against you: fewer rows per block is less to decompress
+per lookup and less context to compress with.
+
+What remains is modest and in both directions. On the join QLever stays 1.9x
+behind at 1,000 rows and 1.3x at 100; on a scan with the predicate bound it is
+2x ahead; and its index is 283 to 610 MB against Blazegraph's 1.7 GB.
+
+NOTE: the default is tuned for scans that read many rows, which is what QLever's
+own engine does. Passage does the opposite — a nested-loop join is a sequence of
+point lookups — so an index built for it wants small blocks. That is a
+configuration to get right, not a patch to write.
 
 To run it:
 

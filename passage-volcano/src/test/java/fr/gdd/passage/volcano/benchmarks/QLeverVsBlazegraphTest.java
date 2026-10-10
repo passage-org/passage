@@ -5,6 +5,7 @@ import fr.gdd.passage.commons.generics.BackendBindings;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.SPOC;
 import fr.gdd.passage.qlever.QLeverBackend;
+import fr.gdd.passage.qlever.QLeverNative;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
 import fr.gdd.passage.volcano.push.PassagePushExecutor;
@@ -245,6 +246,34 @@ class QLeverVsBlazegraphTest {
         long ms = (System.nanoTime() - start) / 1_000_000;
         System.out.printf("   %-12s %,10d %14.3f   (%,d subjects, %,d read)%n",
                 name, ms, ms / (double) subjects.size(), subjects.size(), solutions);
+    }
+
+    /**
+     * Settle what the fixed cost of opening a QLever scan is made of. `lazyScan`
+     * builds an `AsyncTransformView` over `lazy-index-scan-num-blocks-in-flight`
+     * blocks for every scan, twenty by default, which a scan that reads one
+     * block pays for and cannot use. If that is the cost, lowering the parameter
+     * lowers it; if the cost is flat, it is elsewhere.
+     *
+     * <p>The parameter is global rather than per scan, and the constraint on it
+     * rejects anything below one, so one is the shallowest prefetch there is.
+     */
+    @Test
+    void doesTheBlocksInFlightParameterExplainIt() {
+        int howMany = Integer.parseInt(System.getProperty("bench.scans.measured", "2000"));
+        long original = QLeverNative.getBlocksInFlight();
+        System.out.printf("%n== opening %,d scans against the prefetch depth%n", howMany);
+        System.out.printf("   %-10s %10s %14s%n", "in flight", "ms", "ms per scan");
+        try {
+            for (long blocks : List.of(original, 10L, 5L, 2L, 1L)) {
+                QLeverNative.setBlocksInFlight(blocks);
+                timeScans(String.valueOf(blocks), qlever, howMany);
+            }
+        } finally {
+            QLeverNative.setBlocksInFlight(original);
+        }
+        System.out.printf("   (Blazegraph, for scale)%n");
+        timeScans("-", blazegraph, howMany);
     }
 
     @Test
