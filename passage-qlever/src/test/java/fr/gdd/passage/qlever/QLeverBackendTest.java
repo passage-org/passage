@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  *
  * <p>These tests need a native library and an index that this module cannot
  * carry, so they report as <em>skipped</em> rather than passed when either is
- * missing. `NATIVE.md` says how to build both and which properties to set.
+ * missing. `README.md` says how to build both and which properties to set.
  */
 class QLeverBackendTest {
 
@@ -62,10 +62,10 @@ class QLeverBackendTest {
         if (index == null || index.isBlank()) {
             throw skip("-D" + INDEX_PROPERTY + " names no index. NOTE that an"
                     + " empty value counts as none, which is what an unset"
-                    + " shell variable gives. See NATIVE.md");
+                    + " shell variable gives. See README.md");
         }
         if (!Files.exists(Path.of(index + ".index.pso"))) {
-            throw skip("no QLever index at " + index + ". See NATIVE.md");
+            throw skip("no QLever index at " + index + ". See README.md");
         }
         try {
             QLeverNative.load();

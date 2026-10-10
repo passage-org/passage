@@ -16,7 +16,7 @@
 
   <!-- The scans come from a QLever index through a JNI bridge, so this module
        needs no RDF store of its own: the native library `libqleverjni` carries
-       all of it. See `NATIVE.md`. -->
+       all of it. See `README.md`. -->
   <dependencies>
     <dependency>
       <groupId>fr.gdd</groupId>
@@ -49,7 +49,7 @@
          `QLeverNative.load()` finds it on the classpath. Not part of the
          default build: it needs a C++ toolchain and takes much longer than the
          rest of this module, so an ordinary `mvn install` leaves it alone and
-         the tests then skip. See NATIVE.md. -->
+         the tests then skip. See README.md. -->
     <profile>
       <id>native</id>
       <build>

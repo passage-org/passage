@@ -4,7 +4,7 @@
 # shared library where `QLeverNative.load()` can find it on the classpath, i.e.
 # `<output>/native/<os>-<arch>/`.
 #
-# Called by the `native` Maven profile; see NATIVE.md. It is not part of the
+# Called by the `native` Maven profile; see README.md. It is not part of the
 # default build, because it needs a C++ toolchain and takes considerably longer
 # than the rest of this module.
 #

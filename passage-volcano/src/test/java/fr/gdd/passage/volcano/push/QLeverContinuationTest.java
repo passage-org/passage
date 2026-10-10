@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  *
  * <p>The test needs a native library and an index that cannot be shipped, so
  * it reports as skipped rather than passed when either is missing; see
- * `passage-qlever/NATIVE.md`.
+ * `passage-qlever/README.md`.
  */
 class QLeverContinuationTest {
 
@@ -64,7 +64,7 @@ class QLeverContinuationTest {
         if (index == null || index.isBlank()) {
             throw skip("-D" + INDEX_PROPERTY + " names no index. NOTE that an"
                     + " empty value counts as none, which is what an unset"
-                    + " shell variable gives. See passage-qlever/NATIVE.md");
+                    + " shell variable gives. See passage-qlever/README.md");
         }
         if (!Files.exists(Path.of(index + ".index.pso"))) {
             throw skip("no QLever index at " + index);
