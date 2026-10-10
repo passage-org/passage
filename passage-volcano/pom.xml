@@ -57,6 +57,11 @@
             <artifactId>passage-blazegraph</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency> <!-- for the continuation test over a QLever index -->
+            <groupId>fr.gdd</groupId>
+            <artifactId>passage-qlever</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>

@@ -99,6 +99,11 @@
       </dependency>
       <dependency>
         <groupId>fr.gdd</groupId>
+        <artifactId>passage-qlever</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>fr.gdd</groupId>
         <artifactId>passage-hdt</artifactId>
         <version>${project.version}</version>
       </dependency>
