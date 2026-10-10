@@ -1,0 +1,47 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>fr.gdd</groupId>
+  <artifactId>passage-qlever</artifactId>
+  <name>passage-qlever</name>
+  <packaging>jar</packaging>
+
+  <parent>
+    <groupId>fr.gdd</groupId>
+    <artifactId>passage</artifactId>
+    <version>0.2.0</version>
+  </parent>
+
+  <!-- The scans come from a QLever index through a JNI bridge, so this module
+       needs no RDF store of its own: the native library `libqleverjni` carries
+       all of it. See `NATIVE.md`. -->
+  <dependencies>
+    <dependency>
+      <groupId>fr.gdd</groupId>
+      <artifactId>passage-commons</artifactId>
+    </dependency>
+
+    <dependency> <!-- logger of jena -->
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+</project>

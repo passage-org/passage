@@ -38,6 +38,7 @@
     <module>passage-commons</module>
     <!-- backends -->
     <module>passage-blazegraph</module> <!-- the main backend for now -->
+    <module>passage-qlever</module> <!-- needs a `libqleverjni` built from a QLever checkout, see passage-qlever/NATIVE.md -->
     <!-- <module>passage-hdt</module> --> <!-- uncomment when issue_#7 is solved -->
     <!-- <module>raw-tdb2</module> --> <!-- TODO update to current version -->
     <!-- engines -->
