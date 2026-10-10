@@ -9,6 +9,49 @@ So `mvn test` here skips its tests unless it is told where that library and an
 index are. That is deliberate: the module has to build and its tests have to
 pass on a machine that has never heard of QLever.
 
+## From a clone to passing tests, in one paste
+
+Everything below is one block, meant to be pasted into a terminal as it is.
+The rest of this document explains what each part does and how to vary it.
+
+```bash
+cd ~/passage                                   # wherever the clone is
+export JAVA_HOME=$(brew --prefix openjdk@21)   # Maven needs a 21; see below
+
+# The JNI bridge, built from the pinned QLever. About ten minutes the first
+# time, and it leaves ~2.5 GB under passage-qlever/qlever/build.
+git submodule update --init passage-qlever/qlever
+mvn -pl passage-qlever install -Pnative -DskipTests
+
+# An index to test against: the six triples of Figure 2 of the Passage paper.
+# It goes outside the repository, since `mvn clean` would take the whole
+# target directory with it.
+INDEX=$HOME/qlever-fig2/fig2
+mkdir -p "$(dirname "$INDEX")"
+cat > "$(dirname "$INDEX")/fig2.ttl" <<'TTL'
+<http://ex.org/H1> <http://ex.org/type> <http://ex.org/Human> .
+<http://ex.org/H2> <http://ex.org/type> <http://ex.org/Human> .
+<http://ex.org/H3> <http://ex.org/type> <http://ex.org/Human> .
+<http://ex.org/H1> <http://ex.org/occupation> <http://ex.org/O1> .
+<http://ex.org/H1> <http://ex.org/occupation> <http://ex.org/O2> .
+<http://ex.org/H3> <http://ex.org/occupation> <http://ex.org/O3> .
+TTL
+passage-qlever/qlever/build/qlever-index \
+    -i "$INDEX" -f "$(dirname "$INDEX")/fig2.ttl" -F ttl
+
+# The backend's own tests, then the continuation test on the engine side.
+mvn -pl passage-qlever,passage-volcano test \
+    -Dtest='QLeverBackendTest,QLeverContinuationTest' -DfailIfNoTests=false \
+    -Dqlever.test.index="$INDEX"
+```
+
+That ends with `Tests run: 5` and `Tests run: 2`. A `Tests run: 0` means the
+tests aborted rather than ran, and the line above it, `SKIPPING <class>: ...`,
+says why — most often an index that was not named, since an empty
+`-Dqlever.test.index=` counts as naming none.
+
+Re-running needs only the last command: the library and the index both persist.
+
 ## Building the library
 
 The QLever fork that carries the bridge is a submodule of this repository,
