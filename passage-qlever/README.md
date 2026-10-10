@@ -160,11 +160,22 @@ the most triples rather than from an average number of them. The direct figure
 is also consistent with the 0.416 ms that `SearchThenSkipBench` measures in the
 QLever fork on a smaller index.
 
-Where that cost comes from is not established here. A plausible candidate is
-that `lazyScan` builds an `AsyncTransformView` over up to 21 concurrent blocks
-(`lazy-index-scan-num-blocks-in-flight`) for every scan, which a scan reading
-one block pays for and does not use. Testing it needs that parameter reachable
-from the bridge, which it is not yet.
+That cost is *fixed*. Opening a scan on an index of 1,000,000 triples costs
+0.853 ms and on one of 10,916,457 costs 0.861 ms — eleven times the data for
+the same price. So it is not the index being consulted, which would grow with
+the number of blocks; it is setup that every scan pays before reading anything.
+
+Which makes the conclusion a narrow one rather than an architectural verdict.
+QLever reads faster than Blazegraph once a scan is running, and loses only on
+how often Passage has to start one. A nested-loop join starts one per outer
+solution, so it multiplies a constant that has nothing to do with the data.
+
+The likeliest candidate, not verified here, is that `lazyScan` builds an
+`AsyncTransformView` over up to 21 concurrent blocks
+(`lazy-index-scan-num-blocks-in-flight`) for every scan, which a scan that
+reads one block pays for and cannot use. Testing that needs the parameter
+reachable from the bridge, which it is not yet — and if it is the cause, this
+is a fixable constant rather than a reason to prefer another store.
 
 To run it:
 
