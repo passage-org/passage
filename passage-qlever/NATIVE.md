@@ -25,10 +25,10 @@ mvn -pl passage-qlever install -Pnative -DskipTests
 
 # An index to test against: the six triples of Figure 2 of the Passage paper.
 # It goes outside the repository, since `mvn clean` would take the whole
-# target directory with it.
-INDEX=$HOME/qlever-fig2/fig2
-mkdir -p "$(dirname "$INDEX")"
-cat > "$(dirname "$INDEX")/fig2.ttl" <<'TTL'
+# target directory with it. The path is spelled out rather than held in a shell
+# variable, so that each command below stands on its own.
+mkdir -p $HOME/qlever-fig2
+cat > $HOME/qlever-fig2/fig2.ttl <<'TTL'
 <http://ex.org/H1> <http://ex.org/type> <http://ex.org/Human> .
 <http://ex.org/H2> <http://ex.org/type> <http://ex.org/Human> .
 <http://ex.org/H3> <http://ex.org/type> <http://ex.org/Human> .
@@ -37,12 +37,12 @@ cat > "$(dirname "$INDEX")/fig2.ttl" <<'TTL'
 <http://ex.org/H3> <http://ex.org/occupation> <http://ex.org/O3> .
 TTL
 passage-qlever/qlever/build/qlever-index \
-    -i "$INDEX" -f "$(dirname "$INDEX")/fig2.ttl" -F ttl
+    -i $HOME/qlever-fig2/fig2 -f $HOME/qlever-fig2/fig2.ttl -F ttl
 
 # The backend's own tests, then the continuation test on the engine side.
 mvn -pl passage-qlever,passage-volcano test \
     -Dtest='QLeverBackendTest,QLeverContinuationTest' -DfailIfNoTests=false \
-    -Dqlever.test.index="$INDEX"
+    -Dqlever.test.index=$HOME/qlever-fig2/fig2
 ```
 
 That ends with `Tests run: 5` and `Tests run: 2`. A `Tests run: 0` means the
@@ -50,7 +50,15 @@ tests aborted rather than ran, and the line above it, `SKIPPING <class>: ...`,
 says why — most often an index that was not named, since an empty
 `-Dqlever.test.index=` counts as naming none.
 
-Re-running needs only the last command: the library and the index both persist.
+The library and the index both persist, so coming back to this later needs
+only the last command, which is why it carries no shell variable:
+
+```bash
+cd ~/passage
+mvn -pl passage-qlever,passage-volcano test \
+    -Dtest='QLeverBackendTest,QLeverContinuationTest' -DfailIfNoTests=false \
+    -Dqlever.test.index=$HOME/qlever-fig2/fig2
+```
 
 ## Building the library
 
@@ -117,8 +125,6 @@ An index is made by `qlever-index` and is a set of files sharing a basename,
 which is what `QLeverBackendFactory` takes as its `Path`:
 
 ```bash
-INDEX=$PWD/fig2     # the basename, wherever you want it
-
 cat > fig2.ttl <<'TTL'
 <http://ex.org/H1> <http://ex.org/type> <http://ex.org/Human> .
 <http://ex.org/H2> <http://ex.org/type> <http://ex.org/Human> .
@@ -127,7 +133,7 @@ cat > fig2.ttl <<'TTL'
 <http://ex.org/H1> <http://ex.org/occupation> <http://ex.org/O2> .
 <http://ex.org/H3> <http://ex.org/occupation> <http://ex.org/O3> .
 TTL
-passage-qlever/qlever/build/qlever-index -i "$INDEX" -f fig2.ttl -F ttl
+passage-qlever/qlever/build/qlever-index -i $PWD/fig2 -f fig2.ttl -F ttl
 ```
 
 The `native` profile builds that tool alongside the library, since an index is
@@ -138,18 +144,17 @@ a dependency should carry.
 Then run the tests against the two of them:
 
 ```bash
-# $INDEX is the one set above; in a new shell, name the index again.
 JAVA_HOME=$(brew --prefix openjdk@21) \
 mvn -pl passage-qlever,passage-volcano test \
     -Dtest='QLeverBackendTest,QLeverContinuationTest' \
-    -Dqlever.test.index="$INDEX"
+    -Dqlever.test.index=$PWD/fig2
 ```
 
-An empty `-Dqlever.test.index=`, which is what an unset `$INDEX` gives, counts
-as naming no index. The tests then abort and print `SKIPPING <class>: ...` with
-the reason, because surefire summarises an aborted `@BeforeAll` as zero tests
-run rather than as skipped — so without that line a forgotten variable would
-look exactly like a successful run.
+An empty `-Dqlever.test.index=`, which is what an unset shell variable gives,
+counts as naming no index. The tests then abort and print
+`SKIPPING <class>: ...` with the reason, because surefire summarises an aborted
+`@BeforeAll` as zero tests run rather than as skipped — so without that line a
+forgotten path would look exactly like a successful run.
 
 `JAVA_HOME` is on both commands because Maven itself has to run on a 21, the
 modules being compiled with release 21. It can be left out once the default JDK
