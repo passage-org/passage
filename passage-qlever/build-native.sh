@@ -50,13 +50,19 @@ fi
 
 echo "== configuring QLever in $BUILD"
 cmake -S "$SRC" -B "$BUILD" -DCMAKE_BUILD_TYPE=Release "${EXTRA[@]}"
-echo "== building the qleverjni target (-j $JOBS)"
-cmake --build "$BUILD" --target qleverjni -j "$JOBS"
+# `qlever-index` comes along because an index is needed to use this module at
+# all, and it links what `qleverjni` already built, so it costs a link rather
+# than a compile.
+echo "== building the qleverjni and qlever-index targets (-j $JOBS)"
+cmake --build "$BUILD" --target qleverjni qlever-index -j "$JOBS"
 
 LIB=$BUILD/lib/libqleverjni.$EXT
 [ -f "$LIB" ] || { echo "no $LIB after the build" >&2; exit 1; }
+[ -x "$BUILD/qlever-index" ] || { echo "no $BUILD/qlever-index" >&2; exit 1; }
 
 DEST=$OUT/native/$OS-$ARCH
 mkdir -p "$DEST"
 cp "$LIB" "$DEST/"
 echo "== $DEST/$(basename "$LIB")"
+# Not copied anywhere: it is a 60 MB tool, not something to ship in a jar.
+echo "== $BUILD/qlever-index, for building indexes"

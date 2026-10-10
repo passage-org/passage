@@ -82,8 +82,13 @@ cat > fig2.ttl <<'TTL'
 <http://ex.org/H1> <http://ex.org/occupation> <http://ex.org/O2> .
 <http://ex.org/H3> <http://ex.org/occupation> <http://ex.org/O3> .
 TTL
-/path/to/build/qlever-index -i fig2 -f fig2.ttl -F ttl
+passage-qlever/qlever/build/qlever-index -i fig2 -f fig2.ttl -F ttl
 ```
+
+The `native` profile builds that tool alongside the library, since an index is
+needed to use this module at all. It stays in the submodule's build directory
+rather than being copied into the jar: it is a 60 MB executable, not something
+a dependency should carry.
 
 Then run the tests against the two of them:
 
