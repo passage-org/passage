@@ -127,6 +127,53 @@ Apple M-series, 16 GB; the Blazegraph journal is the pre-ingested one from
 [Zenodo](https://zenodo.org/records/12744414) that the root `README.org` points
 at.
 
+### What does the measuring
+
+Three programs, all in `passage-volcano/src/test/.../benchmarks`, and no
+command-line tool of my own. The numbers below come from these and nothing else.
+
+`QLeverVsBlazegraphTest` (442 lines) is the comparison proper: per-solution
+rates, the cost of opening a scan, the block-cache sweep, and the check that
+both backends answer identically. A JUnit test, skipped with a printed reason
+when either database is missing:
+
+```sh
+mvn -pl passage-volcano test -Dtest=QLeverVsBlazegraphTest \
+    -Dbench.qlever=$HOME/bench-watdiv/qlever/watdiv10m \
+    -Dbench.blazegraph=$HOME/bench-watdiv/blaze/watdiv10M.jnl
+```
+
+`ColdStart` (91 lines) is one query, in one process, to the last solution —
+the only way to answer "how long does this query take on a restarted server".
+It is a separate `main` rather than another test method, because a JVM that has
+already run one backend is no longer cold for the next:
+
+```sh
+mvn -q -pl passage-volcano dependency:build-classpath \
+    -Dmdep.includeScope=test -Dmdep.outputFile=/tmp/cp.txt
+java -cp "$(cat /tmp/cp.txt):passage-volcano/target/classes:passage-volcano/target/test-classes" \
+    fr.gdd.passage.volcano.benchmarks.ColdStart qlever \
+    $HOME/bench-watdiv/qlever/watdiv10m
+```
+
+It reports opening, the query, and time since JVM start separately, so none of
+the three can hide inside another. Run it with `mvn exec:java` instead and the
+first two stay right while the third becomes useless: it reads the *process*
+start through `ProcessHandle`, which under Maven is Maven's own — about four
+seconds of it, more than the query on anything small.
+
+`WhichSolutionsDiffer` (77 lines) counts solutions per binding of one variable
+on each backend and prints the bindings whose counts disagree. A debugging
+tool, kept because it is what located the convention bug below: the totals
+agreed, so the difference stayed invisible until something compared positions.
+
+What is *not* here: the scratch programs that narrowed that bug down — a
+single-scan reader, an outer-only run, an exhaustive `skip` check, a cardinality
+dump. They served one afternoon and are gone. The check worth keeping became a
+test instead, `everyMatchOfAPatternArrivesExactlyOnce`.
+
+### They agree, and they do not perform alike
+
 They agree. The query restricted to `wsdbm:Genre8`, the least populated class,
 has eight solutions, identical answer for answer on both.
 
@@ -250,8 +297,15 @@ shows the report also logs ten million solutions.
 
 Two things to know if you time the CLI from outside instead. Its jar embeds
 **logback**, not slf4j-simple, so `-Dorg.slf4j.simpleLogger.defaultLogLevel`
-is ignored; it takes `-Dlogback.configurationFile` with a `WARN` root. And
-`time` around `java -jar` includes JVM startup and opening the store, which is
+is ignored; it takes `-Dlogback.configurationFile` pointing at three lines:
+
+```xml
+<configuration>
+  <root level="WARN"/>
+</configuration>
+```
+
+And `time` around `java -jar` includes JVM startup and opening the store, which is
 a legitimate thing to measure but is not the query: `ColdStart` separates them,
 and opening costs about 390 ms for QLever and 490 for Blazegraph.
 
