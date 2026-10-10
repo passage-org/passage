@@ -205,6 +205,47 @@ is a no-op — no located triples and `numRowsIsExact` for the graph filter —
 which makes its contents a pure function of its index and the columns read,
 since the base index never changes and updates live in the located triples.
 
+### An open correctness bug, found by comparing against Blazegraph
+
+On WatDiv 10M, `SELECT * WHERE { ?s a ?c . ?s ?p ?o }` run to completion yields
+**10,332,446** solutions through this backend and **10,332,352** through
+Blazegraph. QLever's own engine says 10,332,352, so Blazegraph is right and
+this backend returns 94 too many.
+
+`WhichSolutionsDiffer` localises it to a single row, with the help of the fact
+that the two patterns alone agree exactly — `?s ?p ?o` gives 10,916,457 on both
+and `?s a ?c` gives 136,215 on both:
+
+| | QLever | Blazegraph |
+|---|---|---|
+| `wsdbm/Product0` as `?s` of `?s a ?c` | **0** | 1 |
+| `wsdbm/User9998` as `?s` of `?s a ?c` | **2** | 1 |
+| `wsdbm/ProductCategory11` as `?c` | **1,685** | 1,686 |
+| `wsdbm/Role1` as `?c` | **31,174** | 31,173 |
+
+So one row of that scan, `(Product0, ProductCategory11)`, comes out as a second
+`(User9998, Role1)`. The totals match because one duplication and one omission
+cancel, which is why counting alone never caught it, and why the join is off by
+94 rather than by 1: Product0 has 7 triples and User9998 has 101.
+
+Four candidates are excluded by measurement. It is not the block cache
+(identical with `-Dqlever.block.cache=0`). It is not `skip`: creating a cursor
+and skipping to each of the 136,215 offsets in turn lands on exactly the row a
+plain iteration yields, every time. It is not the scan itself: iterating
+`search(any, rdf:type, any)` through `QLeverBackend` gives 136,215 rows with
+Product0 and User9998 once each. And it is not Passage splitting scans — the
+difference survives `setSplitScans` raised past the cardinality.
+
+What is left untested is the rest of what `SpliteratorScan` calls on an
+iterator: `cardinality()` partway through, `previous()`, `reset()` and
+`random()`. The bug is in that interaction, and until it is found the timings
+below describe a backend that is returning a wrong answer.
+
+This is also the argument for the exercise. The backend's own tests check it
+against expected values, and no number of them would have found this: it took a
+second implementation of the same semantics, on data large enough for a
+one-row error to exist.
+
 ### The comparison, at the plateau
 
 "Warm" is two things, and calling them one hid a bad protocol. The JVM compiles
