@@ -60,6 +60,38 @@ mvn -pl passage-qlever,passage-volcano test \
     -Dqlever.test.index=$HOME/qlever-fig2/fig2
 ```
 
+## Showing continuations from the command line
+
+`passage-cli` recognises a QLever index by its `.index.pso` file, so the
+basename goes to `-d` like any other database. `-l` caps the number of scans
+per execution and `-r` prints the continuation query that each pause produces:
+
+```bash
+java -jar passage-cli/target/passage.jar \
+    -d $HOME/qlever-fig2/fig2 \
+    -q 'SELECT * WHERE { ?human <http://ex.org/type> <http://ex.org/Human> .
+                         ?human <http://ex.org/occupation> ?occupation }' \
+    -l 1 -r
+```
+
+which stops after one scan and prints
+
+```sparql
+SELECT * WHERE {
+  { SELECT * WHERE { ?human <http://ex.org/type> <http://ex.org/Human> }
+    OFFSET 1 }
+  ?human <http://ex.org/occupation> ?occupation }
+```
+
+Adding `--loop` feeds each continuation back in until the query is done, which
+on this graph takes five pauses for three results, every continuation a `UNION`
+between what is already bound and a `SELECT ... OFFSET n` over the rest. That
+is Example 3.10 of the Passage paper, over a QLever index.
+
+The jar comes from `mvn -pl passage-cli -am install -DskipTests`, and carries
+the native library through its dependency on this module, so nothing has to be
+pointed at.
+
 ## Building the library
 
 The QLever fork that carries the bridge is a submodule of this repository,

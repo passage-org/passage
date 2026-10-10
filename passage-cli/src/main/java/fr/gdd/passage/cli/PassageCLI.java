@@ -1,6 +1,7 @@
 package fr.gdd.passage.cli;
 
 import fr.gdd.passage.blazegraph.BlazegraphBackend;
+import fr.gdd.passage.qlever.QLeverBackend;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.volcano.PassageExecutionContext;
 import fr.gdd.passage.volcano.PassageExecutionContextBuilder;
@@ -45,7 +46,7 @@ public class PassageCLI {
             required = true,
             names = {"-d","--database"},
             paramLabel = "<path>",
-            description = "The path to your blazegraph|hdt database.")
+            description = "The path to your blazegraph|qlever database. For QLever, the basename of the index.")
     String database;
 
     @CommandLine.Option(
@@ -236,6 +237,14 @@ public class PassageCLI {
      */
     public static Backend<?,?> getBackend (String toDatabase) throws IOException, RepositoryException, SailException {
         Path pathToDatabase = Path.of(toDatabase);
+
+        // A QLever index is a set of files sharing a basename, so the argument
+        // names no file of its own and has no extension to switch on. The `pso`
+        // permutation is always among them, which makes it the marker.
+        if (Files.exists(Path.of(toDatabase + ".index.pso"))) {
+            return new QLeverBackend(toDatabase);
+        }
+
         if (!pathToDatabase.toFile().exists()) {
             throw new IOException("The path to the database does not seem right.");
         }

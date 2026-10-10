@@ -72,6 +72,10 @@
       <groupId>fr.gdd</groupId>
       <artifactId>passage-blazegraph</artifactId>
     </dependency>
+    <dependency> <!-- carries the libqleverjni it needs, see passage-qlever/NATIVE.md -->
+      <groupId>fr.gdd</groupId>
+      <artifactId>passage-qlever</artifactId>
+    </dependency>
   </dependencies>
 
   <build>
