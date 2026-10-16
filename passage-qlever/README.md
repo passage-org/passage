@@ -203,23 +203,32 @@ They do not perform alike, and the interesting part is that it cuts both ways:
 Per solution QLever is ahead — 1.1x on an unbound scan and 2.8x on a bound
 predicate, which is what a column store cut into compressed blocks should give.
 On the join it is 30x behind, and the reason is not per-solution work but what
-it costs to *open* a scan. A nested-loop join opens one for every outer
-solution, and `theCostOfOpeningAScan` measures that directly, binding a subject
-and reading one solution from the result:
+it costs to *open* a scan, which a nested-loop join pays once per outer
+solution. `theCostOfOpeningAScan` measures that directly, binding a subject and
+reading one solution from the result:
 
-| | per scan opened |
+| QLever, per scan opened | 2,000 bound subjects |
 |---|---|
-| Blazegraph | **0.072 ms** |
-| QLever | 0.861 ms |
+| no block cache | 0.866 ms |
+| block cache of 16 | **0.023 ms** |
 
-Twelve times more expensive, which a join multiplies by its number of outer
-solutions.
+A factor of 38, and a join multiplies it by its number of outer solutions.
 
-That number is measured, not derived: deriving it from the join's timing gives
+The figure is measured, not derived: deriving it from the join's timing gives
 3.16 ms, because the first 200,000 join solutions come from the subjects with
-the most triples rather than from an average number of them. The direct figure
-is also consistent with the 0.416 ms that `SearchThenSkipBench` measures in the
-QLever fork on a smaller index.
+the most triples rather than from an average number of them. The uncached
+figure is also consistent with the 0.416 ms that `SearchThenSkipBench` measures
+in the QLever fork on a smaller index.
+
+**No Blazegraph figure here, and an earlier version of this page had a wrong
+one.** It read 0.072 ms, against which QLever looked twelve times more
+expensive. That measurement went through `Backend.search` directly, and
+Blazegraph's three-argument scan passes a null graph: on this quad journal it
+reaches 187 triples out of 10,916,457, so 83 subjects were found where 2,000
+were asked for and 83 near-empty scans were timed. `timeScans` now prints
+WITHHELD and returns instead, rather than reporting a number from a graph it
+could not reach. Every full-query figure on this page goes through the engine,
+where Blazegraph does see all 10,916,457 triples — those are unaffected.
 
 ### It is the first block being decompressed, every time
 
@@ -266,6 +275,58 @@ thousand solutions one by one. A block is cached only when its postprocessing
 is a no-op — no located triples and `numRowsIsExact` for the graph filter —
 which makes its contents a pure function of its index and the columns read,
 since the base index never changes and updates live in the located triples.
+
+### What an augmented B-tree gives that this does not
+
+Blazegraph's B+tree carries tuple counts in its nodes, so it answers two
+questions by descending the tree: how many tuples a range holds, and which
+tuple sits at a given rank. `BlazegraphIterator.getUniformRandomSPO` is built
+straight on the second one — `((ILinearList) iindex).keyAt(startFrom + rn)`.
+QLever has neither. What it has is a block index in RAM holding exact row
+counts, which is enough to be *correct* but prices the operations differently.
+
+Measured on WatDiv 10M, averaged over 100 calls, `skip` followed by a read
+because `skip` alone only records an offset:
+
+| per call | `?s ?p ?o` (10,916,457) | `?s a ?c` (136,215) |
+|---|---|---|
+| `cardinality()`, exact, no cache | 1,047 µs | 766 µs |
+| `cardinality()`, exact, cache 16 | 33 µs | 14 µs |
+| `cardinality(strength)`, the metadata estimate | 0.9 µs | 0.2 µs |
+| re-enter at an advancing offset, then read | 1,812 µs | 14 µs |
+| re-enter at a scattered offset, then read | 3,063 µs | 476 µs |
+| `random()`, one uniform draw | 2,725 µs | 500 µs |
+
+Four limitations follow, and only the first is a real obstacle.
+
+**An exact count is three orders of magnitude dearer than an estimate.** A
+tree descent and a block decompression are not the same price. The block cache
+brings it within 75x of the estimate, which is what makes join ordering
+affordable, but a planner that asked for exact counts of many patterns would
+feel it.
+
+**Resolving an offset walks the block index linearly.** `firstBlockAfterOffset`
+is a `while` loop over block metadata, O(blocks), where `keyAt` is O(log n).
+With 10,947 blocks that walk is in RAM and cheap next to the decompression it
+precedes, so it has not been worth a prefix sum and a binary search — but it is
+the asymptotic difference, and it would show on an index large enough.
+
+**The block cache helps a continuation and not a sample.** Advancing offsets
+land in the same block, and 476 µs against 14 µs is the difference between
+re-entering where you left off and re-entering anywhere. Scattered re-entry is
+unchanged by the cache (476 against 477 µs), because each draw lands in a block
+nobody has decompressed. So preemption that advances is cheap and sampling is
+not.
+
+**A uniform draw costs 0.5 to 2.7 ms.** It pays an exact cardinality and then a
+scattered re-entry, both of the above. A random walk of depth d pays d of them,
+where an augmented B-tree pays d tree descents. This is the one place where the
+missing structure is felt as a difference in kind rather than in constant, and
+it bounds what Passage's random-walk estimators can do on this backend.
+
+None of this threatens correctness, which is the point: every figure above is
+exact or explicitly an estimate, and the engine asks for the exact one wherever
+an answer depends on it.
 
 ### A bug this found, and the convention behind it
 

@@ -319,16 +319,26 @@ class QLeverVsBlazegraphTest {
         // Subjects to bind, taken from the backend itself so that each exists.
         List<ID> subjects = new ArrayList<>();
         var typed = backend.search(backend.any(), backend.getId("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"), backend.any());
-        while (typed.hasNext() && subjects.size() < howMany) {
+        while (subjects.size() < howMany && typed.hasNext()) {
+            typed.next();                       // advance, THEN read: the engine's convention
             subjects.add(typed.getId(SPOC.SUBJECT));
-            typed.next();
+        }
+        // A backend that cannot reach the whole graph through `Backend.search`
+        // would otherwise be timed on a handful of triples and look fast. This
+        // happened: Blazegraph's three-argument scan passes a null graph, and on
+        // a quad journal it reached 187 triples out of 10,916,457.
+        if (subjects.size() < howMany) {
+            System.out.printf("   %-12s WITHHELD: only %,d of %,d subjects are "
+                            + "reachable through Backend.search%n",
+                    name, subjects.size(), howMany);
+            return;
         }
 
         long start = System.nanoTime();
         long solutions = 0;
         for (ID subject : subjects) {
             var scan = backend.search(subject, backend.any(), backend.any());
-            if (scan.hasNext()) { scan.getId(SPOC.OBJECT); solutions += 1; }
+            if (scan.hasNext()) { scan.next(); scan.getId(SPOC.OBJECT); solutions += 1; }
         }
         long ms = (System.nanoTime() - start) / 1_000_000;
         System.out.printf("   %-12s %,10d %14.3f   (%,d subjects, %,d read)%n",
