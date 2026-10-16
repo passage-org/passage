@@ -168,4 +168,31 @@ class QLeverContinuationTest {
         assertEquals(3, executed.getLeft().size());
         assertEquals(0, executed.getRight(), "nothing was paused");
     }
+
+    /**
+     * An IRI absent from the index must make its pattern match nothing. The JNI
+     * bridge reports an unknown value with the same sentinel it uses for an
+     * unbound component, so the danger is the opposite of an empty result: the
+     * pattern would match every triple in the store.
+     */
+    @Test
+    void aPatternOnAnAbsentIriMatchesNothingRatherThanEverything() {
+        List<String> solutions = new ArrayList<>();
+        PassageExecutionContext<Long, String> context =
+                new PassageExecutionContextBuilder<Long, String>()
+                        .setName("PUSH")
+                        .setMaxParallel(1)
+                        .setBackend(backend)
+                        .setExecutorFactory(ec ->
+                                new PassagePushExecutor<>((PassageExecutionContext<?, ?>) ec))
+                        .build();
+        Op paused = context.executor.execute(
+                Algebra.compile(QueryFactory.create(
+                        "SELECT * WHERE { ?s <http://ex.org/no-such-predicate> ?o }")),
+                solution -> solutions.add(solution.toString()));
+
+        assertNull(paused, "nothing was capped, so nothing should have paused");
+        assertEquals(List.of(), solutions,
+                "an unknown predicate is not a wildcard over the six triples");
+    }
 }

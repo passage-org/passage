@@ -1,5 +1,6 @@
 package fr.gdd.passage.qlever;
 
+import fr.gdd.passage.commons.exceptions.NotFoundException;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 import fr.gdd.passage.commons.interfaces.SPOC;
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -127,6 +129,19 @@ class QLeverBackendTest {
         assertEquals(List.of("<http://ex.org/H1>", "<http://ex.org/H2>",
                              "<http://ex.org/H3>"), subjectsOf(it));
         assertFalse(it.hasNext(), "the scan is exhausted once every match is read");
+    }
+
+    /**
+     * A value absent from the vocabulary must not look like an unbound
+     * component. The bridge returns the same sentinel for both, and a scan
+     * built from that sentinel matches every triple — so the backend has to
+     * report the value as absent, the way `BlazegraphBackend` does.
+     */
+    @Test
+    void anAbsentValueIsReportedAsAbsentRatherThanAsAny() {
+        assertThrows(NotFoundException.class,
+                () -> lookup(backend, "<http://ex.org/no-such-thing>"),
+                "an IRI the index has never seen is not a wildcard");
     }
 
     /** As many matches as the cardinality says, no more and no fewer. */

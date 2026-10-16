@@ -1,5 +1,6 @@
 package fr.gdd.passage.qlever;
 
+import fr.gdd.passage.commons.exceptions.NotFoundException;
 import fr.gdd.passage.commons.interfaces.Backend;
 import fr.gdd.passage.commons.interfaces.BackendIterator;
 
@@ -102,7 +103,16 @@ public class QLeverBackend implements Backend<Long, String> {
 
     @Override
     public Long getId(String value, int... type) {
-        return QLeverNative.getId(backend, value);
+        long id = QLeverNative.getId(backend, value);
+        if (id == QLeverNative.any()) {
+            // The vocabulary has no such value, and the bridge reports that by
+            // returning the sentinel that also means "unbound". Passing it on
+            // would make the pattern match EVERY triple instead of none, so
+            // throw as `BlazegraphBackend` does: the engine catches this and
+            // turns the scan into an empty one.
+            throw new NotFoundException(value);
+        }
+        return id;
     }
 
     @Override
