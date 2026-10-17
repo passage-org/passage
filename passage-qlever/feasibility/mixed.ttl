@@ -1,0 +1,27 @@
+@prefix ex: <http://ex.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:a ex:v  -7 .
+ex:b ex:v  0 .
+ex:c ex:v  3 .
+ex:d ex:v  42 .
+ex:e ex:v  1000 .
+ex:f ex:v  "-2.5"^^xsd:decimal .
+ex:g ex:v  "0.5"^^xsd:decimal .
+ex:h ex:v  "3.14"^^xsd:decimal .
+ex:i ex:v  true .
+ex:j ex:v  false .
+ex:k ex:v  "1990-01-01"^^xsd:date .
+ex:l ex:v  "2026-10-17"^^xsd:date .
+ex:m ex:v  "alpha" .
+ex:n ex:v  "beta" .
+ex:o ex:v  "zeta" .
+ex:p ex:v  "chaine avec espaces" .
+ex:q ex:v  ex:Target1 .
+ex:r ex:v  ex:Target2 .
+ex:s ex:v  ex:Target3 .
+ex:t ex:v  "en anglais"@en .
+ex:u ex:v  "en francais"@fr .
+ex:a ex:w  "autre" .
+ex:b ex:w  17 .
+ex:c ex:w  ex:Target1 .

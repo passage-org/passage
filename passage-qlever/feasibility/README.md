@@ -133,6 +133,42 @@ per call, against 0.2 µs for the metadata estimate.
 The block cache stays useful: it serves scan *opening* inside nested-loop
 joins, which is a different problem from resumption.
 
+## Where it breaks: a column that is not one datatype
+
+Everything above holds on WatDiv because every object there is an IRI or a
+plain string — 9,595,097 and 1,321,360 of them, no numerics, no dates. Those
+all live under one datatype tag, where the Id bits order by string value, so
+the storage order and SPARQL's `>` agree.
+
+They are not the same order in general. QLever sorts by the bits of the Id,
+which group by datatype tag first:
+
+    Bool < Int < Double < …VocabIndex: strings and IRIs… < Date
+
+`mixed.ttl` and `mixed_datatypes.py` build a 24-triple index that holds all of
+them. Its scan order comes out as booleans, then integers, then decimals, then
+strings and IRIs, and dates **last** — after the IRIs. Interrupt it after the
+sixth row, the integer 42: eighteen rows remain, and `FILTER(?o > 42)` returns
+**one**.
+
+Worse, one datatype is not enough either. The integers enumerate as
+
+    0, 3, 17, 42, 1000, −7
+
+because the 60-bit payload is two's complement, so negatives land after the
+positives. `FILTER(?o > 42)` keeps `1000` and **loses −7**, which the scan had
+not yet emitted.
+
+Run on that index, `filter_tp.py` reports `? ? ?` as **NO ORDER RESUMES
+CORRECTLY** — there is no permutation to choose, because no `>` expression
+describes a suffix of that scan.
+
+So the approach is sound exactly when the key's leading column is
+datatype-homogeneous and free of negative numerics. That covers a great many
+real patterns — any scan keyed on subjects, and on objects in a graph like
+WatDiv — and it covers none of the rest. A backend using it would have to know
+which case it is in, and fall back to offsets otherwise.
+
 ## What is not settled
 
 - Composing this into a BGP continuation — the union over pause points — is
