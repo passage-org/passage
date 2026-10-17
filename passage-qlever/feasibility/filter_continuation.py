@@ -31,6 +31,7 @@ a ten-million-solution pattern costs no memory.
 """
 
 import hashlib
+import http.client
 import json
 import sys
 import time
@@ -48,10 +49,31 @@ PATTERNS = [
 ]
 
 
+_CONNECTIONS = {}
+
+
 def ask(endpoint, query, timeout=900):
-    url = endpoint + "/?" + urllib.parse.urlencode({"query": query})
-    with urllib.request.urlopen(url, timeout=timeout) as response:
-        payload = json.load(response)
+    """Run a query; return (bindings, server-reported milliseconds).
+
+    The connection is kept and reused. Opening one per request exhausts the
+    ephemeral port range after a few thousand slices — 16,384 ports against
+    23,265 sockets sitting in TIME_WAIT, on the run that taught us this."""
+    host = urllib.parse.urlsplit(endpoint).netloc
+    path = "/?" + urllib.parse.urlencode({"query": query})
+    for attempt in (1, 2):
+        connection = _CONNECTIONS.get(host)
+        if connection is None:
+            connection = http.client.HTTPConnection(host, timeout=timeout)
+            _CONNECTIONS[host] = connection
+        try:
+            connection.request("GET", path, headers={"Connection": "keep-alive"})
+            payload = json.load(connection.getresponse())
+            break
+        except Exception:                                 # noqa: BLE001
+            connection.close()
+            _CONNECTIONS.pop(host, None)
+            if attempt == 2:
+                raise
     if "exception" in payload:
         raise RuntimeError(str(payload["exception"])[:200])
     return payload["results"]["bindings"], payload["meta"]["query-time-ms"]

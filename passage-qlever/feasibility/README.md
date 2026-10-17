@@ -169,6 +169,54 @@ real patterns — any scan keyed on subjects, and on objects in a graph like
 WatDiv — and it covers none of the rest. A backend using it would have to know
 which case it is in, and fall back to offsets otherwise.
 
+## The repair, and why it does not pay
+
+The scan order is the Id order, so say the continuation in that order: what is
+left of the boundary's own datatype class, then every class after it.
+
+    (DATATYPE(?o) = xsd:int && (?o > 42 || ?o < 0))
+    || DATATYPE(?o) = xsd:double
+    || isIRI(?o) || DATATYPE(?o) = xsd:string || LANG(?o) != ""
+    || DATATYPE(?o) = xsd:date
+
+`typed_key.py` builds that automatically and it is **correct**: on the mixed
+index it enumerates all 24 solutions in nine slices, identical to OFFSET.
+
+It is also **four thousand times slower**. Resuming `?s ?p ?o` at depth five
+million on WatDiv:
+
+| filter | time | prefiltered |
+|---|---|---|
+| `?o > O` | 7 ms | yes |
+| `?o > O && isIRI(?o)` | 3 ms | yes |
+| `?o > O \|\| ?o < -99999` | 4 ms | yes |
+| `?o > O \|\| isIRI(?o)` | 4 ms | yes |
+| `isIRI(?o)` alone | 8 ms | yes |
+| `?o > O \|\| DATATYPE(?o) = xsd:date` | **5,136 ms** | **no** |
+| `DATATYPE(?o) = xsd:date` alone | **11,444 ms** | **no** |
+| the full typed key | **15,400 ms** | **no** |
+
+The rule behind it: a conjunction can be pruned by any one of its conjuncts,
+so adding a type test to a `>` costs nothing. A disjunction needs *every*
+branch to prune, and `DATATYPE(?x) = <t>` prunes nothing — so one such branch
+turns the whole scan into a full read. The repair is necessarily a
+disjunction, so the repair necessarily pays that.
+
+The `isDatatype` family does prune — `isIRI` and `isLiteral` are fast, and
+upstream has been adding more of them, most recently `ql:isGeoPoint`. But
+those cannot separate dates from strings, or booleans from numbers, so they
+cover only some boundaries.
+
+**So: correct, or fast, and on a datatype-mixed column not both.** On a
+homogeneous column — every scan keyed on subjects, and objects in a graph like
+WatDiv — plain `>` is both, and that is a large and useful class. Outside it,
+the offset is still the only thing that is both.
+
+The constructive path, if this is worth pursuing: a block prefilter for the
+datatype tests, proposed upstream the way `ql:isGeoPoint` was. That is a
+change to QLever, which is what this approach set out to avoid — but it is a
+much smaller and more general change than the OFFSET patch.
+
 ## What is not settled
 
 - Composing this into a BGP continuation — the union over pause points — is
