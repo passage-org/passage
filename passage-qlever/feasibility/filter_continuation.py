@@ -127,6 +127,25 @@ def choose_order(endpoint, body, variables, cap):
     return None, tried
 
 
+def truncated_key_loss(endpoint, body, variables, order, depth):
+    """What a shorter key loses.
+
+    The key has to name every column the scan is ordered by. A key one column
+    short silently drops the solutions that share the boundary row's prefix —
+    few enough to pass a smoke test, which is exactly what makes it dangerous.
+    Returns a list of (columns used, solutions returned)."""
+    boundary, _ = ask(
+        endpoint, f"SELECT * WHERE {{ {body} }} LIMIT 1 OFFSET {depth}")
+    last = {v: term(boundary[0][v]) for v in variables}
+    out = []
+    for width in range(len(order), 0, -1):
+        where = body + " . " + filter_after(last, order[:width])
+        counted, _ = ask(
+            endpoint, f"SELECT (COUNT(*) AS ?n) WHERE {{ {where} }}")
+        out.append((order[:width], int(counted[0]["n"]["value"])))
+    return out
+
+
 def enumerate_by_filter(endpoint, body, variables, cap, order):
     fold, steps, total, slowest = Fold(), 0, 0.0, 0.0
     where = body
@@ -196,6 +215,18 @@ def main():
 
             if mine.hex() == theirs.hex():
                 print("   IDENTICAL sequences")
+                if len(order) > 1:
+                    depth = theirs.count // 2
+                    expected = theirs.count - depth - 1
+                    print(f"   a shorter key, resuming at depth {depth:,}"
+                          f" where {expected:,} should remain:")
+                    for columns, got in truncated_key_loss(
+                            endpoint, body, variables, order, depth):
+                        lost = expected - got
+                        print(f"     ({', '.join(columns)})"
+                              f"{'':<{18 - len(', '.join(columns))}}"
+                              f" {got:>10,}"
+                              f"{'   exact' if not lost else f'   {lost} LOST'}")
             else:
                 print(f"   DIFFERENT — {mine.count - theirs.count:+,} solutions")
                 print(f"     filter first {mine.first}  last {mine.last}")

@@ -52,6 +52,29 @@ Note that the OFFSET column is measured on the patched fork. Against stock
 QLever the comparison may look different, and that is the next thing to
 measure.
 
+## The key must name every ordered column
+
+Resuming after triple ⟨S, P, O⟩ needs all three, because the key has to
+identify the boundary row exactly. A key one column short silently drops the
+solutions that share the boundary's prefix. Interrupting `?s ?p ?o` at depth
+5,458,228, where the same number should remain:
+
+| key | returned | |
+|---|---|---|
+| `(o, p, s)` | 5,458,228 | exact |
+| `(o, p)` | 5,458,174 | **54 lost** |
+| `(o)` | 5,458,134 | **94 lost** |
+
+Fifty-four and ninety-four out of five million: few enough to pass any smoke
+test, which is what makes it dangerous. This is the same failure shape as the
+iterator-convention bug in `passage-qlever` — which, by coincidence, also lost
+ninety-four solutions. The probe checks this on every pattern whose key has
+more than one column.
+
+Because ⟨s, p, o⟩ is unique in a triple store, the full key resumes at exactly
+one place: there is no ambiguity to break, and no need to re-read or skip a
+run of equal keys. In a quad store that stops being true — see below.
+
 ## Three things it taught us
 
 **The key must be in the permutation's column order, not the query's.** For
