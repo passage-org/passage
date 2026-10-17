@@ -69,3 +69,6 @@ hs_err_pid*
 
 # editor state
 .vscode/
+
+# editor lock files
+.~lock.*#
