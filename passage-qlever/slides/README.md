@@ -20,6 +20,25 @@ A slide file holds exactly one `<section>`, with every style inline and no
 `<html>` or `<head>` — it is assembled at render time, so **opening one in a
 browser shows unstyled text**. To see the deck, use the published page.
 
+## Generating the PPTX
+
+`build-pptx.js` builds the deck as a PowerPoint from this folder alone, without
+going through the published page:
+
+```sh
+node passage-qlever/slides/build-pptx.js "QLever as a Passage backend.pptx"
+```
+
+It mirrors the HTML sources rather than parsing them, so **a change to a slide
+has to be made in both places** — the `.html` for the page, the script for the
+file. That is the price of not having the type's renderer locally; the two were
+in step when the committed `.pptx` was built.
+
+It needs `pptxgenjs` (`npm install pptxgenjs`, or run with `NODE_PATH` pointing
+at an install elsewhere). The fonts are named, not embedded: a machine without
+Roboto Slab and Roboto substitutes them, which changes the line widths but not
+the layout.
+
 ## Where the numbers come from
 
 Nothing on these slides is quoted from the literature, because the storage
