@@ -1,41 +1,32 @@
-<section id="independent" style="background:#FFFFFF;color:#000000;font-family:'Roboto', Arial, sans-serif;padding:214px 104px 76px;display:flex;flex-direction:column;gap:26px">
+<section id="independent" style="background:#FFFFFF;color:#000000;font-family:'Roboto', Arial, sans-serif;padding:212px 104px 72px;display:flex;flex-direction:column;gap:20px">
 <div style="position:absolute;left:0px;top:0px;width:1920px;height:182px;background:#0084D1"></div>
-<h2 style="position:absolute;left:0px;top:36px;width:1920px;text-align:center;font-family:'Roboto Slab', Georgia, serif;font-size:92px;font-weight:700;color:#FFFFFF;line-height:1.1">An independent benchmark</h2>
-<p style="font-size:32px;line-height:1.4">Patel-Schneider, <i>Benchmarking SPARQL Engines on Wikidata Queries</i>, Wikidata Workshop at ISWC 2025. Wikidata of October 2024 — about <b>20 billion triples</b> — 298 WDQS queries, 10-minute timeout, 192 GB of RAM.</p>
-<table style="font-family:'Roboto', Arial, sans-serif;font-size:32px;color:#000000;border:2px solid #000000;padding:17px">
+<h2 style="position:absolute;left:0px;top:36px;width:1920px;text-align:center;font-family:'Roboto Slab', Georgia, serif;font-size:92px;font-weight:700;color:#FFFFFF;line-height:1.1">A third-party evaluation</h2>
+<p style="font-size:30px;line-height:1.35">Patel-Schneider, <i>Benchmarking SPARQL Engines on Wikidata Queries</i>, Wikidata Workshop at ISWC 2025. Wikidata of October 2024 — <b>~20 billion triples</b>, 192 GB of RAM, 10-minute timeout. <b>Four benchmarks</b>, not one:</p>
+<table style="font-family:'Roboto', Arial, sans-serif;font-size:27px;color:#000000;border:2px solid #000000;padding:12px">
+<tr style="background:#0084D1">
+<th style="width:20%;color:#FFFFFF;font-weight:700;text-align:left">benchmark</th>
+<th style="width:46%;color:#FFFFFF;font-weight:700;text-align:left">what it is</th>
+<th style="width:34%;color:#FFFFFF;font-weight:700;text-align:left">whose queries</th>
+</tr>
+<tr><td><b>WDBench</b></td><td>fragments of WDQS log queries that <b>timed out</b>, in 5 classes — 2,658 queries</td><td>Angles et al., ISWC 2022</td></tr>
+<tr><td><b>WGPB</b></td><td>850 queries, 17 graph patterns instantiated 50 times</td><td>Hogan et al., ISWC 2019</td></tr>
+<tr style="background:#FFF2CC"><td><b>WDQS</b></td><td>298 queries from Wikidata Query Service logs</td><td><span style="color:#FF0000"><b>QLever’s own evaluation page</b></span></td></tr>
+<tr><td><b>Scholia</b></td><td>new, built from the Scholia interface’s query templates</td><td>the author</td></tr>
+</table>
+<p style="font-size:29px;line-height:1.35;font-weight:700">The WDQS benchmark, median and mean per query, in milliseconds:</p>
+<table style="font-family:'Roboto', Arial, sans-serif;font-size:28px;color:#000000;border:2px solid #000000;padding:12px">
 <tr style="background:#0084D1">
 <th style="width:34%;color:#FFFFFF;font-weight:700;text-align:left">engine</th>
 <th style="width:22%;color:#FFFFFF;font-weight:700;text-align:right">median</th>
 <th style="width:22%;color:#FFFFFF;font-weight:700;text-align:right">mean</th>
 <th style="width:22%;color:#FFFFFF;font-weight:700;text-align:right">timeouts</th>
 </tr>
-<tr style="background:#F2F8FD">
-<td><b>QLever</b></td>
-<td style="text-align:right;color:#38761D"><b>103 ms</b></td>
-<td style="text-align:right;color:#38761D"><b>4,583 ms</b></td>
-<td style="text-align:right;color:#38761D"><b>0</b></td>
-</tr>
-<tr>
-<td>Virtuoso</td>
-<td style="text-align:right">461 ms</td>
-<td style="text-align:right">14,645 ms</td>
-<td style="text-align:right">2</td>
-</tr>
-<tr>
-<td>Blazegraph</td>
-<td style="text-align:right">511 ms</td>
-<td style="text-align:right">12,560 ms</td>
-<td style="text-align:right">1</td>
-</tr>
-<tr>
-<td>MillenniumDB</td>
-<td style="text-align:right">588 ms</td>
-<td style="text-align:right">103,271 ms</td>
-<td style="text-align:right;color:#FF0000">43</td>
-</tr>
+<tr style="background:#F2F8FD"><td><b>QLever</b></td><td style="text-align:right;color:#38761D"><b>103</b></td><td style="text-align:right;color:#38761D"><b>4,583</b></td><td style="text-align:right;color:#38761D"><b>0</b></td></tr>
+<tr><td>Virtuoso</td><td style="text-align:right">461</td><td style="text-align:right">14,645</td><td style="text-align:right">2</td></tr>
+<tr><td>Blazegraph</td><td style="text-align:right">511</td><td style="text-align:right">12,560</td><td style="text-align:right">1</td></tr>
+<tr><td>MillenniumDB</td><td style="text-align:right">588</td><td style="text-align:right">103,271</td><td style="text-align:right;color:#FF0000">43</td></tr>
 </table>
-<p style="font-size:33px;line-height:1.4;font-weight:700">Loading the same dump: QLever <span style="color:#38761D">about 4.5 hours</span>, Blazegraph <span style="color:#FF0000">over 10 days — and the first attempt failed</span>.</p>
-<p style="font-size:30px;line-height:1.35">All four engines deviate from the SPARQL standard in places. QLever is the fastest of the four.</p>
-<p style="position:absolute;left:1700px;bottom:44px;width:140px;text-align:right;font-size:26px;color:#595959">3</p>
-<aside>Use this to make the point that the choice is not ours: an independent author, four engines, a benchmark we had no hand in. The median matters more than the mean here — the mean is dominated by a handful of very long queries, and the author says so explicitly, preferring the arithmetic mean to show server load rather than user expectation.</aside>
+<p style="font-size:30px;line-height:1.35;font-weight:700">Loading the same dump: QLever <span style="color:#38761D">about 4.5 hours</span>, Blazegraph <span style="color:#FF0000">over 10 days — first attempt failed</span>.</p>
+<p style="position:absolute;left:1700px;bottom:40px;width:140px;text-align:right;font-size:26px;color:#595959">3</p>
+<aside>Say the yellow row out loud rather than hoping nobody asks: the evaluator is independent, but this particular query set was assembled by QLever's own authors. The author's verdict over all four benchmarks is still that QLever is the fastest of the four engines. Two caveats of his worth knowing: all four deviate from the SPARQL standard somewhere, and Virtuoso silently returns at most 1,048,576 answers per query, which accounts for most of its divergences on WDBench.</aside>
 </section>
