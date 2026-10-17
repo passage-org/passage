@@ -1,0 +1,23 @@
+<section id="cutting" style="background:#FFFFFF;color:#000000;font-family:'Roboto', Arial, sans-serif;padding:222px 104px 80px;display:flex;flex-direction:column;gap:26px">
+<div style="position:absolute;left:0px;top:0px;width:1920px;height:182px;background:#0084D1"></div>
+<h2 style="position:absolute;left:0px;top:36px;width:1920px;text-align:center;font-family:'Roboto Slab', Georgia, serif;font-size:92px;font-weight:700;color:#FFFFFF;line-height:1.1">Where a block ends</h2>
+<p style="font-size:34px;line-height:1.4"><b>index-rows-per-block = 31,250</b> is a <span style="color:#FF0000"><b>soft</b></span> target. Three rules bend it, and they explain the counts on the previous slide.</p>
+<ul style="font-size:36px;line-height:1.4;font-weight:700">
+<li>A <b>large relation</b> starts a new block</li>
+</ul>
+<ul style="font-size:31px;line-height:1.35;padding-left:88px">
+<li>PSO: 349 blocks of 31,250 rows, plus up to 85 relation boundaries → <b>366</b></li>
+</ul>
+<ul style="font-size:36px;line-height:1.4;font-weight:700">
+<li><b>Small relations</b> share a block, filled to <b>1.5 ×</b> the target = 46,875 rows</li>
+</ul>
+<ul style="font-size:31px;line-height:1.35;padding-left:88px">
+<li>SPO: 10,916,457 ÷ 46,875 = 233 → <b>234</b>, for 521,585 relations</li>
+<li>each is found by <span style="font-family:'Roboto Mono', Courier New, monospace">offsetInBlock_</span>, so it needs no entry of its own</li>
+</ul>
+<ul style="font-size:36px;line-height:1.4;font-weight:700">
+<li>A block <b>grows past the target</b> rather than split triples equal but for their graph</li>
+</ul>
+<p style="position:absolute;left:1700px;bottom:48px;width:140px;text-align:right;font-size:26px;color:#595959">8</p>
+<aside>The third rule is the one that matters for correctness later: because a block never splits triples that differ only by graph, a block's row count can be trusted without opening it — which is exactly the guard the offset patch checks.</aside>
+</section>

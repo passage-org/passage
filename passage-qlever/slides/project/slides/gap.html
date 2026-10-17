@@ -1,0 +1,42 @@
+<section id="gap" style="background:#FFFFFF;color:#000000;font-family:'Roboto', Arial, sans-serif;padding:214px 104px 76px;display:flex;flex-direction:column;gap:24px">
+<div style="position:absolute;left:0px;top:0px;width:1920px;height:182px;background:#0084D1"></div>
+<h2 style="position:absolute;left:0px;top:36px;width:1920px;text-align:center;font-family:'Roboto Slab', Georgia, serif;font-size:92px;font-weight:700;color:#FFFFFF;line-height:1.1">Where this is written down</h2>
+<table style="font-family:'Roboto', Arial, sans-serif;font-size:30px;color:#000000;border:2px solid #000000;padding:15px">
+<tr style="background:#0084D1">
+<th style="width:44%;color:#FFFFFF;font-weight:700;text-align:left">what</th>
+<th style="width:56%;color:#FFFFFF;font-weight:700;text-align:left">documented where</th>
+</tr>
+<tr>
+<td>The six permutations</td>
+<td><span style="color:#38761D"><b>Book chapter 2023, §1.5.2</b></span>, with worked examples; also the wiki</td>
+</tr>
+<tr>
+<td>Internal / external vocabulary, Id ordering</td>
+<td><span style="color:#38761D"><b>Wiki</b></span>, two pages — conceptual, dated 2022, “will soon be updated”</td>
+</tr>
+<tr style="background:#FFF2CC">
+<td>The 4 + 60 bit layout of an Id</td>
+<td><span style="color:#FF0000"><b>nowhere</b></span> — the wiki describes ranges, never the encoding</td>
+</tr>
+<tr style="background:#FFF2CC">
+<td>Blocks, their size, their cutting rules</td>
+<td><span style="color:#FF0000"><b>nowhere</b></span></td>
+</tr>
+<tr style="background:#FFF2CC">
+<td>Per-column Zstd, offsets and sizes</td>
+<td><span style="color:#FF0000"><b>nowhere</b></span> — the wiki only says “compressed in a variety of ways”</td>
+</tr>
+<tr style="background:#FFF2CC">
+<td>Block and relation metadata, their fields</td>
+<td><span style="color:#FF0000"><b>nowhere</b></span></td>
+</tr>
+<tr style="background:#FFF2CC">
+<td>Metadata at the end of the permutation file</td>
+<td><span style="color:#FF0000"><b>nowhere</b></span></td>
+</tr>
+</table>
+<p style="font-size:30px;line-height:1.4">The <b>CIKM 2017</b> paper does describe blocks — but of an <b>older, different index</b>: lists of subject + offset pairs, each block keyed by its lowest subject ID. On compressing them it says: <i>“We choose to not do this.”</i></p>
+<p style="font-size:30px;line-height:1.4">No architecture page at <b>docs.qlever.dev</b>. The wiki’s “Overview over the QLever codebase” is <i>“currently still a stub”</i> and covers Turtle parsing only.</p>
+<p style="position:absolute;left:1700px;bottom:44px;width:140px;text-align:right;font-size:26px;color:#595959">15</p>
+<aside>This slide answers the obvious question from the audience: why read the source rather than the documentation. The honest answer is that for the storage layer there is none, and the one paper that describes a block structure describes one that no longer exists and that was explicitly uncompressed.</aside>
+</section>

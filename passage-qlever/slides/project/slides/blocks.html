@@ -1,0 +1,34 @@
+<section id="blocks" style="background:#FFFFFF;color:#000000;font-family:'Roboto', Arial, sans-serif;padding:206px 104px 70px;display:flex;flex-direction:column;gap:16px">
+<div style="position:absolute;left:0px;top:0px;width:1920px;height:182px;background:#0084D1"></div>
+<h2 style="position:absolute;left:0px;top:36px;width:1920px;text-align:center;font-family:'Roboto Slab', Georgia, serif;font-size:92px;font-weight:700;color:#FFFFFF;line-height:1.1">What is actually in a block</h2>
+<p style="font-size:30px;line-height:1.3">The first rows of a PSO block, as stored — <b>four columns of 64-bit Ids</b>, each column its own Zstd stream:</p>
+<table style="font-family:'Roboto Mono', Courier New, monospace;font-size:24px;color:#000000;border:2px solid #000000;padding:9px">
+<tr style="background:#0084D1">
+<th style="width:10%;color:#FFFFFF;font-weight:700;text-align:left">row</th>
+<th style="width:30%;color:#FFFFFF;font-weight:700;text-align:left">col0 (P)</th>
+<th style="width:30%;color:#FFFFFF;font-weight:700;text-align:left">col1 (S)</th>
+<th style="width:30%;color:#FFFFFF;font-weight:700;text-align:left">col2 (O)</th>
+</tr>
+<tr><td>0</td><td><span style="color:#38761D">4000000000100FF0</span></td><td><span style="color:#0084D1">40000000000979A6</span></td><td>400000000009DB51</td></tr>
+<tr><td>1</td><td><span style="color:#38761D">4000000000100FF0</span></td><td><span style="color:#0084D1">40000000000979A7</span></td><td>400000000009DB51</td></tr>
+<tr><td>2</td><td><span style="color:#38761D">4000000000100FF0</span></td><td><span style="color:#0084D1">40000000000979A8</span></td><td>400000000009DB4F</td></tr>
+<tr><td>3</td><td><span style="color:#38761D">4000000000100FF0</span></td><td><span style="color:#0084D1">40000000000979A9</span></td><td>400000000009DB57</td></tr>
+<tr><td>4</td><td><span style="color:#38761D">4000000000100FF0</span></td><td><span style="color:#0084D1">40000000000979AA</span></td><td>400000000009DB56</td></tr>
+<tr><td>…</td><td><span style="color:#38761D"><b>identical, 31,250 times</b></span></td><td><span style="color:#0084D1"><b>+1 every row</b></span></td><td><b>~10 distinct values</b></td></tr>
+</table>
+<p style="font-size:26px;line-height:1.35">Row 0 spelled out: <b>&lt;…#type&gt;</b> · <b>&lt;…wsdbm/Product0&gt;</b> · <b>&lt;…wsdbm/ProductCategory11&gt;</b> — and a fourth column holds the graph.</p>
+<p style="font-size:30px;line-height:1.3;font-weight:700">That shape is why it compresses, and why the six permutations do not compress alike:</p>
+<table style="font-family:'Roboto', Arial, sans-serif;font-size:27px;color:#000000;border:2px solid #000000;padding:11px">
+<tr style="background:#0084D1">
+<th style="width:18%;color:#FFFFFF;font-weight:700;text-align:left">permutation</th>
+<th style="width:30%;color:#FFFFFF;font-weight:700;text-align:left">col0 is</th>
+<th style="width:26%;color:#FFFFFF;font-weight:700;text-align:right">on disk (333 MB raw)</th>
+<th style="width:26%;color:#FFFFFF;font-weight:700;text-align:right">ratio</th>
+</tr>
+<tr><td><b>SPO</b></td><td>subject — 521,585 values</td><td style="text-align:right">28.4 MB</td><td style="text-align:right;color:#38761D"><b>11.7×</b></td></tr>
+<tr><td><b>PSO</b></td><td>predicate — 86 values</td><td style="text-align:right">45.3 MB</td><td style="text-align:right">7.4×</td></tr>
+<tr><td><b>OPS</b></td><td>object — 1,005,832 values</td><td style="text-align:right">47.9 MB</td><td style="text-align:right">6.9×</td></tr>
+</table>
+<p style="position:absolute;left:1700px;bottom:38px;width:140px;text-align:right;font-size:26px;color:#595959">9</p>
+<aside>The counter-intuitive row is PSO. Its col0 has only 86 distinct values and compresses to nothing, yet the file is larger than SPO's — because what matters is the other columns: sorted by predicate, the subjects inside one predicate are a long ascending run but the objects are near-random, while SPO gets two low-entropy columns. Every number here was read from the index: the rows through the JNI bridge, the sizes with ls.</aside>
+</section>

@@ -1,0 +1,35 @@
+<section id="vocabulary" style="background:#FFFFFF;color:#000000;font-family:'Roboto', Arial, sans-serif;padding:214px 104px 76px;display:flex;flex-direction:column;gap:22px">
+<div style="position:absolute;left:0px;top:0px;width:1920px;height:182px;background:#0084D1"></div>
+<h2 style="position:absolute;left:0px;top:36px;width:1920px;text-align:center;font-family:'Roboto Slab', Georgia, serif;font-size:92px;font-weight:700;color:#FFFFFF;line-height:1.1">Before the triples: the Id</h2>
+<p style="font-size:33px;line-height:1.4">A permutation stores no strings, only <b>64-bit Ids</b>: <span style="color:#0084D1"><b>4 bits of datatype</b></span> and <span style="color:#38761D"><b>60 bits of value</b></span> — 13 datatypes defined of the 16 the tag allows.</p>
+<div style="display:flex;gap:16px;align-items:stretch">
+<div style="width:300px;background:#0084D1;border:2px solid #000000;display:flex;flex-direction:column;justify-content:center">
+<p style="font-size:30px;font-weight:700;text-align:center;color:#FFFFFF;padding:18px">4 bits<br>datatype</p>
+</div>
+<div style="flex:1;background:#D9EAD3;border:2px solid #000000;display:flex;flex-direction:column;justify-content:center">
+<p style="font-size:30px;font-weight:700;text-align:center;padding:18px">60 bits — a value, or an index into the vocabulary (max 2<b>⁶⁰</b>−1)</p>
+</div>
+</div>
+<table style="font-family:'Roboto', Arial, sans-serif;font-size:29px;color:#000000;border:2px solid #000000;padding:14px">
+<tr style="background:#0084D1">
+<th style="width:40%;color:#FFFFFF;font-weight:700;text-align:left">datatype</th>
+<th style="width:60%;color:#FFFFFF;font-weight:700;text-align:left">where the value lives</th>
+</tr>
+<tr>
+<td>Int · Double · Bool · Date · GeoPoint</td>
+<td><span style="color:#38761D"><b>inside the Id</b></span> — no lookup, and they compare and sort directly</td>
+</tr>
+<tr>
+<td>EncodedVal</td>
+<td>IRIs under a <b>configured prefix</b>, encoded in the Id itself</td>
+</tr>
+<tr>
+<td>VocabIndex · LocalVocabIndex · BlankNodeIndex</td>
+<td>an index into the vocabulary — <span style="color:#FF0000">a lookup</span></td>
+</tr>
+</table>
+<p style="font-size:30px;line-height:1.4">The vocabulary is split: <b>internal</b> in RAM (53 kB here) and <b>external</b> on disk (27.7 MB of words plus 8.4 MB of offsets). Ids are assigned so that <b>their order is the strings’ order</b>, which is what makes a prefix or a range a contiguous scan.</p>
+<p style="font-size:26px;line-height:1.3;color:#595959">Published: wiki, “Internal and external vocabulary” and “QLever’s IDs for IRIs and literals” — conceptual, dated 2022, and it says the scheme “will soon be updated”. The 4/60 split is from the source.</p>
+<p style="position:absolute;left:1700px;bottom:44px;width:140px;text-align:right;font-size:26px;color:#595959">5</p>
+<aside>The point that matters downstream: a bound component in a scan is an Id, and resolving it is a vocabulary lookup — unless it is a number or a date, which cost nothing. It is also where the absent-value trap lives: a string not in the vocabulary has no Id at all, and that has to be reported rather than silently turned into a wildcard.</aside>
+</section>

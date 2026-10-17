@@ -1,0 +1,22 @@
+<section id="why" style="background:#FFFFFF;color:#000000;font-family:'Roboto', Arial, sans-serif;padding:228px 104px 88px;display:flex;flex-direction:column;gap:26px">
+<div style="position:absolute;left:0px;top:0px;width:1920px;height:182px;background:#0084D1"></div>
+<h2 style="position:absolute;left:0px;top:36px;width:1920px;text-align:center;font-family:'Roboto Slab', Georgia, serif;font-size:92px;font-weight:700;color:#FFFFFF;line-height:1.1">Why change the backend?</h2>
+<ul style="font-size:44px;line-height:1.4;font-weight:700;color:#FF0000">
+<li>Blazegraph is no longer maintained</li>
+</ul>
+<ul style="font-size:44px;line-height:1.4;font-weight:700">
+<li>QLever is maintained, and six times smaller</li>
+</ul>
+<ul style="font-size:38px;line-height:1.4;padding-left:88px">
+<li><span style="color:#38761D"><b>283 MB</b></span> against <b>1.7 GB</b>, for the same 10,916,457 triples</li>
+</ul>
+<ul style="font-size:44px;line-height:1.4;font-weight:700;color:#FF0000">
+<li>But it has no augmented B+tree</li>
+</ul>
+<ul style="font-size:38px;line-height:1.4;padding-left:88px">
+<li>no <b>rangeCount</b>, no <b>keyAt(rank)</b></li>
+<li>which are exactly the two questions a continuation asks</li>
+</ul>
+<p style="position:absolute;left:1700px;bottom:48px;width:140px;text-align:right;font-size:26px;color:#595959">1</p>
+<aside>Blazegraph carries tuple counts inside its B+tree nodes, so "how many matches" and "which match sits at rank k" are both a tree descent. Its own uniform sampler is built straight on keyAt. QLever has neither — that is the whole question in one line.</aside>
+</section>

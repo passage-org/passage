@@ -1,0 +1,33 @@
+<section id="metadata" style="background:#FFFFFF;color:#000000;font-family:'Roboto', Arial, sans-serif;padding:214px 104px 76px;display:flex;flex-direction:column;gap:22px">
+<div style="position:absolute;left:0px;top:0px;width:1920px;height:182px;background:#0084D1"></div>
+<h2 style="position:absolute;left:0px;top:36px;width:1920px;text-align:center;font-family:'Roboto Slab', Georgia, serif;font-size:92px;font-weight:700;color:#FFFFFF;line-height:1.1">What is held in RAM</h2>
+<div style="display:flex;gap:32px">
+<div style="flex:1;display:flex;flex-direction:column;border:2px solid #000000">
+<p style="font-size:30px;font-weight:700;text-align:center;background:#0084D1;color:#FFFFFF;padding:14px">CompressedBlockMetadata — one per block</p>
+<table style="font-family:'Roboto Mono', Courier New, monospace;font-size:24px;color:#000000;padding:11px">
+<tr><td style="width:56%">offsetsAndCompressedSize_</td><td style="width:44%;font-family:'Roboto', Arial, sans-serif">one per column</td></tr>
+<tr><td><span style="color:#FF0000">numRows_</span></td><td style="font-family:'Roboto', Arial, sans-serif">rows in this block</td></tr>
+<tr><td>firstTriple_</td><td style="font-family:'Roboto', Arial, sans-serif">col0, col1, col2, graph</td></tr>
+<tr><td>lastTriple_</td><td style="font-family:'Roboto', Arial, sans-serif">col0, col1, col2, graph</td></tr>
+<tr><td>graphInfo_</td><td style="font-family:'Roboto', Arial, sans-serif">graphs present, if few</td></tr>
+<tr><td>containsDuplicates…</td><td style="font-family:'Roboto', Arial, sans-serif">…WithDifferentGraphs_</td></tr>
+<tr><td>blockIndex_</td><td style="font-family:'Roboto', Arial, sans-serif">its place in the file</td></tr>
+</table>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;border:2px solid #000000">
+<p style="font-size:30px;font-weight:700;text-align:center;background:#0084D1;color:#FFFFFF;padding:14px">CompressedRelationMetadata — one per relation</p>
+<table style="font-family:'Roboto Mono', Courier New, monospace;font-size:24px;color:#000000;padding:11px">
+<tr><td style="width:56%">col0Id_</td><td style="width:44%;font-family:'Roboto', Arial, sans-serif">the relation itself</td></tr>
+<tr><td>numRows_</td><td style="font-family:'Roboto', Arial, sans-serif">its size</td></tr>
+<tr><td>multiplicityCol1_</td><td style="font-family:'Roboto', Arial, sans-serif">1.0 means functional</td></tr>
+<tr><td>multiplicityCol2_</td><td style="font-family:'Roboto', Arial, sans-serif">used by the planner</td></tr>
+<tr><td>offsetInBlock_</td><td style="font-family:'Roboto', Arial, sans-serif">where it starts inside a shared block</td></tr>
+<tr><td>= uint64 max</td><td style="font-family:'Roboto', Arial, sans-serif">means: it owns its blocks</td></tr>
+</table>
+</div>
+</div>
+<p style="font-size:33px;line-height:1.4;font-weight:700">Every block’s <span style="color:#FF0000">numRows_</span> is <span style="color:#38761D">exact and already in memory</span> — the whole offset mechanism rests on that one field.</p>
+<p style="font-size:29px;line-height:1.35">366 blocks for PSO, 234 for SPO, 249 for OPS: a few thousand records for a ten-million-triple index.</p>
+<p style="position:absolute;left:1700px;bottom:44px;width:140px;text-align:right;font-size:26px;color:#595959">10</p>
+<aside>firstTriple_ and lastTriple_ are what the binary search uses to find the range of blocks a pattern touches, without reading any of them. numRows_ is what lets an offset be resolved before any I/O. Both were already there; nothing in this work added a field.</aside>
+</section>

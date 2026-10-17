@@ -1,0 +1,19 @@
+{
+  "v": 4,
+  "createdOnFiles": {"v": 1, "at": "2026-10-16T09:00:00Z"},
+  "lists": "css",
+  "title": "QLever as a Passage backend",
+  "order": ["why", "wikidata", "independent", "files", "vocabulary", "order", "permutations", "cutting", "blocks", "metadata", "scan", "compatible", "price", "sampling", "gap", "references"],
+  "sections": {
+    "s1": {"description": "Why the backend has to change, and who else reached that conclusion.", "start": "why"},
+    "s2": {"description": "How a QLever index is laid out, file by file and field by field.", "start": "files"},
+    "s3": {"description": "What continuations cost on that layout.", "start": "compatible"},
+    "s4": {"description": "Sources, and what none of them document.", "start": "gap"}
+  },
+  "faces": {
+    "roboto-slab": {"family": "Roboto Slab", "href": "https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@700&display=swap"},
+    "roboto": {"family": "Roboto", "href": "https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"},
+    "roboto-mono": {"family": "Roboto Mono", "href": "https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap"}
+  },
+  "designSystems": []
+}

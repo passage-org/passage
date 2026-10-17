@@ -1,0 +1,49 @@
+<section id="scan" style="background:#FFFFFF;color:#000000;font-family:'Roboto', Arial, sans-serif;padding:214px 104px 76px;display:flex;flex-direction:column;gap:22px">
+<div style="position:absolute;left:0px;top:0px;width:1920px;height:182px;background:#0084D1"></div>
+<h2 style="position:absolute;left:0px;top:36px;width:1920px;text-align:center;font-family:'Roboto Slab', Georgia, serif;font-size:92px;font-weight:700;color:#FFFFFF;line-height:1.1">A scan, step by step</h2>
+<table style="font-family:'Roboto', Arial, sans-serif;font-size:30px;color:#000000;border:2px solid #000000;padding:15px">
+<tr style="background:#0084D1">
+<th style="width:8%;color:#FFFFFF;font-weight:700;text-align:left">#</th>
+<th style="width:48%;color:#FFFFFF;font-weight:700;text-align:left">what happens</th>
+<th style="width:44%;color:#FFFFFF;font-weight:700;text-align:left">cost</th>
+</tr>
+<tr>
+<td><b>1</b></td>
+<td>Resolve each bound component to an <b>Id</b> in the vocabulary</td>
+<td><span style="color:#38761D">a lookup</span></td>
+</tr>
+<tr>
+<td><b>2</b></td>
+<td>Pick the permutation whose key order puts them first</td>
+<td><span style="color:#38761D">free</span></td>
+</tr>
+<tr>
+<td><b>3</b></td>
+<td>Binary-search <span style="font-family:'Roboto Mono', Courier New, monospace;font-size:26px">firstTriple_</span> / <span style="font-family:'Roboto Mono', Courier New, monospace;font-size:26px">lastTriple_</span> for the block range</td>
+<td><span style="color:#38761D">in RAM, no I/O</span></td>
+</tr>
+<tr style="background:#FFF2CC">
+<td><b>4</b></td>
+<td><b>Walk <span style="font-family:'Roboto Mono', Courier New, monospace;font-size:26px">numRows_</span> to the block holding the offset</b></td>
+<td><b>in RAM — this is the patch</b></td>
+</tr>
+<tr>
+<td><b>5</b></td>
+<td>Read and <b>decompress</b> that block’s needed columns</td>
+<td><span style="color:#FF0000">one block, every time</span></td>
+</tr>
+<tr>
+<td><b>6</b></td>
+<td>Trim the first and last block, which may be partial</td>
+<td>a scan of the block</td>
+</tr>
+<tr>
+<td><b>7</b></td>
+<td>Stream the blocks in between, ~20 in flight</td>
+<td><span style="color:#38761D">fast and parallel</span></td>
+</tr>
+</table>
+<p style="font-size:33px;line-height:1.4;font-weight:700">Steps 1–4 are free. <span style="color:#FF0000">Step 5 is the whole cost of opening a scan</span>, and it does not depend on how many rows you then read.</p>
+<p style="position:absolute;left:1700px;bottom:44px;width:140px;text-align:right;font-size:26px;color:#595959">11</p>
+<aside>Step 4 is the forty-line patch: skipped blocks are counted, never opened, and the guard is that a block's row count can only be trusted when the block holds no duplicates differing by graph. Step 5 is why a per-thread cache of decompressed blocks is worth 38x on scan opening.</aside>
+</section>

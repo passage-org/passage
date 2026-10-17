@@ -1,0 +1,20 @@
+<section id="sampling" style="background:#FFFFFF;color:#000000;font-family:'Roboto', Arial, sans-serif;padding:228px 104px 88px;display:flex;flex-direction:column;gap:26px">
+<div style="position:absolute;left:0px;top:0px;width:1920px;height:182px;background:#0084D1"></div>
+<h2 style="position:absolute;left:0px;top:36px;width:1920px;text-align:center;font-family:'Roboto Slab', Georgia, serif;font-size:92px;font-weight:700;color:#FFFFFF;line-height:1.1">Limitations</h2>
+<ul style="font-size:44px;line-height:1.4;font-weight:700;color:#38761D">
+<li>A continuation re-enters where it stopped — <b>14 µs</b></li>
+</ul>
+<ul style="font-size:38px;line-height:1.4;padding-left:88px">
+<li>it stays in the same block, which is what the block cache is for</li>
+</ul>
+<ul style="font-size:44px;line-height:1.4;font-weight:700;color:#FF0000">
+<li>A random walk re-enters anywhere — <b>476 µs</b></li>
+</ul>
+<ul style="font-size:38px;line-height:1.4;padding-left:88px">
+<li>the cache cannot help: 476 µs against 477 with it off</li>
+<li>depth <i>d</i> pays <i>d</i> exact counts and <i>d</i> scattered re-entries, where <b>keyAt</b> pays <i>d</i> tree descents</li>
+</ul>
+<p style="font-size:48px;line-height:1.35;text-align:center;font-weight:700;border:3px solid #FF0000;padding:28px;width:1560px">Preemption ports. Sampling pays.</p>
+<p style="position:absolute;left:1700px;bottom:48px;width:140px;text-align:right;font-size:26px;color:#595959">14</p>
+<aside>Three of the four limitations are constants, and this is the one that is a difference in kind. If the random-walk estimators matter on this backend, the thing to build is a per-block distinct count or a cheap rank — not a bigger cache.</aside>
+</section>

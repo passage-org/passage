@@ -1,0 +1,31 @@
+<section id="wikidata" style="background:#FFFFFF;color:#000000;font-family:'Roboto', Arial, sans-serif;padding:214px 104px 76px;display:flex;flex-direction:column;gap:24px">
+<div style="position:absolute;left:0px;top:0px;width:1920px;height:182px;background:#0084D1"></div>
+<h2 style="position:absolute;left:0px;top:36px;width:1920px;text-align:center;font-family:'Roboto Slab', Georgia, serif;font-size:92px;font-weight:700;color:#FFFFFF;line-height:1.1">Wikidata reached the same conclusion</h2>
+<p style="font-size:34px;line-height:1.4">The Wikidata Platform Team proposes <b>QLever</b> as the replacement for Blazegraph in the Wikidata Query Service. Their reasons, quoted:</p>
+<p style="font-size:33px;line-height:1.4;border-left:8px solid #0084D1;padding:20px;background:#F2F8FD">“an open source project that has gone <b>unmaintained</b> since being acquired by Amazon in 2018”<br>“<b>unable to scale</b> to meet the growth targets of Wikidata”<br>“the cause of much of the <b>volatility</b> of the Wikidata Query Service”</p>
+<table style="font-family:'Roboto', Arial, sans-serif;font-size:31px;color:#000000;border:2px solid #000000;padding:15px">
+<tr style="background:#0084D1">
+<th style="width:30%;color:#FFFFFF;font-weight:700;text-align:left">when</th>
+<th style="width:70%;color:#FFFFFF;font-weight:700;text-align:left">what</th>
+</tr>
+<tr>
+<td>Oct 2025 – Mar 2026</td>
+<td>benchmarking and production-replay testing of the candidates</td>
+</tr>
+<tr>
+<td>November 2025</td>
+<td>triple store evaluation report published</td>
+</tr>
+<tr>
+<td>April 2026</td>
+<td>contractor engaged for documentation and query rewriting</td>
+</tr>
+<tr style="background:#FFF2CC">
+<td><b>17–23 Oct 2026</b></td>
+<td><b>Query Service Days: the migration from Blazegraph to QLever</b></td>
+</tr>
+</table>
+<p style="font-size:32px;line-height:1.4;font-weight:700">Our backend problem is <span style="color:#38761D">the same problem the largest public SPARQL endpoint is solving</span> — which is why porting Passage to QLever is worth doing now.</p>
+<p style="position:absolute;left:1700px;bottom:44px;width:140px;text-align:right;font-size:26px;color:#595959">2</p>
+<aside>Source: the Wikidata SPARQL query service backend replacement proposal. Worth saying plainly that it is a proposal open for community review rather than a finished switch, and that Blazegraph-specific services and functions will not carry over, so queries using them must be rewritten. The timing is a gift: the Query Service Days are this very week.</aside>
+</section>

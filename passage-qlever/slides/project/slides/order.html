@@ -1,0 +1,35 @@
+<section id="order" style="background:#FFFFFF;color:#000000;font-family:'Roboto', Arial, sans-serif;padding:212px 104px 72px;display:flex;flex-direction:column;gap:20px">
+<div style="position:absolute;left:0px;top:0px;width:1920px;height:182px;background:#0084D1"></div>
+<h2 style="position:absolute;left:0px;top:36px;width:1920px;text-align:center;font-family:'Roboto Slab', Georgia, serif;font-size:92px;font-weight:700;color:#FFFFFF;line-height:1.1">Id order <i>is</i> value order</h2>
+<p style="font-size:31px;line-height:1.35">Permutations are sorted by a plain <b>64-bit integer compare on the Id</b>. No string is ever compared. The order still comes out right, because the Ids are handed out that way.</p>
+<div style="display:flex;gap:28px">
+<div style="flex:1;display:flex;flex-direction:column;border:2px solid #000000">
+<p style="font-size:27px;font-weight:700;text-align:center;background:#0084D1;color:#FFFFFF;padding:11px">Count the payload up, read the strings out</p>
+<table style="font-family:'Roboto Mono', Courier New, monospace;font-size:21px;color:#000000;padding:7px">
+<tr><td style="width:46%">4000000000000000</td><td style="width:54%">&lt;http://ex.org/H1&gt;</td></tr>
+<tr><td>4000000000000001</td><td>&lt;http://ex.org/H2&gt;</td></tr>
+<tr><td>4000000000000002</td><td>&lt;http://ex.org/H3&gt;</td></tr>
+<tr><td>4000000000000003</td><td>&lt;http://ex.org/Human&gt;</td></tr>
+<tr><td>4000000000000004</td><td>&lt;http://ex.org/O1&gt;</td></tr>
+<tr><td>4000000000000006</td><td>&lt;http://ex.org/O3&gt;</td></tr>
+<tr><td>4000000000000007</td><td>&lt;http://ex.org/occupation&gt;</td></tr>
+<tr><td>4000000000000008</td><td>&lt;http://ex.org/type&gt;</td></tr>
+</table>
+<p style="font-size:24px;padding:12px;line-height:1.35">Byte-wise lexicographic: <b>H3 &lt; Human</b> because <b>‘3’ &lt; ‘u’</b>, <b>O3 &lt; occupation</b> because <b>‘O’ &lt; ‘o’</b>.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;border:2px solid #000000">
+<p style="font-size:27px;font-weight:700;text-align:center;background:#0084D1;color:#FFFFFF;padding:11px">The 4-bit tag decides the group</p>
+<table style="font-family:'Roboto Mono', Courier New, monospace;font-size:21px;color:#000000;padding:7px">
+<tr><td style="width:46%">1000000000000001</td><td style="width:54%">"true"^^xsd:boolean</td></tr>
+<tr><td><span style="color:#38761D">200000000000002A</span></td><td><span style="color:#38761D">"42"^^xsd:int</span></td></tr>
+<tr><td><span style="color:#38761D">20000000000003E8</span></td><td><span style="color:#38761D">"1000"^^xsd:int</span></td></tr>
+<tr><td>3800000000000000</td><td>"-0.0"^^xsd:decimal</td></tr>
+<tr><td>4000000000000000</td><td>&lt;http://ex.org/H1&gt;</td></tr>
+</table>
+<p style="font-size:24px;padding:12px;line-height:1.35">For <b>Int</b> the payload <b>is</b> the number — 42 is <span style="font-family:'Roboto Mono', Courier New, monospace">…002A</span>. No vocabulary at all: this index contains no integers, and the Id still decodes.</p>
+</div>
+</div>
+<p style="font-size:30px;line-height:1.35;border:3px solid #FF0000;padding:18px">Largest Int Id <span style="font-family:'Roboto Mono', Courier New, monospace">2FFFFFFFFFFFFFFF</span> &lt; smallest IRI Id <span style="font-family:'Roboto Mono', Courier New, monospace">4000000000000000</span> — so <b>every number sorts before every IRI</b>. That is the storage order, not the SPARQL order.</p>
+<p style="position:absolute;left:1700px;bottom:40px;width:140px;text-align:right;font-size:26px;color:#595959">6</p>
+<aside>Every Id on this slide was read from the fig2 index by asking QLever for the string behind it. The right-hand column is the honest catch: ordering by Id groups by datatype first, in enum order, so it is not SPARQL's comparison — that lives in ValueIdComparators and is a different function. An offset into a scan is a position in THIS order.</aside>
+</section>

@@ -1,0 +1,49 @@
+<section id="files" style="background:#FFFFFF;color:#000000;font-family:'Roboto', Arial, sans-serif;padding:222px 104px 80px;display:flex;flex-direction:column;gap:28px">
+<div style="position:absolute;left:0px;top:0px;width:1920px;height:182px;background:#0084D1"></div>
+<h2 style="position:absolute;left:0px;top:36px;width:1920px;text-align:center;font-family:'Roboto Slab', Georgia, serif;font-size:92px;font-weight:700;color:#FFFFFF;line-height:1.1">An index on disk</h2>
+<table style="font-family:'Roboto', Arial, sans-serif;font-size:31px;color:#000000;border:2px solid #000000;padding:16px">
+<tr style="background:#0084D1">
+<th style="width:42%;color:#FFFFFF;font-weight:700;text-align:left">file</th>
+<th style="width:43%;color:#FFFFFF;font-weight:700;text-align:left">what it holds</th>
+<th style="width:15%;color:#FFFFFF;font-weight:700;text-align:right">size</th>
+</tr>
+<tr>
+<td><span style="color:#0084D1">watdiv10m</span>.index.pso</td>
+<td>compressed blocks, <b>then the per-block metadata at the end of the same file</b></td>
+<td style="text-align:right">47.5 MB</td>
+</tr>
+<tr>
+<td>watdiv10m.index.pso<b>.meta</b></td>
+<td>per-relation metadata</td>
+<td style="text-align:right">992 B</td>
+</tr>
+<tr>
+<td>… and the same for <b>5 other permutations</b></td>
+<td>POS, SPO, SOP, OPS, OSP</td>
+<td style="text-align:right">258 MB</td>
+</tr>
+<tr>
+<td>watdiv10m.vocabulary.words.<b>external</b></td>
+<td>the strings themselves, plus a file of offsets into them</td>
+<td style="text-align:right">36 MB</td>
+</tr>
+<tr>
+<td>watdiv10m.vocabulary.words.<b>internal</b></td>
+<td>the words kept in RAM, plus their ids and codebooks</td>
+<td style="text-align:right">53 kB</td>
+</tr>
+<tr>
+<td>watdiv10m.<b>internal</b>.index.pso / .pos</td>
+<td>QLever’s own triples (patterns, graph names)</td>
+<td style="text-align:right">1.7 MB</td>
+</tr>
+<tr>
+<td>watdiv10m.<b>meta-data.json</b></td>
+<td>build settings: locale, prefixes, <b>index-rows-per-block</b>, format version</td>
+<td style="text-align:right">809 B</td>
+</tr>
+</table>
+<p style="font-size:34px;line-height:1.35;font-weight:700">10,916,457 triples — <span style="color:#38761D">285 MB in total</span>, against 1.7 GB for the same data in Blazegraph.</p>
+<p style="position:absolute;left:1700px;bottom:48px;width:140px;text-align:right;font-size:26px;color:#595959">4</p>
+<aside>Two things to point at. The per-block metadata lives at the END of the permutation file, not in the sidecar: the reader seeks to the last offset and deserialises it at start-up. And the .meta sidecar is 992 bytes for PSO but 32 bytes for SPO — because SPO has 521,585 relations that each live inside a single block and are addressed by an offset within it, so they need no entry of their own.</aside>
+</section>

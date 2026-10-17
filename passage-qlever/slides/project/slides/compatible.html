@@ -1,0 +1,22 @@
+<section id="compatible" style="background:#FFFFFF;color:#000000;font-family:'Roboto', Arial, sans-serif;padding:228px 104px 88px;display:flex;flex-direction:column;gap:26px">
+<div style="position:absolute;left:0px;top:0px;width:1920px;height:182px;background:#0084D1"></div>
+<h2 style="position:absolute;left:0px;top:36px;width:1920px;text-align:center;font-family:'Roboto Slab', Georgia, serif;font-size:92px;font-weight:700;color:#FFFFFF;line-height:1.1">Compatible anyway</h2>
+<ul style="font-size:44px;line-height:1.4;font-weight:700">
+<li>The block index holds <span style="color:#38761D">exact row counts</span>, in RAM</li>
+</ul>
+<ul style="font-size:38px;line-height:1.4;padding-left:88px">
+<li>an offset resolves <b>before any block is read</b></li>
+</ul>
+<ul style="font-size:44px;line-height:1.4;font-weight:700">
+<li>An exact cardinality exists too</li>
+</ul>
+<ul style="font-size:38px;line-height:1.4;padding-left:88px">
+<li>it decompresses the two boundary blocks — correct, not free</li>
+</ul>
+<ul style="font-size:44px;line-height:1.4;font-weight:700">
+<li>40 lines of QLever, <span style="color:#38761D">off by default</span>, nothing in the index format</li>
+</ul>
+<p style="font-size:46px;line-height:1.35;text-align:center;border:3px solid #FF0000;padding:30px;width:1560px">Everything a continuation depends on stays exact.<br>What changes is the price, not the correctness.</p>
+<p style="position:absolute;left:1700px;bottom:48px;width:140px;text-align:right;font-size:26px;color:#595959">12</p>
+<aside>An index built before the patch is read by the patched engine unchanged. That matters more than the size of the patch: a mechanism needing the index format to change would not port to the next engine either.</aside>
+</section>
