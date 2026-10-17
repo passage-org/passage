@@ -217,6 +217,43 @@ datatype tests, proposed upstream the way `ql:isGeoPoint` was. That is a
 change to QLever, which is what this approach set out to avoid — but it is a
 much smaller and more general change than the OFFSET patch.
 
+## Measured against stock QLever, at last
+
+Every OFFSET figure above was taken on the patched fork, which was not an
+honest comparison. Upstream handles an offset by decompressing every block
+before it and discarding the rows — `pruneBlock` in
+`CompressedRelationReader.cpp` — so its cost grows with depth:
+
+| OFFSET into `?s ?p ?o` | patched | stock |
+|---|---|---|
+| 1,000 | 3 ms | 5 ms |
+| 1,000,000 | 4 ms | 7 ms |
+| 5,000,000 | 5 ms | 20 ms |
+| 10,000,000 | 4 ms | 38 ms |
+
+Linear per slice means quadratic over a whole enumeration. Running
+`?s friendOf ?o` — 4,491,142 solutions — to exhaustion in 4,492 slices of a
+thousand:
+
+| | patched fork | **stock upstream** |
+|---|---|---|
+| by FILTER | 26,630 ms | **26,952 ms** |
+| by OFFSET | 21,324 ms | **42,856 ms** |
+| slowest slice, by OFFSET | 14 ms | 114 ms |
+
+So on stock QLever the FILTER continuation is **1.6× faster than the OFFSET
+one**, and it is the OFFSET that degrades with depth, not the FILTER. The fork
+buys another 1.3× on top of FILTER, and lifts the datatype restriction.
+
+Which answers the question this started from. Without touching QLever a
+continuation is not merely possible — there are two ways to do it, and the
+FILTER is the better one wherever its precondition holds. The patch is an
+optimisation and a generalisation, not an enabler.
+
+(The measurement was taken by short-circuiting `firstBlockAfterOffset` behind
+an environment variable and rebuilding, so the two runs differ in exactly that
+function. The switch is not committed.)
+
 ## What is not settled
 
 - Composing this into a BGP continuation — the union over pause points — is
