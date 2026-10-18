@@ -36,6 +36,11 @@ this jar and the tests here skip rather than fail when it is absent: the module
 has to build, and `mvn test` has to stay green, on a machine that has never
 heard of QLever.
 
+Two documents sit beside this one. `journal.md` is the log of the port: what
+was decided, what was measured, and the conclusions that later measurements
+reversed. `feasibility/` holds the study of continuing a triple pattern with
+`FILTER` rather than `OFFSET` — an approach that works, and was dropped.
+
 ## From a clone to passing tests, in one paste
 
 Everything below is one block, meant to be pasted into a terminal as it is.
