@@ -17,6 +17,37 @@ commit in each where it matters.
 
 ---
 
+## 2026-10-18 — Both repositories public, and the QLever one is now a real fork
+
+`github.com/momo54/qlever` is a fork of `ad-freiburg/qlever`, public, with
+`scan-distinct` pushed into it; `github.com/momo54/passage` is public too.
+Verified: the cross-repository comparison upstream now answers — 40 commits
+ahead over 22 files — so a pull request to `ad-freiburg/qlever` is possible,
+and the submodule clones with no credential at all.
+
+Why it had to be a fork and not just a visibility switch: GitHub allows a pull
+request only between repositories in the same **fork network**, and that
+relationship is established when the fork is made, never afterwards. The first
+pair were plain repositories created with `gh repo create`, so the comparison
+returned 404 while the same comparison against a genuine fork of the same
+upstream returned a result. Making them public would have changed nothing.
+Nor was the original choice avoidable: a fork of a public repository is
+public, visibility being inherited, so a private copy *has* to be a plain
+repository. Private and the pull-request path cannot coexist.
+
+The name had to be freed first, `momo54/qlever` being taken by our own private
+copy, which is now `momo54/qlever-passage` and redundant.
+
+What went with it, and this is the point: the
+`customizations.codespaces.repositories` block, the authorization step in
+`README-QLEVER.md` and the 403 row of its failure table, and the red warning
+on the student deck's fork slide. All of it existed only because the submodule
+was private.
+
+Checked before publishing rather than after: no credentials, no personal
+absolute paths, no addresses outside upstream's own author headers. The
+occurrences of "token" are prose about the Codespace token.
+
 ## 2026-10-18 — It builds and passes on Linux x86_64
 
 Twelve tests green in a Codespace: `QLeverBackendTest` 8,

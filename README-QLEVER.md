@@ -9,9 +9,9 @@ where this sequence is known to work, on Ubuntu 24.04 / x86_64 with gcc 13 and
 OpenJDK 21. On your own machine the same steps apply, and
 [`passage-qlever/README.md`](passage-qlever/README.md) covers macOS.
 
-You need read access to **two** private repositories, `momo54/passage` and
-`momo54/qlever`. Ask for both before you start. The second one is a submodule;
-without it the build stops at the first step.
+Both repositories are public: `momo54/passage` and `momo54/qlever`, the second
+being a submodule of the first. Nothing here needs an access grant or a
+credential — it used to, and the whole authorization dance is gone.
 
 ---
 
@@ -23,11 +23,6 @@ filter-continuation**. Or, from a terminal:
 ```bash
 gh codespace create -R momo54/passage -b filter-continuation -m standardLinux32gb
 ```
-
-GitHub asks you to **authorize access to `momo54/qlever`**. Say yes. A
-Codespace's token otherwise reaches only the repository it was created from,
-and the submodule clone fails with a 403 whose message mentions write access,
-which is not what it is about.
 
 Only one machine is offered, 4 cores and 16 GB, because `devcontainer.json`
 asks for at least that. The C++ build is why.
@@ -130,7 +125,6 @@ this was written.
 | what you see | what it is | what to do |
 | --- | --- | --- |
 | `apt-get: command not found`, or no `mvn` | the container failed to build and you are in Codespaces' **recovery container**: your files are there but the image is not the one asked for | `tail -40 /workspaces/.codespaces/.persistedshare/creation.log` says why. Fix that, then **Codespaces: Rebuild Container** from the command palette |
-| `403` and `Write access to repository not granted` while cloning the submodule | your Codespace was created before the access request existed, or you declined it | `gh auth login` then `gh auth setup-git`, and run the step again. Or delete this Codespace and create a new one, which will ask |
 | `Could not find artifact fr.gdd:passage-commons` | you built one module alone; nothing under `fr.gdd` is published to any Maven repository | use `mvn -Pnative install -DskipTests`, with no `-pl` |
 | `No rule to make target 'qleverjni'` | CMake found no `jni.h`, so it never created the target | `export JAVA_HOME=$(dirname "$(dirname "$(readlink -f "$(command -v javac)")")")` and run the step again |
 | `relocation R_X86_64_TPOFF32 ... recompile with -fPIC` | the static archives are not position-independent, and the bridge is a shared library | `build-native.sh` passes `-DCMAKE_POSITION_INDEPENDENT_CODE=ON` on Linux; if you ran CMake by hand without it, add it. The flag change forces a full recompile |

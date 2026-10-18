@@ -24,23 +24,6 @@
   "onCreateCommand": ".devcontainer/install-deps.sh",
 
   "customizations": {
-    // A Codespace's token reaches only the repository it was created from, so
-    // cloning the private `momo54/qlever` submodule fails with a 403 whose
-    // message says "Write access to repository not granted" — misleading, it
-    // is a read it cannot do either. This asks for that one extra read, and
-    // GitHub prompts for authorization when the Codespace is created.
-    //
-    // It only applies to Codespaces created *after* this is committed:
-    // rebuilding an existing one does not pick it up.
-    "codespaces": {
-      "repositories": {
-        "momo54/qlever": {
-          "permissions": {
-            "contents": "read"
-          }
-        }
-      }
-    },
     "vscode": {
       "extensions": [
         "vscjava.vscode-java-pack",
