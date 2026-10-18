@@ -9,11 +9,46 @@ storage looks like), `feasibility/README.md` (the FILTER study), and
 `REPORT-filter-vs-offset.md` in the student-subject repository next to the
 slides. This file records the decisions those documents assume.
 
-Two repositories move together: this one (`passage`, branch
-`filter-continuation`) and the QLever fork (`qlever-1`, branch `scan-distinct`).
-Entries name the commit in each where it matters.
+Two repositories move together, and not as equals: this one (`passage`, branch
+`filter-continuation`) is the work, and the QLever fork (`qlever-1`, branch
+`scan-distinct`) is a consequence of it — it exists to give Passage a QLever
+backend, and carries only what QLever itself must carry. Entries name the
+commit in each where it matters.
 
 ---
+
+## 2026-10-18 — Which fork is a consequence of which
+
+Settled as a direction: the QLever fork is **a consequence of this one**. It
+exists to give Passage a QLever backend. Passage is the work; the fork is what
+that work needed from the store underneath.
+
+That is the general form of the deletion below, and it decides where anything
+new goes. The fork carries what QLever itself must carry, which is also what
+could be offered upstream to `ad-freiburg/qlever`: the block-skipping `OFFSET`
+patch, `ScanCursor`, the JNI bridge, and the standalone demos that exercise
+them with no Maven around them. Anything about the backend — its conventions,
+its tests, its evaluation — belongs here. Where material could sit on either
+side, it sits here and the fork points at it, never a second copy.
+
+Measured against that rule, `PASSAGE-QLEVER-BACKEND.md` in the fork is still
+mostly on this side of the line. Of its sections, `Architecture`,
+`When a scan is opened`, `Distinct scans`, `Crossing the boundary` and
+`Building / the native side` are QLever's; `Running it`,
+`A convention that is easy to get wrong` and `Against Blazegraph` say what this
+README already says; and `What is verified, and what is not` is split down the
+middle — `ScanCursorTest` and the demo timings are the fork's, the WatDiv
+agreement and the coverage gaps are this module's. Repartitioning it is
+pending, not done.
+
+`PASSAGE-README.md` stays in the fork whatever happens: it documents a change
+to QLever, for QLever, and it is the upstreamable artifact.
+
+Checked while reading: the two `Against Blazegraph, on WatDiv 10M` sections
+do **not** disagree. The fork gives absolute times, this README gives
+throughputs and the diagnosis that produced the block cache, and both end at
+the same place. Two tellings, not two answers — but also two documents with
+nothing keeping them in step, which is the point above.
 
 ## 2026-10-18 — The QLever fork's copy of these classes is gone
 
