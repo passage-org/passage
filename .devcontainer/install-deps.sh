@@ -20,6 +20,18 @@ SUDO=""
 [ "$(id -u)" -eq 0 ] || SUDO=sudo
 export DEBIAN_FRONTEND=noninteractive
 
+# First, because it costs nothing and the rest of this script can fail: this
+# used to be the last step, and then an apt hiccup left the submodule pointing
+# at a host the container cannot reach.
+#
+# The submodule is recorded with its SSH GitLab URL. Fetch it from the GitHub
+# mirror instead, without touching `.gitmodules` — the two remotes hold the
+# same commits.
+echo "== submodule URL rewrite"
+git config --global \
+    url."https://github.com/momo54/qlever.git".insteadOf \
+    "git@gitlab.univ-nantes.fr:molli-p/qlever.git"
+
 echo "== apt-get update"
 $SUDO apt-get update -qq
 
@@ -48,13 +60,5 @@ case "$BOOST" in
     none) echo "!! no libboost-dev" >&2; exit 1 ;;
     1.7*|1.80*) echo "!! Boost $BOOST has no Boost::url; QLever needs >= 1.81" >&2; exit 1 ;;
 esac
-
-# The submodule is recorded with its SSH GitLab URL, which a Codespace cannot
-# reach. Fetch it from the GitHub mirror instead, without touching
-# `.gitmodules` — the two remotes hold the same commits.
-echo "== submodule URL rewrite"
-git config --global \
-    url."https://github.com/momo54/qlever.git".insteadOf \
-    "git@gitlab.univ-nantes.fr:molli-p/qlever.git"
 
 echo "== done; now run .devcontainer/build-and-test.sh"
