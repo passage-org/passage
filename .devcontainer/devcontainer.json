@@ -2,12 +2,13 @@
   "name": "passage-qlever",
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
 
-  "features": {
-    "ghcr.io/devcontainers/features/java:1.6.4": {
-      "version": "21",
-      "installMaven": true
-    }
-  },
+  // No "features" on purpose. A feature reference that cannot be resolved —
+  // a version that does not exist, say — fails the whole container build, and
+  // Codespaces then drops you into its recovery container: the workspace is
+  // mounted, so the scripts are all there, but the image is not the one asked
+  // for and nothing in it is what the scripts expect. Ubuntu 24.04 carries
+  // `openjdk-21-jdk` and `maven` in apt, so `install-deps.sh` installs them
+  // along with the C++ dependencies and there is nothing left to resolve.
 
   // The C++ build is the constraint, not the JVM: QLever is template-heavy
   // enough that a 2-core/8GB machine swaps and takes hours. This is exactly

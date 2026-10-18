@@ -17,6 +17,49 @@ commit in each where it matters.
 
 ---
 
+## 2026-10-18 — Both forks moved to GitHub, and the redirection went with them
+
+GitHub is now the home of this fork and of the QLever one:
+`github.com/momo54/passage` and `github.com/momo54/qlever`, both private. The
+`gitlab` remote stays configured locally and holds the history up to today,
+but nothing is pushed there any more. The student-subject repository stayed on
+`gitlab.univ-nantes.fr`; it is institutional and it does not get built.
+
+The reason is the neutral machine. `.gitmodules` recorded an SSH GitLab URL,
+so a Codespace could not fetch the submodule without a credential of the
+university's, and everything built to work around that is now deleted: the
+`insteadOf` rewrite in `install-deps.sh`, the per-submodule URL override in
+`build-and-test.sh`. `.gitmodules` names GitHub and
+`git submodule update --init` is enough. Two remotes for one repository was
+also the shape of the two problems cleaned up earlier today.
+
+Getting there cost three failures, each of them mine and each worth keeping:
+
+* The URL rewrite was the **last** statement of `install-deps.sh`, after all
+  the apt work, under `set -e`. Any hiccup and it never ran, and the failure
+  surfaced much later as a GitLab credential prompt. Moved to the top — and
+  then it broke differently, because it calls `git` and a bare `ubuntu:24.04`
+  has none. Installed git first. Caught by running the script in
+  `ubuntu:24.04` rather than by reading it.
+* `devcontainer.json` asked for `ghcr.io/devcontainers/features/java:1.6.4`,
+  a version I invented; the latest is `1.8.3`. A feature that does not resolve
+  fails the whole container build, and Codespaces then hands you its recovery
+  container: the workspace is mounted, so every script is there, but the image
+  is not the one asked for, which is why `apt-get` was missing. There are no
+  features now — Ubuntu 24.04 has `openjdk-21-jdk` and `maven` in apt, so
+  nothing is left to resolve.
+* Debian `bookworm`, which I considered for the Java image, ships Boost 1.74.
+  QLever needs 1.81 for `Boost::url`. Ubuntu 24.04 ships 1.83.
+
+The dependency script now reports its own environment on the first line and,
+when there is no `apt-get`, says that you are probably in the recovery
+container and where the creation log is. Verified on `ubuntu:24.04` (exit 0,
+Boost 1.83, cmake 3.28.3, gcc 13.3, Maven 3.8.7) and on `alpine` (exit 1 with
+that message).
+
+Still not done: the C++ build on Linux. That is the part no amount of reading
+settles.
+
 ## 2026-10-18 — A Linux container, and the stale pin it caught before running
 
 Everything here has only ever been built on macOS, on arm64, so `.devcontainer/`
@@ -250,6 +293,7 @@ Kept because each one was paid for once.
 | One probe is not a measurement | Order selection by a single probe point accepted `(o,s,p)` over `(o,p,s)` and silently lost 28,927 solutions out of 10,916,457. Five probe points now. |
 | QLever's vocabulary is ICU-collated | Inferring the scan order by comparing strings in Python failed on every pattern. The order is ICU collation, not bytes. |
 | `xsd:decimal` is not `xsd:double` | The result JSON tags 0.5 as decimal while `DATATYPE()` answers double. Picking the datatype class from the JSON gave the wrong class and an infinite continuation loop. |
+| An invented version fails into a different container | `devcontainers/features/java:1.6.4` does not exist. The container build failed, Codespaces substituted its recovery container, and the symptom was a missing `apt-get` three steps later. Check that a tag exists before pinning it; prefer no feature at all when apt has the package. |
 | A dev machine cannot check its own pin | The submodule pointer was a week stale and every test passed, because the library on disk was built from a working tree rather than from the pinned commit. Only a build that starts from the pin can tell. |
 | A copy is a copy of the bugs too | The QLever fork kept its own copy of the three Java classes, and nothing watched the two for divergence. It sat there for a week with two fixed bugs still in it, and a document telling people to compile it. One copy now, and the other document points at it. |
 | Check the edit landed | I reported a cross-reference corrected when the replacement had been a no-op against markup inside the text. Edits are verified on disk now. |

@@ -13,16 +13,8 @@ START=$(date +%s)
 step() { echo; echo "===== $* ($(( $(date +%s) - START ))s)"; }
 
 step "the pinned QLever"
-# `.gitmodules` records an SSH GitLab URL that this container cannot reach.
-# Rather than rely on the global rewrite `install-deps.sh` sets up, name the
-# mirror here: `git submodule init` copies the recorded URL into `.git/config`,
-# and overriding it there is the supported way to redirect one submodule
-# without modifying the tracked `.gitmodules`.
-MIRROR=${QLEVER_MIRROR:-https://github.com/momo54/qlever.git}
-git submodule init passage-qlever/qlever
-git config submodule.passage-qlever/qlever.url "$MIRROR"
-git submodule update passage-qlever/qlever
-echo "pinned at $(git -C passage-qlever/qlever rev-parse --short HEAD), from $MIRROR"
+git submodule update --init passage-qlever/qlever
+echo "pinned at $(git -C passage-qlever/qlever rev-parse --short HEAD)"
 
 step "the JNI bridge and qlever-index"
 # `build-native.sh` needs no macOS flags here: on Linux its extra-flags list

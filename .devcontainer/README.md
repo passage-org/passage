@@ -6,11 +6,13 @@ preinstalled. It exists to find out what that breaks.
 
 ## What it does
 
-`devcontainer.json` asks for a **4-core, 16 GB, 64 GB** machine and runs
-`install-deps.sh` on creation. That script installs what QLever needs, taken
-from the fork's own CI rather than guessed, and rewrites the submodule URL so
-that the pinned QLever comes from the GitHub mirror instead of the SSH GitLab
-remote a Codespace cannot reach.
+`devcontainer.json` asks for a **4-core, 16 GB** machine and runs
+`install-deps.sh` on creation. That script installs what QLever needs — taken
+from the fork's own CI rather than guessed — plus OpenJDK 21 and Maven from
+apt. It declares no devcontainer *features*: a feature version that does not
+resolve fails the whole container build and lands you in the recovery
+container, where the workspace is mounted but the image is not the one asked
+for.
 
 Then, by hand, because it is tens of minutes and does not belong in a
 container-creation hook:
@@ -19,7 +21,8 @@ container-creation hook:
 .devcontainer/build-and-test.sh
 ```
 
-It initialises the submodule, builds `libqleverjni.so` and `qlever-index`,
+It initialises the submodule from GitHub, builds `libqleverjni.so` and
+`qlever-index`,
 builds the six-triple index of Figure 2 of the Passage paper, runs the twelve
 tests, and finishes by printing one continuation from `passage-cli`.
 
