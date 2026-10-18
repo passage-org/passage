@@ -10,11 +10,15 @@ jobs:
   report:
     runs-on: ubuntu-latest
     steps:
-    - uses: dorny/test-reporter@v1
+    # v1 cannot read the artifacts that upload-artifact v4 and later produce.
+    - uses: dorny/test-reporter@v3
       with:
         artifact: test-results            # artifact name
         name: Java Tests                  # Name of the check run which will be created
-        path: ./*/target/surefire-reports/*.xml # prefixed with * since they are in submodules
-        # path: '*.xml'                     # Path to test results (inside artifact .zip)
+        # Matched inside the artifact, where upload-artifact strips the common
+        # leading directories: with one module reporting, the files land at the
+        # root, so a `*/target/...` pattern would match nothing. Surefire's own
+        # naming is what to key on.
+        path: '**/TEST-*.xml'
         reporter: java-junit              # Format of test results
 
