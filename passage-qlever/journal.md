@@ -15,6 +15,32 @@ Entries name the commit in each where it matters.
 
 ---
 
+## 2026-10-18 — The QLever fork's copy of these classes is gone
+
+Asked where this journal lived, I went looking for somewhere to point at it
+from the QLever fork, and found `src/libqlever/jni/java/fr/gdd/passage/qlever/`
+holding a second copy of `QLeverNative`, `QLeverIterator` and `QLeverBackend`,
+last touched on 10 October. It had neither fix recorded below: `getId` still
+returned the sentinel that matches every triple, and `indexInBatch` still
+started at `0`, which reads before it advances. Both are covered by tests here,
+and tests here say nothing about a copy over there.
+
+`PASSAGE-QLEVER-BACKEND.md` sent the reader straight to it, with a `javac` line
+that compiled it, under a heading stating that the classes "belong in a
+`passage-qlever` module of the Passage repository […] move them there as they
+are". The move had happened. The originals had never been removed.
+
+Deleted. The fork's two documents now say where the classes live, and compile
+`demo/` against this module's jar instead. Nothing in the build read that
+directory — `src/libqlever/CMakeLists.txt` compiles only `jni/QleverJni.cpp`,
+and the JNI symbol names are written by hand rather than generated from a
+`javac -h` header — so the deletion costs nothing. `demo/` stays in the fork:
+seven standalone programs that drive the bridge with no Maven and no engine
+around them.
+
+Same pass: this README promised `Tests run: 5` and `Tests run: 2`, true when it
+was written. Measured again, it is 8 and 4.
+
 ## 2026-10-18 — A continuation can tell that the graph moved under it
 
 `QLeverBackend.snapshotId()` returns the id of the snapshot the backend reads;
@@ -155,4 +181,5 @@ Kept because each one was paid for once.
 | One probe is not a measurement | Order selection by a single probe point accepted `(o,s,p)` over `(o,p,s)` and silently lost 28,927 solutions out of 10,916,457. Five probe points now. |
 | QLever's vocabulary is ICU-collated | Inferring the scan order by comparing strings in Python failed on every pattern. The order is ICU collation, not bytes. |
 | `xsd:decimal` is not `xsd:double` | The result JSON tags 0.5 as decimal while `DATATYPE()` answers double. Picking the datatype class from the JSON gave the wrong class and an infinite continuation loop. |
+| A copy is a copy of the bugs too | The QLever fork kept its own copy of the three Java classes, and nothing watched the two for divergence. It sat there for a week with two fixed bugs still in it, and a document telling people to compile it. One copy now, and the other document points at it. |
 | Check the edit landed | I reported a cross-reference corrected when the replacement had been a no-op against markup inside the text. Edits are verified on disk now. |

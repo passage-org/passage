@@ -76,7 +76,7 @@ mvn -pl passage-qlever,passage-volcano test \
     -Dqlever.test.index=$HOME/qlever-fig2/fig2
 ```
 
-That ends with `Tests run: 5` and `Tests run: 2`. A `Tests run: 0` means the
+That ends with `Tests run: 8` and `Tests run: 4`. A `Tests run: 0` means the
 tests aborted rather than ran, and the line above it, `SKIPPING <class>: ...`,
 says why — most often an index that was not named, since an empty
 `-Dqlever.test.index=` counts as naming none.
