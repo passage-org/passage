@@ -48,6 +48,38 @@ if [ "$OS" = darwin ] && command -v brew >/dev/null 2>&1; then
   fi
 fi
 
+# CMake creates the `qleverjni` target only when it finds `jni.h`, looking in
+# `$JAVA_HOME/include`, `$JAVA_HOME/Contents/Home/include`,
+# `/opt/homebrew/opt/openjdk/include` and `/usr/lib/jvm/default-java/include`.
+# A Linux box with a versioned JDK directory, no `default-java` symlink and no
+# JAVA_HOME matches none of them: the target is quietly not created and the
+# build fails much later with `No rule to make target 'qleverjni'`. Resolve it
+# here and say so now instead.
+if [ -z "${JAVA_HOME:-}" ] && command -v javac >/dev/null 2>&1; then
+  # Only if it really holds the headers: `javac` is often a shim, and
+  # exporting its directory would hand CMake a JAVA_HOME that means nothing.
+  if JH=$(dirname "$(dirname "$(readlink -f "$(command -v javac)" 2>/dev/null)")") &&
+     [ -f "$JH/include/jni.h" ]; then
+    JAVA_HOME=$JH
+    export JAVA_HOME
+    echo "== JAVA_HOME=$JAVA_HOME, derived from javac"
+  fi
+fi
+JNI=""
+for d in "${JAVA_HOME:-}/include" "${JAVA_HOME:-}/Contents/Home/include" \
+         /opt/homebrew/opt/openjdk/include /usr/lib/jvm/default-java/include; do
+  if [ -f "$d/jni.h" ]; then JNI=$d; break; fi
+done
+if [ -z "$JNI" ]; then
+  echo "no jni.h in any of the four places QLever's CMake looks, so the JNI" >&2
+  echo "target would not be created and the build would fail later with" >&2
+  echo "\"No rule to make target 'qleverjni'\". Set JAVA_HOME to a JDK, or" >&2
+  echo "install one: on Ubuntu 'apt install default-jdk' also provides" >&2
+  echo "/usr/lib/jvm/default-java, which CMake looks for." >&2
+  exit 1
+fi
+echo "== jni.h from $JNI"
+
 echo "== configuring QLever in $BUILD"
 cmake -S "$SRC" -B "$BUILD" -DCMAKE_BUILD_TYPE=Release "${EXTRA[@]}"
 # `qlever-index` comes along because an index is needed to use this module at

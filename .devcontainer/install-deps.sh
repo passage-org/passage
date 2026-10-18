@@ -51,10 +51,17 @@ $SUDO apt-get install -y --no-install-recommends \
 
 # From apt rather than from a devcontainer feature, so that there is nothing
 # left to resolve when the container is built: a feature version that does not
-# exist fails the whole build and lands you in the recovery container. Ubuntu
-# 24.04 carries OpenJDK 21, the release Passage targets, and Maven.
+# exist fails the whole build and lands you in the recovery container.
+#
+# `default-jdk` rather than `openjdk-21-jdk`, although on Ubuntu 24.04 it pulls
+# exactly that: it also brings the `/usr/lib/jvm/default-java` symlink, which
+# is one of the four places QLever's CMake looks for `jni.h`. With only
+# `openjdk-21-jdk` the JDK sits in a versioned directory, that symlink does not
+# exist, and without JAVA_HOME in the environment CMake finds no headers, skips
+# the JNI target, and the build fails much later with
+# `No rule to make target 'qleverjni'`.
 echo "== JDK 21 and Maven"
-$SUDO apt-get install -y --no-install-recommends openjdk-21-jdk maven
+$SUDO apt-get install -y --no-install-recommends default-jdk maven
 JAVA_HOME=$(dirname "$(dirname "$(readlink -f "$(command -v javac)")")")
 echo "export JAVA_HOME=$JAVA_HOME" | $SUDO tee /etc/profile.d/java-home.sh >/dev/null
 export JAVA_HOME

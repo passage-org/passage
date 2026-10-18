@@ -43,9 +43,30 @@ which is the closure of its own steps anyway: `passage-volcano` needs
 here: eight modules, BUILD SUCCESS, and `passage.jar` shaded, so the separate
 `mvn -pl passage-cli` the script used to run was redundant.
 
-Three findings now, from a machine that has built nothing twice: a stale
-submodule pin, a token that cannot read the submodule, and a build that only
-resolves on a warm local repository. None of them is about Linux.
+**CMake built no `qleverjni` target at all.** It creates it only when it finds
+`jni.h`, and it looks in four places: `$JAVA_HOME/include`,
+`$JAVA_HOME/Contents/Home/include`, `/opt/homebrew/opt/openjdk/include` and
+`/usr/lib/jvm/default-java/include`. On Ubuntu with `openjdk-21-jdk` the JDK
+sits in `/usr/lib/jvm/java-21-openjdk-amd64` and there is no `default-java`
+symlink, so with no JAVA_HOME in the environment none of the four matches: the
+target is quietly skipped and the failure arrives much later as
+`gmake: *** No rule to make target 'qleverjni'`. My JAVA_HOME went to
+`/etc/profile.d/`, which only login shells read.
+
+`build-native.sh` now derives JAVA_HOME from `javac` when it is unset — and
+only when that directory really holds the headers, since `javac` is often a
+shim — checks the same four places CMake does, and refuses up front with a
+message naming the cause. Tested in four configurations: this Mac with and
+without JAVA_HOME, Ubuntu with `openjdk-21-jdk` and no JAVA_HOME, and Ubuntu
+with no JDK at all. `install-deps.sh` also installs `default-jdk` instead of
+`openjdk-21-jdk`, which on Ubuntu 24.04 pulls the same JDK and adds the
+symlink CMake looks for.
+
+Four findings now, from a machine that has compiled nothing yet: a stale
+submodule pin, a token that cannot read the submodule, a build that only
+resolves on a warm local repository, and a JNI target that is skipped in
+silence. **None of them is about Linux.** Every one is something this machine
+already had and therefore could not miss.
 
 ## 2026-10-18 — Both forks moved to GitHub, and the redirection went with them
 
