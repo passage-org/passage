@@ -17,6 +17,36 @@ commit in each where it matters.
 
 ---
 
+## 2026-10-18 — What the neutral machine found that this one could not
+
+A Codespace was opened against the GitHub fork, and the run failed twice
+before reaching a compiler. Both failures were invisible here by construction.
+
+**A Codespace's token reaches only the repository it was created from.**
+Cloning the private `momo54/qlever` submodule returned 403 with
+"Write access to repository not granted", which is not about writing.
+`customizations.codespaces.repositories` in `devcontainer.json` asks for that
+one extra read and GitHub prompts for it at creation time — but only for
+Codespaces created after the commit, so an existing one has to be replaced,
+or given its own credentials with `gh auth login`. I had verified that the
+submodule could be *redirected* to GitHub, never that it could be *read* from
+a machine whose credentials are not mine.
+
+**`mvn -pl passage-qlever install` cannot resolve `passage-commons`.** None of
+the `fr.gdd` artifacts is published to any Maven repository, and a fresh
+`~/.m2` holds none of them, so a single-module build stops with "Could not
+find artifact fr.gdd:passage-commons:jar:0.2.0 in central". This machine's
+`~/.m2` has held them for weeks, which is exactly why the README's one paste
+has always worked here. `build-and-test.sh` now builds the whole reactor,
+which is the closure of its own steps anyway: `passage-volcano` needs
+`jena-utils` and `raw`, `passage-cli` needs `passage-blazegraph`. Verified
+here: eight modules, BUILD SUCCESS, and `passage.jar` shaded, so the separate
+`mvn -pl passage-cli` the script used to run was redundant.
+
+Three findings now, from a machine that has built nothing twice: a stale
+submodule pin, a token that cannot read the submodule, and a build that only
+resolves on a warm local repository. None of them is about Linux.
+
 ## 2026-10-18 — Both forks moved to GitHub, and the redirection went with them
 
 GitHub is now the home of this fork and of the QLever one:
@@ -294,6 +324,7 @@ Kept because each one was paid for once.
 | QLever's vocabulary is ICU-collated | Inferring the scan order by comparing strings in Python failed on every pattern. The order is ICU collation, not bytes. |
 | `xsd:decimal` is not `xsd:double` | The result JSON tags 0.5 as decimal while `DATATYPE()` answers double. Picking the datatype class from the JSON gave the wrong class and an infinite continuation loop. |
 | An invented version fails into a different container | `devcontainers/features/java:1.6.4` does not exist. The container build failed, Codespaces substituted its recovery container, and the symptom was a missing `apt-get` three steps later. Check that a tag exists before pinning it; prefer no feature at all when apt has the package. |
+| A warm `~/.m2` hides a missing dependency | `mvn -pl <one module>` resolved `passage-commons` here for weeks because an earlier build had installed it. On an empty local repository it cannot: nothing under `fr.gdd` is published anywhere. Build the reactor, or test with `-Dmaven.repo.local` pointed somewhere empty. |
 | A dev machine cannot check its own pin | The submodule pointer was a week stale and every test passed, because the library on disk was built from a working tree rather than from the pinned commit. Only a build that starts from the pin can tell. |
 | A copy is a copy of the bugs too | The QLever fork kept its own copy of the three Java classes, and nothing watched the two for divergence. It sat there for a week with two fixed bugs still in it, and a document telling people to compile it. One copy now, and the other document points at it. |
 | Check the edit landed | I reported a cross-reference corrected when the replacement had been a no-op against markup inside the text. Edits are verified on disk now. |

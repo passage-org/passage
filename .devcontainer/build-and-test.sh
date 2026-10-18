@@ -16,10 +16,19 @@ step "the pinned QLever"
 git submodule update --init passage-qlever/qlever
 echo "pinned at $(git -C passage-qlever/qlever rev-parse --short HEAD)"
 
-step "the JNI bridge and qlever-index"
-# `build-native.sh` needs no macOS flags here: on Linux its extra-flags list
-# stays empty and `nproc` sets the parallelism.
-mvn -pl passage-qlever install -Pnative -DskipTests
+step "the JNI bridge, and every module"
+# The whole reactor, not `-pl passage-qlever`. None of the `fr.gdd` modules is
+# published to any Maven repository, and a fresh machine's `~/.m2` is empty, so
+# a single-module build cannot resolve `passage-commons` and stops with
+# "Could not find artifact ... in central". The closure of the steps below is
+# the whole reactor anyway — `passage-volcano` needs `jena-utils` and `raw`,
+# `passage-cli` needs `passage-blazegraph` — and the Java modules take
+# seconds against the C++ build. The first run also pulls Blazegraph's jars.
+#
+# `-Pnative` is what builds the bridge, through `build-native.sh`, which needs
+# no macOS flags here: on Linux its extra-flags list stays empty and `nproc`
+# sets the parallelism.
+mvn -Pnative install -DskipTests
 
 step "the library that came out"
 find ~/.cache/passage-qlever passage-qlever/target/classes/native \
@@ -45,7 +54,7 @@ mvn -pl passage-qlever,passage-volcano test \
     -Dqlever.test.index="$HOME/qlever-fig2/fig2"
 
 step "a continuation from the command line"
-mvn -q -pl passage-cli -am install -DskipTests
+# `passage.jar` is already built: the install above shades it.
 # The exit status is the point of this step, so it must not end the script:
 # 132 is the SIGSEGV in jemalloc's thread cleanup, 0 means it is not there.
 set +e
