@@ -1,0 +1,19 @@
+<section id="cache" style="background:#FFFFFF;color:#000000;font-family:'Roboto', Arial, sans-serif;padding:214px 104px 80px;display:flex;flex-direction:column;gap:26px">
+<div style="position:absolute;left:0px;top:0px;width:1920px;height:182px;background:#0084D1"></div>
+<h2 style="position:absolute;left:0px;top:36px;width:1920px;text-align:center;font-family:'Roboto Slab', Georgia, serif;font-size:84px;font-weight:700;color:#FFFFFF;line-height:1.1">The finding: a cache of decompressed blocks</h2>
+<p style="font-size:36px;line-height:1.4;width:1664px">Opening a scan decompresses a block and <b>nothing keeps it</b>. A nested-loop join opens one scan per outer solution and lands in the same block thousands of times running.</p>
+<table style="font-family:'Roboto', Arial, sans-serif;font-size:36px;color:#000000;border:2px solid #000000;padding:18px">
+<tr style="background:#0084D1">
+<th style="width:50%;color:#FFFFFF;font-weight:700;text-align:left">blocks kept per thread</th>
+<th style="width:50%;color:#FFFFFF;font-weight:700;text-align:right">join, solutions/s</th>
+</tr>
+<tr><td>0 — QLever's default</td><td style="text-align:right">24,384</td></tr>
+<tr><td>1</td><td style="text-align:right">1,081,081</td></tr>
+<tr><td><b>16</b></td><td style="text-align:right"><span style="color:#38761D"><b>1,418,439</b></span></td></tr>
+</table>
+<p style="font-size:36px;line-height:1.4;width:1664px"><b>Fifty-eight times</b>, and one block is enough for most of it. Per scan opened, 0.866 ms becomes 0.023 ms.</p>
+<p style="font-size:34px;line-height:1.4;width:1664px">It is not an oversight upstream: a <b>merge join never returns to a block</b>, so for QLever's own engine a cache would be pure overhead, and large blocks are the right trade for the sequential throughput it wants. Passage cannot merge-join — a continuation has to stop mid-join and resume.</p>
+<p style="font-size:34px;line-height:1.35;text-align:center;background:#F2F8FD;padding:24px;width:1560px"><b>The access pattern, not the engine, is what the storage was tuned against.</b></p>
+<p style="position:absolute;left:1700px;bottom:48px;width:140px;text-align:right;font-size:26px;color:#595959">15</p>
+<aside>Three measurements placed the cost before the cache was written, two of them negative: not the index size (0.853 ms over a million triples, 0.861 over eleven million), not the prefetch depth (0.856 to 0.860 as blocks-in-flight goes 20 to 1), not the JNI boundary (0.0004 ms to construct a cursor in C++, 0.933 for its first read). It is the first block being decompressed, every time.</aside>
+</section>

@@ -1,0 +1,21 @@
+<section id="blazegraph" style="background:#FFFFFF;color:#000000;font-family:'Roboto', Arial, sans-serif;padding:214px 104px 80px;display:flex;flex-direction:column;gap:24px">
+<div style="position:absolute;left:0px;top:0px;width:1920px;height:182px;background:#0084D1"></div>
+<h2 style="position:absolute;left:0px;top:36px;width:1920px;text-align:center;font-family:'Roboto Slab', Georgia, serif;font-size:84px;font-weight:700;color:#FFFFFF;line-height:1.1">Against Blazegraph, on WatDiv 10M</h2>
+<p style="font-size:34px;line-height:1.4;width:1664px">The same 10,916,457 triples on both sides, driving the <b>same engine</b>, each backend warmed to its plateau. First 200,000 solutions, median of five.</p>
+<table style="font-family:'Roboto', Arial, sans-serif;font-size:34px;color:#000000;border:2px solid #000000;padding:16px">
+<tr style="background:#0084D1">
+<th style="width:34%;color:#FFFFFF;font-weight:700;text-align:left">solutions/s</th>
+<th style="width:23%;color:#FFFFFF;font-weight:700;text-align:right">QLever</th>
+<th style="width:23%;color:#FFFFFF;font-weight:700;text-align:right">Blazegraph</th>
+<th style="width:20%;color:#FFFFFF;font-weight:700;text-align:right"></th>
+</tr>
+<tr><td>?s ?p ?o</td><td style="text-align:right"><b>5,405,405</b></td><td style="text-align:right">3,636,363</td><td style="text-align:right;color:#38761D">1.5x</td></tr>
+<tr><td>?s a ?c</td><td style="text-align:right"><b>8,513,437</b></td><td style="text-align:right">4,864,821</td><td style="text-align:right;color:#38761D">1.8x</td></tr>
+<tr><td>their join</td><td style="text-align:right">1,438,848</td><td style="text-align:right"><b>2,941,176</b></td><td style="text-align:right;color:#FF0000">0.5x</td></tr>
+</table>
+<p style="font-size:34px;line-height:1.4;width:1664px"><b>They answer identically</b> — the join restricted to the least populated class has eight solutions on both. QLever holds the data in <b>283 MB</b> against <b>1.7 GB</b>.</p>
+<p style="font-size:34px;line-height:1.4;width:1664px">QLever reads faster, Blazegraph joins faster: a join is a sequence of point lookups, which is what a B-tree is for and what a block-compressed store is not. That factor was <b>ninety-five</b> before the block cache.</p>
+<p style="font-size:34px;line-height:1.35;text-align:center;border:3px solid #FF0000;padding:24px;width:1560px">Comparable performance <b>is</b> the result: it replaces a dependency that has no future.</p>
+<p style="position:absolute;left:1700px;bottom:48px;width:140px;text-align:right;font-size:26px;color:#595959">16</p>
+<aside>Two methodological notes, each of which cost a wrong conclusion first. "Warm" is two things — the JVM compiling the pipeline and the store's working set in memory — and conflating them hid a bad protocol; measured properly, the join comparison reversed. And a published Blazegraph scan-open figure turned out to have been measured on 187 triples out of eleven million, because its three-argument scan passes a null graph; it was withdrawn rather than corrected.</aside>
+</section>

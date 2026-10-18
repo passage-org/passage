@@ -22,17 +22,24 @@ browser shows unstyled text**. To see the deck, use the published page.
 
 ## Generating the PPTX
 
-`build-pptx.js` builds the deck as a PowerPoint from this folder alone, without
-going through the published page:
+`html2pptx.js` parses the slides in `project/slides/` and writes the deck as a
+PowerPoint, in the order `project/deck.json` gives:
 
 ```sh
-node passage-qlever/slides/build-pptx.js "QLever as a Passage backend.pptx"
+npm install pptxgenjs node-html-parser        # or set NODE_PATH
+node html2pptx.js "QLever as a Passage backend.pptx" project
 ```
 
-It mirrors the HTML sources rather than parsing them, so **a change to a slide
-has to be made in both places** — the `.html` for the page, the script for the
-file. That is the price of not having the type's renderer locally; the two were
-in step when the committed `.pptx` was built.
+It prints a line per slide it had to scale down, and says so again when
+scaling was not enough. Table rows do not shrink, so a slide that still
+overflows usually has one row too many rather than one sentence too many.
+
+This replaced `build-pptx.js`, which re-encoded every slide by hand in
+pptxgenjs calls instead of reading the HTML. That meant **every change had to
+be made twice**, and the deck duly drifted: it kept claiming the `OFFSET`
+patch was "off by default" — it is unconditional, the block cache is the
+opt-in part — and carried none of the measured results that
+`passage-qlever/README.md` had accumulated. One source now.
 
 It needs `pptxgenjs` (`npm install pptxgenjs`, or run with `NODE_PATH` pointing
 at an install elsewhere). The fonts are named, not embedded: a machine without

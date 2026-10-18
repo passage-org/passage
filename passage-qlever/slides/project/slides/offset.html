@@ -1,0 +1,19 @@
+<section id="offset" style="background:#FFFFFF;color:#000000;font-family:'Roboto', Arial, sans-serif;padding:214px 104px 80px;display:flex;flex-direction:column;gap:26px">
+<div style="position:absolute;left:0px;top:0px;width:1920px;height:182px;background:#0084D1"></div>
+<h2 style="position:absolute;left:0px;top:36px;width:1920px;text-align:center;font-family:'Roboto Slab', Georgia, serif;font-size:84px;font-weight:700;color:#FFFFFF;line-height:1.1">What the patch buys</h2>
+<p style="font-size:34px;line-height:1.4;width:1664px">Same tree, block skipping compiled out, so the two runs differ in exactly one function:</p>
+<table style="font-family:'Roboto', Arial, sans-serif;font-size:36px;color:#000000;border:2px solid #000000;padding:18px">
+<tr style="background:#0084D1">
+<th style="width:44%;color:#FFFFFF;font-weight:700;text-align:left">OFFSET into ?s ?p ?o</th>
+<th style="width:28%;color:#FFFFFF;font-weight:700;text-align:right">patched</th>
+<th style="width:28%;color:#FFFFFF;font-weight:700;text-align:right">stock QLever</th>
+</tr>
+<tr><td>1,000,000</td><td style="text-align:right">4 ms</td><td style="text-align:right">7 ms</td></tr>
+<tr><td>5,000,000</td><td style="text-align:right">5 ms</td><td style="text-align:right">20 ms</td></tr>
+<tr><td>10,000,000</td><td style="text-align:right"><b>4 ms</b></td><td style="text-align:right"><span style="color:#FF0000"><b>38 ms</b></span></td></tr>
+</table>
+<p style="font-size:40px;line-height:1.35;text-align:center;border:3px solid #FF0000;padding:28px;width:1560px">Extrapolated, one resumption at 10<sup>9</sup> costs <b>1.6 – 3.5 s</b>.<br>Passage terminates only if each continuation <b>makes progress</b>.</p>
+<p style="font-size:34px;line-height:1.4;width:1664px">Past the quota the engine does not slow down, it <b>stops terminating</b>. Worth a factor of two on ten million triples; on UniProt's <b>245 billion</b>, the difference between terminating and not.</p>
+<p style="position:absolute;left:1700px;bottom:48px;width:140px;text-align:right;font-size:26px;color:#595959">14</p>
+<aside>Flat against linear, and linear per slice is quadratic over an enumeration: upstream reaches an offset by decompressing the whole prefix and discarding it. This is the slide that says why the change is needed rather than nice. An earlier version of this work presented it as an optimisation, which was wrong: an optimisation is optional. The range on the extrapolation is honest — the HTTP path measures 0.05 ms per skipped block and the JNI cursor 0.11, and the two have not been reconciled; the conclusion holds on either.</aside>
+</section>
