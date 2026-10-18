@@ -281,6 +281,32 @@ is a no-op — no located triples and `numRowsIsExact` for the graph filter —
 which makes its contents a pure function of its index and the columns read,
 since the base index never changes and updates live in the located triples.
 
+Three properties of it are worth stating, because none is obvious from the
+runtime parameter's name.
+
+**It is bounded, and it is an LRU.** `addCachedBlock` inserts at the front and
+erases everything past `capacity`; a hit rotates its entry to the front. So the
+cache holds at most the configured number of blocks — 16 here — and keeps
+the ones in use.
+
+**It never empties.** The vector is `thread_local`, nothing clears it, and
+entries live until the thread does. A thread that performs one scan and then
+idles holds its blocks indefinitely, and closing the backend does not release
+them. The footprint is `capacity` × block × *every thread that ever scanned*,
+and a block is 250 kB per column, so a three-column scan with 16 blocks is
+about 12 MB per thread. That is the price of taking no lock on a path a merge
+join walks constantly.
+
+**One triple written anywhere turns it off completely.** The guard is
+`locatedTriples.isEmpty()`, and that is `LocatedTriplesPerBlock::isEmpty()`,
+which is global rather than per block: it asks whether *any* block has located
+triples. So a single `insertTriples` disables caching for every block, not for
+the one it touched, until those updates are merged into the base index. The 58×
+measured below therefore describes a read-only graph. A continuation sequence
+over a graph that is being written to loses the cache at the first write —
+and, as it happens, loses its snapshot at the same moment, which is what
+`snapshotHasMoved()` reports.
+
 ### What an augmented B-tree gives that this does not
 
 Blazegraph's B+tree carries tuple counts in its nodes, so it answers two
