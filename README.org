@@ -7,6 +7,10 @@ returns correct (possibly partial) results along with a SPARQL continuation quer
 executing the continuation query provides missing results, itself with another SPARQL 
 continuation query; until termination.
 
+Building the *QLever* backend, and testing it, is a sequence of its own, with a
+GitHub Codespace as the reference environment: see
+[[file:README-QLEVER.md][README-QLEVER.md]].
+
 ** Installation
 
 #+BEGIN_SRC shell :async :session clone-passage :results none

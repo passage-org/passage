@@ -55,8 +55,10 @@ mvn -pl passage-qlever,passage-volcano test \
 
 step "a continuation from the command line"
 # `passage.jar` is already built: the install above shades it.
-# The exit status is the point of this step, so it must not end the script:
-# 132 is the SIGSEGV in jemalloc's thread cleanup, 0 means it is not there.
+# The exit status must not end the script. 0 is expected, here and on macOS:
+# six triples are not enough work for QLever to start a worker thread, and the
+# allocator crash that `README.md` documents needs one to start and then exit.
+# So this does not settle the jemalloc question — it only reports the status.
 set +e
 java -jar passage-cli/target/passage.jar \
     -d "$HOME/qlever-fig2/fig2" \
@@ -65,6 +67,6 @@ java -jar passage-cli/target/passage.jar \
     -l 1 -r
 RC=$?
 set -e
-echo "exit $RC — 0 means no jemalloc crash, 132 means it got linked after all"
+echo "exit $RC — 0 expected; 132 would be the allocator crash, and new here"
 
 step "done"

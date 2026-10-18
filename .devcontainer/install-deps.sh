@@ -80,8 +80,9 @@ $SUDO apt-get install -y --no-install-recommends \
 # has an allocator, it crashes the process with SIGSEGV in its per-thread
 # cleanup *after* the work is done — exit 132 instead of 0, which
 # `passage-qlever/README.md` documents at length. Leaving it out is the one
-# place this container deliberately differs from the CI, and it is how we find
-# out whether that diagnosis is right.
+# place this container deliberately differs from the CI. It does not settle
+# that diagnosis by itself: the crash needs a workload big enough for QLever to
+# start a worker thread, which nothing in `build-and-test.sh` provides.
 if [ "${WITH_JEMALLOC:-0}" = 1 ]; then
     echo "== jemalloc, as the CI has it"
     $SUDO apt-get install -y --no-install-recommends libjemalloc-dev

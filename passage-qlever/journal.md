@@ -182,11 +182,15 @@ build would have produced a library without those symbols and failed
 `aGraphThatMovesUnderAContinuationIsNoticed` with an `UnsatisfiedLinkError`.
 Moved to `55e9c7a8`, rebuilt from it, twelve tests still green.
 
-The container also leaves out `libjemalloc-dev` deliberately. QLever links
-jemalloc when it finds it and warns and continues when it does not, so a build
-without it answers, for free, whether jemalloc's per-thread cleanup is what
-kills the JVM on exit with 132. If that run exits 0, what this README calls a
-change to a line the fork does not own is a build option instead.
+The container also leaves out `libjemalloc-dev` deliberately, since QLever
+links jemalloc when it finds it and warns and continues when it does not. I
+wrote that this would answer, for free, whether jemalloc's per-thread cleanup
+is what kills the JVM on exit with 132. **It does not**, and I should have read
+my own README before saying so: the crash needs a thread of QLever's own to
+start and then exit, and the six triples of Figure 2 never provoke one. Checked
+on this machine, which has jemalloc linked: `passage-cli` over that index exits
+0. Settling it needs a workload big enough to start a worker thread — the
+2,000,000-triple index the fork's demos use, or WatDiv.
 
 Not yet run: the Codespace itself. The two GitHub mirrors exist and the
 remotes are configured; pushing to them was refused by the sandbox as possible
