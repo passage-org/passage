@@ -28,7 +28,7 @@ ROWS=${ROWS_PER_BLOCK:-}
 HERE=$(cd "$(dirname "$0")" && pwd)
 INDEXER=$HERE/qlever/build/qlever-index
 [ -x "$INDEXER" ] ||
-  { echo "no $INDEXER; run: mvn -pl passage-qlever install -Pnative" >&2; exit 1; }
+  { echo "no $INDEXER; run: mvn -Pnative install -DskipTests" >&2; exit 1; }
 [ -f "$DATA" ] || { echo "no such file: $DATA" >&2; exit 1; }
 
 if [ $# -ge 3 ]; then
