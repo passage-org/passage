@@ -1,0 +1,33 @@
+{
+  "name": "passage-qlever",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+
+  "features": {
+    "ghcr.io/devcontainers/features/java:1.6.4": {
+      "version": "21",
+      "installMaven": true
+    }
+  },
+
+  // The C++ build is the constraint, not the JVM. QLever is template-heavy
+  // enough that a 2-core/8GB machine swaps and takes hours; the fork's own CI
+  // frees 6GB of disk before building. 64GB of storage covers the 2.7GB build
+  // tree, the toolchain and a Maven repository with room to spare.
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "16gb",
+    "storage": "64gb"
+  },
+
+  "onCreateCommand": ".devcontainer/install-deps.sh",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools"
+      ]
+    }
+  }
+}
