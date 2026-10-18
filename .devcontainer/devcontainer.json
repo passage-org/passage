@@ -9,14 +9,15 @@
     }
   },
 
-  // The C++ build is the constraint, not the JVM. QLever is template-heavy
-  // enough that a 2-core/8GB machine swaps and takes hours; the fork's own CI
-  // frees 6GB of disk before building. 64GB of storage covers the 2.7GB build
-  // tree, the toolchain and a Maven repository with room to spare.
+  // The C++ build is the constraint, not the JVM: QLever is template-heavy
+  // enough that a 2-core/8GB machine swaps and takes hours. This is exactly
+  // the `standardLinux32gb` machine — asking for more storage than it has
+  // would hide it and force the 8-core one, which costs twice as much for a
+  // build that needs 2.7GB of disk.
   "hostRequirements": {
     "cpus": 4,
     "memory": "16gb",
-    "storage": "64gb"
+    "storage": "32gb"
   },
 
   "onCreateCommand": ".devcontainer/install-deps.sh",
