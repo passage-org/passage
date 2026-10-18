@@ -26,8 +26,13 @@ case $(uname -s) in
   *)      echo "unsupported platform: $(uname -s)" >&2; exit 1 ;;
 esac
 ARCH=$(uname -m)
-JOBS=$( (command -v nproc >/dev/null 2>&1 && nproc) ||
-        (command -v sysctl >/dev/null 2>&1 && sysctl -n hw.ncpu) || echo 4 )
+# `JOBS` in the environment overrides it. QLever has translation units that
+# take a couple of gigabytes each, so one job per core can exhaust the memory
+# of a small machine; the compiler is then killed by the OOM killer and says
+# so as `c++: fatal error: Killed signal terminated program cc1plus`, which
+# reads like a compiler bug and is not one. `JOBS=2` is the way out.
+JOBS=${JOBS:-$( (command -v nproc >/dev/null 2>&1 && nproc) ||
+        (command -v sysctl >/dev/null 2>&1 && sysctl -n hw.ncpu) || echo 4 )}
 
 # The flags QLever's own macOS CI uses, plus the `range-v3` guard a recent
 # Apple Clang needs; see the fork's PASSAGE-README.md, which also explains why
