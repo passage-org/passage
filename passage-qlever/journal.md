@@ -17,6 +17,32 @@ commit in each where it matters.
 
 ---
 
+## 2026-10-18 — A Linux container, and the stale pin it caught before running
+
+Everything here has only ever been built on macOS, on arm64, so `.devcontainer/`
+in the repository root builds it on Ubuntu 24.04 instead, in a Codespace. The
+dependency list is QLever's own CI rather than a guess, and it is checked in
+`ubuntu:24.04`: Boost 1.83, cmake 3.28.3, gcc 13.3, all above what the CMake
+configure demands.
+
+Preparing it was already worth it. The submodule pin was `a31314c1`, from
+before `snapshotId` and the other two natives existed. Twelve tests pass on
+this machine regardless, because the shared library here was built from a
+working tree and never from the pin — so nothing local can notice. A clean
+build would have produced a library without those symbols and failed
+`aGraphThatMovesUnderAContinuationIsNoticed` with an `UnsatisfiedLinkError`.
+Moved to `55e9c7a8`, rebuilt from it, twelve tests still green.
+
+The container also leaves out `libjemalloc-dev` deliberately. QLever links
+jemalloc when it finds it and warns and continues when it does not, so a build
+without it answers, for free, whether jemalloc's per-thread cleanup is what
+kills the JVM on exit with 132. If that run exits 0, what this README calls a
+change to a line the fork does not own is a build option instead.
+
+Not yet run: the Codespace itself. The two GitHub mirrors exist and the
+remotes are configured; pushing to them was refused by the sandbox as possible
+exfiltration, so the two `git push` commands are the user's to run.
+
 ## 2026-10-18 — Which fork is a consequence of which
 
 Settled as a direction: the QLever fork is **a consequence of this one**. It
@@ -224,5 +250,6 @@ Kept because each one was paid for once.
 | One probe is not a measurement | Order selection by a single probe point accepted `(o,s,p)` over `(o,p,s)` and silently lost 28,927 solutions out of 10,916,457. Five probe points now. |
 | QLever's vocabulary is ICU-collated | Inferring the scan order by comparing strings in Python failed on every pattern. The order is ICU collation, not bytes. |
 | `xsd:decimal` is not `xsd:double` | The result JSON tags 0.5 as decimal while `DATATYPE()` answers double. Picking the datatype class from the JSON gave the wrong class and an infinite continuation loop. |
+| A dev machine cannot check its own pin | The submodule pointer was a week stale and every test passed, because the library on disk was built from a working tree rather than from the pinned commit. Only a build that starts from the pin can tell. |
 | A copy is a copy of the bugs too | The QLever fork kept its own copy of the three Java classes, and nothing watched the two for divergence. It sat there for a week with two fixed bugs still in it, and a document telling people to compile it. One copy now, and the other document points at it. |
 | Check the edit landed | I reported a cross-reference corrected when the replacement had been a no-op against markup inside the text. Edits are verified on disk now. |
