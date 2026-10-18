@@ -31,15 +31,23 @@ them with no Maven around them. Anything about the backend — its conventions,
 its tests, its evaluation — belongs here. Where material could sit on either
 side, it sits here and the fork points at it, never a second copy.
 
-Measured against that rule, `PASSAGE-QLEVER-BACKEND.md` in the fork is still
-mostly on this side of the line. Of its sections, `Architecture`,
-`When a scan is opened`, `Distinct scans`, `Crossing the boundary` and
-`Building / the native side` are QLever's; `Running it`,
-`A convention that is easy to get wrong` and `Against Blazegraph` say what this
-README already says; and `What is verified, and what is not` is split down the
-middle — `ScanCursorTest` and the demo timings are the fork's, the WatDiv
-agreement and the coverage gaps are this module's. Repartitioning it is
-pending, not done.
+Carried out the same day. `PASSAGE-QLEVER-BACKEND.md` in the fork went from
+399 lines to 239 and is now titled for what it covers, *The QLever side of a
+Passage backend*: the cursor, the bridge, the native build, and the demos.
+`Running it` became the documentation of the `PassageOnQlever` demo and points
+here for the same thing without Java; `Against Blazegraph` became one sentence
+of result and a pointer; the convention section went, since this README told
+that story better.
+
+Two things in it existed nowhere else, so they moved here rather than going:
+the `null`-versus-`any()` convention that `PassageScan` relies on and the
+`getId` overload ambiguity, now under *Two more conventions the interface does
+not state*; and the list of what the evaluation does not cover — no workload,
+no data beyond memory, basic graph patterns only, no quads, no concurrency —
+now *What is not verified*. Both are about this backend, not about QLever.
+
+`PASSAGE-README.md` was not touched. It documents a change to QLever, for
+QLever, and it is the part that could go upstream.
 
 `PASSAGE-README.md` stays in the fork whatever happens: it documents a change
 to QLever, for QLever, and it is the upstreamable artifact.

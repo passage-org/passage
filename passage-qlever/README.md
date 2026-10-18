@@ -367,6 +367,29 @@ Fixed, both backends now return 10,332,352 and no value of `?s` differs. The
 tests that encoded the wrong convention are rewritten, and one was added:
 a scan must yield exactly as many matches as its cardinality promises.
 
+### Two more conventions the interface does not state
+
+These used to sit in the QLever fork's document. They belong here, with the
+other things a `Backend` implementer has to know and QLever does not carry.
+
+`PassageScan` signals an unbound component of a triple pattern with **`null`**,
+not with `Backend.any()` — it hands the output of `Substitutor` straight to
+`Backend.search`. A backend has to map `null` itself, as `HDTBackend` does:
+
+```java
+return new QLeverIterator(backend, Objects.isNull(s) ? any() : s, …);
+```
+
+Nothing on the `Backend` interface says so, and no test that builds its own
+scans can notice, because those pass `any()` explicitly. The first real query
+through `passage-volcano` is what surfaces it.
+
+The second is only a compile error, but an opaque one: on a concrete
+`Backend<Long, String>`, the calls `getId(String, int...)` and
+`getId(VALUE, int...)` are ambiguous and `javac` refuses them. Passage itself
+calls `getId` only from generic code, where `VALUE` is a type variable, so the
+ambiguity never arises there.
+
 ### Why not `passage-cli -r`
 
 The CLI reports a total execution time, and it cannot be used for this. Its
@@ -505,6 +528,29 @@ mvn -pl passage-volcano test -Dtest=QLeverVsBlazegraphTest \
 It skips, with a reason, when either database is missing. Results are counted
 and never logged: `passage-cli` logs every solution, which at this scale
 measures the logger rather than the engine.
+
+## What is not verified
+
+In decreasing order of how much it matters. Moved here from the QLever fork:
+these are gaps in this backend's evaluation, not in QLever.
+
+* **A workload rather than a query.** One join shape on one dataset is not
+  WDBench. What the numbers above establish is where the two stores differ in
+  kind — scans against point lookups — not an average over a suite.
+* **Data that exceeds memory.** Both stores fit in this machine's 16 GB, so
+  nothing here tests the regime where 283 MB against 1.7 GB would start to
+  matter. WatDiv 100M and 1B are on the same Zenodo record.
+* **Coverage.** Only basic graph patterns were driven end to end. `OPTIONAL`,
+  `FILTER` and `UNION` go through the same `Backend` interface and should
+  follow, but they were not run.
+* **Skipping a distinct scan.** Correct, but it walks the groups rather than
+  skipping blocks, so a large `OFFSET` on a high-cardinality distinct column is
+  linear in the offset.
+* **Quads.** `search(s, p, o, c)` throws `UnsupportedOperationException`.
+  QLever stores quads natively and the cursor does not expose the graph column
+  yet; adding it is straightforward.
+* **Concurrency.** One `ScanCursor` per thread; the cursor is not thread-safe,
+  and `setMaxParallel` above 1 was not tried.
 
 ## Building the library
 
