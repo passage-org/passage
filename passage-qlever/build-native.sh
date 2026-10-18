@@ -85,6 +85,27 @@ if [ -z "$JNI" ]; then
 fi
 echo "== jni.h from $JNI"
 
+if [ "$OS" = linux ]; then
+  # The bridge is a shared library and everything it links is a static
+  # archive, so those archives have to be position-independent. Without this
+  # the link fails on a `thread_local` inside Boost.Asio that got instantiated
+  # into `libindex.a`:
+  #
+  #   relocation R_X86_64_TPOFF32 against symbol `...keyword_tss_ptr...'
+  #   can not be used when making a shared object; recompile with -fPIC
+  #
+  # QLever turns PIC on only together with `BUILD_SHARED_LIBS`, which is what
+  # its own CI builds with — which is why its CI never meets this. We do not
+  # want that here: it would scatter the code over a dozen `.so` files, while
+  # `QLeverNative.load()` copies exactly one file out of the jar and calls
+  # `System.load` on it. So keep the archives static and make them PIC.
+  #
+  # macOS does not need it — arm64 Mach-O code is position-independent
+  # anyway — and setting it there would invalidate a working build tree for
+  # nothing.
+  EXTRA=(-DCMAKE_POSITION_INDEPENDENT_CODE=ON)
+fi
+
 echo "== configuring QLever in $BUILD"
 cmake -S "$SRC" -B "$BUILD" -DCMAKE_BUILD_TYPE=Release "${EXTRA[@]}"
 # `qlever-index` comes along because an index is needed to use this module at

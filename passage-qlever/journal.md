@@ -17,6 +17,38 @@ commit in each where it matters.
 
 ---
 
+## 2026-10-18 — The first failure that is genuinely about Linux
+
+The C++ build ran to completion and then the link failed:
+
+```
+/usr/bin/ld: ../../lib/libindex.a(IndexImpl.cpp.o): relocation R_X86_64_TPOFF32
+against symbol `...boost::asio::detail::keyword_tss_ptr<...>::value_'
+can not be used when making a shared object; recompile with -fPIC
+```
+
+The bridge is a shared library; everything it links is a static archive; and
+on Linux x86_64 a static archive built without `-fPIC` cannot go into a `.so`.
+The symbol is a `thread_local` inside Boost.Asio's headers, instantiated into
+`libindex.a`. macOS cannot show this: arm64 Mach-O code is position-independent
+anyway.
+
+QLever turns PIC on only together with `BUILD_SHARED_LIBS`, which defaults to
+`OFF` and which its own CI sets to `ON` — so upstream never meets this
+either. Taking that route here would scatter the code over a dozen `.so`
+files, while `QLeverNative.load()` copies exactly one file out of the jar and
+calls `System.load` on it. So `build-native.sh` keeps the archives static and
+passes `-DCMAKE_POSITION_INDEPENDENT_CODE=ON`, on Linux only: macOS does not
+need it and setting it there would invalidate a working build tree for
+nothing.
+
+The cost is a full recompile, since PIC changes the code generated for every
+object. There is no way around that.
+
+Worth separating from the four findings below. Those were all things this
+machine already had and therefore could not miss. This one is a real
+difference between the two platforms, and it is the first.
+
 ## 2026-10-18 — What the neutral machine found that this one could not
 
 A Codespace was opened against the GitHub fork, and the run failed twice
