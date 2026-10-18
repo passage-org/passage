@@ -51,6 +51,7 @@ comparison.
 | | |
 | --- | --- |
 | The configure step fails on `Boost::url` | the base image is older than 24.04 and its Boost predates 1.81; `install-deps.sh` checks and says so |
+| The link fails on `relocation R_X86_64_TPOFF32 ... recompile with -fPIC` | QLever's static archives are not position-independent and the bridge is a shared library; `build-native.sh` passes `-DCMAKE_POSITION_INDEPENDENT_CODE=ON` on Linux. If you configured CMake by hand without it, the flag change forces a full recompile |
 | The compile is killed | not enough memory. `hostRequirements` asks for 16 GB, but a Codespace can be created on a smaller machine and that is not an error, only a slower, failing build |
 | No space left | the build tree alone is ~2.7 GB; QLever's CI frees 6 GB before building |
 | `UnsatisfiedLinkError` on a native method | the pinned QLever is older than the Java side that calls it |

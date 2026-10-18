@@ -17,6 +17,29 @@ commit in each where it matters.
 
 ---
 
+## 2026-10-18 — It builds and passes on Linux x86_64
+
+Twelve tests green in a Codespace: `QLeverBackendTest` 8,
+`QLeverContinuationTest` 4, on Ubuntu 24.04, x86_64, gcc 13.3, OpenJDK 21,
+against an index built there by `qlever-index`. Nothing of this had ever run
+off macOS/arm64.
+
+So the port is portable, and the loader's two spellings were worth it:
+`build-native.sh` names the directory `linux-x86_64` from `uname -m` while the
+JVM reports `os.arch=amd64`, and `QLeverNative.platformNames()` tries both
+rather than picking a side. That was written before any Linux existed to test
+it, and it is the one thing on this road that did not have to be fixed.
+
+What it took, in the order the failures arrived: a submodule pin that pointed
+at a QLever without the snapshot natives; a Codespace token that cannot read a
+second private repository; `mvn -pl <module>` unable to resolve
+`passage-commons` on an empty `~/.m2`; a JNI target silently skipped because
+no JAVA_HOME and no `default-java` symlink; and the link failing because
+QLever's static archives are not position-independent. Only the last is a real
+difference between the platforms. The other four were things this machine
+already had, and therefore could not miss — which is the whole argument for
+building somewhere that has nothing.
+
 ## 2026-10-18 — The first failure that is genuinely about Linux
 
 The C++ build ran to completion and then the link failed:
