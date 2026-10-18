@@ -101,6 +101,34 @@ public class QLeverBackend implements Backend<Long, String> {
                 "the QLever backend does not support quad patterns yet");
     }
 
+    /**
+     * The snapshot this backend reads. Every scan it opens reads this one, so
+     * the offsets a continuation carries stay meaningful for as long as the
+     * backend lives.
+     */
+    public long snapshotId() {
+        return QLeverNative.snapshotId(backend);
+    }
+
+    /**
+     * Whether the graph has been modified since this backend was opened.
+     *
+     * <p>A continuation carries offsets into a scan of a particular snapshot.
+     * If the graph has moved, those offsets point into a sequence that no
+     * longer exists, and the continuation is silently wrong — a deletion
+     * before the resume point shifts every later solution down by one. This
+     * says so; it cannot serve the old snapshot, which the engine does not
+     * retain once a query ends.
+     *
+     * <p>Through this bridge nothing writes, so this is false for the whole
+     * life of a backend. It earns its keep on the HTTP path, where each
+     * continuation is an independent request that takes whatever snapshot is
+     * current when it arrives.
+     */
+    public boolean snapshotHasMoved() {
+        return QLeverNative.currentSnapshotId(backend) != snapshotId();
+    }
+
     @Override
     public Long getId(String value, int... type) {
         long id = QLeverNative.getId(backend, value);

@@ -179,6 +179,17 @@ public final class QLeverNative {
     public static native long openBackend(String indexBasename);
     public static native void closeBackend(long backend);
     /** The identifier that stands for an unbound component of a triple pattern. */
+    /** The snapshot this backend was opened on; every scan reads that one. */
+    public static native long snapshotId(long backend);
+
+    /** The snapshot the engine would hand out now. Differs from
+     *  {@link #snapshotId} exactly when the graph moved since the open. */
+    public static native long currentSnapshotId(long backend);
+
+    /** Inserts one triple, so a test can move the snapshot. Test-only: the
+     *  bridge is otherwise read-only. */
+    public static native void moveSnapshotForTesting(long backend);
+
     public static native long any();
     public static native long getId(long backend, String value);
     public static native String getString(long backend, long id);

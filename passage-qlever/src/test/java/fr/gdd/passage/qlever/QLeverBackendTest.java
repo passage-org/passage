@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -142,6 +143,33 @@ class QLeverBackendTest {
         assertThrows(NotFoundException.class,
                 () -> lookup(backend, "<http://ex.org/no-such-thing>"),
                 "an IRI the index has never seen is not a wildcard");
+    }
+
+    /**
+     * A continuation carries offsets into a scan of one snapshot. If the graph
+     * moves underneath, those offsets point into a sequence that no longer
+     * exists, and nothing in the protocol says so. This is the detection: the
+     * snapshot the backend reads, against the one the engine would hand out
+     * now.
+     *
+     * <p>NOTE that this test needs its OWN backend, because it moves the
+     * snapshot and every later test would then see a graph with one more
+     * triple in it.
+     */
+    @Test
+    void aGraphThatMovesUnderAContinuationIsNoticed() {
+        QLeverBackend own = new QLeverBackend(
+                System.getProperty(INDEX_PROPERTY));
+        assertFalse(own.snapshotHasMoved(),
+                "nothing has written, so the snapshot cannot have moved");
+        long before = own.snapshotId();
+
+        QLeverNative.moveSnapshotForTesting(own.backend);
+
+        assertTrue(own.snapshotHasMoved(),
+                "an insert moved the graph and the backend still reads the old snapshot");
+        assertEquals(before, own.snapshotId(),
+                "the backend keeps reading the snapshot it was opened on");
     }
 
     /** As many matches as the cardinality says, no more and no fewer. */
