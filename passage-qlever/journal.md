@@ -25,11 +25,20 @@ against Passage's **4,363**. Ten times. `bench-engine.sh` reproduces it, and
 the plan is read from the server rather than assumed — `Join on ?s` over two
 index scans, a merge join.
 
-So the 1.68x of the JNI boundary measured earlier today is marginal next to it,
-and the cause is different: the algorithm. A merge join reads each permutation
-once; Passage opens 136,215 scans. Not a defect — a continuation has to stop
-mid-join and resume at an offset, and a merge join's state is not a pair of
-offsets.
+**Two different gaps, two different causes, and neither explains the other.**
+Reading "ten times" as superseding this morning's finding would be wrong:
+
+| the gap | its size | its cause |
+|---|---|---|
+| Passage on QLever vs Passage on **Blazegraph** | 2x | **the JNI crossing**, 1.68x of it measured on an otherwise identical loop. Not the storage, which does this join at Blazegraph's rate in C++ |
+| Passage vs **QLever's own engine** | 10x | the **join algorithm**: a merge join reads each permutation once, Passage opens 136,215 scans |
+
+The first is ours to fix and partly fixed already — +29% from reusing two
+buffers, and 490 ns per crossing still unexplained. The second is not a defect
+at all: a continuation has to stop mid-join and resume at an offset, and a
+merge join's state is not a pair of offsets. It is the price of being
+resumable, and it is the number to quote when someone asks what continuations
+cost.
 
 **I reported 60x first, from a `COUNT(*)`.** Pascal refused it: a count
 produces no bindings, so it does not measure what Passage does. He was right
