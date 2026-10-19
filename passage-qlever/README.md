@@ -522,6 +522,56 @@ lookups better than a block-compressed store does; measured, it is mostly the
 cost of crossing into C++, which only one of the two backends pays. The next
 section is that measurement.
 
+### Against QLever's own engine, which is the cost of resuming
+
+Everything above compares Passage on QLever against Passage on Blazegraph, and
+never against QLever evaluating the query itself. That last comparison is a
+different question — not how fast the storage is, but what the continuation
+machinery costs — and `bench-engine.sh` is it.
+
+The same join, the same data, rows actually produced:
+
+| `?s rdf:type ?c . ?s ?p ?o`, 10,332,352 solutions | |
+|---|---|
+| QLever's own engine | **435 / 440 / 534 ms** |
+| Passage on QLever | 4,363 ms |
+| Passage on Blazegraph | 3,198 ms |
+
+**About ten times**, and the reason is the join, not the boundary. The plan the
+server chooses, read from it rather than assumed:
+
+```
+Join on ?s
+  IndexScan SPO  ?s ?p ?o
+  IndexScan PSO  ?s <…22-rdf-syntax-ns#type> ?c
+```
+
+A merge join reads each permutation once, in sequence. Passage opens 136,215
+scans, one per outer solution, and pays to open each. The block cache took that
+from a factor of ninety-five against Blazegraph to 1.4; against an engine that
+opens nothing it is ten.
+
+That ten is **the price of resumability, not a defect**. Passage cannot merge
+join: a continuation has to stop in the middle of one and resume at an offset,
+and a merge join's state is not a pair of offsets. The 4,363 ms buy an
+execution that can be cut at any point and continued; the 435 ms buy a result
+or nothing.
+
+Three ways of measuring this gave three different answers, and only the third
+is the one above:
+
+| | reads | why it is wrong |
+|---|---|---|
+| `COUNT(*)`, same server three times | 62, 19, 22 ms | the last two are QLever's query cache |
+| `COUNT(*)`, fresh server | 70 ms | a count produces no bindings, which is not what Passage does |
+| `SELECT *`, TSV | 878 ms for 200,000 rows | resolves three IRIs per row through the vocabulary; `QLeverVsBlazegraphTest` counts bindings and never resolves one, so this measures a text formatter and reads six times *slower* than Passage |
+
+The binary export (`application/octet-stream`) is what matches: raw Ids, no
+vocabulary. Its byte count is also the integrity check, four variables at eight
+bytes each, 330,635,264 bytes over 32 being exactly 10,332,352. And it carries
+the HTTP transfer of those 330 MB on loopback, which Passage does not pay, so
+the ten is a floor.
+
 ### It is the boundary, not the storage
 
 The comparison above drives both backends through the same Java engine, but

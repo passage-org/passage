@@ -17,6 +17,38 @@ commit in each where it matters.
 
 ---
 
+## 2026-10-19 — Against QLever's own engine it is ten times, and that is the price of resuming
+
+Never measured before: everything compared Passage on QLever against Passage on
+Blazegraph. QLever's own engine does this join, rows produced, in **435 ms**
+against Passage's **4,363**. Ten times. `bench-engine.sh` reproduces it, and
+the plan is read from the server rather than assumed — `Join on ?s` over two
+index scans, a merge join.
+
+So the 1.68x of the JNI boundary measured earlier today is marginal next to it,
+and the cause is different: the algorithm. A merge join reads each permutation
+once; Passage opens 136,215 scans. Not a defect — a continuation has to stop
+mid-join and resume at an offset, and a merge join's state is not a pair of
+offsets.
+
+**I reported 60x first, from a `COUNT(*)`.** Pascal refused it: a count
+produces no bindings, so it does not measure what Passage does. He was right
+and the real figure is six times smaller. Three forms, three answers, and only
+the last is comparable:
+
+* `COUNT(*)` three times on one server: 62, 19, 22 ms — the query cache.
+* `COUNT(*)` on a fresh server: 70 ms — no bindings produced.
+* `SELECT *` as TSV: 878 ms for 200,000 rows, *slower* than Passage, because
+  TSV resolves three IRIs per row and `QLeverVsBlazegraphTest` counts
+  `BackendBindings` without ever resolving one.
+
+The binary export is what matches, and its byte count checks the rows:
+330,635,264 / 8 / 4 = 10,332,352 exactly.
+
+Also worth keeping: the script for this lived in a session scratchpad until
+Pascal asked where the code was. The JNI benchmarks were committed; this one
+was not, and would have vanished with the measurement unreproducible.
+
 ## 2026-10-19 — The join QLever "loses" is the JNI crossing, not the storage
 
 Asked whether translating across JNI could explain the join difference, and
