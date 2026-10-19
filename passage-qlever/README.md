@@ -477,10 +477,12 @@ A cold disk is not measured here. Evicting 2 GB of page cache needs `purge`
 and that needs privileges, so what is above is a cold process against a hot
 disk throughout.
 
-So QLever scans faster and Blazegraph joins faster, which is what the two
-designs predict: a nested-loop join is a sequence of point lookups, which a
-B-tree is for and a block-compressed column store is not. The block cache
-below is what brings that from a factor of ninety-five to a factor of 1.4.
+So QLever scans faster and Blazegraph joins faster. The explanation that
+suggests itself — a nested-loop join is a sequence of point lookups, which a
+B-tree is for and a block-compressed column store is not — turned out not to
+be what the measurement says; see *It is the boundary, not the storage* below.
+The block cache brings the join from a factor of ninety-five to a factor of
+1.4, and what remains of that 1.4 is mostly the JNI crossing.
 
 ### The comparison, at the plateau
 
@@ -514,10 +516,80 @@ thrown away now.
 | `?s a ?c . ?s ?p ?o` | 1,438,848 | **2,941,176** | Blazegraph 2.0x |
 
 So QLever reads faster and Blazegraph joins faster, and the cache is what makes
-the second a factor of two rather than of a hundred and twenty. A nested-loop
-join is a sequence of point lookups, which is what a B-tree is for and what a
-block-compressed column store is not; the cache removes the decompression but
-not the indirection.
+the second a factor of two rather than of a hundred and twenty. **The factor of
+two is not the storage.** It was attributed here to a B-tree suiting point
+lookups better than a block-compressed store does; measured, it is mostly the
+cost of crossing into C++, which only one of the two backends pays. The next
+section is that measurement.
+
+### It is the boundary, not the storage
+
+The comparison above drives both backends through the same Java engine, but
+their call paths do not have the same shape. Blazegraph is a Java store, so the
+engine reaches it by ordinary method calls. QLever is C++, so every scan
+crosses JNI. A figure that has QLever losing the join therefore adds two things
+together, and only one of the two backends pays the second.
+
+Two benchmarks separate them, running the identical nested loop over
+`?s rdf:type ?c . ?s ?p ?o` — outer scan on the predicate, inner scan bound
+on its subject, first 200,000 solutions, block cache 16, fan-out 20 solutions
+per scan:
+
+* `ScanCursorTest.timeAJoinAgainstARealIndex` in the QLever fork, entirely in
+  C++, both tuple at a time and in bulk through `fill`;
+* `JoinThroughJniBench` here, the same loop through `QLeverNative` directly
+  rather than through `QLeverBackend`, so that what it adds is the crossing and
+  not the Java-side iterator.
+
+| | solutions/s |
+|---|---|
+| C++, bulk `fill(1024)` | **3,324,452 / 3,240,329** |
+| C++, tuple at a time | 1,971,749 / 2,137,014 |
+| through JNI, bulk `fill(1024)` | **1,953,121 / 1,916,751 / 1,957,075** |
+| through JNI, before the buffers were reused | 1,518,041 |
+| QLever through the whole engine, from above | 1,438,848 |
+| Blazegraph through the whole engine, from above | 2,941,176 |
+
+**The crossing costs a factor of 1.68** on a loop that is otherwise identical.
+The engine, by contrast, costs almost nothing: 1.44M through all of
+`passage-volcano` against 1.52M through the bare boundary, five percent.
+
+Each figure is three runs, and the first run of the C++ benchmark is excluded
+because it is cold: it reads 2,436,355 /s against 3.3M warm, the index not yet
+being in the page cache. The Java side also carries one untimed pass of 20,000
+solutions, so that the JIT has compiled the loop.
+
+Most of what the crossing cost was waste rather than the boundary itself.
+`fill` allocated two vectors per call and value-initialised them, the first
+sized on the Java array rather than on the number of matches — so a scan
+returning twenty matches zeroed 24 kB, and so did the call that returned none
+and ended the loop. Reusing both per thread took 1,518,041 to 1,953,121, which
+is +29%. An estimate from memory bandwidth had predicted +60 to +80%, so the
+zero-filling was about 46% of the gap rather than the three quarters that
+estimate claimed.
+
+**What is still not explained** is the remaining 1.68. Over the ~70,000
+crossings this loop performs that is roughly 490 ns each, against the 100 ns an
+argument-less native call measures. Candidates, all on our side rather than
+JNI's: the `guarded` wrapper's try/catch on every call, six crossings per outer
+solution where one could return the cursor and its first batch together, and
+the copy itself, which `GetPrimitiveArrayCritical` or a direct `ByteBuffer`
+would avoid. Not yet measured, and not worth another estimate.
+
+**What this does not license.** The 1.68 is measured where the boundary hurts
+most: a fan-out of twenty means many crossings per solution. On a scan, where
+the fan-out is the whole relation, QLever wins 1.5 to 1.8x *through the same
+boundary*. So the cost of a rewrite in C++ is bounded by something between 1.0
+and 1.68 on real plans, against a block cache that was worth 58x — the
+dimension change here was algorithmic, not linguistic.
+
+**And one comparison that is still missing.** Blazegraph has never been
+measured bare, without the engine, the way QLever now is. So C++ at 3.3M
+against Blazegraph's 2.94M through the engine is *not* a fair pairing: it
+removes QLever's boundary without removing Blazegraph's engine. Inferring
+Blazegraph bare at about 3.1M from QLever's five percent engine overhead is an
+inference, not a measurement. A `BlazegraphJoinBench` symmetric with
+`JoinThroughJniBench` would settle what the published line really compares.
 
 On disk QLever holds the same data in 283 MB against 1.7 GB. In memory the
 order reverses and by more than expected: over twelve runs of the join the

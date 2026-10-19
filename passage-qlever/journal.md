@@ -17,6 +17,63 @@ commit in each where it matters.
 
 ---
 
+## 2026-10-19 — The join QLever "loses" is the JNI crossing, not the storage
+
+Asked whether translating across JNI could explain the join difference, and
+the answer is yes, for most of it. The published line — QLever 1,438,848
+solutions/s against Blazegraph 2,941,176, a factor of two — drives both
+backends through the same Java engine, but Blazegraph is a Java store reached
+by method calls while every QLever scan crosses into C++. Only one of the two
+pays the second cost, and the figure added them together.
+
+Two benchmarks now separate them, running the identical nested loop over
+`?s rdf:type ?c . ?s ?p ?o`, fan-out 20:
+`ScanCursorTest.timeAJoinAgainstARealIndex` in the fork, in C++, and
+`JoinThroughJniBench` here, through `QLeverNative` rather than through
+`QLeverBackend` so that the Java iterator is not in the way.
+
+| | solutions/s |
+|---|---|
+| C++, bulk `fill(1024)`, warm | 3,324,452 / 3,240,329 |
+| through JNI, after the fix | 1,953,121 / 1,916,751 / 1,957,075 |
+| through JNI, before | 1,518,041 |
+| QLever through the whole engine | 1,438,848 |
+| Blazegraph through the whole engine | 2,941,176 |
+
+**The crossing costs 1.68x.** The engine costs five percent. So the storage
+does this join at something like Blazegraph's rate, and the explanation this
+README gave — point lookups suit a B-tree and not a block store — is not
+what the measurement says. Corrected in both places it appeared, and on the
+deck's `blazegraph` slide.
+
+Most of the crossing was waste. `fill` allocated and value-initialised two
+vectors per call, the first sized on the Java array rather than on the matches:
+twenty matches zeroed 24 kB, and so did the call returning none that ended each
+inner loop. Reusing both per thread gave +29%.
+
+**Three of my own numbers were wrong along the way, and the pattern is the
+same each time: I estimated instead of measuring.**
+
+* I told Pascal the boundary was amortised to 0.1 ns per match. It is not:
+  there is a per-element conversion loop and, back then, two allocations per
+  call. His doubt was better founded than my answer.
+* I predicted the fix would give +60 to +80% from memory bandwidth. It gave
+  +29%. The zero-filling was 46% of the gap, not three quarters.
+* I first reported the C++ side at 2,914,608 /s from a single run of unknown
+  warmth. Three runs show the first one cold at 2,436,355 and the warm ones at
+  3.3M, which makes the gap *larger* than I had claimed, 1.68 rather than 1.49.
+
+Still open, and both are measurements rather than arguments: the 490 ns per
+crossing that remain unexplained against 100 ns for an argument-less call; and
+a `BlazegraphJoinBench` symmetric with this one, since Blazegraph has never
+been measured bare and "C++ 3.3M against Blazegraph 2.94M" removes QLever's
+boundary without removing Blazegraph's engine.
+
+And what it does not license: 1.68x is measured where the boundary hurts most.
+On a scan QLever already wins 1.5 to 1.8x *through the same boundary*. The
+block cache was worth 58x. The dimension change in this project was
+algorithmic, not linguistic.
+
 ## 2026-10-18 — Both repositories public, and the QLever one is now a real fork
 
 `github.com/momo54/qlever` is a fork of `ad-freiburg/qlever`, public, with
