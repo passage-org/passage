@@ -93,8 +93,17 @@ public class EnginePaceBench {
                             .setExecutorFactory(ec ->
                                     new PassagePushExecutor<>((PassageExecutionContext<?, ?>) ec))
                             .build();
-            context.executor.execute(
-                    Algebra.compile(QueryFactory.create(QUERY)), counting);
+            org.apache.jena.sparql.algebra.Op compiled =
+                    Algebra.compile(QueryFactory.create(QUERY));
+            // Passage reorders a BGP by cardinality before executing it, and
+            // the C++ kernel has no optimiser at all: it nests the loops in
+            // the order the query writes them. So the plan each one runs has
+            // to be printed, or the comparison is between two plans.
+            if (run == 1) {
+                System.out.println("  plan Passage executes: "
+                        + context.optimizer.optimize(compiled));
+            }
+            context.executor.execute(compiled, counting);
             double ms = (System.nanoTime() - start) / 1e6;
 
             System.out.printf(
