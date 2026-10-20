@@ -17,6 +17,56 @@ commit in each where it matters.
 
 ---
 
+## 2026-10-20 — JNI's overhead did not vanish; it stopped being the biggest term
+
+"So JNI has no effect?" — it does, and yesterday's 1.70x stands for what it
+measured. What changed is what sits around it. The two regimes, measured the
+same day on the same machine, index, plan and patched QLever:
+
+| | C++ kernel | Java engine, warm | ratio |
+|---|---|---|---|
+| **one triple pattern** — 1 scan, 200,000 tuples crossing | 6,203,666 /s | 5,885,014 /s | **1.05x** |
+| **two-pattern join** — 9,937 inner scan starts | 1,351,881 /s | 1,300,023 /s | **1.04x** |
+
+Per solution that is 161 ns against 170, and 740 ns against 769. So in the real
+engine the boundary costs **~10 to 30 ns per tuple**, not 211.
+
+Yesterday's 211 ns/solution was measured on `JoinThroughJniBench`, and reading
+it again says why it was that large: it makes **six crossings per outer
+binding** — `hasNext`, `getComponent`, `next` on the outer cursor, then
+`search`, `fill`, `closeCursor` on the inner one. At ~490 ns each, amortised
+over the ~20 solutions an inner scan yields, that is exactly the 211 ns. The
+figure is right; it is the cost of six crossings per 20 tuples, not of moving a
+tuple.
+
+And it is no longer dominant, because the terms around it are bigger:
+
+| per solution, join | |
+|---|---|
+| starting the 9,937 inner cursors (**both sides pay it**) | **530 ns** |
+| building a `Solution` in the C++ kernel | 112 ns |
+| the six JNI crossings per inner scan | ~147 ns |
+| `hasNext`, `openCursor`, the join's append | ~60 ns |
+
+Which also explains the tie rather than a C++ win: **the C++ kernel gives back
+what JNI costs the Java one.** It mallocs a `std::vector<Binding>` per tuple
+where the JVM bump-allocates in a TLAB. Two different taxes of the same size.
+
+**This puts yesterday's headline in doubt, and it should not be quoted until
+re-measured.** That entry named the JNI crossing as the cause of the 2x between
+Passage-on-QLever and Passage-on-Blazegraph. But the term now measured as
+dominant — 530 ns per solution of cursor start, a thread hand-off to QLever's
+decompression pool — is paid whether or not a boundary is crossed, and
+Blazegraph positions a B+tree cursor on the Java heap with no hand-off at all.
+That alone could produce a 2x. Settling it needs the `BlazegraphJoinBench`
+symmetric with `JoinThroughJniBench`, which is still not written: the
+Blazegraph line in that table is the whole engine, not the same loop.
+
+Reproduce either regime with `-Dbench.query=...` on `EnginePaceBench`, which
+defaults to the join.
+
+---
+
 ## 2026-10-20 — The C++ kernel is not faster, and the profiler says why: two thirds of it is asleep
 
 A C++ kernel was written to find out whether rewriting Passage below the JNI

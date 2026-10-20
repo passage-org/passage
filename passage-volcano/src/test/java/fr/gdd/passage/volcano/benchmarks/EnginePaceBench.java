@@ -40,9 +40,16 @@ public class EnginePaceBench {
     static final String INDEX_PROPERTY = "bench.qlever";
     static final String CLASS_LABEL = "EnginePaceBench";
     static final long CAP = 200_000;
-    static final String QUERY =
+    static final String QUERY_PROPERTY = "bench.query";
+    // The default is the two-pattern join. Overriding it matters because the
+    // two regimes answer different questions: a single pattern is one scan and
+    // 200,000 tuples crossing the boundary, so it measures the crossing; the
+    // join opens 9,937 inner scans, so it measures the scan start instead.
+    static final String DEFAULT_QUERY =
             "SELECT * WHERE { ?s <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?c ."
                     + " ?s ?p ?o }";
+    static final String QUERY =
+            System.getProperty(QUERY_PROPERTY, DEFAULT_QUERY);
 
     static TestAbortedException skip(String reason) {
         System.err.println("SKIPPING " + CLASS_LABEL + ": " + reason);
