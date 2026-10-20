@@ -17,6 +17,56 @@ commit in each where it matters.
 
 ---
 
+## 2026-10-20 — The block cache is worth 58x, and one block is enough — but a hit still costs a thread round trip
+
+Asked whether the cache earns its keep. Swept on the two-pattern join, three
+runs each, everything else held:
+
+| `--block-cache` | solutions/s |
+|---|---|
+| **0** (QLever's default) | **24,300** |
+| **1** | **1,414,236** |
+| 2, 4, 8, 16, 64, 256 | 1.31—1.46 M, flat |
+
+**58x from a single cached block, and nothing from the next 255.** The access
+pattern says why: the outer scan walks `?s rdf:type ?c` in SPO order, so
+subjects ascend, and a block of 31,250 rows covers ~1,500 consecutive subjects.
+One block therefore serves ~1,500 consecutive inner scans, and once the scan
+moves past it, it is never wanted again. A cache of one is a sliding window;
+the capacity is irrelevant.
+
+Without it, each inner scan decompresses a whole 31,250-row block to use ~20
+rows: 823 us per scan, against 10.7 us with the cache. That is the 58x.
+
+**But the cache does not remove the thread hand-off, only the decompression.**
+The profile that found 54% of the main thread in `__psynch_cvwait` was taken
+*with* the cache at 16, so the wait survives a hit. Reading
+`CompressedRelationReader::lazyScan` says why, and it is not a guess — the
+lambda that calls `readPossiblyIncompleteBlock`, which holds the cache lookup,
+carries the comment "This runs on the `executor`, concurrently for several
+blocks". So a hit goes: main thread pushes the task, sleeps on the future, a
+worker wakes, looks up **its own** `thread_local` cache, hits, fills the
+future, main thread wakes. Two context switches to find a block that was
+already in memory.
+
+(Six workers each keep their own cache, which is why hits still work when tasks
+round-robin: after one miss apiece, all six hold the block in use.)
+
+So the 10.7 us scan start, now 67% of the run, is mostly the round trip rather
+than any reading. **Consulting the cache on the calling thread, before pushing
+to the executor, would skip the hand-off entirely on a hit** — and
+`readPossiblyIncompleteBlock` returns the handful of matching rows by value,
+not a reference into the cache, so nothing is borrowed across threads. The
+ceiling is the 54%: ~142 ms could become ~65, call it up to 2x on this join.
+**That is an estimate from the profile, not a measurement, and it is not
+written yet.**
+
+It would be a QLever-side patch of the kind this fork exists for: a nested loop
+returns to the same block constantly, and QLever's own engine never does, which
+is why the parameter defaults to zero and why nobody needed the fast path.
+
+---
+
 ## 2026-10-20 — JNI's overhead did not vanish; it stopped being the biggest term
 
 "So JNI has no effect?" — it does, and yesterday's 1.70x stands for what it
