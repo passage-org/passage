@@ -17,6 +17,76 @@ commit in each where it matters.
 
 ---
 
+## 2026-10-20 — The C++ kernel is not faster, and the profiler says why: two thirds of it is asleep
+
+A C++ kernel was written to find out whether rewriting Passage below the JNI
+boundary buys a different order of performance. On the same index, the same
+query, the same left-deep plan and the same patched QLever (`cf167f18` on both
+sides, which took aligning the submodule), it does not:
+
+| | solutions/s |
+|---|---|
+| bare C++ loop on `ScanCursor`, same nested loop | 1,936,000 |
+| `passage-cpp` kernel | 1,351,881 (median of 5, spread 1.10—1.40 M) |
+| `passage-qlever`, JVM plateau | 1.34—1.51 M, still climbing at run 6 |
+| `passage-qlever`, cold JVM | 365,238 |
+
+**Java and C++ are the same speed here**, and the 1.43x against the bare loop
+was wrongly called "the cost of the Volcano model" in `baec4d5`. A profile
+(`sample`, 5 s, 2,657 samples on the main thread) says it is not:
+
+| | share of the main thread |
+|---|---|
+| `__sub_wait` -> `condition_variable::wait` -> `__psynch_cvwait` | **54%** |
+| handing work to the pool (`TaskQueueOnExecutor::push` -> `pthread_cond_signal`) | 5% |
+| own time of `UnionIterator::hasNext` | 3% |
+| own time of `JoinIterator::hasNext` | 0.3% |
+| own time of `ScanIterator::hasNext` | 0.1% |
+
+The six worker threads hold 2,633 samples each and spend ~2,497 of them in
+`__psynch_cvwait` — **idle 95% of the time**. Real decompression is ~800
+samples out of ~18,400 across all threads. Nothing here is CPU-bound; the
+machine is passing blocks between threads and sleeping.
+
+Counters then located it exactly, three runs within 5%:
+
+| | calls | total | each |
+|---|---|---|---|
+| **first `hasNext()` of a cursor** (starts the scan, waits for its block) | 9,937 | **100—113 ms** | **~10.7 us** |
+| every other `hasNext()` | 209,935 | 4.3 ms | 21 ns |
+| `ScanIterator::next()`, which builds the `Solution` | 200,000 | ~22 ms | ~112 ns |
+| `openCursor` (resolve 30 ns + located triples 73 ns + construct 739 ns) | 9,937 | 7.2 ms | 723 ns |
+| the join's own append of outer bindings | 200,000 | ~1 ms | ~5 ns |
+
+So of a 158 ms run, **67% is 9,937 cold inner-cursor starts** and 14% is
+building solutions. The Volcano protocol itself — `hasNext`/`next` through
+union, join and scan — is ~130 ns per solution, and most of that is the
+`Solution` vector's allocation, not the virtual calls.
+
+**And the bare C++ loop pays the same 10.4 us for the same 9,937 starts**
+(103 ms, essentially its whole run time). That cost is QLever's, not Passage's
+and not Java's: a nested loop join opens a scan per outer binding, and starting
+a scan means pushing a block to the decompression pool and sleeping until it
+comes back. Rewriting the engine in C++ cannot touch it.
+
+This is the number to attack, and it is the one the continuation model
+multiplies: Passage opens scans constantly. What would help is a cursor that is
+reused rather than reopened, or reading the inner side without a round trip
+through the pool — not a faster language.
+
+Four hypotheses about the 1.43x were wrong before the profiler was run:
+printing (true but separately, 87% of an earlier figure), per-scan allocation
+(2%), `Solution` objects (disproved by a 7.1 M/s single-scan figure), and
+comparing variable names as strings in the join's dedup loop. The last was
+coded, measured back to back, found worth **zero**, and reverted — it added
+state and a latent assumption that the left side's binding order never changes,
+for nothing.
+
+Reproduce: `passage --index <watdiv10m> --query '...' --quota 200000 --count`,
+block cache 16, and `sample <pid> 5 1`.
+
+---
+
 ## 2026-10-19 — Against QLever's own engine it is ten times, and that is the price of resuming
 
 Never measured before: everything compared Passage on QLever against Passage on
